@@ -52,7 +52,7 @@ node02.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.1
 node03.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
 ----
 
-Now going to add 3 more OCP compute nodes to cluster
+Now going to add 3 more OCP compute nodes to cluster.
 
 ----
 grep '#scaleup_' /etc/ansible/hosts
@@ -110,7 +110,7 @@ oc get nodes --show-labels | grep storage-node
 Next you will download Rook.io scc.yaml, operator.yaml and cluster.yaml to create OCP resources. After downloading each on view the file using the `cat` command before creating the resources using `oc create`.
 
 ----
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/scc.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/scc.yaml
 oc create -f scc.yaml
 ----
 
@@ -124,7 +124,7 @@ oc export scc rook-ceph
 Install the Rook operator next.
 
 ----
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/operator.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/operator.yaml
 oc create -f operator.yaml
 oc project rook-ceph-system
 watch oc get pods -o wide
@@ -142,13 +142,15 @@ Next step is to download and install the cluster CRD to create Ceph MON, MGR and
 ----
 oc new-project rook-ceph
 oc adm pod-network make-projects-global rook-ceph
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/cluster.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/cluster.yaml
 ----
 
 Take a look at the cluster.yaml file. It specifies the version of Ceph, the label used for the rook resources (role=storage-node) added at the start of this section, and the nodes and storage devices used for OSDs.
 
 ----
 cat cluster.yaml
+...omitted...
+    image: ceph/ceph:v12.2.11-20190201
 ...omitted...
   placement:
     all:
@@ -160,8 +162,6 @@ cat cluster.yaml
               operator: In
               values:
               - storage-node
-...omitted...
-    image: ceph/ceph:v12.2.11-20190201
 ...omitted...
   storage: # cluster level storage configuration and selection
     useAllNodes: false
@@ -203,14 +203,14 @@ rook-ceph-osd-2-7cc7bdf44d-ncqbr            1/1	      Running     0          1m
 Once all pods are in a Running state it is time to verify that Ceph is operating correctly. Download toolbox.yaml to run Ceph commands.
 
 ----
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/toolbox.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/toolbox.yaml 
 oc create -f toolbox.yaml
 ----
 
 Login to toolbox pod to run Ceph commands.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ceph status
 ceph osd status
 ceph osd tree
@@ -226,11 +226,11 @@ Disregard the ‘health: HEALTH_WARN mons a,b,c are low on available space’ me
 In this section you will download storageclass.yaml and then create the OCP storageclass `rook-ceph-block` that will be used by applications to dynamically claim persistent storage (PVCs). The Ceph pool `replicapool` is created when the storageclass is created.
 
 ----
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/storageclass.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/storageclass.yaml
 cat  storageclass.yaml
 ----
 
-Notice the provisioner: ceph.rook.io/block and that replicated: size=2.
+Notice the provisioner: ceph.rook.io/block and that replicated: size=2 when there are only 3 OSDs. This means that each volume created will be replica=2 and if one OSD is down volumes can continue to be created. 
 
 ----
 oc create -f storageclass.yaml
@@ -239,7 +239,7 @@ oc create -f storageclass.yaml
 Login to toolbox pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the storageclass was created.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ceph df
 rados df
 rados -p replicapool ls
@@ -334,7 +334,7 @@ password: secret
 Lets now take another look at the replicapool created by the OCP storageclass. Log into the toolbox pod again.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in replicapool now.
@@ -395,7 +395,7 @@ rook-ceph-osd-2-f78c88c48-w7mst              1/1	   Running     0          2s
 Now let's check the version of Ceph to see if it is upgraded. First we need to login to the toolbox pod.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 Running the `ceph versions` command shows each of the Ceph daemons have been upgraded to Mimic. Run other Ceph commands to satisfy yourself (e.g., ceph status) the system is healthy after the upgrade. You might even want to go back to the URL used for the Rails+PostgreSQL application and save a few more articles to make sure applications using Ceph storage are still working.
@@ -471,7 +471,7 @@ After validating the available storage for increasing the number of OSDs we are 
 To make this easier we have created a new cluster CRD yaml file that has the new storage device already added correctly instead of editing the cluster CRD using `oc edit`.
 
 ----
-curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/cluster_with_xvde.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp3rook/cluster_with_xvde.yaml
 ----
 
 Take a look at the new cluster CRD yaml file.
@@ -523,7 +523,7 @@ rook-ceph-osd-5-7444994795-ptnqz           1/1       Running     0          1m
 Let's now validate that Ceph is healthy and has the additional storage. We again login to the toolbox.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 And run Ceph commands to see the new OSDs.
