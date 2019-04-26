@@ -12,6 +12,7 @@
 // https://github.com/openshift/openshift-cns-testdrive/tree/master/labguide
 // https://github.com/travisn/rook/tree/openshift-commons-demo/workshop
 
+:numbered:
 == OpenShift Container Platform Environment Overview
 
 You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also install OpenShift Container Storage 3.11 and Rook. The complete environment consists of the following systems:
