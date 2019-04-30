@@ -15,14 +15,16 @@
 :numbered:
 == OpenShift Container Platform Environment Overview
 
-You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also install OpenShift Container Storage 3.11 and Rook. The complete environment consists of the following systems:
+You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also use OpenShift Container Storage 3.11 and and install Rook on top of the OpenShift Cluster.
+
+The complete environment consists of the following systems:
 
 * 1 master node
 * 1 infrastructure node
 * 6 worker nodes
 ** 3 will run workload and the initial Container Native Storage instances
-** 3 will be added to the cluster later
-// * 1 server running Red Hat Identity Management (IdM, for LDAP authentication)
+** 3 will be added to the cluster later and will be used to deploy Rook
+* 1 server running Red Hat Identity Management (IdM, for LDAP authentication)
 
 .Lab Environment Overview
 [options="header"]
@@ -36,7 +38,7 @@ You will be interacting with an OpenShift 3.11 cluster that is running on Amazon
 | Application Node #4 | node04.internal.aws.testdrive.openshift.com
 | Application Node #5 | node05.internal.aws.testdrive.openshift.com
 | Application Node #6 | node06.internal.aws.testdrive.openshift.com
-// | IdM Server | idm.internal.aws.testdrive.openshift.com
+| IdM Server | idm.internal.aws.testdrive.openshift.com
 |==============================================
 
 All addresses are internal to the lab environment. The only system you
@@ -46,13 +48,8 @@ publicly access via SSH and the browser is the OpenShift Master node:
 [options="header"]
 |==============================================
 | Role | Public FQDN
-| Master Node | master.external.aws.testdrive.openshift.com
-// WKTBD: How do we get the >actual< Master URL?
+| Master Node | *Consult your handout for the actual master URL* (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
 |==============================================
-
-You will be installing OpenShift Container Platform v3.11 using the advanced
-installation method, which involves executing various Ansible playbooks. You
-will also install Container Native Storage v3.11.
 
 Note that references to product documentation will be specifically pointing
 to the 3.11 versions, but newer software and documentation versions may be
@@ -60,10 +57,7 @@ available.
 
 === Conventions
 
-You will see various code and command blocks throughout these exercises. Some of
-the command blocks can be copy/pasted directly. Others will require modification
-of the command before execution. If you see a command block with a red border
-(see below), the command will require slight modification.
+You will see various code and command blocks throughout these exercises. Some of the command blocks can be copy/pasted directly. Others will require modification of the command before execution. If you see a command block with a red border (see below), the command will require slight modification.
 
 [source,none,role="copypaste copypaste-warning"]
 ----
@@ -74,22 +68,18 @@ Most command blocks support auto highlighting with a click. If you hover over th
 
 === Logging in
 
-Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node. For convenient access to the master's command line we provide a web-based SSH console: http://ssh.external.aws.testdrive.openshift.com:8080/ssh/host/master.internal.aws.testdrive.openshift.com
-// WKTBD: What is the actual SSH Console URL?
+Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node. For convenient access to the master's command line we provide a web-based SSH console:
 
-Use the user name `cloud-user` and the password `{{ KEYNAME }}` when prompted.
-// WKTBD: What is the password??
+*Consult the Handout for actual URL of the SSH Console*. It will be similar to `http://ssh.external.aws.testdrive.openshift.com:8080/ssh/host/master.internal.aws.testdrive.openshift.com`
 
-.SSH Console Login
-image::webssh_login.png[]
+Use the user name `cloud-user` and the password provided to you on the handout when prompted.
 
 If you prefer to use an SSH client on your system you can do that too, using the same credentials:
 
 [source,bash,role="copypaste"]
 ----
-ssh -l cloud-user master.external.aws.testdrive.openshift.com
+ssh -l cloud-user <Your Master URL from the handout>
 ----
-// WKTBD: What is the actual master URL?
 
 Once you are logged in you end up on the OpenShift Master Node:
 
@@ -101,8 +91,7 @@ The `cloud-user` account has password-less sudo privileges and SSH login on
 all systems using internal addressing from the table above.
 
 // WK: Part 2 Installation / Verification
-
-## Installation and Verification
+=== Installation and Verification
 
 The primary method of installing OpenShift Container Platform is based on
 Ansible playbooks. These playbooks ship as part of the product in the
@@ -118,10 +107,7 @@ Your environment comes with a preinstalled cluster that has been deployed
 using the installer's configuration file (`/etc/ansible/hosts`) when you
 started the lab.
 
-For more information on installing OpenShift Container Platform, please refer to
-the
-link:https://docs.openshift.com/container-platform/3.11/install/index.html[installation
-section] of the product documentation.
+For more information on installing OpenShift Container Platform, please refer to the link:https://docs.openshift.com/container-platform/3.11/install/index.html[installation section] of the product documentation.
 
 [NOTE]
 ====
@@ -140,13 +126,7 @@ Use `cat`, `less`, or an editor to look at the `/etc/ansible/hosts` file:
 cat /etc/ansible/hosts
 ----
 
-General settings and other variable information is defined on lines within the
-`[OSEv3:vars]` section. There are also various host groups defined for things
-like *Masters* and *Nodes*.
-
-For more details on how OpenShift uses Ansible for its installation, please
-refer to the
-link:https://docs.openshift.com/container-platform/3.11/install/configuring_inventory_file.html[Configuring Your Inventory File].
+General settings and other variable information is defined on lines within the `[OSEv3:vars]` section. There are also various host groups defined for things like *Masters* and *Nodes*.
 
 The top-level playbook in
 `/usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml` triggers
@@ -167,18 +147,19 @@ installation options are also available. Prerequisites and other information
 is all covered in the documentation.
 ====
 
-### Verifying the Installation
+=== Verifying the Installation
+
 Let's do some basic tests with your installation. As an administrator, most
 of your interaction with OpenShift will be from the command line. The `oc`
 program is a command line interface that talks to the OpenShift API.
 
 During the OpenShift installation, the `root` system account on the `master`
-host is configured to use a special OpenShift "super administrator" account.
+host is configured to use a special OpenShift "super administrator" (`system:admin`) account.
 Because of this, it is vitally important that you protect access to the
 `root` system account, or remove this preconfigured config. Otherwise, anyone
 who can `sudo` on the master has super user privileges on the entire cluster.
 
-#### Login on the master
+==== Login on the master
 Additionally, your Linux system account on the master, `cloud-user`, is
 preconfigured to access this OpenShift "super administrator" without a
 password. Type the following command to login as the internal super-user on
@@ -215,9 +196,9 @@ You have access to the following projects and can switch between them with 'oc p
 Using project "default".
 ----
 
-#### Look at the Nodes
-Execute the following command to see a list of the *Nodes* that OpenShift knows
-about:
+==== Look at the Nodes
+
+Execute the following command to see a list of the *Nodes* that OpenShift knows about:
 
 [source,bash,role="copypaste"]
 ----
@@ -235,32 +216,22 @@ node02.internal.aws.testdrive.openshift.com   Ready     compute   1m	v1.11.0+d4c
 node03.internal.aws.testdrive.openshift.com   Ready     compute   1m	v1.11.0+d4cacc0
 ----
 
-All of the systems listed in the `[nodes]` group in the `/etc/ansible/hosts`
-file should be listed here. 1 Infrastructure Node, 1 Master and 3 Worker nodes.
+All of the systems listed in the `[nodes]` group in the `/etc/ansible/hosts` file should be listed here: 1 Infrastructure Node, 1 Master and 3 Worker nodes.
 
-The OpenShift *Master* is also a *Node* because it needs to participate in the
-software defined network (SDN).
-The *Infra* node will only run workloads related to supporting OpenShift infrastructure.
+The OpenShift *Master* is also a *Node* because it needs to participate in the software defined network (SDN). The *Infra* node will only run workloads related to supporting OpenShift infrastructure.
 
 === Verify the Storage cluster
 
-In your environment Red Hat OpenShift Container Storage was installed as part of
-OpenShift. It will serve robust and persistent storage to both business
-applications as well as OpenShift infrastructure. It is based on Red Hat
-Gluster Storage, running in containers on OpenShift nodes and an additional
-API server called `heketi` that enables the API integration with OpenShift.
+In your environment Red Hat OpenShift Container Storage was installed as part of OpenShift. It will serve robust and persistent storage to both business applications as well as OpenShift infrastructure. It is based on Red Hat Gluster Storage, running in containers on OpenShift nodes and an additional API server called `heketi` that enables the API integration with OpenShift.
 
-We will now use a command line client on the *master* to talk via this server
-to the container storage cluster. It's password protected, so let's export a
-couple of environment variables first to configure the client:
+We will now use a command line client on the *master* to talk via this server to the container storage cluster. It's password protected, so let's export a couple of environment variables first to configure the client:
 
 [source,bash,role="copypaste"]
 ----
-export HEKETI_CLI_SERVER=http://heketi-storage-{{CNS_NAMESPACE}}.{{OCP_ROUTING_SUFFIX}}
+export HEKETI_CLI_SERVER=http://$(oc get route heketi-storage -n storage -o jsonpath --template='{.spec.host}')
 export HEKETI_CLI_USER=admin
-export HEKETI_CLI_KEY={{HEKETI_ADMIN_PW}}
+export HEKETI_CLI_KEY=myS3cr3tpassw0rd
 ----
-//WKTBD: What are the values for the above?
 
 Then use the CLI tool `heketi-cli` to query `heketi` about all the storage clusters it knows about:
 
@@ -273,7 +244,7 @@ heketi-cli cluster list
 
 ----
 Clusters:
-ec7a9c8be8327a54839236791bf7ba24 [file][block]<1>
+Id:998294af2211ff544338490e3e19db65 [file][block]<1>
 ----
 <1> This is the internal UUID of the OCS cluster
 
@@ -293,59 +264,78 @@ heketi-cli topology info
 
 You will get a lengthy output that describes the GlusterFS cluster topology as it is known by `heketi`:
 
-//WKTBD: Replace Variables below
 ----
-Cluster Id: ec7a9c8be8327a54839236791bf7ba24
+Cluster Id: 998294af2211ff544338490e3e19db65
 
     File:  true
     Block: true
 
-    Volumes
+    Volumes:
 
-        Name: heketidbstorage <1>
-        Size: 2
-        Id: 272c8d37828c62c4002a19027abd2feb
-        Cluster Id: ec7a9c8be8327a54839236791bf7ba24
-        Mount: {{NODE1_INTERNAL_IP}}:heketidbstorage
-        Mount Options: backup-volfile-servers={{NODE2_INTERNAL_IP}},{{NODE2_INTERNAL_IP}}
-        Durability Type: replicate
-        Replica: 3
-        Snapshot: Disabled
+	Name: heketidbstorage <1>
+	Size: 2
+	Id: 0a9dd2d7c931dae933e5a6e6e701d49c
+	Cluster Id: 998294af2211ff544338490e3e19db65
+	Mount: 10.0.3.28:heketidbstorage
+	Mount Options: backup-volfile-servers=10.0.4.14,10.0.1.83
+	Durability Type: replicate
+	Replica: 3
+	Snapshot: Disabled
+
+		Bricks:
+			Id: 11b26cef66e828ece65d834138ffe976
+			Path: /var/lib/heketi/mounts/vg_f3668aa3855cd9a84642ca29db45af1c/brick_11b26cef66e828ece65d834138ffe976/brick
+			Size (GiB): 2
+			Node: 7c43c7bf6d505c74c4a71cf4f7cc8b6a
+			Device: f3668aa3855cd9a84642ca29db45af1c
+
+			Id: 2a3d7a2b4392139fd26cc76d8354d474
+			Path: /var/lib/heketi/mounts/vg_5a46f5d3788ed61352f565385edce8d5/brick_2a3d7a2b4392139fd26cc76d8354d474/brick
+			Size (GiB): 2
+			Node: 5a284ad7ed633f2d9879b3ff3833607b
+			Device: 5a46f5d3788ed61352f565385edce8d5
+
+			Id: 358a23c9511817a660a51aaaec90df08
+			Path: /var/lib/heketi/mounts/vg_550bc327799e3c436a2e35e4b584c2ca/brick_358a23c9511817a660a51aaaec90df08/brick
+			Size (GiB): 2
+			Node: 7a814aa4abcebfad2ede80d51dc417b3
+			Device: 550bc327799e3c436a2e35e4b584c2ca
+
 
     Nodes:
 
-	Node Id: 099b016da11a623bef37de9b85aaa2d7
+	Node Id: 5a284ad7ed633f2d9879b3ff3833607b
 	State: online
-	Cluster Id: ec7a9c8be8327a54839236791bf7ba24
-	Zone: 3
-	Management Hostname: {{NODE3_INTERNAL_FQDN}}
-	Storage Hostname: {{NODE3_INTERNAL_FQDN}}
-	Devices:
-		Id:e64fac664861c14bd75e3116f805b8fc   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):0       Free (GiB):49
-			Bricks:
-                            [...]
-
-	Node Id: 43336d05323e6003be6740dbb7477bd6
-	State: online
-	Cluster Id: ec7a9c8be8327a54839236791bf7ba24
-	Zone: 1
-	Management Hostname: {{NODE1_INTERNAL_FQDN}}
-	Storage Hostname: {{NODE1_INTERNAL_IP}}
-	Devices:
-		Id:11a148d8065f6a6220f89c2912d00d13   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):0       Free (GiB):49
-			Bricks:
-                            [...]
-
-	Node Id: 6c738028f642e37b2368eca88f8c626c
-	State: online
-	Cluster Id: ec7a9c8be8327a54839236791bf7ba24
+	Cluster Id: 998294af2211ff544338490e3e19db65
 	Zone: 2
-	Management Hostname: {{NODE2_INTERNAL_FQDN}}
-	Storage Hostname: {{NODE2_INTERNAL_IP}}
+	Management Hostnames: node02.internal.aws.testdrive.openshift.com
+	Storage Hostnames: 10.0.3.28
 	Devices:
-		Id:cf7c0dfb258f07be25ac9cd4c4d2e6ae   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):0       Free (GiB):49
+		Id:5a46f5d3788ed61352f565385edce8d5   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):2       Free (GiB):47
 			Bricks:
-                            [...]
+				Id:2a3d7a2b4392139fd26cc76d8354d474   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_5a46f5d3788ed61352f565385edce8d5/brick_2a3d7a2b4392139fd26cc76d8354d474/brick
+
+	Node Id: 7a814aa4abcebfad2ede80d51dc417b3
+	State: online
+	Cluster Id: 998294af2211ff544338490e3e19db65
+	Zone: 3
+	Management Hostnames: node03.internal.aws.testdrive.openshift.com
+	Storage Hostnames: 10.0.4.14
+	Devices:
+		Id:550bc327799e3c436a2e35e4b584c2ca   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):2       Free (GiB):47
+			Bricks:
+				Id:358a23c9511817a660a51aaaec90df08   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_550bc327799e3c436a2e35e4b584c2ca/brick_358a23c9511817a660a51aaaec90df08/brick
+
+	Node Id: 7c43c7bf6d505c74c4a71cf4f7cc8b6a
+	State: online
+	Cluster Id: 998294af2211ff544338490e3e19db65
+	Zone: 1
+	Management Hostnames: node01.internal.aws.testdrive.openshift.com
+	Storage Hostnames: 10.0.1.83
+	Devices:
+		Id:f3668aa3855cd9a84642ca29db45af1c   Name:/dev/xvdd           State:online    Size (GiB):49      Used (GiB):2       Free (GiB):47
+			Bricks:
+				Id:11b26cef66e828ece65d834138ffe976   Size (GiB):2       Path: /var/lib/heketi/mounts/vg_f3668aa3855cd9a84642ca29db45af1c/brick_11b26cef66e828ece65d834138ffe976/brick
 ----
 <1> An internal GlusterFS volume that is automatically generated by the setup routine to hold the heketi database.
 
@@ -356,203 +346,26 @@ these 3 devices/hosts into a single, flat storage pool from which OpenShift
 will be able to carve out either distinct filesystem volumes or block devices
 that serve as persistent storage for containers.
 
-// WK: Part 2, Scaleup
-
-== Infrastructure Management, Adding Nodes to your Cluster
-
-In this lab you will explore various aspects of managing cluster infrastructure.
-This includes extending the OpenShift cluster and installation of the
-Logging and Metrics components, all automated by the installer. It also includes
-some maintenance of nodes, as well as manipulating the multitenant network.
-
-[NOTE]
-====
-It is required that you `sudo -i` to `root` before performing these exercises.
-====
-
-=== Extending the Cluster
-
-Extending the cluster is easy. Simply add a new set of hosts to an Ansible group
-called `new_nodes` in the `openshift-ansible` installer's inventory. Then, run
-the `scaleup` playbook.
-
-==== Configure the Installer
-
-Your environment already has 3 additional nodes provisioned, but you have not used
-them so far. They are already configured in the inventory file, but commented out with a `#scaleup_` prefix.
-
-To see the lines run:
-
-[source,bash,role="copypaste"]
-----
-grep '#scaleup_' /etc/ansible/hosts
-----
-
-Remove the `#scaleup_` comment prefix by running the below `sed` command:
-
-[source,bash,role="copypaste"]
-----
-sudo sed -i 's/#scaleup_//g' /etc/ansible/hosts
-----
-
-When finished, your inventory file should look like the following:
-
-[source,ini]
-./etc/ansible/hosts
-----
-[OSEv3:children]
-masters
-nodes
-etcd
-glusterfs
-new_nodes
-
-...
-
-[new_nodes]
-node04.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_hostname=node04.internal.aws.testdrive.openshift.com openshift_public_hostname=node04.external.aws.testdrive.openshift.com
-node05.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_hostname=node05.internal.aws.testdrive.openshift.com openshift_public_hostname=node05.external.aws.testdrive.openshift.com
-node06.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_hostname=node06.internal.aws.testdrive.openshift.com openshift_public_hostname=node06.external.aws.testdrive.openshift.com
-
-...
-----
-
-Now that these hosts are properly defined (uncommented), you can use Ansible to
-verify that they are, in fact, online:
-
-[source,bash,role="copypaste"]
-----
-ansible new_nodes -m ping
-----
-
-You will see:
-
-----
-node04.internal.aws.testdrive.openshift.com | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-node05.internal.aws.testdrive.openshift.com | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-node06.internal.aws.testdrive.openshift.com | SUCCESS => {
-    "changed": false,
-    "ping": "pong"
-}
-----
-
-Much like when you installed OpenShift originally, these new hosts have all of
-the
-link:https://docs.openshift.com/container-platform/3.11/install_config/install/prerequisites.html[prerequisites]
-already taken care of.
-
-#### Run the Playbook to Extend the Cluster
-To extend your cluster run the following playbook:
-
-[source,bash,role="copypaste"]
-----
-ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/openshift-node/scaleup.yml
-----
-
-The playbook takes 1-2 minutes to complete. When done, you can verify that there are now 6 `compute` nodes:
-
-[source,bash,role="copypaste"]
-----
-oc get nodes -l node-role.kubernetes.io/compute=true
-----
-
-You will see:
-
-----
-NAME                                          STATUS    ROLES     AGE       VERSION
-node01.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
-node02.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
-node03.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
-node04.internal.aws.testdrive.openshift.com   Ready     compute   18m       v1.11.0+d4cacc0
-node05.internal.aws.testdrive.openshift.com   Ready     compute   18m       v1.11.0+d4cacc0
-node06.internal.aws.testdrive.openshift.com   Ready     compute   18m       v1.11.0+d4cacc0
-----
-
-After the scaleup succeeds you need to remove the `new_nodes` entry from [osev3:children]. You also need to remove the '[new_nodes]' section to add the new nodes to the regular [nodes] section of the inventory file.
-
-Check the two lines that got added to enable the scaleup operation:
-----
-grep new_nodes /etc/ansible/hosts
-----
-
-You will see:
-
-----
-new_nodes
-[new_nodes]
-----
-
-Remove [new_nodes] to add new nodes to the [nodes] section in the inventory file. 
-
-----
-sudo sed -i '/^\[new_nodes/d' /etc/ansible/hosts
-----
-
-Remove new_nodes from [osev3:children] section of the inventory file.
-
-----
-sudo sed -i '/^new_nodes/d' /etc/ansible/hosts
-----
-
-Your modified inventory file should now look like this:
-
-----
-[OSEv3:children]
-masters
-nodes
-etcd
-glusterfs
-#ocsinfra_glusterfs_registry
-
-...
-
-[nodes]
-{{ MASTER_INTERNAL_FQDN }} openshift_node_group_name='node-config-master' openshift_hostname={{ MASTER_INTERNAL_FQDN }} openshift_public_hostname={ MASTER_EXTERNAL_FQDN }}
-{{ INFRA_INTERNAL_FQDN }} openshift_node_group_name='node-config-infra' openshift_hostname={{ INFRA_INTERNAL_FQDN }} openshift_public_hostname={{INFRA_EXTERNAL_FQDN }}
-{{ NODE1_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE1_INTERNAL_FQDN }} openshift_public_hostname={{ NODE1_EXTERNAL_FQDN }}
-{{ NODE2_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE2_INTERNAL_FQDN }} openshift_public_hostname={{ NODE2_EXTERNAL_FQDN }}
-{{ NODE3_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE3_INTERNAL_FQDN }} openshift_public_hostname={{ NODE3_EXTERNAL_FQDN }}
-
-{{ NODE4_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE4_INTERNAL_FQDN }} openshift_public_hostname={{ NODE4_EXTERNAL_FQDN }}
-{{ NODE5_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE5_INTERNAL_FQDN }} openshift_public_hostname={{ NODE5_EXTERNAL_FQDN }}
-{{ NODE6_INTERNAL_FQDN }} openshift_node_group_name='node-config-compute' openshift_hostname={{ NODE6_INTERNAL_FQDN }} openshift_public_hostname={{ NODE6_EXTERNAL_FQDN }}
-
-...
-----
-
-
-// WK: Part 3: OCS
-
+// WK: Part 2: OCS
 == OpenShift Container Storage Concepts
 
-In this lab we are going to provide a view 'under the hood' of OpenShift
-`PersistentVolumes` provided by OpenShift Container Storage (OCS). For this
-purpose we will examine volumes leveraged by example applications using
+In this lab we are going to provide a view 'under the hood' of OpenShift `PersistentVolumes` provided by OpenShift Container Storage (OCS). For this purpose we will examine volumes leveraged by example applications using
 different volume access modes.
 
 === How OpenShift Container Storage runs
 
-Make sure you are logged on as the super user in the `openshift-storage`:
+Make sure you are still logged on as the super user:
 
 [source,bash,role="copypaste"]
 ----
-oc login -u system:admin -n openshift-storage
+oc login -u system:admin
 ----
 
-OpenShift Container Storage is GlusterFS running in containers, specifically
-in pods managed by OpenShift. We have looked at the pods making up the
-storage cluster already in the introduction chapter. Go ahead and switch to the
-storage project:
+OpenShift Container Storage is GlusterFS running in containers, specifically in pods managed by OpenShift. We have looked at the pods making up the storage cluster already in the introduction chapter. Go ahead and switch to the storage project:
 
 [source,bash,role="copypaste"]
 ----
-oc project openshift-storage
+oc project storage
 ----
 
 Then, take a look at the storage *Pods*:
@@ -565,11 +378,11 @@ oc get pods -o wide
 Which yields:
 
 ----
-NAME                      READY     STATUS    RESTARTS   AGE       IP           NODE                                          NOMINATED NODE
-glusterfs-storage-7qzsm   1/1       Running   0          2h        10.0.3.252   {{NODE1_INTERNAL_FQDN}} <1>   <none>
-glusterfs-storage-7rds5   1/1       Running   0          2h        10.0.1.238   {{NODE2_INTERNAL_FQDN}} <1>   <none>
-glusterfs-storage-x7chr   1/1       Running   0          2h        10.0.4.221   {{NODE3_INTERNAL_FQDN}} <1>   <none>
-heketi-storage-1-bxqr2    1/1       Running   0          2h        10.131.0.6   {{INFRA_INTERNAL_FQDN}} <2>   <none>
+NAME                      READY     STATUS    RESTARTS   AGE       IP           NODE                                             NOMINATED NODE
+glusterfs-storage-l5sxd   1/1       Running   0          3h        10.0.1.83    node01.internal.aws.testdrive.openshift.com <1>   <none>
+glusterfs-storage-l99db   1/1       Running   0          3h        10.0.4.14    node03.internal.aws.testdrive.openshift.com <1>  <none>
+glusterfs-storage-tsr4g   1/1       Running   0          3h        10.0.3.28    node02.internal.aws.testdrive.openshift.com <1>  <none>
+heketi-storage-1-c6tt8    1/1       Running   0          3h        10.128.2.7   infra.internal.aws.testdrive.openshift.com  <2>  <none>
 ----
 <1> OCS *Pods*, with each of the designated nodes running exactly one.
 <2> heketi API frontend pod
@@ -580,20 +393,15 @@ The exact *pod* names will be different in your environment, since they are
 auto-generated. Also the heketi *pod* might run on any node.
 ====
 
-The OCS *Pods* use the host's network and block devices to run the
-software-defined storage system. See schematic below for a visualization.
+The OCS *Pods* use the host's network and block devices to run the software-defined storage system. See schematic below for a visualization.
 
 .GlusterFS pods in OCS in detail.
-image::cns_diagram_pod.png[]
+image::./images/cns_diagram_pod.png[]
 
-`heketi` is a component that exposes an API to the storage system for
-OpenShift. This allows OpenShift to dynamically allocate storage from OCS in a
-programmatic fashion. See below for a visualization. Note that for simplicity,
-in our example heketi runs on the OpenShift application nodes, not on the
-infrastructure node.
+`heketi` is a component that exposes an API to the storage system for OpenShift. This allows OpenShift to dynamically allocate storage from OCS in a programmatic fashion. See below for a visualization. Note that for simplicity, in our example heketi runs on the OpenShift application nodes, not on the infrastructure node.
 
 .heketi pod running in OCS
-image::cns_diagram_heketi.png[]
+image::./images/cns_diagram_heketi.png[]
 
 ==== Examine heketi
 
@@ -609,19 +417,19 @@ oc get service,route
 You will see something like:
 
 ----
-NAME                              TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-svc/heketi-db-storage-endpoints   ClusterIP   172.30.228.77   <none>        1/TCP      2h
-svc/heketi-storage                ClusterIP   172.30.54.191   <none>        8080/TCP   2h
+NAME                                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+service/heketi-db-storage-endpoints   ClusterIP   172.30.170.71   <none>        1/TCP      3h
+service/heketi-storage                ClusterIP   172.30.54.200   <none>        8080/TCP   3h
 
 NAME                                      HOST/PORT                                                              PATH      SERVICES         PORT      TERMINATION   WILDCARD
-route.route.openshift.io/heketi-storage   heketi-storage-{{CNS_NAMESPACE}}.{{OCP_ROUTING_SUFFIX}}             heketi-storage   <all>                   None
+route.route.openshift.io/heketi-storage   heketi-storage-storage.apps.538432900127.aws.testdrive.openshift.com             heketi-storage   <all>                   None
 ----
 
-You may verify external availability of this API and heketi being alive with a trivial health check:
+You may verify external availability of this API and heketi being alive with a  rivial health check:
 
 [source,bash,role="copypaste"]
 ----
-curl -w "\n" http://heketi-storage-{{CNS_NAMESPACE}}.{{OCP_ROUTING_SUFFIX}}/hello
+curl -w "\n" http://$(oc get route heketi-storage -n storage -o jsonpath --template='{.spec.host}')/hello
 ----
 
 This should return:
@@ -630,19 +438,13 @@ This should return:
 Hello from Heketi
 ----
 
-This how the heketi API is made available to both external clients, like
-`heketi-cli` which we examined in the introduction. But mainly it is
-leveraged by OpenShift to provision storage dynamically. Let's look at this
-use case.
+This how the heketi API is made available to both external clients, like `heketi-cli` which we examined in the introduction. But mainly it is leveraged by OpenShift to provision storage dynamically. Let's look at this use case.
 
-### A Simple OCS Use Case
+=== A Simple OCS Use Case
 
-We are going to deploy a sample application that ships with OpenShift which
-creates a PVC as part of the deployment. Log on to the system as
-`fancyuser1`, using the password `openshift` and create a project with the
-name `my-database-app`.
+We are going to deploy a sample application that ships with OpenShift which creates a PVC as part of the deployment. Log on to the system as `fancyuser1`, using the password `openshift` and create a project with the name `my-database-app`.
 
-#### Create/Deploy the Application
+==== Create/Deploy the Application
 
 [source,bash,role="copypaste"]
 ----
@@ -650,20 +452,16 @@ oc login -u fancyuser1 -p openshift
 oc new-project my-database-app
 ----
 
-The example application ships in the form of ready-to-use resource templates. Enter
-the following command to look at the template for a sample Ruby on Rails
-application with a PostgreSQL database:
+The example application ships in the form of ready-to-use resource templates. Enter the following command to look at the template for a sample Ruby on Rails application with a PostgreSQL database:
 
 [source,bash,role="copypaste"]
 ----
 oc get template/rails-pgsql-persistent -n openshift
 ----
 
-This template creates a Rails Application instance which mimics a very basic
-weblog. The articles and comments are saved in a PostgreSQL database which runs
-in another pod.
+This template creates a Rails Application instance which mimics a very basic weblog. The articles and comments are saved in a PostgreSQL database which runs in another pod.
 
-As part of the resource template, a PVC is created in the YAML. Run the following command to `grep` the relavant part:
+As part of the resource template, a PVC is created in the YAML. Run the ollowing command to `grep` the relavant part:
 
 
 [source,bash,role="copypaste"]
@@ -686,11 +484,7 @@ spec:
       storage: ${VOLUME_CAPACITY}
 ----
 
-This will request a *PersistentVolume* in `RWO` mode. Storage provided in
-this mode can only be mounted by a single pod at a time. For a database that
-is usually what you want. The requested capacity under
-`spec.resources.requests.storage` is coming in via a parameter when the
-template is parsed. This is how storage is _requested_.
+This will request a *PersistentVolume* in ReadWriteOnce (`RWO`) mode. Storage provided in this mode can only be mounted by a single pod at a time. For a database that is usually what you want. The requested capacity under `spec.resources.requests.storage` is coming in via a parameter when the template is parsed. This is how storage is _requested_.
 
 Using persistent storage is done via a `PersistentVolume` provided in
 response to this `PersistentVolumeClaim`. A `PersistentVolume` is a
@@ -795,7 +589,7 @@ depicts the relationship of `PersistentVolumes`, `PersistentVolumeClaims` and
 `StorageClasses`:
 
 .OpenShift Persistent Volume Framework
-image::cns_diagram_pvc.png[]
+image::./images/cns_diagram_pvc.png[]
 
 Let's try it out. The storage size parameter in the template is called
 `VOLUME_CAPACITY`. The `new-app` command will again handle processing and
@@ -868,22 +662,21 @@ You will then see something like the following:
     Run 'oc status' to view your app.
 ----
 
-Go back to the OpenShift web console:
+You can now follow the deployment process here by watching the pods.
 
-*{{WEB_CONSOLE_URL}}*
+[source,bash,role="copypaste"]
+----
+watch oc get pod
+----
 
-Make sure you are logged in as _fancyuser1_ and find your newly created
-project `my-database-app`. You can now follow the deployment process here.
-The deployment is complete when both the PostgreSQL pod and the Ruby
-application pod have one healthy instance (rings are dark, solid blue).
+Hit `Ctrl-C` when both pods (postgresql-1-xxxxx and rails-pqsqsl-persistent-1-xxxxx) show Ready (`1/1`) and Running. This can take a while because first there is a build pod (`rails-pgsql-persistent-1-build`) that is building the container image to be used in the application from Ruby source code.
 
 [NOTE]
 ====
 It may take up to 5 minutes for the deployment to complete.
 ====
 
-On the CLI, you should now see a PVC that has been issued and has a status of _Bound_.
-state.
+On the CLI, you should now see a PVC that has been issued and has a status of _Bound_. state.
 
 [source,bash,role="copypaste"]
 ----
@@ -894,24 +687,17 @@ You will see something like:
 
 ----
 NAME         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
-postgresql   Bound     pvc-6de8449e-3f34-11e8-87ea-0298f449cc4c   5Gi        RWO            {{ CNS_STORAGECLASS }}   4m
+postgresql   Bound     pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88   5Gi        RWO            glusterfs-storage   3m
 ----
-
-Alternatively, in the web console, check the *"Storage"* menu.
 
 [TIP]
 ====
-This PVC has been automatically fulfilled by OCS because the `{{
-CNS_STORAGECLASS }}` *StorageClass* was set up as the system-wide default as
-part of the installation. The responsible parameter in the inventory file
-was: `openshift_storage_glusterfs_storageclass_default=true`
+This PVC has been automatically fulfilled by OCS because the `glusterfs-storage` *StorageClass* was set up as the system-wide default as part of the installation. The responsible parameter in the inventory file was: `openshift_storage_glusterfs_storageclass_default=true`
 ====
 
 ==== Test the Application
 
-Now go ahead and try out the application. The overview page in the OpenShift
-web console will tell you the *Route* which has been deployed as well.
-Otherwise get it on the CLI like this:
+Now go ahead and try out the application. Get it the route of the application on the CLI like this:
 
 [source,bash,role="copypaste"]
 ----
@@ -921,20 +707,17 @@ oc get route
 You will see something like:
 
 ----
-NAME                     HOST/PORT                                                      PATH      SERVICES                 PORT      TERMINATION   WILDCARD
-rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.{{OCP_ROUTING_SUFFIX}}            rails-pgsql-persistent   <all>                   None
+NAME                     HOST/PORT                                                                              PATH      SERVICES                 PORT      TERMINATION   WILDCARD
+rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
 ----
 
 Following this output, point your browser to:
 
-*http://rails-pgsql-persistent-my-database-app.{{OCP_ROUTING_SUFFIX}}/articles*
+*http://<ROUTE HOST>/articles*
 
-The username/password to create articles and comments is by default
-'_openshift_'/'_secret_'.
+The username/password to create articles and comments is by default '_openshift_'/'_secret_'.
 
-You should be able to successfully create articles and comments. When they are
-saved they are actually saved in the PostgreSQL database which stores its table
-spaces on a GlusterFS volume provided by OCS.
+You should be able to successfully create articles and comments. When they are saved they are actually saved in the PostgreSQL database which stores its table spaces on a GlusterFS volume provided by OCS.
 
 [NOTE]
 ====
@@ -970,7 +753,7 @@ You will see the PVC in a `BOUND` state and the name of the PV it has been bound
 
 ----
 NAME         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
-postgresql   Bound     pvc-6de8449e-3f34-11e8-87ea-0298f449cc4c   5Gi        RWO            glusterfs-storage   144m
+postgresql   Bound     pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88   5Gi        RWO            glusterfs-storage   5m
 ----
 
 [NOTE]
@@ -988,8 +771,7 @@ export PGSQL_PV_NAME=$(oc get pvc/postgresql -o jsonpath="{.spec.volumeName}" -n
 echo $PGSQL_PV_NAME
 ----
 
-Look at the details of the PV bound to the PVC, in this case
-`pvc-6de8449e-3f34-11e8-87ea-0298f449cc4c` (your's will be different, use the bash variable):
+Look at the details of the PV bound to the PVC, in this case `pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88` (your's will be different, use the bash variable):
 
 [source,bash,role="copypaste"]
 ----
@@ -999,7 +781,7 @@ oc describe pv $PGSQL_PV_NAME
 You will see something like:
 
 ----
-Name:		     pvc-6de8449e-3f34-11e8-87ea-0298f449cc4c <1>
+Name:            pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88 <1>
 Labels:          <none>
 Annotations:     Description=Gluster-Internal: Dynamically provisioned PV
                  gluster.kubernetes.io/heketi-volume-id=7da624d82941c50d704dd01b366c5806
@@ -1010,7 +792,7 @@ Annotations:     Description=Gluster-Internal: Dynamically provisioned PV
                  pv.kubernetes.io/provisioned-by=kubernetes.io/glusterfs
                  volume.beta.kubernetes.io/mount-options=auto_unmount
 Finalizers:      [kubernetes.io/pv-protection]
-StorageClass:	   {{ CNS_STORAGECLASS }}
+StorageClass:	   glusterfs-storage
 Status:          Bound
 Claim:           my-database-app/postgresql
 Reclaim Policy:  Delete
@@ -1021,7 +803,7 @@ Message:
 Source:
     Type:           Glusterfs (a Glusterfs mount on the host that shares a pod's lifetime)
     EndpointsName:  glusterfs-dynamic-postgresql
-    Path:		        vol_e8fe7f46fedf7af7628feda0dcbf2f60 <2>
+    Path:		        vol_fbf686c62a5087e85cbdab5171f31583 <2>
     ReadOnly:       false
 Events:             <none>
 ----
@@ -1029,7 +811,7 @@ Events:             <none>
 <2> The unique volume name backing the PV known to GlusterFS
 
 Note the GlusterFS volume name, in this case
-*vol_e8fe7f46fedf7af7628feda0dcbf2f60*. The following is another Bash
+*vol_fbf686c62a5087e85cbdab5171f31583*. The following is another Bash
 shortcut to store the name of the GlusterFS volume backing the
 `PersistentVolume`:
 
@@ -1043,7 +825,7 @@ Now let's switch to the namespace we used for OCS deployment:
 
 [source,bash,role="copypaste"]
 ----
-oc project {{ CNS_NAMESPACE }}
+oc project storage
 ----
 
 Look at the GlusterFS pods running and pick one (which one is not important):
@@ -1056,15 +838,15 @@ oc get pods -o wide -l glusterfs=storage-pod
 You will see something like:
 
 ----
-NAME                      READY     STATUS    RESTARTS   AGE       IP           NODE                                          NOMINATED NODE
-glusterfs-storage-7qzsm   1/1       Running   0          2h        10.0.3.252   {{NODE1_INTERNAL_FQDN}}   <none>
-glusterfs-storage-7rds5   1/1       Running   0          2h        10.0.1.238   {{NODE2_INTERNAL_FQDN}}   <none>
-glusterfs-storage-x7chr   1/1       Running   0          2h        10.0.4.221   {{NODE3_INTERNAL_FQDN}}   <none>
+NAME                      READY     STATUS    RESTARTS   AGE       IP          NODE                                          NOMINATED NODE
+glusterfs-storage-l5sxd   1/1       Running   0          3h        10.0.1.83   node01.internal.aws.testdrive.openshift.com   <none>
+glusterfs-storage-l99db   1/1       Running   0          3h        10.0.4.14   node03.internal.aws.testdrive.openshift.com   <none>
+glusterfs-storage-tsr4g   1/1       Running   0          3h        10.0.3.28   node02.internal.aws.testdrive.openshift.com   <none>
 ----
 
 We are now going to select the first pod (which one doesn't really matter)
-and, store it's IP address in above example that is: *{{NODE1_INTERNAL_IP}}*
-of pod *glusterfs-storage-37vn8*.
+and, store it's IP address in above example that is: *10.0.1.83*
+of pod *glusterfs-storage-l5sxd*.
 
 Again, for easy copying and pasting, here are some Bash shortcuts:
 
@@ -1092,9 +874,7 @@ You will immediately drop back out to your shell and you will see something like
 
 ----
 heketidbstorage <1>
-vol_e8fe7f46fedf7af7628feda0dcbf2f60 <2>
-vol_5e1cd71070734a3b02f58d822f89486a
-vol_f2e8fda1d42a41efabbb4d4a3b4a5659
+vol_fbf686c62a5087e85cbdab5171f31583 <2>
 ----
 <1> A special volume dedicated to heketi's internal database.
 <2> The volume backing the PV of the PostgreSQL database we asked you to remember.
@@ -1109,18 +889,19 @@ oc rsh $FIRST_GLUSTER_POD gluster volume info $PGSQL_GLUSTER_VOLUME
 You will see something like:
 
 ----
-Volume Name: vol_e8fe7f46fedf7af7628feda0dcbf2f60
+Volume Name: vol_fbf686c62a5087e85cbdab5171f31583
 Type: Replicate
-Volume ID: c2bedd16-8b0d-432c-b9eb-4ab1274826dd
+Volume ID: 5e2a8d04-ef55-4dac-984a-23ba62aaf6d0
 Status: Started
 Snapshot Count: 0
 Number of Bricks: 1 x 3 = 3
 Transport-type: tcp
 Bricks:
-Brick1: {{NODE2_INTERNAL_IP}}:/var/lib/heketi/mounts/vg_63b05bee6695ee5a63ad95bfbce43bf7/brick_aa28de668c8c21192df55956a822bd3c/brick
-Brick2: {{NODE1_INTERNAL_IP}}:/var/lib/heketi/mounts/vg_0246fd563709384a3cbc3f3bbeeb87a9/brick_684a01f8993f241a92db02b117e0b912/brick <1>
-Brick3: {{NODE3_INTERNAL_IP}}:/var/lib/heketi/mounts/vg_5a8c767e65feef7455b58d01c6936b83/brick_25972cf5ed7ea81c947c62443ccb308c/brick
+Brick1: 10.0.3.28:/var/lib/heketi/mounts/vg_5a46f5d3788ed61352f565385edce8d5/brick_9cb9259e8894dde38a8b4decd9788cd8/brick
+Brick2: 10.0.1.83:/var/lib/heketi/mounts/vg_f3668aa3855cd9a84642ca29db45af1c/brick_cb043b2bb44dd6a80bfe826ebdd3c61a/brick <1>
+Brick3: 10.0.4.14:/var/lib/heketi/mounts/vg_550bc327799e3c436a2e35e4b584c2ca/brick_5e09b7f1b8c86e8da3364579a4f181da/brick
 Options Reconfigured:
+server.tcp-user-timeout: 42
 transport.address-family: inet
 nfs.disable: on
 performance.client-io-threads: off
@@ -1166,11 +947,10 @@ You will see something like:
 
 ----
 total 16K
-drwxrwsr-x.   5 root       2001   57 Jun  6 14:44 .
-drwxr-xr-x.   3 root       root   19 Jun  6 14:44 ..
-drw---S---. 263 root       2001 8.0K Jun  6 14:46 .glusterfs
-drwxr-sr-x.   3 root       2001   25 Jun  6 14:44 .trashcan
-drwx------.  20 1000080000 2001 8.0K Jun  6 14:46 userdata
+drwxrwsr-x.   4 root       2000   40 Apr 30 15:25 .
+drwxr-xr-x.   3 root       root   19 Apr 30 15:24 ..
+drw---S---. 262 root       2000 8.0K Apr 30 15:35 .glusterfs
+drwx------.  20 1000080000 2000 8.0K Apr 30 15:25 userdata
 ----
 
 Dig a bit deeper, try looking at the `userdata` folder:
@@ -1184,33 +964,33 @@ You will see the PostgreSQL database folder structure:
 
 ----
 total 68K
-drwx------. 20 1000080000 2001 8.0K Jun  6 14:46 .
-drwxrwsr-x.  5 root       2001   57 Jun  6 14:44 ..
--rw-------.  2 1000080000 root    4 Jun  6 14:44 PG_VERSION
-drwx------.  6 1000080000 root   54 Jun  6 14:46 base
-drwx------.  2 1000080000 root 8.0K Jun  6 14:47 global
-drwx------.  2 1000080000 root   18 Jun  6 14:44 pg_clog
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_commit_ts
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_dynshmem
--rw-------.  2 1000080000 root 4.6K Jun  6 14:46 pg_hba.conf
--rw-------.  2 1000080000 root 1.6K Jun  6 14:44 pg_ident.conf
-drwx------.  2 1000080000 root   32 Jun  6 14:46 pg_log
-drwx------.  4 1000080000 root   39 Jun  6 14:44 pg_logical
-drwx------.  4 1000080000 root   36 Jun  6 14:44 pg_multixact
-drwx------.  2 1000080000 root   18 Jun  6 14:46 pg_notify
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_replslot
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_serial
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_snapshots
-drwx------.  2 1000080000 root    6 Jun  6 14:46 pg_stat
-drwx------.  2 1000080000 root   84 Jun  6 15:16 pg_stat_tmp
-drwx------.  2 1000080000 root   18 Jun  6 14:44 pg_subtrans
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_tblspc
-drwx------.  2 1000080000 root    6 Jun  6 14:44 pg_twophase
-drwx------.  3 1000080000 root   60 Jun  6 14:44 pg_xlog
--rw-------.  2 1000080000 root   88 Jun  6 14:44 postgresql.auto.conf
--rw-------.  2 1000080000 root  21K Jun  6 14:46 postgresql.conf
--rw-------.  2 1000080000 root   46 Jun  6 14:46 postmaster.opts
--rw-------.  2 1000080000 root   89 Jun  6 14:46 postmaster.pid
+drwx------. 20 1000080000 2000 8.0K Apr 30 15:25 .
+drwxrwsr-x.  4 root       2000   40 Apr 30 15:25 ..
+-rw-------.  2 1000080000 root    4 Apr 30 15:25 PG_VERSION
+drwx------.  6 1000080000 root   54 Apr 30 15:25 base
+drwx------.  2 1000080000 root 8.0K Apr 30 15:26 global
+drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_clog
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_commit_ts
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_dynshmem
+-rw-------.  2 1000080000 root 4.6K Apr 30 15:25 pg_hba.conf
+-rw-------.  2 1000080000 root 1.6K Apr 30 15:25 pg_ident.conf
+drwx------.  2 1000080000 root   32 Apr 30 15:25 pg_log
+drwx------.  4 1000080000 root   39 Apr 30 15:25 pg_logical
+drwx------.  4 1000080000 root   36 Apr 30 15:25 pg_multixact
+drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_notify
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_replslot
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_serial
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_snapshots
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_stat
+drwx------.  2 1000080000 root   84 Apr 30 16:00 pg_stat_tmp
+drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_subtrans
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_tblspc
+drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_twophase
+drwx------.  3 1000080000 root   60 Apr 30 15:25 pg_xlog
+-rw-------.  2 1000080000 root   88 Apr 30 15:25 postgresql.auto.conf
+-rw-------.  2 1000080000 root  22K Apr 30 15:25 postgresql.conf
+-rw-------.  2 1000080000 root   46 Apr 30 15:25 postmaster.opts
+-rw-------.  2 1000080000 root   89 Apr 30 15:25 postmaster.pid
 ----
 
 You are looking at the PostgreSQL internal data file structure from the
@@ -1239,10 +1019,9 @@ matter where they are deployed. To illustrate the benefit of this, we will
 deploy a PHP file uploader application that has multiple front-end instances
 sharing a common storage repository.
 
-#### Deploy the File Uploader Application
+==== Deploy the File Uploader Application
 
-First log back in as `fancyuser1` using the password `openshift` and create a
-new project:
+First log back in as `fancyuser1` using the password `openshift` and create a new project:
 
 [source,bash,role="copypaste"]
 ----
@@ -1301,11 +1080,16 @@ Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
 	Commit:	7508da63d78b4abc8d03eac480ae930beec5d29d (Update index.html)
 	Author:	Christian Hernandez <christianh814@users.noreply.github.com>
 	Date:	Thu Mar 23 09:59:38 2017 -0700
----> Installing application source...
-Pushing image 172.30.120.134:5000/my-shared-storage/file-uploader:latest ...
-Pushed 0/5 layers, 2% complete
-Pushed 1/5 layers, 20% complete
-Pushed 2/5 layers, 40% complete
+---> Installing application source
+
+[...]
+
+Pushing image docker-registry.default.svc:5000/my-shared-storage/file-uploader:latest ...
+Pushed 2/6 layers, 34% complete
+Pushed 3/6 layers, 55% complete
+Pushed 4/6 layers, 82% complete
+Pushed 5/6 layers, 97% complete
+Pushed 6/6 layers, 100% complete
 Push successful
 ----
 
@@ -1337,13 +1121,12 @@ oc get route
 You will see something like:
 
 ----
-NAME                     HOST/PORT                                                      PATH      SERVICES                 PORT       TERMINATION   WILDCARD
-file-uploader            file-uploader-my-shared-storage.{{ OCP_ROUTING_SUFFIX}}                      file-uploader            8080-tcp                 None
-...
+NAME            HOST/PORT                                                                       PATH      SERVICES        PORT       TERMINATION   WILDCARD
+file-uploader   file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com             file-uploader   8080-tcp                 None
 ----
 
 Point your browser to the web application using the URL advertised by the route
-(http://file-uploader-my-shared-storage.{{ OCP_ROUTING_SUFFIX}})
+(http://<ROUTE HOST>, e.g. http://file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com in the example above).
 
 The web app simply lists all previously uploaded files and offers the ability
 to upload new ones as well as download the existing data. Right now there is
@@ -1352,7 +1135,7 @@ nothing.
 Select an arbitrary file from your local machine and upload it to the app.
 
 .A simple PHP-based file upload tool
-image::uploader_screen_upload.png[]
+image::./images/uploader_screen_upload.png[]
 
 Once done click *_List uploaded files_* to see the list of all currently
 uploaded files.
@@ -1370,9 +1153,9 @@ You will see 3 pods running:
 
 ----
 NAME                    READY     STATUS    RESTARTS   AGE
-file-uploader-1-5hhqb   1/1       Running   0          6m
-file-uploader-1-trkxr   1/1       Running   0          6m
-file-uploader-1-vqszb   1/1       Running   0          7m
+file-uploader-1-2c5cd   1/1       Running   0          4m
+file-uploader-1-chjj7   1/1       Running   0          3m
+file-uploader-1-fnh27   1/1       Running   0          3m
 ----
 
 Now let's look back at where this file got stored inside the pods. Again use
@@ -1387,12 +1170,12 @@ for pod in $(oc get pod -l app=file-uploader --no-headers | awk '{print $1}'); d
 
 You will see that only one of the pods has the uploaded file
 ----
-file-uploader-1-5hhqb
+file-uploader-1-2c5cd
 total 0
-file-uploader-1-trkxr
+file-uploader-1-chjj7
 total 352K
 -rw-r--r--. 1 1000380000 root 352K Oct 29 16:00 firefly-episode-list.txt
-file-uploader-1-vqszb
+file-uploader-1-fnh27
 total 0
 ----
 
@@ -1423,8 +1206,7 @@ oc set volume dc/file-uploader --add --name=my-shared-storage \
 --claim-name=my-shared-storage --mount-path=/opt/app-root/src/uploaded
 ----
 
-Like with the `mapit` application in "_Application Management Basics_"
-chapter, this command will:
+This command will:
 
 * create a *PersistentVolumeClaim*
 * update the *DeploymentConfig* to include a `volume` definition
@@ -1443,9 +1225,8 @@ oc get pvc
 You will see something like:
 
 ----
-NAME                STATUS    VOLUME                                     CAPACITY   ACCESSMODES   AGE
-my-shared-storage   Bound     pvc-62aa4dfe-4ad2-11e7-b56f-2cc2602a6dc8   1Gi        RWX           22s
-...
+NAME                STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
+my-shared-storage   Bound     pvc-0e66d9f3-6b62-11e9-ad48-0a0e0711ec88   1Gi        RWX            glusterfs-storage   24s
 ----
 
 Notice the `ACCESSMODE` being set to *RWX* (short for `ReadWriteMany`,
@@ -1470,9 +1251,9 @@ You will see something like:
 
 ----
 NAME                    READY     STATUS    RESTARTS   AGE
-file-uploader-2-4h7bx   1/1       Running   0          2m
-file-uploader-2-gqbsn   1/1       Running   0          2m
-file-uploader-2-pkmpj   1/1       Running   0          2m
+file-uploader-2-6dst5   1/1       Running   0          43s
+file-uploader-2-8dlcn   1/1       Running   0          36s
+file-uploader-2-hmfgr   1/1       Running   0          31s
 ----
 
 Try it out in your file uploader web application using your browser. Upload
@@ -1497,13 +1278,13 @@ for pod in $(oc get pod -l app=file-uploader --no-headers | awk '{print $1}'); d
 
 You will see that now all of the pods have the uploaded file:
 ----
-file-uploader-2-4h7bx
+file-uploader-2-6dst5
 total 352K
 -rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
-file-uploader-2-gqbsn
+file-uploader-2-8dlcn
 total 352K
 -rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
-file-uploader-2-pkmpj
+file-uploader-2-hmfgr
 total 352K
 -rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
 ----
@@ -1546,7 +1327,7 @@ Clearly the file system is full:
 
 ----
 Filesystem                                      Size  Used Avail Use% Mounted on
-10.0.1.36:vol_6320cd6974d8573f49f85a5d7255a7f2 1019M 1019M     0 100% /opt/app-root/src/uploaded
+10.0.1.83:vol_9829c286608e9ce29b81df24eb08ce51 1019M 1019M     0 100% /opt/app-root/src/uploaded
 ----
 
 If you were to try uploading another file via the web application it would fail with something along the lines:
@@ -1561,7 +1342,7 @@ First the `StorageClass` glusterfs-storage needs to be modified to include `allo
 
 [WARNING]
 ====
-It is required that the feature-gates: (below) is added to the /etc/origin/master/master-config.yaml and the master services restarted before modifying the `StorageClass` glusterfs-storage.
+It is required that the feature-gates: (below) is added to the /etc/origin/master/master-config.yaml and the master services restarted before modifying the `StorageClass` glusterfs-storage. Our environment already has these enabled.
 
 	kubernetesMasterConfig:
 	  apiServerArguments:
@@ -1569,21 +1350,29 @@ It is required that the feature-gates: (below) is added to the /etc/origin/maste
 	    - ExpandPersistentVolumes=true
 ====
 
+Switch back to the `system:admin` user.
+
+[source,sh]
 ----
-oc get sc glusterfs-storage -o yaml > glusterfs-storage.yaml
+oc login -u system:admin
+----
+
+Save the current Storage Class to a YAML file:
+----
+oc get sc glusterfs-storage -o yaml > $HOME/glusterfs-storage.yaml
 ----
 
 And then add the new parameter to the glusterfs-storage-new.yaml file.
 
 ----
-sed '/volumeBindingMode: Immediate/a allowVolumeExpansion: true' glusterfs-storage.yaml > glusterfs-storage-new.yaml
+sed '/volumeBindingMode: Immediate/a allowVolumeExpansion: true' $HOME/glusterfs-storage.yaml > $HOME/glusterfs-storage-new.yaml
 ----
 
 Now to modify this `StorageClass` the current glusterfs-storage needs to be deleted and the new glusterfs-storage-new.yaml used to create glusterfs-storage that containes the necessary parameter `allowVolumeExpansion: true`.
 
 ----
 oc delete sc glusterfs-storage
-oc create -f glusterfs-storage-new.yaml
+oc create -f $HOME/glusterfs-storage-new.yaml
 ----
 
 Now do the following to validate the `StorageClass` is modified.
@@ -1636,6 +1425,13 @@ If you are unfamiliar with the `vi` editor, please run the following command bef
 
     export EDITOR=nano
 ====
+
+Switch back to the `fancyuser1` OpenShift user.
+
+[source,sh]
+----
+oc login -u fancyuser1
+----
 
 Use the `oc edit` command to edit the `PersistentVolumeClaim` that we used to
 generate the `PersistentVolume`:
@@ -1701,304 +1497,206 @@ The situation should look much better now:
 
 ----
 Filesystem                                      Size  Used Avail Use% Mounted on
-10.0.1.36:vol_6320cd6974d8573f49f85a5d7255a7f2  5.0G  1.1G  4.0G  21% /opt/app-root/src/uploaded
+10.0.1.83:vol_9829c286608e9ce29b81df24eb08ce51  5.0G  1.1G  4.0G  22% /opt/app-root/src/uploaded
 ----
 
+// WK: Part 3, Scaleup, Prepare for Rook
+== Infrastructure Management, Adding Nodes to your Cluster
 
-### OCS Operations
+In this lab you will explore various aspects of managing cluster infrastructure. This includes extending the OpenShift cluster to enable us to install Rook later in this lab.
 
-#### Options to increase Storage Capacity in OCS
-
-At some point the overall OCS cluster capacity may need to be expanded. There are a couple of ways to increase the storage capacity offered by OCS.
-
-1. add a second, independent OCS cluster with its own management stack (`heketi`) (like you did in the _Infrastructure Management_ module )
-2. add a second, independent OCS cluster to the existing management stack (as described in the link:https://access.redhat.com/documentation/en-us/container-native_storage/3.9/html-single/container-native_storage_for_openshift_container_platform/#idm140292314514720[documentation^])
-3. add additional nodes to an existing OCS cluster (as described in the link:https://access.redhat.com/documentation/en-us/container-native_storage/3.9/html-single/container-native_storage_for_openshift_container_platform/#idm140292314767904[documentation^])
-4. add additional devices to existing nodes
-
-Option 1) is automated using `openshift-ansible`
-
-Option 2) is an option you likely want to take when you have nodes with
-different media types (SSD vs. HDD) and you want to offer quality of service.
-
-Option 3) allows you to easily expand the cluster capacity in-place. In this
-lab we however have no nodes left to add, so we will illustrate Option 4).
-
-#### Adding Additional Devices to a OCS Cluster
-
-To perform management operations we'll use the `heketi-cli` tool. It manages
-several entities that make up OCS, that is: clusters, nodes, volumes and
-devices.
-
-For each entity there are several create/add, update, delete commands
-available. For initial cluster setup `heketi-cli` also offers batch
-processing via a JSON file.
-
-In the following we will manually add devices from `node04`, `node05` and
-`node06`, which form the OCS cluster for OpenShift infrastructure.
-
-Like in the _Installation_ module, we first set up some Bash environment
-variables to configure our `heketi-cli` client to talk to the second OCS
-cluster. This time we take a shortcut by programmatically determining the URL
-to heketi and the password by querying the `heketi` pod:
-
-[source,bash,role="copypaste"]
-----
-export HEKETI_POD=$(oc get pods -l glusterfs=heketi-registry-pod -o jsonpath='{.items[0].metadata.name}' -n {{ CNS_INFRA_NAMESPACE }})
-export HEKETI_CLI_SERVER=http://$(oc get route -l glusterfs=heketi-registry-route -o jsonpath='{.items[0].spec.host}' -n {{ CNS_INFRA_NAMESPACE }})
-export HEKETI_CLI_USER=admin
-export HEKETI_CLI_KEY=$(oc get pod/$HEKETI_POD -o jsonpath='{.spec.containers[0].env[?(@.name=="HEKETI_ADMIN_KEY")].value}' -n {{ CNS_INFRA_NAMESPACE }})
-----
-
-We can now query `heketi` about the nodes in this cluster:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli node list
-----
-
-And you will see something like:
-
-----
-Id:33e0045354db4be29b18728cbe817605	Cluster:ca777ae0285ef6d8cd7237c862bd591c
-Id:d8443e7ee8314c0c9fb4d8274a370bbd	Cluster:ca777ae0285ef6d8cd7237c862bd591c
-Id:caaed3927e424b22b1a89d261f7617ad	Cluster:ca777ae0285ef6d8cd7237c862bd591c
-----
-
-The UUIDs of the nodes will be different for you. We however need them to
-tell `heketi` from which nodes to add a device. To avoid repetitive copying
-and pasting here is another Bash short cut to parse above output in a Bash
-variable:
-
-Run the following command to store the `heketi`-internal ID of the OCS
-cluster (there is only one for this `heketi` instance) in a bash variable:
-
-[source,bash,role="copypaste"]
-----
-export CNS_INFRA_CLUSTER=$(heketi-cli cluster list --json | jq -r '.clusters[0]')
-echo $CNS_INFRA_CLUSTER
-----
-
-Then get a list of the nodes of this cluster into a Bash variable:
-
-[source,bash,role="copypaste"]
-----
-export NODES=$(heketi-cli cluster info $CNS_INFRA_CLUSTER --json | jq -r '.nodes[]')
-export NODE_LIST=($NODES)
-echo $NODES
-----
-
-To illustrate the before and after effect, first inspect the output of:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli topology info
-----
-
-You should see that every node currently has a single device: `{{NODE_BRICK_DEVICE}}`.
-
-These nodes of the second OCS cluster, have an additional, unused storage
-device `{{NODE_BRICK_DEVICE2}}`. For each node now go ahead and make `heketi`
-aware of this device using the `device add` directive
-
-[source,bash,role="copypaste"]
-----
-heketi-cli device add --name={{NODE_BRICK_DEVICE2}} --node=${NODE_LIST[0]}
-heketi-cli device add --name={{NODE_BRICK_DEVICE2}} --node=${NODE_LIST[1]}
-heketi-cli device add --name={{NODE_BRICK_DEVICE2}} --node=${NODE_LIST[2]}
-----
-
-Each command should return with the message `Device added successfully`.
-
-Check `heketi-cli topology info` again to verify the presence of the new
-devices.
-
-That's it - the devices are now available to `heketi` and will be considered
-the next time OCS serves a volume request. Adding devices and nodes are
-online operations, meaning they are non-disruptive and can be run in
-production without downtime.
-
-### Replacing Failed Disks and Nodes
-
-When a device fails, OCS transparently continues operations with the
-remaining replicas. You will need to replace such components to move out of a
-degraded state and get to 3 replicas again, either using other devices free
-capacity in the same node or in different nodes.
-
-For this exercise, let's assume the device `{{ NODE_BRICK_DEVICE }}` of your
-node {{ NODE4_INTERNAL_FQDN }} failed and you need to replace it. You can do
-that as long as there is enough spare capacity somewhere else in the cluster,
-preferrable but not necessarily in the same failure domain (as specifed in
-the topology).
-
-[TIP]
-====
-OCS is aware of failure domains in your infrastructure. These could be racks
-in a data center or availability zones in public cloud environments. The
-zones are identified by distinct values in the `zone` parameter of each node.
-Nodes with the same value for `zone` are considered part of the same failure
-domain. OCS will try to do its best (but not enforce it) to replicate and
-rebalance data across 3 different failure domains at all times.
-====
-
-The first step is to determine the OCS node's internal UUID in heketi's
-database. You can do that manually:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli topology info | grep -B4 {{NODE4_INTERNAL_FQDN}}
-----
-
-...and see something like:
-
-----
-	Node Id: 33e0045354db4be29b18728cbe817605
-	State: online
-	Cluster Id: ca777ae0285ef6d8cd7237c862bd591c
-	Zone: 1
-	Management Hostname: {{NODE4_INTERNAL_FQDN}}
-----
-
-Or you can do it programmatically, for easy copying and pasting, by asking `heketi` and parsing its JSON output using `jq`:
-
-[source,bash,role="copypaste"]
-----
-NODE_4_ID=$(heketi-cli topology info --json | jq -r ".clusters[] | select(.id==\"$CNS_INFRA_CLUSTER\") | .nodes[] | select(.hostnames.manage[0] == \"{{NODE4_INTERNAL_FQDN}}\") | .id")
-echo $NODE_4_ID
-----
-
-This should yield, like above `33e0045354db4be29b18728cbe817605`
-
-Second, determine the device's UUID by querying the node (indicated above by
-`Node Id`):
-
-Again, you could do this manually by looking at `heketi` information about the node:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli node info $NODE_4_ID
-----
-
-And then you will see:
-
-----
-Node Id: 33e0045354db4be29b18728cbe817605
-State: online
-Cluster Id: 119ea7f96ce132f15a04c28de9978018
-Zone: 1
-Management Hostname: {{ NODE4_INTERNAL_FQDN }}
-Storage Hostname: {{ NODE4_INTERNAL_IP }}
-Devices:
-Id:0b32d5e57f2047485e42e6288405ad7f   Name:{{ NODE_BRICK_DEVICE2 }}           State:online    Size (GiB):49      Used (GiB):0       Free (GiB):49
-Id:4fb2ae473d5ee451906d5489abfc653e   Name:{{ NODE_BRICK_DEVICE }}           State:online    Size (GiB):49      Used (GiB):42      Free (GiB):7
-----
-
-Or again, for easy copying and pasting, you can do it the smart way and retrieve the device ID of `{{NODE_BRICK_DEVICE}}` programmatically from the JSON output using `jq`:
-
-[source,bash,role="copypaste"]
-----
-export FAILED_DEVICE_ID=$(heketi-cli node info $NODE_4_ID  --json | jq -r '.devices[] | select(.name=="{{ NODE_BRICK_DEVICE }}") | .id')
-echo $FAILED_DEVICE_ID
-----
-
-You should get the UUID of `{{ NODE_BRICK_DEVICE }}` from this command, in
-this example `4fb2ae473d5ee451906d5489abfc653e`.
-
-With the UUID we can first mark the device as offline to stop heketi from
-further attempts to allocate space from it:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli device disable $FAILED_DEVICE_ID
-----
-
-You will see something like:
-
-----
-Device 4fb2ae473d5ee451906d5489abfc653e is now offline
-----
-
-The device is now offline but it's still part of replicated volumes. To remove
-it and trigger a self-healing operation in the background issue:
-
-[source,bash,role="copypaste"]
-----
-heketi-cli device remove $FAILED_DEVICE_ID
-----
-
-You will see something like:
-
-----
-Device 4fb2ae473d5ee451906d5489abfc653e is now removed
-----
+=== Extending the Cluster
 
 [NOTE]
 ====
-This command can take a bit long as it will go through the topology and
-search for the next available device on the same node, in the same failure
-domain or in the rest of the cluster (in that order) and trigger a
-*brick-replacement operation*. That is, the data from the failed brick is
-re-replicated to another health storage device and the 3-way replicated
-storage volume moves out of degraded state.
+It is required that you `sudo -i` to `root` before performing these exercises.
 ====
 
-This is an online operation and can absolutely be run in production.
-
-Our failed device is still lurking around in _failed_ state. To finally get
-rid of it issue:
+Switch to the `root` user:
 
 [source,bash,role="copypaste"]
 ----
-heketi-cli device delete $FAILED_DEVICE_ID
+sudo -i
 ----
 
-You will see something like:
+Extending the cluster is easy. Simply add a new set of hosts to an Ansible group called `new_nodes` in the `openshift-ansible` installer's inventory. Then, run the `scaleup` playbook.
 
-----
-Device 4fb2ae473d5ee451906d5489abfc653e deleted
-----
+==== Configure the Installer
 
-[NOTE]
-====
-Only devices that are not currently used by other Gluster volumes can be
-deleted. If that's not the case, `heketi-cli` will tell you about it. Devices
-that are in use always need to have `remove` performed first.
-====
+Your environment already has 3 additional VMs provisioned, but you have not used them so far. They are already configured in the inventory file, but commented out with a `#scaleup_` prefix.
 
-You can now check that the device is gone from the topology by running:
+To see the lines run:
 
 [source,bash,role="copypaste"]
 ----
-heketi-cli topology info
+grep '#scaleup_' /etc/ansible/hosts
 ----
 
-*Node deletion* is also possible and is basically comprised of:
+Remove the `#scaleup_` comment prefix by running the below `sed` command:
 
-1. successful execution of the `remove` operation on all devices of the node
-2. running `heketi-cli node delete <node_id>` on the node in question
+[source,bash,role="copypaste"]
+----
+sudo sed -i 's/#scaleup_//g' /etc/ansible/hosts
+----
 
-// WK: Part 4: rook
+When finished, your inventory file should look like the following:
+
+[source,ini]
+./etc/ansible/hosts
+----
+[OSEv3:children]
+masters
+nodes
+etcd
+glusterfs
+new_nodes
+
+[...]
+
+[new_nodes]
+node04.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node04.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node05.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node05.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node06.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node06.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+
+[...]
+----
+
+Now that these hosts are properly defined (uncommented), you can use Ansible to
+verify that they are, in fact, online:
+
+[source,bash,role="copypaste"]
+----
+ansible new_nodes -m ping
+----
+
+You will see:
+
+----
+node04.internal.aws.testdrive.openshift.com | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+node05.internal.aws.testdrive.openshift.com | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+node06.internal.aws.testdrive.openshift.com | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+----
+
+These new VMs have all of the link:https://docs.openshift.com/container-platform/3.11/install_config/install/prerequisites.html[prerequisites] already taken care of.
+
+==== Run the Playbook to Extend the Cluster
+
+To extend your cluster run the following playbook:
+
+[source,bash,role="copypaste"]
+----
+ansible-playbook /usr/share/ansible/openshift-ansible/playbooks/openshift-node/scaleup.yml
+----
+
+The playbook takes 1-2 minutes to complete. When done, you can verify that there are now 6 `compute` nodes:
+
+[source,bash,role="copypaste"]
+----
+oc get nodes -l node-role.kubernetes.io/compute=true
+----
+
+You will see:
+
+----
+NAME                                          STATUS    ROLES     AGE       VERSION
+node01.internal.aws.testdrive.openshift.com   Ready     compute   2h        v1.11.0+d4cacc0
+node02.internal.aws.testdrive.openshift.com   Ready     compute   2h        v1.11.0+d4cacc0
+node03.internal.aws.testdrive.openshift.com   Ready     compute   2h        v1.11.0+d4cacc0
+node04.internal.aws.testdrive.openshift.com   Ready     compute   2m        v1.11.0+d4cacc0
+node05.internal.aws.testdrive.openshift.com   Ready     compute   2m        v1.11.0+d4cacc0
+node06.internal.aws.testdrive.openshift.com   Ready     compute   2m        v1.11.0+d4cacc0
+----
+
+After the scaleup succeeds you need to remove the `new_nodes` entry from [osev3:children]. You also need to remove the '[new_nodes]' section to add the new nodes to the regular [nodes] section of the inventory file. This ensures that any further update will be applied to all nodes, old and new.
+
+Check the two lines that got added to enable the scaleup operation:
+----
+grep new_nodes /etc/ansible/hosts
+----
+
+You will see:
+
+----
+new_nodes
+[new_nodes]
+----
+
+Remove [new_nodes] to add new nodes to the [nodes] section in the inventory file. 
+
+----
+sudo sed -i '/^\[new_nodes/d' /etc/ansible/hosts
+----
+
+Remove new_nodes from [osev3:children] section of the inventory file.
+
+----
+sudo sed -i '/^new_nodes/d' /etc/ansible/hosts
+----
+
+Your modified inventory file should now look like this:
+
+----
+[OSEv3:children]
+masters
+nodes
+etcd
+glusterfs
+#ocsinfra_glusterfs_registry
+
+[...]
+
+[nodes]
+master.internal.aws.testdrive.openshift.com openshift_public_hostname=master.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-master'
+infra.internal.aws.testdrive.openshift.com openshift_public_hostname=infra.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-infra'
+node01.internal.aws.testdrive.openshift.com openshift_public_hostname=node01.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node02.internal.aws.testdrive.openshift.com openshift_public_hostname=node02.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node03.internal.aws.testdrive.openshift.com openshift_public_hostname=node03.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+
+node04.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node04.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node05.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node05.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+node06.internal.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute' openshift_public_hostname=node06.538432900127.aws.testdrive.openshift.com openshift_node_group_name='node-config-compute'
+
+[...]
+----
+
+Finally exit out of your `root` shell by typing `exit` (you should then be `cloud-user` again).
+
+// WK: Part 4: Rook
 
 == Deploying and Managing OpenShift Container Storage with Rook-Ceph Operator
 
 In this section you are learning how to deploy and manage OpenShift Container Storage (OCS). In this lab you will be using OpenShift Container Platform 3.11 (OCP) and Rook.io v0.9 to deploy Ceph as a persistent storage solution for OCP workloads.
 
-=== In this lab you will learn how to
+*In this lab you will learn how to*
 
-* Configure and deploy contanerized Ceph using Rook’s cluster CustomResourceDefinitions (CRD)
+* Configure and deploy containerized Ceph using Rook’s cluster CustomResourceDefinitions (CRD)
 * Validate deployment of Ceph Luminous containerized using OpenShift CLI
 * Deploy the Rook toolbox to run common ceph and rados commands
 * Create a Persistent Volume (PV) on the Ceph cluster using a Rook OCP storageclass for deployment of Rails application using a PostgreSQL database.
 * Upgrade Ceph version from Luminous to Mimic using the Rook operator
 * Add more storage to the Ceph cluster
 
-[[labexercises]]
-:numbered:
-== Deploy Ceph using Rook.io
+=== Deploy Ceph using Rook.io
 
-=== Download Rook deployment files and install Ceph
+==== Download Rook deployment files and install Ceph
 
 In this section necessary files will be downloaded using the `curl -O` command and OCP resources created using the `oc create` command and the Rook.io yaml files.
+
+Make sure you are logged in as `system:admin`:
+
+[source,sh]
+----
+oc login -u system:admin
+----
 
 Labeling the new OCP nodes with role=storage-node will make sure that the OCP resources (OSD, MON, MGR pods) are scheduled on these nodes.
 
@@ -2012,6 +1710,7 @@ oc get nodes --show-labels | grep storage-node
 Next you will download Rook.io scc.yaml, operator.yaml and cluster.yaml to create OCP resources. After downloading each on view the file using the `cat` command before creating the resources using `oc create`.
 
 ----
+cd $HOME
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/scc.yaml
 oc create -f scc.yaml
 ----
@@ -2020,19 +1719,40 @@ Validate that rook-ceph has been added to securitycontextconstraints.security.op
 
 ----
 oc get scc rook-ceph
-oc export scc rook-ceph
 ----
 
 Install the Rook operator next.
 
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/operator.yaml
-oc create -f operator.yaml
+oc create -f $HOME/operator.yaml
 oc project rook-ceph-system
 watch oc get pods -o wide
 ----
 
-Wait for all rook-ceph-agent, rook-discover and rook-ceph-operator pods to be in a Running state. The log for the rook-ceph-operator pod should show that the operator is looking for a cluster. Look for `the server could not find the requested resource (get clusters.ceph.rook.io)` at the end of the log file. Replace `xxxxxxxxx-xxxxx` below with your rook-ceph-operator pod name.
+Wait for all rook-ceph-agent, rook-discover and rook-ceph-operator pods to be in a Running state.
+
+The pod list should look like this:
+
+[source,text]
+----
+NAME                                  READY     STATUS    RESTARTS   AGE       IP           NODE                                          NOMINATED NODE
+rook-ceph-agent-48ckp                 1/1	Running   0          5m        10.0.3.28    node02.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-agent-4wsd8                 1/1	Running   0          5m        10.0.1.216   node04.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-agent-d69pp                 1/1	Running   0          5m        10.0.4.14    node03.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-agent-h8ds6                 1/1	Running   0          5m        10.0.4.41    node06.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-agent-nmsp6                 1/1	Running   0          5m        10.0.3.144   node05.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-agent-wjhkv                 1/1	Running   0          5m        10.0.1.83    node01.internal.aws.testdrive.openshift.com   <none>
+rook-ceph-operator-76c97f94c4-gt7ld   1/1	Running   0          6m        10.130.2.4   node06.internal.aws.testdrive.openshift.com   <none>
+rook-discover-4lh4w                   1/1	Running   0          5m        10.129.0.4   node03.internal.aws.testdrive.openshift.com   <none>
+rook-discover-8zb6r                   1/1	Running   0          5m        10.130.0.4   node02.internal.aws.testdrive.openshift.com   <none>
+rook-discover-fdt9b                   1/1	Running   0          5m        10.131.2.4   node04.internal.aws.testdrive.openshift.com   <none>
+rook-discover-fm659                   1/1	Running   0          5m        10.129.2.7   node05.internal.aws.testdrive.openshift.com   <none>
+rook-discover-m7xxx                   1/1	Running   0          5m        10.131.0.4   node01.internal.aws.testdrive.openshift.com   <none>
+rook-discover-x4dlh                   1/1	Running   0          5m        10.130.2.5   node06.internal.aws.testdrive.openshift.com   <none>
+----
+
+The log for the rook-ceph-operator pod should show that the operator is looking for a cluster. Look for `the server could not find the requested resource (get clusters.ceph.rook.io)` at the end of the log file. Replace `xxxxxxxxx-xxxxx` below with your rook-ceph-operator pod name.
 
 ----
 oc get pod -l app=rook-ceph-operator
@@ -2089,30 +1809,36 @@ oc create -f cluster.yaml
 
 Disregard this message “Error from server (AlreadyExists): error when creating "cluster.yaml": namespaces "rook-ceph" already exists”
 
+Switch to the project `rook-ceph` and watch the pods come up (press `Ctrl-C` when your pod list looks like the one below).
 ----
 oc project rook-ceph
 watch oc get pods
-NAME                                        READY     STATUS      RESTARTS   AGE
-rook-ceph-mgr-a-5887d4d48b-pz52j            1/1       Running     0          2m
-rook-ceph-mon-a-5df5865956-gnsvs            1/1       Running     0          3m
-rook-ceph-mon-b-66d74f475d-5n4jt            1/1       Running     0          2m
-rook-ceph-mon-c-86bc6b98b7-5xfhf            1/1       Running     0          2m
-rook-ceph-osd-0-96c9b769-qclw9              1/1	      Running     0          1m
-rook-ceph-osd-1-7747889669-fcvsj            1/1	      Running     0          1m
-rook-ceph-osd-2-7cc7bdf44d-ncqbr            1/1	      Running     0          1m
+
+NAME                                                           READY     STATUS      RESTARTS   AGE
+rook-ceph-mgr-a-5887d4d48b-gm8mg                               1/1       Running     0          49s
+rook-ceph-mon-a-5c7587f7c7-d6t5d                               1/1       Running     0          2m
+rook-ceph-mon-b-d85c69845-hzv78                                1/1       Running     0          1m
+rook-ceph-mon-c-8567bb8597-g48m7                               1/1       Running     0          1m
+rook-ceph-osd-0-d576d5989-9zr78                                1/1	 Running     0          17s
+rook-ceph-osd-1-6b9f5d9b78-mgswg                               1/1	 Running     0          16s
+rook-ceph-osd-2-67659f7dc8-74k6j                               1/1	 Running     0          12s
+rook-ceph-osd-prepare-89f1a63764fbcfe0f15eca7b510a7763-766xt   0/2	 Completed   0          40s
+rook-ceph-osd-prepare-b9e4065b399354d3fb0f17127c7d01c7-knvd5   0/2	 Completed   0          41s
+rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-zjv2c   0/2	 Completed   0          39s
 ----
 
 Once all pods are in a Running state it is time to verify that Ceph is operating correctly. Download toolbox.yaml to run Ceph commands.
 
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/toolbox.yaml
-oc create -f toolbox.yaml
+oc create -f toolbox.yaml -n rook-ceph
 ----
 
 Login to toolbox pod to run Ceph commands.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+
 ceph status
 ceph osd status
 ceph osd tree
@@ -2141,83 +1867,74 @@ oc create -f storageclass.yaml
 Login to toolbox pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the storageclass was created.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+
 ceph df
 rados df
 rados -p replicapool ls
 exit
 ----
 
-== Create new OCP deployment using CephRBD block volume
+=== Create new OpenShift Application using CephRBD block volume
 
 In this section the `rook-ceph-block` storageclass will be used by an application + database deployment to create persistent storage. The persistent storage will be a CephRBD volume (object) in the pool=replicapool.
 
-Because the Rails + PostgreSQL deployment uses the `default` storageclass we need to modify the current default storageclass (glusterfs-storage) and edit then make `rook-ceph-block` the default storageclass.
+Because the Rails + PostgreSQL deployment uses the `default` storageclass we need to modify the current default storageclass (glusterfs-storage) and then make `rook-ceph-block` the default storageclass.
 
 ----
 oc get storageclass
-oc edit sc glusterfs-storage
 ----
 
-Remove this portion shown below from storageclass `glusterfs-storage`. Make sure to note EXACTLY where this annotations is located in the storageclass (copying this portion and before and after syntax to clipboard would be good idea). The editing tool is `vi` when using `oc edit`.
+Make the glusterfs-storage class non-default and the rook-ceph-block storage class the new default:
 
+[source,sh]
 ----
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
+oc patch storageclass glusterfs-storage --patch '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
+
+oc patch storageclass rook-ceph-block --patch '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
 ----
 
-Add the removed portion to `rook-ceph-block` in same place so it will be the default storageclass. Make sure to save your changes before exiting `:wq!`. Validate that `rook-ceph-block` is now the default storageclass before starting the OCP application deployment.
+Double check that the rook-ceph-block storage class is now the default:
 
+[source,sh]
 ----
-oc edit sc rook-ceph-block
 oc get storageclass
 ----
 
-After editing storageclass `rook-ceph-block` the result should be similar to below and `rook-ceph-block` should be the `default` storageclass.
-
+.Sample Output
+[source,texinfo]
 ----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
-  creationTimestamp: 2019-03-08T20:54:46Z
-  name: rook-ceph-block
-...omitted...
-----
-
-----
-$ oc get sc
 NAME                        PROVISIONER               AGE
-glusterfs-storage           kubernetes.io/glusterfs   5h
-rook-ceph-block (default)   ceph.rook.io/block        35m
+glusterfs-storage           kubernetes.io/glusterfs   38m
+rook-ceph-block (default)   ceph.rook.io/block        3m
 ----
 
 Now you are ready to start the Rails + PostgreSQL deployment.
 
 ----
-oc new-project my-database-app
+oc new-project ceph-database-app
 oc new-app rails-pgsql-persistent -p VOLUME_CAPACITY=5Gi
 oc status
 oc get pvc
 watch oc get pods
 ----
 
-Wait until the pods are all in a Running state. This could take 5 minutes.
+Wait until the build is finished and all pods are all in a Completed or Running state. This could take 5 minutes (Press `Ctrl-C` to exit).
 
 ----
-NAME                                 READY     STATUS      RESTARTS   AGE
-postgresql-1-zktk2                   1/1       Running     0           3m
-rails-pgsql-persistent-1-build       0/1       Completed   0           4m
-rails-pgsql-persistent-1-sztht       1/1       Running     0           1m
+NAME                             READY     STATUS      RESTARTS   AGE
+postgresql-1-gsdc2               1/1       Running	  0          2m
+rails-pgsql-persistent-1-build   0/1       Completed	  0          2m
+rails-pgsql-persistent-1-z6j2s   1/1       Running     0          28s
 ----
 
 Once the deployment is complete you can now test the application and the persistent storage CephRBD volume.
 
 ----
 oc get route
-NAME                     HOST/PORT                                                                              PATH      SERVICES                 PORT      TERMINATION   WILDCARD
-rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.xxxxxxxxxxx.aws.testdrive.openshift.com
+
+NAME                     HOST/PORT                                                                                PATH      SERVICES                 PORT      TERMINATION   WILDCARD
+rails-pgsql-persistent   rails-pgsql-persistent-ceph-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
 ----
 
 Results of this command will be similar to above. Replace `xxxxxxxxxxx` with your unique value and copy the URL to your browser to create articles.
@@ -2236,7 +1953,7 @@ password: secret
 Lets now take another look at the replicapool created by the OCP storageclass. Log into the toolbox pod again.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in replicapool now.
@@ -2254,50 +1971,47 @@ Validate the OCP PVC is the same name as the PVC object in the replicapool.
 oc get pvc
 ----
 
-== Using Rook to Upgrade Ceph
+=== Using Rook to Upgrade Ceph
 
 In this section you will upgrade Ceph from from Luminous to Mimic using the Rook operator. The first thing we need to do is update the cluster CRD with the mimic image name and version.
 
 ----
 oc project rook-ceph
-oc edit cephcluster rook-ceph
+oc get cephcluster rook-ceph -o yaml | grep image
+
+   image: ceph/ceph:v12.2.11-20190201
 ----
 
-Modify the Ceph version in the cluster CRD. Using `oc edit` is the same as using editing tool `vi`.
+Modify the Ceph version in the cluster CR. Update the version using the following command:
 
+[source,sh]
 ----
-spec:
-  cephVersion:
-    image: ceph/ceph:v12.2.11-20190201
-----
-
-To this version new below. Make sure to save `:wq!` the changes before exiting.
-
-----
-spec:
-  cephVersion:
-    image: ceph/ceph:v13.2.4-20190109
+oc patch cephcluster rook-ceph -n rook-ceph --type merge --patch '{"spec": { "cephVersion": {"image": "ceph/ceph:v13.2.4-20190109"}}}'
 ----
 
-Once the change to the ceph version is saved as shown above, the MONs, MGR, and OSD pods will be restarted. This could take 5 minutes.
+Once the change to the ceph version is saved as shown above, the MONs, MGR, and OSD pods will be restarted. This could take 5 minutes (Press `Ctrl-C` to exit once all pods have been restarted and are running).
 
 ----
 watch oc get pods
 
-NAME                                         READY         STATUS      RESTARTS   AGE
-rook-ceph-mgr-a-7448c76545-4kqjf             1/1	   Running     0          3m
-rook-ceph-mon-a-54d7966c5-5xrz7              1/1	   Running     0          4m
-rook-ceph-mon-b-7f6c449744-d8dbj             1/1	   Running     0          4m
-rook-ceph-mon-c-5d666798c5-8q96l             1/1	   Running     0          4m
-rook-ceph-osd-0-59cc694647-cpptn             1/1	   Running     0          5s
-rook-ceph-osd-1-78b56fc845-bmw4h             1/1	   Running     0          3s
-rook-ceph-osd-2-f78c88c48-w7mst              1/1	   Running     0          2s
+NAME                                                           READY     STATUS      RESTARTS   AGE
+rook-ceph-mgr-a-7448c76545-wnhjd                               1/1	 Running     0          1m
+rook-ceph-mon-a-65d8999987-w6t6v                               1/1	 Running     1	    3m
+rook-ceph-mon-b-b886cb46d-9hcbf                                1/1	 Running     0  	  3m
+rook-ceph-mon-c-8654c8d995-hlhjv                               1/1	 Running     0  	  2m
+rook-ceph-osd-0-86d76c7f5-6k6z8                                1/1	 Running     0          1m
+rook-ceph-osd-1-76b46d75b4-n5sgq                               1/1	 Running     0          50s
+rook-ceph-osd-2-966fc6d6-wq672                                 1/1	 Running     0          1m
+rook-ceph-osd-prepare-89f1a63764fbcfe0f15eca7b510a7763-cxt2x   0/2	 Completed   0          1m
+rook-ceph-osd-prepare-b9e4065b399354d3fb0f17127c7d01c7-vh58j   0/2	 Completed   0          1m
+rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-dfjh5   0/2	 Completed   0          1m
+rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     0          20m
 ----
 
 Now let's check the version of Ceph to see if it is upgraded. First we need to login to the toolbox pod.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 Running the `ceph versions` command shows each of the Ceph daemons have been upgraded to Mimic. Run other Ceph commands to satisfy yourself (e.g., ceph status) the system is healthy after the upgrade. You might even want to go back to the URL used for the Rails+PostgreSQL application and save a few more articles to make sure applications using Ceph storage are still working.
@@ -2323,7 +2037,7 @@ ceph versions
 exit
 ----
 
-== Adding storage to the Ceph Cluster
+=== Adding storage to the Ceph Cluster
 
 In this section you will add more storage to the cluster by increasing the number of OSDs per OCP nodes using spare storage devices on the nodes.
 
@@ -2364,7 +2078,11 @@ Disk /dev/xvde: 53.7 GB, 53687091200 bytes, 104857600 sectors
 Units = sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
 I/O size (minimum/optimal): 512 bytes / 512 bytes
+----
 
+Exit from Node04 back to your Master
+
+----
 [cloud-user@node04 ~]$ exit
 ----
 
@@ -2405,43 +2123,48 @@ Now add the additional storage device `xvde` to each node above.
 oc apply -f cluster_with_xvde.yaml
 ----
 
-Once this new defiition is applied the 3 additonal rook-ceph-osd pods will start. Wait until they are in a Running state before proceeding.
+Once this new defiition is applied the 3 additonal *rook-ceph-osd* pods will start. Wait until they are in a Running state before proceeding. (again press `Ctrl-C` to exit).
 
 ----
 watch oc get pods
-NAME                                       READY     STATUS      RESTARTS   AGE
-rook-ceph-mgr-a-7448c76545-4kqjf           1/1       Running     0          1h
-rook-ceph-mon-a-54d7966c5-5xrz7            1/1       Running     0          1h
-rook-ceph-mon-b-7f6c449744-d8dbj           1/1       Running     0          1h
-rook-ceph-mon-c-5d666798c5-8q96l           1/1       Running     0          1h
-rook-ceph-osd-0-59cc694647-cpptn           1/1       Running     0          1h
-rook-ceph-osd-1-78b56fc845-bmw4h           1/1       Running     0          1h
-rook-ceph-osd-2-f78c88c48-w7mst            1/1       Running     0          1h
-rook-ceph-osd-3-8d5b4f687-glwnf            1/1       Running     0          1m
-rook-ceph-osd-4-85f44cc959-9tdhr           1/1       Running     0          1m
-rook-ceph-osd-5-7444994795-ptnqz           1/1       Running     0          1m
+
+NAME                                                           READY     STATUS      RESTARTS   AGE
+rook-ceph-mgr-a-7448c76545-wnhjd                               1/1	 Running     0          5m
+rook-ceph-mon-a-65d8999987-w6t6v                               1/1	 Running     1          7m
+rook-ceph-mon-b-b886cb46d-9hcbf                                1/1	 Running     0          6m
+rook-ceph-mon-c-8654c8d995-hlhjv                               1/1	 Running     0          6m
+rook-ceph-osd-0-86d76c7f5-6k6z8                                1/1	 Running     0          5m
+rook-ceph-osd-1-76b46d75b4-n5sgq                               1/1	 Running     0          4m
+rook-ceph-osd-2-966fc6d6-wq672                                 1/1	 Running     0          4m
+rook-ceph-osd-3-546bb75744-zzczg                               1/1	 Running     0          22s
+rook-ceph-osd-4-6d47648d4d-xmhvb                               1/1	 Running     0          18s
+rook-ceph-osd-5-5fd8464cb8-hlnsh                               1/1	 Running     0          15s
+rook-ceph-osd-prepare-89f1a63764fbcfe0f15eca7b510a7763-sps7t   0/2	 Completed   0          46s
+rook-ceph-osd-prepare-b9e4065b399354d3fb0f17127c7d01c7-9bk6b   0/2	 Completed   0          48s
+rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-mgbq6   0/2	 Completed   0          44s
+rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     0          23m
 ----
 
 Let's now validate that Ceph is healthy and has the additional storage. We again login to the toolbox.
 
 ----
-kubectl -n rook-ceph exec -it $(kubectl -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 And run Ceph commands to see the new OSDs.
 
 ----
 ceph osd status
-+----+---------------------------------------------+-------+-------+--------+---------+--------+
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 | id |                     host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
-+----+---------------------------------------------+-------+-------+--------+---------+--------+
-| 0  | node05.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 1  | node04.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 2  | node06.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 3  | node04.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 4  | node05.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 5  | node06.internal.aws.testdrive.openshift.com | 1025M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-+----+---------------------------------------------+-------+-------+--------+---------+--------+
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+| 0  | node04.internal.aws.testdrive.openshift.com | 1039M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 1  | node06.internal.aws.testdrive.openshift.com | 1036M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 2  | node05.internal.aws.testdrive.openshift.com | 1059M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 3  | node04.internal.aws.testdrive.openshift.com | 1049M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 4  | node05.internal.aws.testdrive.openshift.com | 1036M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 5  | node06.internal.aws.testdrive.openshift.com | 1045M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 ----
 
 
@@ -2449,17 +2172,16 @@ ceph osd status
 ceph osd tree
 ID CLASS WEIGHT  TYPE NAME                                            STATUS REWEIGHT PRI-AFF
 -1       0.29279 root default
--5       0.09760     host node04-internal-aws-testdrive-openshift-com
- 1   ssd 0.04880         osd.1                                            up  1.00000 1.00000
- 3   ssd 0.04880         osd.3                                            up  1.00000 1.00000
--3       0.09760     host node05-internal-aws-testdrive-openshift-com
+-3       0.09760     host node04-internal-aws-testdrive-openshift-com
  0   ssd 0.04880         osd.0                                            up  1.00000 1.00000
- 4   ssd 0.04880         osd.4                                            up  1.00000 1.00000
--7       0.09760     host node06-internal-aws-testdrive-openshift-com
+ 3   ssd 0.04880         osd.3                                            up  1.00000 1.00000
+-7       0.09760     host node05-internal-aws-testdrive-openshift-com
  2   ssd 0.04880         osd.2                                            up  1.00000 1.00000
+ 4   ssd 0.04880         osd.4                                            up  1.00000 1.00000
+-5       0.09760     host node06-internal-aws-testdrive-openshift-com
+ 1   ssd 0.04880         osd.1                                            up  1.00000 1.00000
  5   ssd 0.04880         osd.5                                            up  1.00000 1.00000
 ----
-
 
 ----
 ceph status
