@@ -160,6 +160,7 @@ Because of this, it is vitally important that you protect access to the
 who can `sudo` on the master has super user privileges on the entire cluster.
 
 ==== Login on the master
+
 Additionally, your Linux system account on the master, `cloud-user`, is
 preconfigured to access this OpenShift "super administrator" without a
 password. Type the following command to login as the internal super-user on
@@ -354,13 +355,6 @@ different volume access modes.
 
 === How OpenShift Container Storage runs
 
-Make sure you are still logged on as the super user:
-
-[source,bash,role="copypaste"]
-----
-oc login -u system:admin
-----
-
 OpenShift Container Storage is GlusterFS running in containers, specifically in pods managed by OpenShift. We have looked at the pods making up the storage cluster already in the introduction chapter. Go ahead and switch to the storage project:
 
 [source,bash,role="copypaste"]
@@ -442,13 +436,14 @@ This how the heketi API is made available to both external clients, like `heketi
 
 === A Simple OCS Use Case
 
-We are going to deploy a sample application that ships with OpenShift which creates a PVC as part of the deployment. Log on to the system as `fancyuser1`, using the password `openshift` and create a project with the name `my-database-app`.
+We are going to deploy a sample application that ships with OpenShift which creates a PVC as part of the deployment.
 
 ==== Create/Deploy the Application
 
+Create a project with the name `my-database-app`.
+
 [source,bash,role="copypaste"]
 ----
-oc login -u fancyuser1 -p openshift
 oc new-project my-database-app
 ----
 
@@ -727,15 +722,10 @@ how the actual application is hosted under the */articles* path of the URL.
 ====
 
 ==== Explore the underlying OCS artifacts
-Now let's take a look at how this was deployed on the GlusterFS side. First you
-need to acquire necessary permissions:
 
-[source,bash,role="copypaste"]
-----
-oc login -u system:admin
-----
+Now let's take a look at how this was deployed on the GlusterFS side.
 
-Select the example project of the user `fancyuser1` if not already/still selected:
+Switch to the example project if not already/still selected:
 
 [source,bash,role="copypaste"]
 ----
@@ -1021,11 +1011,10 @@ sharing a common storage repository.
 
 ==== Deploy the File Uploader Application
 
-First log back in as `fancyuser1` using the password `openshift` and create a new project:
+Create a new project:
 
 [source,bash,role="copypaste"]
 ----
-oc login -u fancyuser1 -p openshift
 oc new-project my-shared-storage
 ----
 
@@ -1350,13 +1339,6 @@ It is required that the feature-gates: (below) is added to the /etc/origin/maste
 	    - ExpandPersistentVolumes=true
 ====
 
-Switch back to the `system:admin` user.
-
-[source,bash,role="copypaste"]
-----
-oc login -u system:admin
-----
-
 Save the current Storage Class to a YAML file:
 
 [source,bash,role="copypaste"]
@@ -1431,13 +1413,6 @@ If you are unfamiliar with the `vi` editor, please run the following command bef
 
     export EDITOR=nano
 ====
-
-Switch back to the `fancyuser1` OpenShift user.
-
-[source,bash,role="copypaste"]
-----
-oc login -u fancyuser1
-----
 
 Use the `oc edit` command to edit the `PersistentVolumeClaim` that we used to
 generate the `PersistentVolume`:
@@ -1701,13 +1676,6 @@ In this section you are learning how to deploy and manage OpenShift Container St
 ==== Download Rook deployment files and install Ceph
 
 In this section necessary files will be downloaded using the `curl -O` command and OCP resources created using the `oc create` command and the Rook.io yaml files.
-
-Make sure you are logged in as `system:admin`:
-
-[source,bash,role="copypaste"]
-----
-oc login -u system:admin
-----
 
 Labeling the new OCP nodes with role=storage-node will make sure that the OCP resources (OSD, MON, MGR pods) are scheduled on these nodes.
 
