@@ -1352,24 +1352,28 @@ It is required that the feature-gates: (below) is added to the /etc/origin/maste
 
 Switch back to the `system:admin` user.
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc login -u system:admin
 ----
 
 Save the current Storage Class to a YAML file:
+
+[source,bash,role="copypaste"]
 ----
 oc get sc glusterfs-storage -o yaml > $HOME/glusterfs-storage.yaml
 ----
 
 And then add the new parameter to the glusterfs-storage-new.yaml file.
 
+[source,bash,role="copypaste"]
 ----
 sed '/volumeBindingMode: Immediate/a allowVolumeExpansion: true' $HOME/glusterfs-storage.yaml > $HOME/glusterfs-storage-new.yaml
 ----
 
 Now to modify this `StorageClass` the current glusterfs-storage needs to be deleted and the new glusterfs-storage-new.yaml used to create glusterfs-storage that containes the necessary parameter `allowVolumeExpansion: true`.
 
+[source,bash,role="copypaste"]
 ----
 oc delete sc glusterfs-storage
 oc create -f $HOME/glusterfs-storage-new.yaml
@@ -1377,6 +1381,7 @@ oc create -f $HOME/glusterfs-storage-new.yaml
 
 Now do the following to validate the `StorageClass` is modified.
 
+[source,bash,role="copypaste"]
 ----
 oc get sc glusterfs-storage -o yaml
 ----
@@ -1398,6 +1403,7 @@ metadata:
 
 Also verify using this command:
 
+[source,bash,role="copypaste"]
 ----
 oc describe sc glusterfs-storage
 ----
@@ -1428,7 +1434,7 @@ If you are unfamiliar with the `vi` editor, please run the following command bef
 
 Switch back to the `fancyuser1` OpenShift user.
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc login -u fancyuser1
 ----
@@ -1488,7 +1494,7 @@ works with many objects in OpenShift.
 
 Give it a couple of seconds and then check the filesystem again:
 
-[source,bash,role="copypaste copypaste-warning"]
+[source,bash,role="copypaste"]
 ----
 oc rsh $(oc get pod -l app=file-uploader --no-headers | head -n1 | awk '{print $1}') df -h /opt/app-root/src/uploaded
 ----
@@ -1619,6 +1625,8 @@ node06.internal.aws.testdrive.openshift.com   Ready     compute   2m        v1.1
 After the scaleup succeeds you need to remove the `new_nodes` entry from [osev3:children]. You also need to remove the '[new_nodes]' section to add the new nodes to the regular [nodes] section of the inventory file. This ensures that any further update will be applied to all nodes, old and new.
 
 Check the two lines that got added to enable the scaleup operation:
+
+[source,bash,role="copypaste"]
 ----
 grep new_nodes /etc/ansible/hosts
 ----
@@ -1632,18 +1640,21 @@ new_nodes
 
 Remove [new_nodes] to add new nodes to the [nodes] section in the inventory file. 
 
+[source,bash,role="copypaste"]
 ----
 sudo sed -i '/^\[new_nodes/d' /etc/ansible/hosts
 ----
 
 Remove new_nodes from [osev3:children] section of the inventory file.
 
+[source,bash,role="copypaste"]
 ----
 sudo sed -i '/^new_nodes/d' /etc/ansible/hosts
 ----
 
 Your modified inventory file should now look like this:
 
+[source,ini]
 ----
 [OSEv3:children]
 masters
@@ -1693,13 +1704,14 @@ In this section necessary files will be downloaded using the `curl -O` command a
 
 Make sure you are logged in as `system:admin`:
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc login -u system:admin
 ----
 
 Labeling the new OCP nodes with role=storage-node will make sure that the OCP resources (OSD, MON, MGR pods) are scheduled on these nodes.
 
+[source,bash,role="copypaste"]
 ----
 oc label node node04.internal.aws.testdrive.openshift.com role=storage-node
 oc label node node05.internal.aws.testdrive.openshift.com role=storage-node
@@ -1709,6 +1721,7 @@ oc get nodes --show-labels | grep storage-node
 
 Next you will download Rook.io scc.yaml, operator.yaml and cluster.yaml to create OCP resources. After downloading each on view the file using the `cat` command before creating the resources using `oc create`.
 
+[source,bash,role="copypaste"]
 ----
 cd $HOME
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/scc.yaml
@@ -1717,12 +1730,14 @@ oc create -f scc.yaml
 
 Validate that rook-ceph has been added to securitycontextconstraints.security.openshift.io.
 
+[source,bash,role="copypaste"]
 ----
 oc get scc rook-ceph
 ----
 
 Install the Rook operator next.
 
+[source,bash,role="copypaste"]
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/operator.yaml
 oc create -f $HOME/operator.yaml
@@ -1754,6 +1769,7 @@ rook-discover-x4dlh                   1/1	Running   0          5m        10.130.
 
 The log for the rook-ceph-operator pod should show that the operator is looking for a cluster. Look for `the server could not find the requested resource (get clusters.ceph.rook.io)` at the end of the log file. Replace `xxxxxxxxx-xxxxx` below with your rook-ceph-operator pod name.
 
+[source,bash,role="copypaste"]
 ----
 oc get pod -l app=rook-ceph-operator
 oc logs rook-ceph-operator-xxxxxxxxx-xxxxx
@@ -1761,6 +1777,7 @@ oc logs rook-ceph-operator-xxxxxxxxx-xxxxx
 
 Next step is to download and install the cluster CRD to create Ceph MON, MGR and OSD pods.
 
+[source,bash,role="copypaste"]
 ----
 oc new-project rook-ceph
 oc adm pod-network make-projects-global rook-ceph
@@ -1803,6 +1820,7 @@ cat cluster.yaml
 
 Now create the MONs, MGR and OSD pods.
 
+[source,bash,role="copypaste"]
 ----
 oc create -f cluster.yaml
 ----
@@ -1810,6 +1828,8 @@ oc create -f cluster.yaml
 Disregard this message “Error from server (AlreadyExists): error when creating "cluster.yaml": namespaces "rook-ceph" already exists”
 
 Switch to the project `rook-ceph` and watch the pods come up (press `Ctrl-C` when your pod list looks like the one below).
+
+[source,bash,role="copypaste"]
 ----
 oc project rook-ceph
 watch oc get pods
@@ -1829,6 +1849,7 @@ rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-zjv2c   0/2	 Completed   
 
 Once all pods are in a Running state it is time to verify that Ceph is operating correctly. Download toolbox.yaml to run Ceph commands.
 
+[source,bash,role="copypaste"]
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/toolbox.yaml
 oc create -f toolbox.yaml -n rook-ceph
@@ -1836,6 +1857,7 @@ oc create -f toolbox.yaml -n rook-ceph
 
 Login to toolbox pod to run Ceph commands.
 
+[source,bash,role="copypaste"]
 ----
 oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 
@@ -1853,6 +1875,7 @@ Disregard the ‘health: HEALTH_WARN mons a,b,c are low on available space’ me
 
 In this section you will download storageclass.yaml and then create the OCP storageclass `rook-ceph-block` that will be used by applications to dynamically claim persistent storage (PVCs). The Ceph pool `replicapool` is created when the storageclass is created.
 
+[source,bash,role="copypaste"]
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/storageclass.yaml
 cat  storageclass.yaml
@@ -1860,12 +1883,14 @@ cat  storageclass.yaml
 
 Notice the provisioner: ceph.rook.io/block and that replicated: size=2.
 
+[source,bash,role="copypaste"]
 ----
 oc create -f storageclass.yaml
 ----
 
 Login to toolbox pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the storageclass was created.
 
+[source,bash,role="copypaste"]
 ----
 oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 
@@ -1881,13 +1906,14 @@ In this section the `rook-ceph-block` storageclass will be used by an applicatio
 
 Because the Rails + PostgreSQL deployment uses the `default` storageclass we need to modify the current default storageclass (glusterfs-storage) and then make `rook-ceph-block` the default storageclass.
 
+[source,bash,role="copypaste"]
 ----
 oc get storageclass
 ----
 
 Make the glusterfs-storage class non-default and the rook-ceph-block storage class the new default:
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc patch storageclass glusterfs-storage --patch '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
 
@@ -1896,7 +1922,7 @@ oc patch storageclass rook-ceph-block --patch '{"metadata": {"annotations": {"st
 
 Double check that the rook-ceph-block storage class is now the default:
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc get storageclass
 ----
@@ -1911,6 +1937,7 @@ rook-ceph-block (default)   ceph.rook.io/block        3m
 
 Now you are ready to start the Rails + PostgreSQL deployment.
 
+[source,bash,role="copypaste"]
 ----
 oc new-project ceph-database-app
 oc new-app rails-pgsql-persistent -p VOLUME_CAPACITY=5Gi
@@ -1923,16 +1950,21 @@ Wait until the build is finished and all pods are all in a Completed or Running 
 
 ----
 NAME                             READY     STATUS      RESTARTS   AGE
-postgresql-1-gsdc2               1/1       Running	  0          2m
-rails-pgsql-persistent-1-build   0/1       Completed	  0          2m
+postgresql-1-gsdc2               1/1       Running     0          2m
+rails-pgsql-persistent-1-build   0/1       Completed   0          2m
 rails-pgsql-persistent-1-z6j2s   1/1       Running     0          28s
 ----
 
 Once the deployment is complete you can now test the application and the persistent storage CephRBD volume.
 
+[source,bash,role="copypaste"]
 ----
 oc get route
+----
 
+.Sample Output
+[source,texinfo]
+----
 NAME                     HOST/PORT                                                                                PATH      SERVICES                 PORT      TERMINATION   WILDCARD
 rails-pgsql-persistent   rails-pgsql-persistent-ceph-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
 ----
@@ -1952,12 +1984,14 @@ password: secret
 
 Lets now take another look at the replicapool created by the OCP storageclass. Log into the toolbox pod again.
 
+[source,bash,role="copypaste"]
 ----
 oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in replicapool now.
 
+[source,bash,role="copypaste"]
 ----
 ceph df
 rados df
@@ -1967,6 +2001,7 @@ exit
 
 Validate the OCP PVC is the same name as the PVC object in the replicapool.
 
+[source,bash,role="copypaste"]
 ----
 oc get pvc
 ----
@@ -1975,6 +2010,7 @@ oc get pvc
 
 In this section you will upgrade Ceph from from Luminous to Mimic using the Rook operator. The first thing we need to do is update the cluster CRD with the mimic image name and version.
 
+[source,bash,role="copypaste"]
 ----
 oc project rook-ceph
 oc get cephcluster rook-ceph -o yaml | grep image
@@ -1984,7 +2020,7 @@ oc get cephcluster rook-ceph -o yaml | grep image
 
 Modify the Ceph version in the cluster CR. Update the version using the following command:
 
-[source,sh]
+[source,bash,role="copypaste"]
 ----
 oc patch cephcluster rook-ceph -n rook-ceph --type merge --patch '{"spec": { "cephVersion": {"image": "ceph/ceph:v13.2.4-20190109"}}}'
 ----
@@ -2010,6 +2046,7 @@ rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     
 
 Now let's check the version of Ceph to see if it is upgraded. First we need to login to the toolbox pod.
 
+[source,bash,role="copypaste"]
 ----
 oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
@@ -2041,8 +2078,9 @@ exit
 
 In this section you will add more storage to the cluster by increasing the number of OSDs per OCP nodes using spare storage devices on the nodes.
 
-Before we make any changes to the cluster CRD let's see what storage is available on our OCP nodes. It is important that the available storage be a raw block device with no formatting or labeling. There should be a storage device availalbe, all of the same size, on the same nodes that were originally used.
+Before we make any changes to the cluster CRD let's see what storage is available on our OCP nodes. It is important that the available storage be a raw block device with no formatting or labeling. There should be a storage device available, all of the same size, on the same nodes that were originally used.
 
+[source,bash,role="copypaste"]
 ----
 oc get nodes -l role=storage-node
 NAME                                          STATUS    ROLES     AGE       VERSION
@@ -2053,14 +2091,21 @@ node06.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.1
 
 To check the storage SSH to one of the OCP nodes that have the role=storage-node.
 
+[source,bash,role="copypaste"]
 ----
 ssh node04.internal.aws.testdrive.openshift.com
 ----
 
 Check the storage devices on node. You can see that 50GB storage device `xvdd` is used already by Ceph. Storage device `xvde`, also 50GB, is not used yet.
 
+[source,bash,role="copypaste"]
 ----
 [cloud-user@node04 ~]$ lsblk
+----
+
+.Sample Output
+[source,texinfo]
+----
 NAME                                                                    MAJ:MIN RM SIZE RO TYPE
 ...omitted...
 xvdd                                                                    202:48   0  50G  0 disk
@@ -2071,9 +2116,14 @@ xvde                                                                    202:64  
 
 Also /dev/xvde looks to be a raw block device with no labels, which is required.
 
+[source,bash,role="copypaste"]
 ----
 [cloud-user@node04 ~]$ sudo fdisk -l /dev/xvde
+----
 
+.Sample Output
+[source,texinfo]
+----
 Disk /dev/xvde: 53.7 GB, 53687091200 bytes, 104857600 sectors
 Units = sectors of 1 * 512 = 512 bytes
 Sector size (logical/physical): 512 bytes / 512 bytes
@@ -2082,6 +2132,7 @@ I/O size (minimum/optimal): 512 bytes / 512 bytes
 
 Exit from Node04 back to your Master
 
+[source,bash,role="copypaste"]
 ----
 [cloud-user@node04 ~]$ exit
 ----
@@ -2090,6 +2141,7 @@ After validating the available storage for increasing the number of OSDs we are 
 
 To make this easier we have created a new cluster CRD yaml file that has the new storage device already added correctly instead of editing the cluster CRD using `oc edit`.
 
+[source,bash,role="copypaste"]
 ----
 curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/workshop/cluster_with_xvde.yaml
 ----
@@ -2119,15 +2171,21 @@ cat cluster_with_xvde.yaml
 
 Now add the additional storage device `xvde` to each node above.
 
+[source,bash,role="copypaste"]
 ----
 oc apply -f cluster_with_xvde.yaml
 ----
 
 Once this new defiition is applied the 3 additonal *rook-ceph-osd* pods will start. Wait until they are in a Running state before proceeding. (again press `Ctrl-C` to exit).
 
+[source,bash,role="copypaste"]
 ----
 watch oc get pods
+----
 
+.Sample Output
+[source,texinfo]
+----
 NAME                                                           READY     STATUS      RESTARTS   AGE
 rook-ceph-mgr-a-7448c76545-wnhjd                               1/1	 Running     0          5m
 rook-ceph-mon-a-65d8999987-w6t6v                               1/1	 Running     1          7m
@@ -2147,14 +2205,21 @@ rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     
 
 Let's now validate that Ceph is healthy and has the additional storage. We again login to the toolbox.
 
+[source,bash,role="copypaste"]
 ----
 oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
 ----
 
 And run Ceph commands to see the new OSDs.
 
+[source,bash,role="copypaste"]
 ----
 ceph osd status
+----
+
+.Sample Output
+[source,texinfo]
+----
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 | id |                     host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
@@ -2167,9 +2232,14 @@ ceph osd status
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 ----
 
-
+[source,bash,role="copypaste"]
 ----
 ceph osd tree
+----
+
+.Sample Output
+[source,texinfo]
+----
 ID CLASS WEIGHT  TYPE NAME                                            STATUS REWEIGHT PRI-AFF
 -1       0.29279 root default
 -3       0.09760     host node04-internal-aws-testdrive-openshift-com
@@ -2183,8 +2253,14 @@ ID CLASS WEIGHT  TYPE NAME                                            STATUS REW
  5   ssd 0.04880         osd.5                                            up  1.00000 1.00000
 ----
 
+[source,bash,role="copypaste"]
 ----
 ceph status
+----
+
+.Sample Output
+[source,texinfo]
+----
 ...omitted...
    osd: 6 osds: 6 up, 6 in
 ...omitted
