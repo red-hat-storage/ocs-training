@@ -1,16 +1,4 @@
-= "Got OpenShift Storage" Workshop Guide
-
-// Start OCP3+OCS3 lab with custom lab guide (30 mins)
-// Lab Environment 
-// Verification including Prometheus + Heketi 
-// Create new users via LDAP that have cluster-reader for console login
-// Investigate gluster and install rails+postgresql 
-// Look at gluster volume usage (PVC) available in Prometheus (kublet_volume)
-// Start OCP3+OCS4 lab (40 mins)
-// Use everything in readme.adoc except deploy rails+postgresql (should readme.adoc section2 be repeated)
-
-// https://github.com/openshift/openshift-cns-testdrive/tree/master/labguide
-// https://github.com/travisn/rook/tree/openshift-commons-demo/workshop
+= "Got OpenShift Storage" Red Hat Summit 2019 Workshop Guide
 
 :numbered:
 == OpenShift Container Platform Environment Overview
@@ -56,9 +44,9 @@ to the OpenShift 3.11 versions.
 
 === Logging in
 
-Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node. 
+Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node.
 
-Use the user name `cloud-user` and the password provided to you on the Lab home page to login using the SSH client on your local machine. 
+Use the user name `cloud-user` and the password provided to you on the Lab home page to login using the SSH client on your local machine.
 
 Using the same credentials you can use a web-based SSH console if needed. Consult the Lab home page for actual URL of the SSH Console*
 
@@ -110,8 +98,7 @@ Execute the following command to see a list of the *Nodes* that OpenShift knows 
 oc get nodes
 ----
 
-The output should look something like the following:
-
+.Sample Output
 ----
 NAME                                          STATUS    ROLES     AGE	VERSION
 infra.internal.aws.testdrive.openshift.com    Ready     infra     1m	v1.11.0+d4cacc0
@@ -273,8 +260,7 @@ Then, take a look at the storage *Pods*:
 oc get pods -o wide
 ----
 
-Which yields:
-
+.Sample Output
 ----
 NAME                      READY     STATUS    RESTARTS   AGE       IP           NODE                                             NOMINATED NODE
 glusterfs-storage-l5sxd   1/1       Running   0          3h        10.0.1.83    node01.internal.aws.testdrive.openshift.com <1>   <none>
@@ -312,8 +298,7 @@ has been set up:
 oc get service,route
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 NAME                                  TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
 service/heketi-db-storage-endpoints   ClusterIP   172.30.170.71   <none>        1/TCP      3h
@@ -330,8 +315,7 @@ You may verify external availability of this API and heketi being alive with a  
 curl -w "\n" http://$(oc get route heketi-storage -n storage -o jsonpath --template='{.spec.host}')/hello
 ----
 
-This should return:
-
+.Sample Output
 ----
 Hello from Heketi
 ----
@@ -368,8 +352,7 @@ As part of the resource template, a PVC is created in the YAML. Run the ollowing
 oc get template/rails-pgsql-persistent -n openshift -o yaml | grep PersistentVolumeClaim -A8
 ----
 
-This shows the basic structure of a `PersistentVolumeClaim`:
-
+.Sample output
 [source,yaml]
 ----
 kind: PersistentVolumeClaim
@@ -399,8 +382,7 @@ You can see this when inspecting how the pod is described as part of the
 oc get template/rails-pgsql-persistent -n openshift -o yaml | grep mountPath -B58 -A5
 ----
 
-Will show:
-
+.Sample Output
 [source,yaml]
 ----
 - apiVersion: v1
@@ -509,8 +491,7 @@ automagic things, including code introspection when pointed at code
 repositories. It is a developer's good friend.
 ====
 
-You will then see something like the following:
-
+.Sample Output
 ----
 --> Deploying template "openshift/rails-pgsql-persistent" to project my-database-app                                                                                                                       [2/1622]
 
@@ -519,7 +500,7 @@ You will then see something like the following:
      An example Rails application with a PostgreSQL database. For more information about using this template, including OpenShift considerations, see https://github.com/openshift/rails-ex/blob/master/README.md.
 
      The following service(s) have been created in your project: rails-pgsql-persistent, postgresql.
-     
+
      For more information about using this template, including OpenShift considerations, see https://github.com/openshift/rails-ex/blob/master/README.md.
 
      * With parameters:
@@ -556,7 +537,7 @@ You will then see something like the following:
     service "postgresql" created
     deploymentconfig.apps.openshift.io "postgresql" created
 --> Success
-    Access your application via route 'rails-pgsql-persistent-my-database-app.apps.790442527540.aws.testdrive.openshift.com' 
+    Access your application via route 'rails-pgsql-persistent-my-database-app.apps.790442527540.aws.testdrive.openshift.com'
     Build scheduled, use 'oc logs -f bc/rails-pgsql-persistent' to track its progress.
     Run 'oc status' to view your app.
 ----
@@ -582,8 +563,7 @@ On the CLI, you should now see a PVC that has been issued and has a status of _B
 oc get pvc
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 NAME         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
 postgresql   Bound     pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88   5Gi        RWO            glusterfs-storage   3m
@@ -603,8 +583,7 @@ Now go ahead and try out the application. Get it the route of the application on
 oc get route
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 NAME                     HOST/PORT                                                                              PATH      SERVICES                 PORT      TERMINATION   WILDCARD
 rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
@@ -648,13 +627,12 @@ Next deploy the example PHP application called `file-uploader`:
 oc new-app openshift/php:7.1~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 --> Found image 691930e (5 weeks old) in image stream "openshift/php" under tag "7.1" for "openshift/php:7.1"
 
-    Apache 2.4 with PHP 7.1 
-    ----------------------- 
+    Apache 2.4 with PHP 7.1
+    -----------------------
     PHP 7.1 available as container is a base platform for building and running various PHP 7.1 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
 
     Tags: builder, php, php71, rh-php71
@@ -674,7 +652,7 @@ You will see something like:
 --> Success
     Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/file-uploader' 
+     'oc expose svc/file-uploader'
     Run 'oc status' to view your app.
 ----
 
@@ -685,8 +663,7 @@ Watch and wait for the application to be deployed:
 oc logs -f bc/file-uploader
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
 	Commit:	7508da63d78b4abc8d03eac480ae930beec5d29d (Update index.html)
@@ -719,20 +696,6 @@ Let's make our application production ready by exposing it via a `Route`:
 [source,bash,role="copypaste"]
 ----
 oc expose svc/file-uploader
-----
-
-Now, check the *Route* that has been created:
-
-[source,bash,role="copypaste"]
-----
-oc get route
-----
-
-You will see something like:
-
-----
-NAME            HOST/PORT                                                                       PATH      SERVICES        PORT       TERMINATION   WILDCARD
-file-uploader   file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com             file-uploader   8080-tcp                 None
 ----
 
 [CAUTION]
@@ -772,8 +735,7 @@ with `oc set volume -h`. Now, let's look at the result of adding the volume:
 oc get pvc
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 NAME                STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
 my-shared-storage   Bound     pvc-0e66d9f3-6b62-11e9-ad48-0a0e0711ec88   1Gi        RWX            glusterfs-storage   24s
@@ -796,8 +758,7 @@ Now, check the *Route* that has been created:
 oc get route
 ----
 
-You will see something like:
-
+.Sample Output
 ----
 NAME            HOST/PORT                                                                       PATH      SERVICES        PORT       TERMINATION   WILDCARD
 file-uploader   file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com             file-uploader   8080-tcp                 None
@@ -866,8 +827,7 @@ Now do the following to validate the `StorageClass` allows `PersistentVolume` ex
 oc get sc glusterfs-storage -o yaml
 ----
 
-You will see something like below.
-
+.Sample Output
 ----
 allowVolumeExpansion: true
 apiVersion: storage.k8s.io/v1
@@ -877,7 +837,6 @@ metadata:
     storageclass.kubernetes.io/is-default-class: "true"
   creationTimestamp: 2019-04-22T19:33:05Z
   name: glusterfs-storage
-
 ...
 ----
 
@@ -890,6 +849,7 @@ oc describe sc glusterfs-storage
 
 You can see `AllowVolumeExpansion:  True` in this output as well.
 
+.Sample Output
 ----
 Name:                  glusterfs-storage
 IsDefaultClass:        Yes
@@ -905,65 +865,12 @@ Events:                <none>
 
 After the `StorageClass` is verified for `PersistentVolume` expansion, the volume size can be increased by the user or owner of the app, even without administrator intervention.
 
-[WARNING]
-====
-If you are unfamiliar with the `vi` editor, please run the following command before continuing:
-
-    export EDITOR=nano
-====
-
-Use the `oc edit` command to edit the `PersistentVolumeClaim` that we used to
-generate the `PersistentVolume`:
+Use the `oc patch` command to edit the `PersistentVolumeClaim` that we used to generate the `PersistentVolume` and update the storage request to *5Gi*:
 
 [source,bash,role="copypaste"]
 ----
-oc edit pvc my-shared-storage
+oc patch persistentvolumeclaim my-shared-storage --patch='{"spec": { "resources": { "requests": { "storage": "5Gi" }}}}'
 ----
-
-You end up in a `vi` session editing the `PVC` object properties in YAML. Go
-to line that says `storage: 1Gi` below spec -> resources -> requests and
-increase to `5Gi` like shown below:
-
-[source,yaml]
-----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  annotations:
-    pv.kubernetes.io/bind-completed: "yes"
-    pv.kubernetes.io/bound-by-controller: "yes"
-    volume.beta.kubernetes.io/storage-provisioner: kubernetes.io/glusterfs
-  creationTimestamp: 2018-04-18T10:17:24Z
-  name: my-shared-storage
-  namespace: my-shared-storage
-  resourceVersion: "41960"
-  selfLink: /api/v1/namespaces/my-shared-storage/persistentvolumeclaims/my-shared-storage
-  uid: b0544244-42f1-11e8-8f68-02f9630bd644
-spec:
-  accessModes:
-  - ReadWriteMany
-  resources:
-    requests:
-      storage: 5Gi <1>
-  storageClassName: glusterfs-storage
-  volumeName: pvc-b0544244-42f1-11e8-8f68-02f9630bd644
-status:
-  accessModes:
-  - ReadWriteMany
-  capacity:
-    storage: 1Gi
-  phase: Bound
-----
-<1> Set this to *5Gi*
-
-Exit out of `vi` mode with the `:wq` command.
-
-[TIP]
-====
-Upon writing the file the `oc edit` command will update the
-`PersistentVolumeClaim` definition in OpenShift. This way of ad-hoc editing
-works with many objects in OpenShift.
-====
 
 Give it a couple of seconds and then check the filesystem again:
 
@@ -979,6 +886,120 @@ Filesystem                                      Size  Used Avail Use% Mounted on
 10.0.1.83:vol_9829c286608e9ce29b81df24eb08ce51  5.0G  1.1G  4.0G  22% /opt/app-root/src/uploaded
 ----
 
+// WK Added: Prometheus section
+== Explore Prometheus Metrics for Storage
+
+OpenShift Container Platform includes a full Prometheus stack to facilitate Metrics collection. The Prometheus stack is deployed in project *openshift-monitoring*.
+
+Prometheus is protected behind the OpenShift OAuth login mechanism. This requires users to log into OpenShift in order to gain access to Prometheus. Without this Oauth Proxy everyone who knew the Prometheus URL could run any kind of query. This is not something that is desired in an OpenShift cluster.
+
+In order to log into Prometheus you will need to grant permissions to a user id because the `system:admin` user can not log into any web console because it uses a certificate and not a password for authentication. You will be using user `fancyuser1`.
+
+Back in your shell grant `cluster-admin` permissions to the user `fancyuser1` - you could use just view permissions but for the sake of this lab let's make `fancyuser1` a cluster administrator:
+
+[source,bash,role="copypaste"]
+----
+oc adm policy add-cluster-role-to-user cluster-admin fancyuser1
+----
+
+Next determine the Route for Prometheus. The name of the route is `prometheus-k8s` and it is located in the `openshift-monitoring` project.
+
+[source,bash,role="copypaste"]
+----
+oc get route prometheus-k8s -n openshift-monitoring -o jsonpath --template="{.spec.host}"
+----
+
+This will return a route similar to this one (careful: there is no line break at the end so your shell prompt appears right after the output).
+
+[source,texinfo]
+----
+prometheus-k8s-openshift-monitoring.apps.074442814228.aws.testdrive.openshift.com
+----
+
+Use *https* with this Route in the Web Brower to get to the Prometheus Login Screen. You may need to accept a security warning because our cluster uses self-signed certificates. The URL should look something like this:
+
+[source,texinfo]
+----
+https://prometheus-k8s-openshift-monitoring.apps.074442814228.aws.testdrive.openshift.com
+----
+
+You will see the Prometheus Log in screen. Click the blue *Login with OpenShift* button (you may need to accept another certificate warning) to reach the OpenShift login screen.
+
+User `fancyuser1` as the user id and `openshift` as the password, log into OpenShift and accept the permissions that Prometheus wants. This will bring you into the main Prometheus Screen.
+
+While in a real environment you would set up Dashboards to visualize a lot of the queries that are possible in Prometheus in this lab let's just run a few queries manually.
+
+=== Example Prometheus Queries
+
+In the Entry field at the top of the screen (it says *Expression (press Shift+Enter for newlines)*) type the following query:
+
+[source,sh]
+----
+kube_persistentvolumeclaim_info
+----
+
+.Sample Output
+[source,texinfo]
+----
+kube_persistentvolumeclaim_info{endpoint="https-main",instance="10.131.0.19:8443",job="kube-state-metrics",namespace="my-database-app",persistentvolumeclaim="postgresql",pod="kube-state-metrics-69d97ff57c-vgrtx",service="kube-state-metrics",storageclass="glusterfs-storage",volumename="pvc-60c72728-6e99-11e9-8dce-02cae411299c"}	             1
+kube_persistentvolumeclaim_info{endpoint="https-main",instance="10.131.0.19:8443",job="kube-state-metrics",namespace="my-shared-storage",persistentvolumeclaim="my-shared-storage",pod="kube-state-metrics-69d97ff57c-vgrtx",service="kube-state-metrics",storageclass="glusterfs-storage",volumename="pvc-538ce03f-6e9e-11e9-8dce-02cae411299c"}              1
+----
+
+You can see that there are two Persistent Volume Claims in the cluster. Prometheus returns attributes as labels - in the example above you can see the *namespace*, *persistentvolumeclaim* name, *storageclass* and *volumename*.
+
+Now delete the previous query and type:
+
+[source,bash,role="copypaste"]
+----
+kube_persistentvolumeclaim_resource_requests_storage_bytes
+----
+
+.Sample Output
+[source,texinfo]
+----
+kube_persistentvolumeclaim_resource_requests_storage_bytes{endpoint="https-main",instance="10.131.0.19:8443",job="kube-state-metrics",namespace="my-database-app",persistentvolumeclaim="postgresql",pod="kube-state-metrics-69d97ff57c-vgrtx",service="kube-state-metrics"}	5368709120
+kube_persistentvolumeclaim_resource_requests_storage_bytes{endpoint="https-main",instance="10.131.0.19:8443",job="kube-state-metrics",namespace="my-shared-storage",persistentvolumeclaim="my-shared-storage",pod="kube-state-metrics-69d97ff57c-vgrtx",service="kube-state-metrics"}	5368709120
+----
+
+This shows the size of the two Persistent Volume Claimss. Both have a size of 5Gi.
+
+To see the total requested storage you can use the *sum* operator. So type the following:
+
+[source,bash,role="copypaste"]
+----
+sum(kube_persistentvolumeclaim_resource_requests_storage_bytes)
+----
+
+.Sample Output
+[source,texinfo]
+----
+{}	10737418240
+----
+
+You see the sum of the two claims - which adds up to 10Gi. Another interesting query returns the current phase of persistent volume claim provisioning:
+
+[source,bash,role="copypaste"]
+----
+kube_persistentvolumeclaim_status_phase
+----
+
+You will see how many Persistent Volume Claims are in phase *Bound*, *Pending* and *Lost*. If you just want to see the pending PVCs you can use the label to filter:
+
+[source,bash,role="copypaste"]
+----
+kube_persistentvolumeclaim_status_phase{phase="Pending"}
+----
+
+And if you want to see how many persistent volume claims are *Bound* or *Pending* you can use the following two queries:
+
+[source,bash,role="copypaste"]
+----
+sum(kube_persistentvolumeclaim_status_phase{phase="Bound"})
+sum(kube_persistentvolumeclaim_status_phase{phase="Pending"})
+----
+
+There are many more queries to be constructed but for the purpose of this lab this should suffice.
+
 // WK: Part 3, Scaleup, Prepare for Rook
 == Infrastructure Management, Adding Nodes to your Cluster
 
@@ -991,7 +1012,7 @@ In this lab you will explore various aspects of managing cluster infrastructure.
 It is required that you `sudo -i` to `root` before performing these exercises.
 ====
 
-Switch to the `root` user:
+Back in your SSH Shell switch to the `root` user:
 
 [source,bash,role="copypaste"]
 ----
@@ -1048,8 +1069,7 @@ verify that they are, in fact, online:
 ansible new_nodes -m ping
 ----
 
-You will see:
-
+.Sample Output
 ----
 node04.internal.aws.testdrive.openshift.com | SUCCESS => {
     "changed": false,
@@ -1083,8 +1103,7 @@ The playbook takes 1-2 minutes to complete. When done, you can verify that there
 oc get nodes -l node-role.kubernetes.io/compute=true
 ----
 
-You will see:
-
+.Sample Output
 ----
 NAME                                          STATUS    ROLES     AGE       VERSION
 node01.internal.aws.testdrive.openshift.com   Ready     compute   2h        v1.11.0+d4cacc0
@@ -1104,14 +1123,13 @@ Check the two lines that got added to enable the scaleup operation:
 grep new_nodes /etc/ansible/hosts
 ----
 
-You will see:
-
+.Sample Output
 ----
 new_nodes
 [new_nodes]
 ----
 
-Remove [new_nodes] to add new nodes to the [nodes] section in the inventory file. 
+Remove [new_nodes] to add new nodes to the [nodes] section in the inventory file.
 
 [source,bash,role="copypaste"]
 ----
@@ -1213,8 +1231,7 @@ watch oc get pods -o wide
 
 Wait for all rook-ceph-agent, rook-discover and rook-ceph-operator pods to be in a Running state.
 
-The pod list should look like this:
-
+.Sample Output
 [source,text]
 ----
 NAME                                  READY     STATUS    RESTARTS   AGE       IP           NODE                                          NOMINATED NODE
@@ -1288,7 +1305,7 @@ Now create the MONs, MGR and OSD pods.
 
 [source,bash,role="copypaste"]
 ----
-oc create -f cluster.yaml
+oc apply -f cluster.yaml
 ----
 
 Disregard this message “Error from server (AlreadyExists): error when creating "cluster.yaml": namespaces "rook-ceph" already exists”
@@ -1321,21 +1338,105 @@ curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/wo
 oc create -f toolbox.yaml -n rook-ceph
 ----
 
-Login to toolbox pod to run Ceph commands.
+Use the toolbox pod to run Ceph commands. Set up a shell alias first (this makes typing Ceph commands much easier going forward):
++
+[source,sh]
+----
+alias tb="oc -n rook-ceph rsh $(oc -n rook-ceph get pod -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}')"
+----
+
+Now run a number of Ceph commands to see the status of the storage cluster:
 
 [source,bash,role="copypaste"]
 ----
-oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
-
-ceph status
-ceph osd status
-ceph osd tree
-ceph df
-rados df
-exit
+tb ceph status
 ----
 
-Disregard the ‘health: HEALTH_WARN mons a,b,c are low on available space’ message when viewing results of `ceph status` command.
+.Sample Output
+[source,texinfo]
+----
+cluster:
+  id:     f5127ae7-27ff-4d07-9370-a3c9d91ac3e8
+  health: HEALTH_WARN
+          mons a,b,c are low on available space
+
+services:
+  mon: 3 daemons, quorum a,c,b
+  mgr: a(active)
+  osd: 3 osds: 3 up, 3 in
+
+data:
+  pools:   0 pools, 0 pgs
+  objects: 0 objects, 0B
+  usage:   3.00GiB used, 147GiB / 150GiB avail
+  pgs:
+----
+
+[source,bash,role="copypaste"]
+----
+tb ceph osd status
+----
+
+.Sample Output
+[source,texinfo]
+----
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+| id |                     host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+| 0  | node04.internal.aws.testdrive.openshift.com | 1024M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 1  | node05.internal.aws.testdrive.openshift.com | 1024M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 2  | node06.internal.aws.testdrive.openshift.com | 1024M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
++----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+----
+
+[source,bash,role="copypaste"]
+----
+tb ceph osd tree
+----
+
+.Sample Output
+[source,texinfo]
+----
+ID CLASS WEIGHT  TYPE NAME                                            STATUS REWEIGHT PRI-AFF
+-1       0.14639 root default
+-3       0.04880     host node04-internal-aws-testdrive-openshift-com
+ 0   ssd 0.04880         osd.0                                            up  1.00000 1.00000
+-5       0.04880     host node05-internal-aws-testdrive-openshift-com
+ 1   ssd 0.04880         osd.1                                            up  1.00000 1.00000
+-7       0.04880     host node06-internal-aws-testdrive-openshift-com
+ 2   ssd 0.04880         osd.2                                            up  1.00000 1.00000
+----
+
+[source,bash,role="copypaste"]
+----
+tb ceph df
+----
+
+.Sample Output
+[source,texinfo]
+----
+GLOBAL:
+    SIZE       AVAIL      RAW USED     %RAW USED
+    150GiB     147GiB      3.00GiB          2.00
+POOLS:
+    NAME     ID     USED     %USED     MAX AVAIL     OBJECTS
+----
+
+[source,bash,role="copypaste"]
+----
+tb rados df
+----
+
+.Sample Output
+[source,texinfo]
+----
+POOL_NAME USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS RD WR_OPS WR
+
+total_objects    0
+total_used       3.0 GiB
+total_avail      147 GiB
+total_space      150 GiB
+----
 
 === Create Rook storageclass for creating CephRBD block volumes
 
@@ -1354,17 +1455,47 @@ Notice the provisioner: ceph.rook.io/block and that replicated: size=2.
 oc create -f storageclass.yaml
 ----
 
-Login to toolbox pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the storageclass was created.
+Use the toolbox pod again to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the storageclass was created.
 
 [source,bash,role="copypaste"]
 ----
-oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
-
-ceph df
-rados df
-rados -p replicapool ls
-exit
+tb ceph df
 ----
+
+.Sample Output
+[source,texinfo]
+----
+GLOBAL:
+    SIZE       AVAIL      RAW USED     %RAW USED
+    150GiB     147GiB      3.00GiB          2.00
+POOLS:
+    NAME            ID     USED     %USED     MAX AVAIL     OBJECTS
+    replicapool     1        0B         0       69.7GiB           0
+----
+
+[source,bash,role="copypaste"]
+----
+tb rados df
+----
+
+.Sample Output
+[source,texinfo]
+----
+POOL_NAME   USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS  RD WR_OPS  WR
+replicapool  0 B       0      0      0                  0       0        0      0 0 B      0 0 B
+
+total_objects    0
+total_used       3.0 GiB
+total_avail      147 GiB
+total_space      150 GiB
+----
+
+[source,bash,role="copypaste"]
+----
+tb rados -p replicapool ls | grep pvc
+----
+
+No Output returned because there aren't any objects in the replicapool yet.
 
 === Create new OpenShift Application using CephRBD block volume
 
@@ -1377,12 +1508,19 @@ Because the Rails + PostgreSQL deployment uses the `default` storageclass we nee
 oc get storageclass
 ----
 
+.Sample Output
+[source,texinfo]
+----
+NAME                          PROVISIONER               AGE
+glusterfs-storage (default)   kubernetes.io/glusterfs   2h
+rook-ceph-block               ceph.rook.io/block        5m
+----
+
 Make the glusterfs-storage class non-default and the rook-ceph-block storage class the new default:
 
 [source,bash,role="copypaste"]
 ----
 oc patch storageclass glusterfs-storage --patch '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "false"}}}'
-
 oc patch storageclass rook-ceph-block --patch '{"metadata": {"annotations": {"storageclass.kubernetes.io/is-default-class": "true"}}}'
 ----
 
@@ -1435,7 +1573,7 @@ NAME                     HOST/PORT                                              
 rails-pgsql-persistent   rails-pgsql-persistent-ceph-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
 ----
 
-Results of this command will be similar to above. Replace `xxxxxxxxxxx` with your unique value and copy the URL to your browser to create articles.
+Replace `xxxxxxxxxxx` with your unique value and copy the URL to your browser to create articles.
 
 ----
 http://rails-pgsql-persistent-my-database-app.apps.xxxxxxxxxxx.aws.testdrive.openshift.com/articles
@@ -1448,21 +1586,52 @@ username: openshift
 password: secret
 ----
 
-Lets now take another look at the replicapool created by the OCP storageclass. Log into the toolbox pod again.
+Lets now take another look at the replicapool created by the OCP storageclass. Use the toolbox pod again. Run the same Ceph commands as before the application deployment and compare to results in prior section.
 
 [source,bash,role="copypaste"]
 ----
-oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
+tb ceph df
 ----
 
-Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in replicapool now.
+.Sample Output
+[source,texinfo]
+----
+GLOBAL:
+    SIZE       AVAIL      RAW USED     %RAW USED
+    150GiB     147GiB      3.11GiB          2.07
+POOLS:
+    NAME            ID     USED        %USED     MAX AVAIL     OBJECTS
+    replicapool     1      68.3MiB      0.10       69.7GiB          33
+----
 
 [source,bash,role="copypaste"]
 ----
-ceph df
-rados df
-rados -p replicapool ls | grep pvc
-exit
+tb rados df
+----
+
+.Sample Output
+[source,texinfo]
+----
+POOL_NAME     USED OBJECTS CLONES COPIES MISSING_ON_PRIMARY UNFOUND DEGRADED RD_OPS      RD WR_OPS     WR
+replicapool 68 MiB      33      0     66                  0       0        0    224 987 KiB   1219 60 MiB
+
+total_objects    33
+total_used       3.1 GiB
+total_avail      147 GiB
+total_space      150 GiB
+----
+
+Notice the number of objects in replicapool now.
+
+[source,bash,role="copypaste"]
+----
+tb rados -p replicapool ls | grep pvc
+----
+
+.Sample Output
+[source,texinfo]
+----
+rbd_id.pvc-2d017d1d-6ea3-11e9-8dce-02cae411299c
 ----
 
 Validate the OCP PVC is the same name as the PVC object in the replicapool.
@@ -1470,6 +1639,13 @@ Validate the OCP PVC is the same name as the PVC object in the replicapool.
 [source,bash,role="copypaste"]
 ----
 oc get pvc
+----
+
+.Sample Output
+[source,texinfo]
+----
+NAME         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS      AGE
+postgresql   Bound     pvc-2d017d1d-6ea3-11e9-8dce-02cae411299c   5Gi        RWO            rook-ceph-block   4m
 ----
 
 === Using Rook to Upgrade Ceph
@@ -1493,9 +1669,14 @@ oc patch cephcluster rook-ceph -n rook-ceph --type merge --patch '{"spec": { "ce
 
 Once the change to the ceph version is saved as shown above, the MONs, MGR, and OSD pods will be restarted. This could take 5 minutes (Press `Ctrl-C` to exit once all pods have been restarted and are running).
 
+[source,sh]
 ----
 watch oc get pods
+----
 
+.Sample Output
+[source,texinfo]
+----
 NAME                                                           READY     STATUS      RESTARTS   AGE
 rook-ceph-mgr-a-7448c76545-wnhjd                               1/1	 Running     0          1m
 rook-ceph-mon-a-65d8999987-w6t6v                               1/1	 Running     1	    3m
@@ -1510,17 +1691,18 @@ rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-dfjh5   0/2	 Completed   
 rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     0          20m
 ----
 
-Now let's check the version of Ceph to see if it is upgraded. First we need to login to the toolbox pod.
-
-[source,bash,role="copypaste"]
-----
-oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
-----
+Check the version of Ceph to see if it is upgraded. Use the toolbox pod again.
 
 Running the `ceph versions` command shows each of the Ceph daemons have been upgraded to Mimic. Run other Ceph commands to satisfy yourself (e.g., ceph status) the system is healthy after the upgrade. You might even want to go back to the URL used for the Rails+PostgreSQL application and save a few more articles to make sure applications using Ceph storage are still working.
 
+[source,bash,role="copypaste"]
 ----
-ceph versions
+tb ceph versions
+----
+
+.Sample Output
+[source,texinfo]
+----
 {
     "mon": {
         "ceph version 13.2.4 (b10be4d44915a4d78a8e06aa31919e74927b142e) mimic (stable)": 3
@@ -1536,8 +1718,6 @@ ceph versions
         "ceph version 13.2.4 (b10be4d44915a4d78a8e06aa31919e74927b142e) mimic (stable)": 7
     }
 }
-
-exit
 ----
 
 === Adding storage to the Ceph Cluster
@@ -1549,6 +1729,11 @@ Before we make any changes to the cluster CRD let's see what storage is availabl
 [source,bash,role="copypaste"]
 ----
 oc get nodes -l role=storage-node
+----
+
+.Sample Output
+[source,texinfo]
+----
 NAME                                          STATUS    ROLES     AGE       VERSION
 node04.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
 node05.internal.aws.testdrive.openshift.com   Ready     compute   1h        v1.11.0+d4cacc0
@@ -1614,8 +1799,14 @@ curl -O https://raw.githubusercontent.com/travisn/rook/openshift-commons-demo/wo
 
 Take a look at the new cluster CRD yaml file.
 
+[source,bash,role="copypaste"]
 ----
 cat cluster_with_xvde.yaml
+----
+
+.Sample Output
+[source,texinfo]
+----
 ...omitted...
   storage:
     useAllNodes: false
@@ -1669,18 +1860,11 @@ rook-ceph-osd-prepare-f4a3099a5aac291ccda3759e92f81c57-mgbq6   0/2	 Completed   
 rook-ceph-tools-76bf8448f6-2h9d4                               1/1	 Running     0          23m
 ----
 
-Let's now validate that Ceph is healthy and has the additional storage. We again login to the toolbox.
+Let's now validate that Ceph is healthy and has the additional storage. We use the toolbox pod.
 
 [source,bash,role="copypaste"]
 ----
-oc -n rook-ceph exec -it $(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}') bash
-----
-
-And run Ceph commands to see the new OSDs.
-
-[source,bash,role="copypaste"]
-----
-ceph osd status
+tb ceph osd status
 ----
 
 .Sample Output
@@ -1689,18 +1873,18 @@ ceph osd status
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 | id |                     host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
-| 0  | node04.internal.aws.testdrive.openshift.com | 1039M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 1  | node06.internal.aws.testdrive.openshift.com | 1036M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 2  | node05.internal.aws.testdrive.openshift.com | 1059M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 3  | node04.internal.aws.testdrive.openshift.com | 1049M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 4  | node05.internal.aws.testdrive.openshift.com | 1036M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
-| 5  | node06.internal.aws.testdrive.openshift.com | 1045M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 0  | node04.internal.aws.testdrive.openshift.com | 1041M | 48.9G |    0   |  3276   |    0   |     0   | exists,up |
+| 1  | node05.internal.aws.testdrive.openshift.com | 1047M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 2  | node06.internal.aws.testdrive.openshift.com | 1040M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 3  | node04.internal.aws.testdrive.openshift.com | 1034M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 4  | node05.internal.aws.testdrive.openshift.com | 1046M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
+| 5  | node06.internal.aws.testdrive.openshift.com | 1054M | 48.9G |    0   |     0   |    0   |     0   | exists,up |
 +----+---------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 ----
 
 [source,bash,role="copypaste"]
 ----
-ceph osd tree
+tb ceph osd tree
 ----
 
 .Sample Output
@@ -1711,17 +1895,17 @@ ID CLASS WEIGHT  TYPE NAME                                            STATUS REW
 -3       0.09760     host node04-internal-aws-testdrive-openshift-com
  0   ssd 0.04880         osd.0                                            up  1.00000 1.00000
  3   ssd 0.04880         osd.3                                            up  1.00000 1.00000
--7       0.09760     host node05-internal-aws-testdrive-openshift-com
- 2   ssd 0.04880         osd.2                                            up  1.00000 1.00000
- 4   ssd 0.04880         osd.4                                            up  1.00000 1.00000
--5       0.09760     host node06-internal-aws-testdrive-openshift-com
+-5       0.09760     host node05-internal-aws-testdrive-openshift-com
  1   ssd 0.04880         osd.1                                            up  1.00000 1.00000
+ 4   ssd 0.04880         osd.4                                            up  1.00000 1.00000
+-7       0.09760     host node06-internal-aws-testdrive-openshift-com
+ 2   ssd 0.04880         osd.2                                            up  1.00000 1.00000
  5   ssd 0.04880         osd.5                                            up  1.00000 1.00000
 ----
 
 [source,bash,role="copypaste"]
 ----
-ceph status
+tb ceph status
 ----
 
 .Sample Output
