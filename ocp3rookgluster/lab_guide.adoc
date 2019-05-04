@@ -15,7 +15,7 @@
 :numbered:
 == OpenShift Container Platform Environment Overview
 
-You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also use OpenShift Container Storage 3.11 and and install Rook on top of the OpenShift Cluster.
+You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also use OpenShift Container Storage 3.11 and and install Rook and Ceph on top of the OpenShift Cluster.
 
 The complete environment consists of the following systems:
 
@@ -48,37 +48,23 @@ publicly access via SSH and the browser is the OpenShift Master node:
 [options="header"]
 |==============================================
 | Role | Public FQDN
-| Master Node | *Consult your handout for the actual master URL* (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
+| Master Node | *Consult your Lab home page for the actual master URL* (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
 |==============================================
 
 Note that references to product documentation will be specifically pointing
-to the 3.11 versions, but newer software and documentation versions may be
-available.
-
-=== Conventions
-
-You will see various code and command blocks throughout these exercises. Some of the command blocks can be copy/pasted directly. Others will require modification of the command before execution. If you see a command block with a red border (see below), the command will require slight modification.
-
-[source,none,role="copypaste copypaste-warning"]
-----
-some command to modify
-----
-
-Most command blocks support auto highlighting with a click. If you hover over the command block above and click, it should automatically highlight all the text to make for easier copying.
+to the OpenShift 3.11 versions.
 
 === Logging in
 
-Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node. For convenient access to the master's command line we provide a web-based SSH console:
+Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node. 
 
-*Consult the Handout for actual URL of the SSH Console*. It will be similar to `http://ssh.external.aws.testdrive.openshift.com:8080/ssh/host/master.internal.aws.testdrive.openshift.com`
+Use the user name `cloud-user` and the password provided to you on the Lab home page to login using the SSH client on your local machine. 
 
-Use the user name `cloud-user` and the password provided to you on the handout when prompted.
-
-If you prefer to use an SSH client on your system you can do that too, using the same credentials:
+Using the same credentials you can use a web-based SSH console if needed. Consult the Lab home page for actual URL of the SSH Console*
 
 [source,bash,role="copypaste"]
 ----
-ssh -l cloud-user <Your Master URL from the handout>
+ssh -l cloud-user <Your Master hostname from the Lab home page>
 ----
 
 Once you are logged in you end up on the OpenShift Master Node:
@@ -114,88 +100,6 @@ For more information on installing OpenShift Container Platform, please refer to
 At this point you should be logged in as `cloud-user` on the OpenShift Master
 node via SSH.
 ====
-
-### Examining the provided Ansible inventory file
-First, let's examine the provided installer configuration file.
-
-#### Look at the file
-Use `cat`, `less`, or an editor to look at the `/etc/ansible/hosts` file:
-
-[source,bash,role="copypaste"]
-----
-cat /etc/ansible/hosts
-----
-
-General settings and other variable information is defined on lines within the `[OSEv3:vars]` section. There are also various host groups defined for things like *Masters* and *Nodes*.
-
-The top-level playbook in
-`/usr/share/ansible/openshift-ansible/playbooks/deploy_cluster.yml` triggers
-the installation of the cluster and all of it's components. It's idempotent,
-which means you can execute this playbook multiple times without harm. This
-also allows you to deploy additional components after the initial install by
-simply modifying the configuration in `/etc/ansible/hosts` and re-run the
-installer.
-
-In addition to this, there are playbooks that only deploy a specific
-component or service, which makes them faster to execute.
-
-[TIP]
-====
-A typical multi-host installation like this might normally take around an
-hour depending on the speed of your internet connection. Disconnected
-installation options are also available. Prerequisites and other information
-is all covered in the documentation.
-====
-
-=== Verifying the Installation
-
-Let's do some basic tests with your installation. As an administrator, most
-of your interaction with OpenShift will be from the command line. The `oc`
-program is a command line interface that talks to the OpenShift API.
-
-During the OpenShift installation, the `root` system account on the `master`
-host is configured to use a special OpenShift "super administrator" (`system:admin`) account.
-Because of this, it is vitally important that you protect access to the
-`root` system account, or remove this preconfigured config. Otherwise, anyone
-who can `sudo` on the master has super user privileges on the entire cluster.
-
-==== Login on the master
-
-Additionally, your Linux system account on the master, `cloud-user`, is
-preconfigured to access this OpenShift "super administrator" without a
-password. Type the following command to login as the internal super-user on
-OpenShift:
-
-[source,bash,role="copypaste"]
-----
-oc login -u system:admin
-----
-
-You will see that you got logged in to a project called 'default'. More on
-projects later.
-
-----
-Logged into "https://master.internal.aws.testdrive.openshift.com:443" as "system:admin" using existing credentials.
-
-You have access to the following projects and can switch between them with 'oc project <projectname>':
-
-  * default
-    kube-public
-    kube-system
-    management-infra
-    openshift
-    openshift-console
-    openshift-infra
-    openshift-logging
-    openshift-metrics
-    openshift-monitoring
-    openshift-node
-    openshift-sdn
-    openshift-web-console
-    storage
-
-Using project "default".
-----
 
 ==== Look at the Nodes
 
@@ -706,294 +610,13 @@ NAME                     HOST/PORT                                              
 rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.538432900127.aws.testdrive.openshift.com             rails-pgsql-persistent   <all>                   None
 ----
 
-Following this output, point your browser to:
+Following this output, point your browser to a link similar to below. *Your `Host/Port` will be different*:
 
-*http://<ROUTE HOST>/articles*
+*http://rails-pgsql-persistent-my-database-app.apps.538432900127.aws.testdrive.openshift.com/articles*
 
 The username/password to create articles and comments is by default '_openshift_'/'_secret_'.
 
 You should be able to successfully create articles and comments. When they are saved they are actually saved in the PostgreSQL database which stores its table spaces on a GlusterFS volume provided by OCS.
-
-[NOTE]
-====
-This application's template included a *Route* object definition, which is
-why the *Service* was automatically exposed. This is a good practice. Note
-how the actual application is hosted under the */articles* path of the URL.
-====
-
-==== Explore the underlying OCS artifacts
-
-Now let's take a look at how this was deployed on the GlusterFS side.
-
-Switch to the example project if not already/still selected:
-
-[source,bash,role="copypaste"]
-----
-oc project my-database-app
-----
-
-Look at the PVC to determine the PV:
-
-[source,bash,role="copypaste"]
-----
-oc get pvc
-----
-
-You will see the PVC in a `BOUND` state and the name of the PV it has been bound to in the `VOLUME` column:
-
-----
-NAME         STATUS    VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS        AGE
-postgresql   Bound     pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88   5Gi        RWO            glusterfs-storage   5m
-----
-
-[NOTE]
-====
-Your PV name will be different as it's dynamically generated. A lot of the
-following things contain dynamically generated names.
-*Use the supplied bash shortcuts to easy copying and pasting.*
-====
-
-Here's a little bash shortcut to store the name of the PVC in a Bash environment variable:
-
-[source,bash,role="copypaste"]
-----
-export PGSQL_PV_NAME=$(oc get pvc/postgresql -o jsonpath="{.spec.volumeName}" -n my-database-app)
-echo $PGSQL_PV_NAME
-----
-
-Look at the details of the PV bound to the PVC, in this case `pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88` (your's will be different, use the bash variable):
-
-[source,bash,role="copypaste"]
-----
-oc describe pv $PGSQL_PV_NAME
-----
-
-You will see something like:
-
-----
-Name:            pvc-1cbd111b-6b5c-11e9-ad48-0a0e0711ec88 <1>
-Labels:          <none>
-Annotations:     Description=Gluster-Internal: Dynamically provisioned PV
-                 gluster.kubernetes.io/heketi-volume-id=7da624d82941c50d704dd01b366c5806
-                 gluster.org/type=file
-                 kubernetes.io/createdby=heketi-dynamic-provisioner
-                 pv.beta.kubernetes.io/gid=2001
-                 pv.kubernetes.io/bound-by-controller=yes
-                 pv.kubernetes.io/provisioned-by=kubernetes.io/glusterfs
-                 volume.beta.kubernetes.io/mount-options=auto_unmount
-Finalizers:      [kubernetes.io/pv-protection]
-StorageClass:	   glusterfs-storage
-Status:          Bound
-Claim:           my-database-app/postgresql
-Reclaim Policy:  Delete
-Access Modes:    RWO
-Capacity:        5Gi
-Node Affinity:   <none>
-Message:         
-Source:
-    Type:           Glusterfs (a Glusterfs mount on the host that shares a pod's lifetime)
-    EndpointsName:  glusterfs-dynamic-postgresql
-    Path:		        vol_fbf686c62a5087e85cbdab5171f31583 <2>
-    ReadOnly:       false
-Events:             <none>
-----
-<1> The unique name of this PV in the system OpenShift refers to
-<2> The unique volume name backing the PV known to GlusterFS
-
-Note the GlusterFS volume name, in this case
-*vol_fbf686c62a5087e85cbdab5171f31583*. The following is another Bash
-shortcut to store the name of the GlusterFS volume backing the
-`PersistentVolume`:
-
-[source,bash,role="copypaste"]
-----
-export PGSQL_GLUSTER_VOLUME=$(oc get pv $PGSQL_PV_NAME -o jsonpath='{.spec.glusterfs.path}')
-echo $PGSQL_GLUSTER_VOLUME
-----
-
-Now let's switch to the namespace we used for OCS deployment:
-
-[source,bash,role="copypaste"]
-----
-oc project storage
-----
-
-Look at the GlusterFS pods running and pick one (which one is not important):
-
-[source,bash,role="copypaste"]
-----
-oc get pods -o wide -l glusterfs=storage-pod
-----
-
-You will see something like:
-
-----
-NAME                      READY     STATUS    RESTARTS   AGE       IP          NODE                                          NOMINATED NODE
-glusterfs-storage-l5sxd   1/1       Running   0          3h        10.0.1.83   node01.internal.aws.testdrive.openshift.com   <none>
-glusterfs-storage-l99db   1/1       Running   0          3h        10.0.4.14   node03.internal.aws.testdrive.openshift.com   <none>
-glusterfs-storage-tsr4g   1/1       Running   0          3h        10.0.3.28   node02.internal.aws.testdrive.openshift.com   <none>
-----
-
-We are now going to select the first pod (which one doesn't really matter)
-and, store it's IP address in above example that is: *10.0.1.83*
-of pod *glusterfs-storage-l5sxd*.
-
-Again, for easy copying and pasting, here are some Bash shortcuts:
-
-[source,bash,role="copypaste"]
-----
-export FIRST_GLUSTER_POD=$(oc get pods -o jsonpath='{.items[0].metadata.name}' -l glusterfs=storage-pod)
-export FIRST_GLUSTER_IP=$(oc get pods -o jsonpath='{.items[0].status.podIP}' -l glusterfs=storage-pod)
-echo $FIRST_GLUSTER_POD
-echo $FIRST_GLUSTER_IP
-----
-
-We will again use the `oc rsh` facility to log on to the selected GlusterFS
-pod which has the GlusterFS CLI utilities installed. This time we will use
-the non-interactive mode which immediately drops out after executing the
-supplied command.
-
-Query GlusterFS from inside the first GlusterFS pod for all known volumes:
-
-[source,bash,role="copypaste"]
-----
-oc rsh $FIRST_GLUSTER_POD gluster volume list
-----
-
-You will immediately drop back out to your shell and you will see something like:
-
-----
-heketidbstorage <1>
-vol_fbf686c62a5087e85cbdab5171f31583 <2>
-----
-<1> A special volume dedicated to heketi's internal database.
-<2> The volume backing the PV of the PostgreSQL database we asked you to remember.
-
-Query GlusterFS about the topology of this volume:
-
-[source,bash,role="copypaste"]
-----
-oc rsh $FIRST_GLUSTER_POD gluster volume info $PGSQL_GLUSTER_VOLUME
-----
-
-You will see something like:
-
-----
-Volume Name: vol_fbf686c62a5087e85cbdab5171f31583
-Type: Replicate
-Volume ID: 5e2a8d04-ef55-4dac-984a-23ba62aaf6d0
-Status: Started
-Snapshot Count: 0
-Number of Bricks: 1 x 3 = 3
-Transport-type: tcp
-Bricks:
-Brick1: 10.0.3.28:/var/lib/heketi/mounts/vg_5a46f5d3788ed61352f565385edce8d5/brick_9cb9259e8894dde38a8b4decd9788cd8/brick
-Brick2: 10.0.1.83:/var/lib/heketi/mounts/vg_f3668aa3855cd9a84642ca29db45af1c/brick_cb043b2bb44dd6a80bfe826ebdd3c61a/brick <1>
-Brick3: 10.0.4.14:/var/lib/heketi/mounts/vg_550bc327799e3c436a2e35e4b584c2ca/brick_5e09b7f1b8c86e8da3364579a4f181da/brick
-Options Reconfigured:
-server.tcp-user-timeout: 42
-transport.address-family: inet
-nfs.disable: on
-performance.client-io-threads: off
-cluster.brick-multiplex: on
-----
-<1> According to the output of `oc get pods -o wide` this is the container we are logged on to.
-
-[NOTE]
-====
-Identify the right brick by looking at the host IP of the GlusterFS pod
-you have just logged on to. `oc get pods -o wide` will give you this
-information. The host's IP will be noted next to one of the bricks.
-====
-
-GlusterFS created this volume as a 3-way replica set across all GlusterFS
-pods, and therefore across all your OpenShift App nodes running OCS. Data
-written to such a replica volume is replicated 3 times to all *bricks*.
-*Bricks* are local storage in GlusterFS nodes, usually backed by a local SAS
-*disk or NVMe device. Each node exposes its local storage via the GlusterFS
-*protocol. The brick itself is simply a directory on a block device formatted
-*with XFS. Hence you can look with a simple `ls` command and see how the data
-*is actually stored in each brick.
-
-For easy copying and pasting, here's another bash shortcut to extract the
-brick directory path of our PostgreSQL volume from the fist GlusterFS pod in
-the list:
-
-[source,bash,role="copypaste"]
-----
-export PGSQL_GLUSTER_BRICK=$(echo -n $(oc rsh $FIRST_GLUSTER_POD gluster vol info $PGSQL_GLUSTER_VOLUME | grep $FIRST_GLUSTER_IP) | cut -d ':' -f 3 | tr -d $'\r' )
-echo $PGSQL_GLUSTER_BRICK
-----
-
-You can look at the brick directory of the first GlusterFS pod and see how
-GlusterFS stores the files from the clients in a brick:
-
-[source,bash,role="copypaste"]
-----
-oc rsh $FIRST_GLUSTER_POD ls -ahl $PGSQL_GLUSTER_BRICK
-----
-
-You will see something like:
-
-----
-total 16K
-drwxrwsr-x.   4 root       2000   40 Apr 30 15:25 .
-drwxr-xr-x.   3 root       root   19 Apr 30 15:24 ..
-drw---S---. 262 root       2000 8.0K Apr 30 15:35 .glusterfs
-drwx------.  20 1000080000 2000 8.0K Apr 30 15:25 userdata
-----
-
-Dig a bit deeper, try looking at the `userdata` folder:
-
-[source,bash,role="copypaste"]
-----
-oc rsh $FIRST_GLUSTER_POD ls -ahl $PGSQL_GLUSTER_BRICK/userdata
-----
-
-You will see the PostgreSQL database folder structure:
-
-----
-total 68K
-drwx------. 20 1000080000 2000 8.0K Apr 30 15:25 .
-drwxrwsr-x.  4 root       2000   40 Apr 30 15:25 ..
--rw-------.  2 1000080000 root    4 Apr 30 15:25 PG_VERSION
-drwx------.  6 1000080000 root   54 Apr 30 15:25 base
-drwx------.  2 1000080000 root 8.0K Apr 30 15:26 global
-drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_clog
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_commit_ts
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_dynshmem
--rw-------.  2 1000080000 root 4.6K Apr 30 15:25 pg_hba.conf
--rw-------.  2 1000080000 root 1.6K Apr 30 15:25 pg_ident.conf
-drwx------.  2 1000080000 root   32 Apr 30 15:25 pg_log
-drwx------.  4 1000080000 root   39 Apr 30 15:25 pg_logical
-drwx------.  4 1000080000 root   36 Apr 30 15:25 pg_multixact
-drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_notify
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_replslot
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_serial
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_snapshots
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_stat
-drwx------.  2 1000080000 root   84 Apr 30 16:00 pg_stat_tmp
-drwx------.  2 1000080000 root   18 Apr 30 15:25 pg_subtrans
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_tblspc
-drwx------.  2 1000080000 root    6 Apr 30 15:25 pg_twophase
-drwx------.  3 1000080000 root   60 Apr 30 15:25 pg_xlog
--rw-------.  2 1000080000 root   88 Apr 30 15:25 postgresql.auto.conf
--rw-------.  2 1000080000 root  22K Apr 30 15:25 postgresql.conf
--rw-------.  2 1000080000 root   46 Apr 30 15:25 postmaster.opts
--rw-------.  2 1000080000 root   89 Apr 30 15:25 postmaster.pid
-----
-
-You are looking at the PostgreSQL internal data file structure from the
-perspective of the GlusterFS server side. It's a normal local filesystem here.
-
-Clients, like the OpenShift nodes and their application pods talk to this set
-of replicated brick storage via the GlusterFS protocol. Which abstracts the
-3-way replication behind a single FUSE mount point - this is called a
-`volume` in GlusterFS. When a pod starts that mounts storage from a `PV`
-backed by GlusterFS, OpenShift will mount the GlusterFS volume on the right
-app node and then _bind-mount_ this directory to the right pod. This is
-happening transparently to the application inside the pod and looks like a
-normal local filesystem.
 
 === Providing Scalable, Shared Storage With OCS
 
@@ -1091,13 +714,11 @@ built and did not involve a template. That's why it only created a *single
 Pod* deployment with a *Service* and no *Route*.
 ====
 
-Let's make our application production ready by exposing it via a `Route` and
-scale to 3 instances for high availability:
+Let's make our application production ready by exposing it via a `Route`:
 
 [source,bash,role="copypaste"]
 ----
 oc expose svc/file-uploader
-oc scale --replicas=3 dc/file-uploader
 ----
 
 Now, check the *Route* that has been created:
@@ -1113,66 +734,6 @@ You will see something like:
 NAME            HOST/PORT                                                                       PATH      SERVICES        PORT       TERMINATION   WILDCARD
 file-uploader   file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com             file-uploader   8080-tcp                 None
 ----
-
-Point your browser to the web application using the URL advertised by the route
-(http://<ROUTE HOST>, e.g. http://file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com in the example above).
-
-The web app simply lists all previously uploaded files and offers the ability
-to upload new ones as well as download the existing data. Right now there is
-nothing.
-
-Select an arbitrary file from your local machine and upload it to the app.
-
-.A simple PHP-based file upload tool
-image::./images/uploader_screen_upload.png[]
-
-Once done click *_List uploaded files_* to see the list of all currently
-uploaded files.
-
-Do you see it? Don't worry if you don't.
-
-Change back to the command line and look at the running pods.
-
-[source,bash,role="copypaste"]
-----
-oc get pods -l app=file-uploader
-----
-
-You will see 3 pods running:
-
-----
-NAME                    READY     STATUS    RESTARTS   AGE
-file-uploader-1-2c5cd   1/1       Running   0          4m
-file-uploader-1-chjj7   1/1       Running   0          3m
-file-uploader-1-fnh27   1/1       Running   0          3m
-----
-
-Now let's look back at where this file got stored inside the pods. Again use
-the `oc rsh` utility via a scriptlet to execute an `ls` command on the
-`upload` directory that the PHP code uses to store the files:
-
-[source,bash,role="copypaste"]
-----
-for pod in $(oc get pod -l app=file-uploader --no-headers | awk '{print $1}'); do echo $pod; oc rsh $pod ls -hl uploaded; done
-----
-
-
-You will see that only one of the pods has the uploaded file
-----
-file-uploader-1-2c5cd
-total 0
-file-uploader-1-chjj7
-total 352K
--rw-r--r--. 1 1000380000 root 352K Oct 29 16:00 firefly-episode-list.txt
-file-uploader-1-fnh27
-total 0
-----
-
-Why is that? These pods currently do not use any persistent storage. They
-store the file locally in the container root file system. That means the
-application cannot effectively be scaled since the pods do not share data and
-every client would see different uploaded files. To verify this, try
-accessing the URL with a second _Icognito_ browser session.
 
 [CAUTION]
 ====
@@ -1225,65 +786,36 @@ reliably. If you attempt to scale up deployments that are using
 `ReadWriteOnce` storage, they will actually all become co-located on the same
 node.
 
-The app has now re-deployed (in a rolling fashion) with the new settings -
-all pods will mount the volume identified by the PVC under
-`/opt/app-root/src/upload`.
+Try it out in your file uploader web application using your browser. Upload
+new files.
 
-Check you have a new set of pods:
+Now, check the *Route* that has been created:
 
 [source,bash,role="copypaste"]
 ----
-oc get pods -l app=file-uploader
+oc get route
 ----
 
 You will see something like:
 
 ----
-NAME                    READY     STATUS    RESTARTS   AGE
-file-uploader-2-6dst5   1/1       Running   0          43s
-file-uploader-2-8dlcn   1/1       Running   0          36s
-file-uploader-2-hmfgr   1/1       Running   0          31s
+NAME            HOST/PORT                                                                       PATH      SERVICES        PORT       TERMINATION   WILDCARD
+file-uploader   file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com             file-uploader   8080-tcp                 None
 ----
 
-Try it out in your file uploader web application using your browser. Upload
-new files and see that they are visible from within all application pods.
+Point your browser to the web application using the URL advertised by the route (e.g. http://file-uploader-my-shared-storage.apps.538432900127.aws.testdrive.openshift.com in the example above).
 
-[CAUTION]
-====
-Where is my previously uploaded file?
+The web app simply lists all uploaded files and offers the ability
+to upload new ones as well as download the existing data. Right now there is
+nothing.
 
-Since the pod redeployed the file has been lost with the previous container's
-root filesystem going away as part of the configuration update. One more
-reason to provide persistent storage!
-====
+Select an arbitrary file from your local machine and upload it to the app.
 
-Once done, return to the command line and look at the contents of pods:
+.A simple PHP-based file upload tool
+image::./images/uploader_screen_upload.png[]
 
-[source,bash,role="copypaste"]
-----
-for pod in $(oc get pod -l app=file-uploader --no-headers | awk '{print $1}'); do echo $pod; oc rsh $pod ls -hl uploaded; done
-----
-
-
-You will see that now all of the pods have the uploaded file:
-----
-file-uploader-2-6dst5
-total 352K
--rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
-file-uploader-2-8dlcn
-total 352K
--rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
-file-uploader-2-hmfgr
-total 352K
--rw-r--r--. 1 1000380000 2002 352K Oct 29 16:10 firefly-episode-list.txt
-----
-
-That's it. You have successfully provided shared storage to pods throughout the
-entire system, therefore avoiding the need for data to be replicated at the
-application level to each pod.
-
-With OCS this is available wherever OpenShift is deployed without external
-dependencies like NFS.
+Once done click *_List uploaded files_* to see the list of all currently
+uploaded files.
 
 === Increasing volume capacity
 
@@ -1327,41 +859,7 @@ failed to open stream: No space left on device in /opt/app-root/src/upload.php o
 [...]
 ----
 
-First the `StorageClass` glusterfs-storage needs to be modified to include `allowVolumeExpansion: true`. To add this new parameter the following process is used.
-
-[WARNING]
-====
-It is required that the feature-gates: (below) is added to the /etc/origin/master/master-config.yaml and the master services restarted before modifying the `StorageClass` glusterfs-storage. Our environment already has these enabled.
-
-	kubernetesMasterConfig:
-	  apiServerArguments:
-	    feature-gates:
-	    - ExpandPersistentVolumes=true
-====
-
-Save the current Storage Class to a YAML file:
-
-[source,bash,role="copypaste"]
-----
-oc get sc glusterfs-storage -o yaml > $HOME/glusterfs-storage.yaml
-----
-
-And then add the new parameter to the glusterfs-storage-new.yaml file.
-
-[source,bash,role="copypaste"]
-----
-sed '/volumeBindingMode: Immediate/a allowVolumeExpansion: true' $HOME/glusterfs-storage.yaml > $HOME/glusterfs-storage-new.yaml
-----
-
-Now to modify this `StorageClass` the current glusterfs-storage needs to be deleted and the new glusterfs-storage-new.yaml used to create glusterfs-storage that containes the necessary parameter `allowVolumeExpansion: true`.
-
-[source,bash,role="copypaste"]
-----
-oc delete sc glusterfs-storage
-oc create -f $HOME/glusterfs-storage-new.yaml
-----
-
-Now do the following to validate the `StorageClass` is modified.
+Now do the following to validate the `StorageClass` allows `PersistentVolume` expansion.
 
 [source,bash,role="copypaste"]
 ----
@@ -1405,7 +903,7 @@ VolumeBindingMode:     Immediate
 Events:                <none>
 ----
 
-After the `StorageClass` is modified to allow `PersistentVolume` expansion, the volume size can be increased by the user or owner of the app, even without administrator intervention.
+After the `StorageClass` is verified for `PersistentVolume` expansion, the volume size can be increased by the user or owner of the app, even without administrator intervention.
 
 [WARNING]
 ====
