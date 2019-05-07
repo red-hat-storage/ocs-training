@@ -5,7 +5,22 @@
 
 You will be interacting with an OpenShift 3.11 cluster that is running on Amazon Web Services. During the lab you will also use OpenShift Container Storage 3.11 and and install Rook and Ceph on top of the OpenShift Cluster.
 
-The complete environment consists of the following systems:
+== Lab Environment
+
+[NOTE]
+Your facilitator will provide you with a sheet of paper containing the information to login into your lab environment. Go to the *URL* and enter the provided *username* and *password* into Qwiklabs which.
+
+image::images/qwiklab_login.jpg[]
+
+Click the green `Start Lab` button at the top right to start your lab. You will see login information for your environment in a box on the left of your window.
+
+image::images/lab_creds.jpg[]
+
+Take note of your *SSHUserName* (always `cloud-user`), *SSHPassword* and *Public Master Host URL*. It may be a good idea to save them into a text file on your computer.
+
+*Disregard the Lab Guide link presented to you above SSHUserName and continue using this Lab Guide instead.*
+
+The complete provisioned environment consists of the following systems:
 
 * 1 master node
 * 1 infrastructure node
@@ -13,22 +28,6 @@ The complete environment consists of the following systems:
 ** 3 will run workload and the initial Container Native Storage instances
 ** 3 will be added to the cluster later and will be used to deploy Rook
 * 1 server running Red Hat Identity Management (IdM, for LDAP authentication)
-
-== Lab Environment
-
-[NOTE]
-Your facilitator will provide you with a sheet of paper containing the information to login into your lab environment. Go to the URL and enter the provided username and password into Qwiklabs which.
-
-image::images/qwiklab_login.jpg[]
-
-[NOTE]
-After you `Start Lab` and then `End Lab` is completed you will see login information for your OCP master node. *Disregard Lab Guide link presented to you above SSHUserName and continue using this Lab Guide instead.*
-
-image::images/lab_start.jpg[]
-
-image::images/lab_end.jpg[]
-
-image::images/lab_creds.jpg[]
 
 .Lab Environment Overview
 [options="header"]
@@ -55,20 +54,19 @@ publicly access via SSH and the browser is the OpenShift Master node:
 | Master Node | Consult your *Lab home page* for the actual master URL (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
 |==============================================
 
-Note that references to product documentation will be specifically pointing to the OpenShift 3.11 versions.
-
 === Logging in
 
 Most of the exercises in this lab will be facilitated using the OpenShift command line client on the master node.
 
-Use the user name `cloud-user` and the password provided to you on the Lab home page to login using the SSH client on your local machine.
-
-Using the same credentials you can use a web-based SSH console if needed. Consult the *Lab home page* for actual URL of the SSH Console
+Use the *username* `cloud-user` and the *password* provided to you on the Lab home page to login using the SSH client on your local machine.
 
 [source,bash,role="copypaste"]
 ----
 ssh -l cloud-user <Your Master hostname from the Lab home page>
 ----
+
+[TIP]
+If you don't have an SSH client on your machine you can use a web-based SSH console if needed using the same credentials . Consult the *Lab home page* for the actual URL of the SSH Console.
 
 Once you are logged in you end up on the OpenShift Master Node:
 
