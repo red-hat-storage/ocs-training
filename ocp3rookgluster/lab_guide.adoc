@@ -926,6 +926,7 @@ OpenShift creates User objects only the first time a user logs into the platform
 [source,bash,role="copypaste"]
 ----
 oc adm policy add-cluster-role-to-user cluster-admin fancyuser1
+----
 
 .Sample Output
 [source,texinfo]
