@@ -1696,7 +1696,6 @@ tb ceph osd tree
 ----
 
 .Sample Output
-[source,text]
 ----
 ID CLASS WEIGHT  TYPE NAME                                            STATUS REWEIGHT PRI-AFF
 -1       0.29279 root default
@@ -1717,7 +1716,6 @@ tb ceph status
 ----
 
 .Sample Output
-[source,text]
 ----
 ...omitted...
    osd: 6 osds: 6 up, 6 in
