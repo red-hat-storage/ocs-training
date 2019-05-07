@@ -14,6 +14,22 @@ The complete environment consists of the following systems:
 ** 3 will be added to the cluster later and will be used to deploy Rook
 * 1 server running Red Hat Identity Management (IdM, for LDAP authentication)
 
+== Lab Environment
+
+[NOTE]
+Your facilitator will provide you with a sheet of paper containing the information to login into your lab environment. Go to the URL and enter the provided username and password into Qwiklabs which.
+
+image::images/qwiklab_login.jpg[]
+
+[NOTE]
+After you `Start Lab` and then `End Lab` is completed you will see login information for your OCP master node. *Disregard Lab Guide link presented to you above SSHUserName and continue using this Lab Guide instead.*
+
+image::images/lab_start.jpg[]
+
+image::images/lab_end.jpg[]
+
+image::images/lab_creds.jpg[]
+
 .Lab Environment Overview
 [options="header"]
 |==============================================
@@ -36,11 +52,10 @@ publicly access via SSH and the browser is the OpenShift Master node:
 [options="header"]
 |==============================================
 | Role | Public FQDN
-| Master Node | *Consult your Lab home page for the actual master URL* (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
+| Master Node | Consult your *Lab home page* for the actual master URL (it will be similar to `master.1234567890.aws.testdrive.openshift.com`)
 |==============================================
 
-Note that references to product documentation will be specifically pointing
-to the OpenShift 3.11 versions.
+Note that references to product documentation will be specifically pointing to the OpenShift 3.11 versions.
 
 === Logging in
 
@@ -48,7 +63,7 @@ Most of the exercises in this lab will be facilitated using the OpenShift comman
 
 Use the user name `cloud-user` and the password provided to you on the Lab home page to login using the SSH client on your local machine.
 
-Using the same credentials you can use a web-based SSH console if needed. Consult the Lab home page for actual URL of the SSH Console*
+Using the same credentials you can use a web-based SSH console if needed. Consult the *Lab home page* for actual URL of the SSH Console
 
 [source,bash,role="copypaste"]
 ----
