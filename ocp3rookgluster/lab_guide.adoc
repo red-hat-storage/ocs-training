@@ -703,7 +703,7 @@ oc scale --replicas=3 dc/file-uploader
 oc get pods
 ----
 
-You should have 3 `file-uploader` *Pods* now. 
+You should have 3 `file-uploader` *Pods* now.
 
 [CAUTION]
 ====
@@ -903,12 +903,18 @@ Prometheus is protected behind the OpenShift OAuth login mechanism. This require
 
 In order to log into Prometheus you will need to grant permissions to a user id because the `system:admin` user can not log into any web console because it uses a certificate and not a password for authentication. You will be using user `fancyuser1`.
 
-Back in your shell grant `cluster-admin` permissions to the user `fancyuser1` - you could use just view permissions but for the sake of this lab let's make `fancyuser1` a cluster administrator:
+Back in your shell grant `cluster-admin` permissions to the user `fancyuser1` - you could use just view permissions but for the sake of this lab let's make `fancyuser1` a cluster administrator
+
+[TIP]
+OpenShift creates User objects only the first time a user logs into the platform. Because this use has never logged in OpenShift will print a warning that this user doesn't exist yet.
 
 [source,bash,role="copypaste"]
 ----
 oc adm policy add-cluster-role-to-user cluster-admin fancyuser1
 
+.Sample Output
+[source,texinfo]
+----
 Warning: User 'fancyuser1' not found
 cluster role "cluster-admin" added: "fancyuser1"
 ----
@@ -1005,7 +1011,7 @@ And if you want to see how many persistent volume claims are in the *Bound* phas
 
 [source,bash,role="copypaste"]
 ----
-kube_persistentvolumeclaim_status_phase{phase="Bound"}
+sum(kube_persistentvolumeclaim_status_phase{phase="Bound"})
 ----
 
 There are many more queries to be constructed but for the purpose of this lab this should suffice.
