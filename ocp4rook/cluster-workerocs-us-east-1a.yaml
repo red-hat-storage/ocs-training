@@ -2,25 +2,25 @@ apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
 metadata:
   labels:
-    machine.openshift.io/cluster-api-cluster: cluster-ff90-gcm6l
+    machine.openshift.io/cluster-api-cluster: cluster-28cf-t22gs
     machine.openshift.io/cluster-api-machine-role: workerocs
     machine.openshift.io/cluster-api-machine-type: workerocs
-  name: cluster-ff90-gcm6l-workerocs-us-east-1a
+  name: cluster-28cf-t22gs-workerocs-us-east-1a
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      machine.openshift.io/cluster-api-cluster: cluster-ff90-gcm6l
-      machine.openshift.io/cluster-api-machineset: cluster-ff90-gcm6l-workerocs-us-east-1a
+      machine.openshift.io/cluster-api-cluster: cluster-28cf-t22gs
+      machine.openshift.io/cluster-api-machineset: cluster-28cf-t22gs-workerocs-us-east-1a
   template:
     metadata:
       creationTimestamp: null
       labels:
-        machine.openshift.io/cluster-api-cluster: cluster-ff90-gcm6l
+        machine.openshift.io/cluster-api-cluster: cluster-28cf-t22gs
         machine.openshift.io/cluster-api-machine-role: workerocs
         machine.openshift.io/cluster-api-machine-type: workerocs
-        machine.openshift.io/cluster-api-machineset: cluster-ff90-gcm6l-workerocs-us-east-1a
+        machine.openshift.io/cluster-api-machineset: cluster-28cf-t22gs-workerocs-us-east-1a
     spec:
       metadata:
         creationTimestamp: null
@@ -45,7 +45,7 @@ spec:
             name: aws-cloud-credentials
           deviceIndex: 0
           iamInstanceProfile:
-            id: cluster-ff90-gcm6l-worker-profile
+            id: cluster-28cf-t22gs-worker-profile
           instanceType: m5d.large
           kind: AWSMachineProviderConfig
           metadata:
@@ -58,14 +58,14 @@ spec:
           - filters:
             - name: tag:Name
               values:
-              - cluster-ff90-gcm6l-worker-sg
+              - cluster-28cf-t22gs-worker-sg
           subnet:
             filters:
             - name: tag:Name
               values:
-              - cluster-ff90-gcm6l-private-us-east-1a
+              - cluster-28cf-t22gs-private-us-east-1a
           tags:
-          - name: kubernetes.io/cluster/cluster-ff90-gcm6l
+          - name: kubernetes.io/cluster/cluster-28cf-t22gs
             value: owned
           userDataSecret:
             name: worker-user-data
