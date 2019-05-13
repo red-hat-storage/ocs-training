@@ -57,7 +57,7 @@ To create the 3 new worker nodes with available storage you will download 3 more
 ----
 curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/cluster-workerocs-us-east-2a.yaml
 curl -O hhttps://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/cluster-workerocs-us-east-2b.yaml
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/cluster-workerocs-us-east-2c.yamll
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/cluster-workerocs-us-east-2c.yaml
 ----
 
 The files just downloaded do not have the correct `cluster-api-cluster` label for your lab because every environment is unique. This command will find the correct value.
