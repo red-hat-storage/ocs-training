@@ -601,6 +601,12 @@ ip-10-0-160-232.us-east-2.compute.internal   Ready    worker   2d2h    v1.13.4+d
 ip-10-0-164-65.us-east-2.compute.internal    Ready    worker   2d      v1.13.4+da48e8391
 ----
 
+Until Openshift Container Platform 4.2 rolls out, we will need to restart (delete) the operator pod to see OSD pod added.
+[source,bash,role="execute"]
+----
+oc delete pod -l app=rook-ceph-operator -n rook-ceph
+----
+
 This step could take 5 minutes or more for the forth *OSD* pod to be in a `Running` STATUS. Eventually your will see a new *OSD* pod, `rook-ceph-osd-3`, that has just been created.  
 
 ----
