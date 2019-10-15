@@ -1,3 +1,5 @@
+[big red yellow-background]*This lab is currently a work in progress and not finished yet*
+
 = Lab: Deploying and Managing OpenShift Container Storage with Rook-Ceph Operator
 
 == Lab Overview
