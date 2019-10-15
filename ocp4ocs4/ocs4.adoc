@@ -1,4 +1,3 @@
-[big red yellow-background]*This lab is currently a work in progress and not finished yet*
 
 = Lab: Deploying and Managing OpenShift Container Storage with Rook-Ceph Operator
 
@@ -17,7 +16,7 @@ This hands-on workshop is for both system administrators and application develop
 // * Upgrade Ceph version from Mimic to Nautilus using the Rook operator
 // * Add more storage to the Ceph cluster
 
-.Rook and Kubernetes Architecture 
+.Rook and Kubernetes Architecture
 image::rook_diagram_3.png[Showing the Rook architecture]
 
 .Ceph deployed on OpenShift using Rook
@@ -53,7 +52,7 @@ Now you are going to add two more OCP worker nodes to the cluster by scaling the
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the two worker nodes that are in the cluster already. There is a *machineset* for each AWS availability zone (AZ) (eu-central-1a, eu-central-1b, eu-central-1c). Your *machinesets* `NAME` will be different than below. 
+This will show you the existing *machinesets* used to create the two worker nodes that are in the cluster already. There is a *machineset* for each AWS availability zone (AZ) (eu-central-1a, eu-central-1b, eu-central-1c). Your *machinesets* `NAME` will be different than below.
 
 ----
 NAME                                             DESIRED   CURRENT   READY   AVAILABLE   AGE
@@ -119,120 +118,111 @@ ip-10-0-157-160.eu-central-1.compute.internal   Ready    worker   63m     v1.14.
 ip-10-0-160-205.eu-central-1.compute.internal   Ready    worker   8m20s   v1.14.6+d3a139f63
 ----
 
-=== Download Rook deployment files and install Ceph
+=== Installing the OCS operator
 
-In this section you will be using the new worker OCP nodes created in last section along with Rook image and configuration files. You will download files *common.yaml*, *operator-openshift.yaml*, *cluster.yaml* and *toolbox.yaml* to create Rook and Ceph resources as shown in Figure 1 and Figure 2 above. 
+In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster:
 
-First, validate that the 3 new OCP worker nodes are labeled with role=storage-node. This label was configured in each of the *machinesets* you used in last section so there is no need to manually add this label used for selecting OCP nodes for Rook deployment.
+- The `openshift-storage` namespace
+- The `local-storage` namespace
+- Operator groups and sources for the OCS and local-storage operators
+- An OCS subbscription
 
-[source,role="execute"]
-----
-oc get nodes --show-labels | grep storage-node
-----
-
-The first step to deploy Rook is to create the common resources. The configuration for these resources will be the same for most deployments. The *common.yaml* sets these resources up.
+To apply this manifest, execute the following:
 
 [source,role="execute"]
 ----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/common.yaml
-oc create -f common.yaml
+oc apply -f https://raw.githubusercontent.com/openshift/ocs-operator/release-4.2/deploy/deploy-with-olm.yaml
 ----
 
-After the common resources are created, the next step is to create the Operator deployment using *operator-openshift.yaml*.  
-
-[source,role="execute"]
-----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/operator-openshift.yaml
-oc create -f operator-openshift.yaml
-watch oc get pods -n rook-ceph
-----
-
-Wait for all *rook-ceph-agent*, *rook-discover* and *rook-ceph-operator* pods to be in a `Running` STATUS. The log for the *rook-ceph-operator* pod should show that the operator is looking for a cluster. Look for `the server could not find the requested resource (get clusters.ceph.rook.io)` in the *rook-ceph-operator* log file. This means the operator is looking for a Ceph cluster that does not exist yet.
+This will fetch the manifest from the `release-4.2` tag. After applying this, you should be able to list your new operators:
 
 [source,role="execute"]
 ----
-operator=$(oc get pod -l app=rook-ceph-operator -n rook-ceph -o jsonpath='{.items[0].metadata.name}')
-echo $operator
-oc logs $operator -n rook-ceph | grep "get clusters.ceph.rook.io"
+oc -n openshift-storage get csv -w
+----
+----
+NAME                            DISPLAY                                VERSION   REPLACES   PHASE
+local-storage-operator.v4.2.0   Local Storage                          4.2.0                Installing
+ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
 ----
 
-Now that your operator resources are running, the next step is to create your Ceph storage cluster. This *cluster.yaml* file contains settings for a production Ceph storage cluster. The minimum deployment requires at least 3 OCP nodes. In this lab these will be the OCP nodes created earlier using the AWS EC2 `m5d.large` instance type each with an available 75GB NVMe SSD.
+`Csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Suceeded` - this will mark that the installation of your operators was successful.
 
-[source,role="execute"]
-----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/cluster.yaml
-----
-
-Take a look at the *cluster.yaml* file. It specifies the version of Ceph and the label used for the rook resources. This label, `role=storage-node` was validated as being on our new OCP nodes at the beginning of this section. Also `useAllNodes=true` and `useAllDevices=true` means that if a OCP node has label `role=storage-node` then all available storage devices on this node will be used for the Ceph cluster.
+You will now also see some new pods in the new `openshift-storage` namespace:
 
 [source,role="execute"]
 ----
-cat cluster.yaml
+oc -n openshift-storage get po    
 ----
-[source,indent=10]
 ----
-...
-    image: ceph/ceph:v13.2.5-20190410
-...
-
-  placement:
-    all:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: role
-              operator: In
-              values:
-              - storage-node
-...
-
-  storage: # cluster level storage configuration and selection
-    useAllNodes: true
-    useAllDevices: true
-    deviceFilter:
-    location:
-    config:	
-...	
-
+NAME                                     READY   STATUS    RESTARTS   AGE
+local-storage-operator-bcfd5765f-7bd86   1/1     Running   0          3m33s
+noobaa-operator-7c55776bf9-kbcjp         1/1     Running   0          3m16s
+ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
+rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 ----
 
-Now create the Ceph resources.
+Now switch over to your Openshift Web console. For me, the URL is https://console-openshift-console.apps.cluster-berlin-4c88.berlin-4c88.example.opentlc.com for you this will be slightly different.
+
+Once you are logged in, extend the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
+What you see, should be similar to the following example picture:
+
+.Installed operators - 1) Make sure you are in the right project 2) Check Operator status 3) Click on Openshift Container Storage Operator
+image::OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
+
+Click on `Openshift Container Storage Operator` to get to the OCS configuration screen.
+
+.OCS configuration screen
+image::OCS-config-screen.jpg[OCS configuration screen]
+
+On the OCS configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
+
+.OCS create a new storage cluster
+image:OCS-create-storage-cluster.jpg[OCS create storage cluster screen]
+
+In this dialog, select three nodes that have the role `worker` and click on the button `Create` on the end of the page.
+
+In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
 [source,role="execute"]
 ----
-oc create -f cluster.yaml
+oc get po -n openshift-storage
+----
+.Example of a pending installation of the OCS storage cluster:
+----
+NAME                                            READY   STATUS                  RESTARTS   AGE
+csi-cephfsplugin-2frxn                          3/3     Running                 0          57s
+csi-cephfsplugin-6ghk7                          3/3     Running                 0          58s
+csi-cephfsplugin-ds6zl                          3/3     Running                 0          58s
+csi-cephfsplugin-j5ddw                          3/3     Running                 0          58s
+csi-cephfsplugin-provisioner-57f65684f4-4sf4p   4/4     Running                 0          58s
+csi-cephfsplugin-provisioner-57f65684f4-rl65b   4/4     Running                 0          58s
+csi-rbdplugin-6z7qm                             3/3     Running                 0          58s
+csi-rbdplugin-kxq99                             3/3     Running                 0          58s
+csi-rbdplugin-provisioner-54985c744b-66fvc      5/5     Running                 0          58s
+csi-rbdplugin-provisioner-54985c744b-pqwqp      5/5     Running                 0          58s
+csi-rbdplugin-sdb56                             3/3     Running                 0          58s
+csi-rbdplugin-t876t                             3/3     Running                 0          58s
+local-storage-operator-bcfd5765f-7bd86          1/1     Running                 0          91m
+noobaa-core-0                                   0/2     Pending                 0          57s
+noobaa-operator-7c55776bf9-kbcjp                1/1     Running                 0          91m
+ocs-operator-967957d84-9lc76                    0/1     Running                 0          91m
+rook-ceph-detect-version-lh6jx                  0/1     Pending                 0          52s
+rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
 ----
 
-It may take more than 5 minutes to create all of the new *MONs*, *MGR* and *OSD* pods. The `NAME` of your pods will be different than shown below. 
-*
-[source,role="execute"]
-----
-watch oc get pods -n rook-ceph
-----
-----
-NAME                                        READY    STATUS     RESTARTS    AGE
-...
-rook-ceph-mgr-a-86b5b58769-xngqm             1/1     Running     0          110s
-rook-ceph-mon-a-f95bc46-2jffm                1/1     Running     0          3m13s
-rook-ceph-mon-b-54588c7d68-prm8f             1/1     Running     0          2m45s
-rook-ceph-mon-c-5567868987-t72zz             1/1     Running     0          2m24s
-rook-ceph-operator-9bb6f7745-r7rft           1/1     Running     0          53m
-rook-ceph-osd-0-88d4c654-lsz2m               1/1     Running     0          66s
-rook-ceph-osd-1-55b49d48df-lvnlv             1/1     Running     0          66s
-rook-ceph-osd-2-745b7669d7-gkhl5             1/1     Running     0          66s
-rook-ceph-osd-prepare-ip-10-0-135-6-p8rsz    0/2     Completed   0          91s
-rook-ceph-osd-prepare-ip-10-0-156-83-tjft2   0/2     Completed   0          91s
-rook-ceph-osd-prepare-ip-10-0-164-65-9wq67   0/2     Completed   0          90s
-...
+You can also watch this inside of the Openshift Web Console by going back to the OCS configuration screen and selecting `All instances`.
 
-----
+Please wait until all Pods are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
+
+[big red yellow-background]*End of current work*
+
 
 Once all pods are in a Running state it is time to verify that Ceph is operating correctly. Download *toolbox.yaml* to run Ceph commands.
 
 [source,role="execute"]
 ----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/toolbox.yaml 
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/toolbox.yaml
 oc create -f toolbox.yaml
 ----
 
@@ -244,7 +234,7 @@ toolbox=$(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[
 oc -n rook-ceph rsh $toolbox
 ----
 
-Once logged into the *toolbox* use commands below to investigate the Ceph status and configuration. 
+Once logged into the *toolbox* use commands below to investigate the Ceph status and configuration.
 
 [source,role="execute"]
 ----
@@ -267,7 +257,7 @@ ceph df
 rados df
 ----
 
-Make sure to `exit` the *toolbox* before continuing. 
+Make sure to `exit` the *toolbox* before continuing.
 
 === Create Rook storageclass for creating Ceph RBD volumes
 
@@ -279,14 +269,14 @@ curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/oc
 cat  storageclass.yaml
 ----
 
-Notice the `provisioner: ceph.rook.io/block` and that `replicated: size=2` which is a good practice when there are only 3 OSDs. This is because if one *OSD* is down OCP volumes can continue to be created and used. 
+Notice the `provisioner: ceph.rook.io/block` and that `replicated: size=2` which is a good practice when there are only 3 OSDs. This is because if one *OSD* is down OCP volumes can continue to be created and used.
 
 [source,role="execute"]
 ----
 oc create -f storageclass.yaml
 ----
 
-Login to *toolbox* pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the new *storageclass* was created. You will see there is now a Ceph pool called `replicapool`. Also, the command `ceph osd pool ls detail` gives you information on how this pool is configured. 
+Login to *toolbox* pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the new *storageclass* was created. You will see there is now a Ceph pool called `replicapool`. Also, the command `ceph osd pool ls detail` gives you information on how this pool is configured.
 
 [source,role="execute"]
 ----
@@ -316,7 +306,7 @@ gp2 (default)     kubernetes.io/aws-ebs   2d
 rook-ceph-block   ceph.rook.io/block      8m27s
 ----
 
-Now you want to change which *storageclass* is default. 
+Now you want to change which *storageclass* is default.
 
 [source,role="execute"]
 ----
@@ -331,7 +321,7 @@ Remove this portion shown below from *storageclass* `gp2`. Make sure to note *EX
     storageclass.kubernetes.io/is-default-class: "true"
 ----
 
-Add the removed portion to `rook-ceph-block` in same place in the file so it will become the `default` *storageclass*. Make sure to save your changes before exiting `:wq!`. 
+Add the removed portion to `rook-ceph-block` in same place in the file so it will become the `default` *storageclass*. Make sure to save your changes before exiting `:wq!`.
 
 [source,role="execute"]
 ----
@@ -367,7 +357,7 @@ gp2                         kubernetes.io/aws-ebs   2d1h
 rook-ceph-block (default)   ceph.rook.io/block      10m32s
 ----
 
-Now you are ready to start the Rails + PostgreSQL deployment and monitor the deployment. 
+Now you are ready to start the Rails + PostgreSQL deployment and monitor the deployment.
 
 [source,role="execute"]
 ----
@@ -384,7 +374,7 @@ oc get pvc -n my-database-app
 watch oc get pods -n my-database-app
 ----
 
-This step could take 5 or more minutes. Wait until there are 2 pods in `Running` STATUS and 4 pods in `Completed` STATUS as shown below. 
+This step could take 5 or more minutes. Wait until there are 2 pods in `Running` STATUS and 4 pods in `Completed` STATUS as shown below.
 
 [source,role="execute"]
 ----
@@ -411,7 +401,7 @@ NAME                     HOST/PORT                                              
 rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com          rails-pgsql-persistent
 ----
 
-Copy your `HOST/PORT` to a browser window to create articles. You will need to append `/articles` to the end. 
+Copy your `HOST/PORT` to a browser window to create articles. You will need to append `/articles` to the end.
 
 *Example link:*  http://rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com /articles
 
@@ -458,16 +448,16 @@ ceph version
 
 Make sure to `exit` the *toolbox* before continuing.
 
-The result should be `ceph version 13.2.5 (cbff874f9007f1869bfd3821b7e33b2a6ffd4988) mimic (stable)`. 
+The result should be `ceph version 13.2.5 (cbff874f9007f1869bfd3821b7e33b2a6ffd4988) mimic (stable)`.
 
-The next thing you need to do is update the cluster CRD with a current *Nautilus* image name and version. 
+The next thing you need to do is update the cluster CRD with a current *Nautilus* image name and version.
 
 [source,role="execute"]
 ----
 oc edit cephcluster rook-ceph -n rook-ceph
 ----
 
-Modify the Ceph version in the cluster CRD. Using `oc edit` is the same as using editing tool `vi`. 
+Modify the Ceph version in the cluster CRD. Using `oc edit` is the same as using editing tool `vi`.
 
 [source,yaml]
 ----
@@ -506,7 +496,7 @@ rook-ceph-osd-2-5977cd8bff-9x85n             1/1     Running     0          98s
 
 ----
 
-Now let's check the version of Ceph to see if it is upgraded. First you need to login to the *toolbox* pod again. 
+Now let's check the version of Ceph to see if it is upgraded. First you need to login to the *toolbox* pod again.
 
 [source,role="execute"]
 ----
@@ -596,7 +586,7 @@ You can easily create a new *machine* and OCP worker node in AWS AZ us-east-2a b
 oc edit machineset $CLUSTERID-workerocs-us-east-2a -n openshift-machine-api
 ----
 
-Verify you now have 4 workerocs *machines*. One of the *machines* should have just been created in us-east-2a AZ so there are two in this AZ now. The `NAME` of your *machines* will be different than shown below. 
+Verify you now have 4 workerocs *machines*. One of the *machines* should have just been created in us-east-2a AZ so there are two in this AZ now. The `NAME` of your *machines* will be different than shown below.
 
 [source,role="execute"]
 ----
@@ -611,9 +601,9 @@ cluster-a26e-rx8bk-workerocs-us-east-2b-wwcmd   i-0c25eb473e452645d   running   
 cluster-a26e-rx8bk-workerocs-us-east-2c-8456v   i-0e0d311e4590fa7e3   running   m5d.large    us-east-2   us-east-2c   47h
 ----
 
-Now you need to verify that this new *machine* is added to the OCP cluster. 
+Now you need to verify that this new *machine* is added to the OCP cluster.
 
-This step could take more than 5 minutes. You can see now that one of the *machinesets* has 2 machines, this is because you increased the replica count in the prior step. The *machineset* for us-east-2a should have an integer, in this case `2`, filled out for the entire row before you proceed to the next step. The `NAME` of your machinesets will be different than shown below. 
+This step could take more than 5 minutes. You can see now that one of the *machinesets* has 2 machines, this is because you increased the replica count in the prior step. The *machineset* for us-east-2a should have an integer, in this case `2`, filled out for the entire row before you proceed to the next step. The `NAME` of your machinesets will be different than shown below.
 
 [source,role="execute"]
 ----
@@ -627,7 +617,7 @@ cluster-a26e-rx8bk-workerocs-us-east-2b   1         1         1       1         
 cluster-a26e-rx8bk-workerocs-us-east-2c   1         1         1       1           2d
 ----
 
-Now verify that you have a new OCP worker node. You should now have 7 worker nodes. 
+Now verify that you have a new OCP worker node. You should now have 7 worker nodes.
 
 [source,role="execute"]
 ----
@@ -650,7 +640,7 @@ Until Openshift Container Platform 4.2 rolls out, we will need to restart (delet
 oc delete pod -l app=rook-ceph-operator -n rook-ceph
 ----
 
-This step could take 5 minutes or more for the forth *OSD* pod to be in a `Running` STATUS. Eventually your will see a new *OSD* pod, `rook-ceph-osd-3`, that has just been created.  
+This step could take 5 minutes or more for the forth *OSD* pod to be in a `Running` STATUS. Eventually your will see a new *OSD* pod, `rook-ceph-osd-3`, that has just been created.
 
 [source,role="execute"]
 ----
@@ -702,12 +692,12 @@ ceph status
   cluster:
     id:     90306026-6e42-4877-9d4e-26eca2ecf6ef
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum b,a,c (age 59m)
     mgr: a(active, since 5m)
     osd: 4 osds: 4 up, 4 in
- 
+
   data:
     pools:   1 pools, 100 pgs
     objects: 36 objects, 73 MiB
@@ -715,7 +705,7 @@ ceph status
     pgs:     100 active+clean
 ----
 
-Make sure to `exit` the *toolbox*. 
+Make sure to `exit` the *toolbox*.
 
 
 
