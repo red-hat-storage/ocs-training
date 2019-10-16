@@ -25,6 +25,8 @@ image::Rook_diagram_4.png[Ceph on Openshift using Rook]
 [[labexercises]]
 :numbered:
 :language: bash
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
 == Deploy your storage backend using the OCS operator
 
@@ -152,7 +154,7 @@ You will now also see some new pods in the new `openshift-storage` namespace:
 
 [source,role="execute"]
 ----
-oc -n openshift-storage get po    
+oc -n openshift-storage get pods
 ----
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
@@ -215,49 +217,167 @@ You can also watch this inside of the Openshift Web Console by going back to the
 
 Please wait until all Pods are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
 
-[big red yellow-background]*End of current work*
+.OCS instance overview after cluster install is finished
+image:OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
+You can now also check the status of your storage cluster with the Dashboard that is included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
-Once all pods are in a Running state it is time to verify that Ceph is operating correctly. Download *toolbox.yaml* to run Ceph commands.
-
-[source,role="execute"]
-----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/toolbox.yaml
-oc create -f toolbox.yaml
-----
-
-Now you can login to *rook-ceph-tools* pod to run Ceph commands. This pod is commonly called the *toolbox*.
+.OCS Dashboard after successful backing storage installation
+image:OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
 [source,role="execute"]
 ----
-toolbox=$(oc -n rook-ceph get pod -l "app=rook-ceph-tools" -o jsonpath='{.items[0].metadata.name}')
-oc -n rook-ceph rsh $toolbox
+oc -n openshift-storage get pods
+----
+.Output when the cluster installation is finished
+----
+NAME                                                      READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-2frxn                                    3/3     Running     3          14h
+csi-cephfsplugin-6ghk7                                    3/3     Running     3          14h
+csi-cephfsplugin-ds6zl                                    3/3     Running     3          14h
+csi-cephfsplugin-j5ddw                                    3/3     Running     3          14h
+csi-cephfsplugin-provisioner-57f65684f4-4sf4p             4/4     Running     4          14h
+csi-cephfsplugin-provisioner-57f65684f4-rl65b             4/4     Running     4          14h
+csi-rbdplugin-6z7qm                                       3/3     Running     3          14h
+csi-rbdplugin-kxq99                                       3/3     Running     3          14h
+csi-rbdplugin-provisioner-54985c744b-66fvc                5/5     Running     5          14h
+csi-rbdplugin-provisioner-54985c744b-pqwqp                5/5     Running     5          14h
+csi-rbdplugin-sdb56                                       3/3     Running     3          14h
+csi-rbdplugin-t876t                                       3/3     Running     3          14h
+local-storage-operator-bcfd5765f-7bd86                    1/1     Running     1          16h
+noobaa-operator-7c55776bf9-kbcjp                          1/1     Running     1          16h
+ocs-operator-967957d84-9lc76                              1/1     Running     1          16h
+rook-ceph-drain-canary-ip-10-0-139-194-74bc5cb695-69brj   1/1     Running     0          41m
+rook-ceph-drain-canary-ip-10-0-145-140-6c8dd79b45-mpj8c   1/1     Running     0          41m
+rook-ceph-drain-canary-ip-10-0-157-160-69bf54595b-8nskt   1/1     Running     0          41m
+rook-ceph-mgr-a-dbc5f757-b7q22                            1/1     Running     0          43m
+rook-ceph-mon-a-6b4d9bd86d-n88d2                          1/1     Running     0          44m
+rook-ceph-mon-b-7f5dfb4c55-76tf9                          1/1     Running     0          44m
+rook-ceph-mon-c-b79d5cffd-nx9bz                           1/1     Running     0          43m
+rook-ceph-operator-8444cfdc4c-9jm8p                       1/1     Running     1          16h
+rook-ceph-osd-0-6568f98965-9dl5p                          1/1     Running     0          41m
+rook-ceph-osd-1-cbb4b4bc8-bll5k                           1/1     Running     0          41m
+rook-ceph-osd-2-66499b46f5-sxnpn                          1/1     Running     0          41m
+rook-ceph-osd-prepare-ocs-deviceset-0-0-mkk5p-ww8qm       0/1     Completed   0          42m
+rook-ceph-osd-prepare-ocs-deviceset-1-0-z74wt-ml8r2       0/1     Completed   0          42m
+rook-ceph-osd-prepare-ocs-deviceset-2-0-zmplg-j72w2       0/1     Completed   0          42m
 ----
 
-Once logged into the *toolbox* use commands below to investigate the Ceph status and configuration.
+You can see that we currently have no instance of NooBaa running for the Multi-Cloud-Gateway (MCG). For this, go back to the OCS configuration screen by clicking on `Installed Operators` in the Openshift Web Console and clicking on `Openshift Container Storage Operator`.
+Then find the tile labelled `NooBaa` and click on `Create Instance`. Change the name of your NooBaa deployment to `noobaa` and click on the `Create` button at the end of the page.
+
+The Yaml in the editor should look like this:
+
+[source,yaml]
+----
+apiVersion: noobaa.io/v1alpha1
+kind: NooBaa
+metadata:
+  name: noobaa
+  namespace: openshift-storage
+spec: {}
+----
+
+CAUTION: Make sure your deployment is called `noobaa` - else it will be rejected!
+
+Going back to your OCS configuration page, select `All Instances`, you should now see additional Noobaa items that eventually are marked as `Ready` like in the following picture:
+
+.Instance overview when NooBaa is successfully installed
+image:OCS-finished-noobaa-install.png[Instance overview when NooBaa is successfully installed]
+
+OCS ships with a Dashboard for the Object Store as well. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Object Service` on the top navigation bar of the content page.
+
+.OCS Multi-Cloud-Gateway Dashboard after successful installation
+image:OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+
+On the left side of the dashboard you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
+
+=== Adding Ceph pools for RWO and RWX PVCs
+
+CAUTION: TODO!!!
+
+
+=== Using the Ceph toolbox to check on the Ceph backing storage
+
+Since the Ceph toolbox is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream Rook toolbox, but we need to modify the namespace.
+You can use this one-liner to deploy the toolbox directly:
 
 [source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml | sed 's/namespace: rook-ceph/namespace: openshift-storage/g'| oc apply -f -
+----
+
+Afterwards you can work inside of the toolbox like this:
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+Once inside, try out the following commands:
+
 ----
 ceph status
-----
-[source,role="execute"]
-----
 ceph osd status
-----
-[source,role="execute"]
-----
 ceph osd tree
-----
-[source,role="execute"]
-----
 ceph df
-----
-[source,role="execute"]
-----
 rados df
 ----
 
-Make sure to `exit` the *toolbox* before continuing.
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`
+
+// sh-4.2# ceph -s
+//   cluster:
+//     id:     23f9b4da-13d5-4221-8ea3-4823495d28b6
+//     health: HEALTH_OK
+
+//   services:    mon: 3 daemons, quorum a,b,c (age 114m)    mgr: a(active, since 114m)    osd: 3 osds: 3 up (since 112m), 3 in (since 112m)   data:    pools:   0 pools, 0 pgs
+//     objects: 0 objects, 0 B
+//     usage:   3.0 GiB used, 3.0 TiB / 3.0 TiB avail
+//     pgs:
+
+// sh-4.2# ceph status
+//   cluster:
+//     id:     23f9b4da-13d5-4221-8ea3-4823495d28b6
+//     health: HEALTH_OK
+
+//   services:
+//     mon: 3 daemons, quorum a,b,c (age 116m)
+//     mgr: a(active, since 116m)
+//     osd: 3 osds: 3 up (since 114m), 3 in (since 114m)
+
+//   data:
+//     pools:   0 pools, 0 pgs
+//     objects: 0 objects, 0 B
+//     usage:   3.0 GiB used, 3.0 TiB / 3.0 TiB avail
+//     pgs:
+
+// sh-4.2# ceph osd status
+// +----+-----------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+// | id |                      host                     |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
+// +----+-----------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+// | 0  | ip-10-0-145-140.eu-central-1.compute.internal | 1024M | 1021G |    0   |     0   |    0   |     0   | exists,up |
+// | 1  | ip-10-0-157-160.eu-central-1.compute.internal | 1024M | 1021G |    0   |     0   |    0   |     0   | exists,up |
+// | 2  | ip-10-0-139-194.eu-central-1.compute.internal | 1024M | 1021G |    0   |     0   |    0   |     0   | exists,up |
+// +----+-----------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
+// sh-4.2# ceph osd tree
+// ID CLASS WEIGHT  TYPE NAME                STATUS REWEIGHT PRI-AFF
+// -1       2.99698 root default
+// -7       0.99899     host ip-10-0-139-194
+//  2   ssd 0.99899         osd.2                up  1.00000 1.00000
+// -3       0.99899     host ip-10-0-145-140
+//  0   ssd 0.99899         osd.0                up  1.00000 1.00000
+// -5       0.99899     host ip-10-0-157-160
+//  1   ssd 0.99899         osd.1                up  1.00000 1.00000
+// sh-4.2# ceph df
+// RAW STORAGE:
+//     CLASS     SIZE        AVAIL       USED        RAW USED     %RAW USED
+//     ssd       3.0 TiB     3.0 TiB     1.3 MiB      3.0 GiB          0.10
+//     TOTAL     3.0 TiB     3.0 TiB     1.3 MiB      3.0 GiB          0.10
+
+// POOLS:
+//     POOL     ID     STORED     OBJECTS     USED     %USED     MAX AVAIL
 
 === Create Rook storageclass for creating Ceph RBD volumes
 
