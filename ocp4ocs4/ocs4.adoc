@@ -148,7 +148,7 @@ local-storage-operator.v4.2.0   Local Storage                          4.2.0    
 ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
 ----
 
-`Csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Suceeded` - this will mark that the installation of your operators was successful.
+`Csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Suceeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
 
 You will now also see some new pods in the new `openshift-storage` namespace:
 
@@ -183,6 +183,8 @@ On the OCS configuration screen, scroll down to the box labelled `Storage cluste
 image:OCS-create-storage-cluster.jpg[OCS create storage cluster screen]
 
 In this dialog, select three nodes that have the role `worker` and click on the button `Create` on the end of the page.
+
+CAUTION: Make sure to select three workers in different availability zones. The OCS operator will automatically try to replicate data between those availability zones.
 
 In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
