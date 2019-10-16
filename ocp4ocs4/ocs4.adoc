@@ -771,5 +771,29 @@ ceph status
 
 Make sure to `exit` the *toolbox*.
 
+== Using the MCG Management Console
 
+Some unsorted notes:
 
+Get the Noobaa Management Console access credentials:
+
+[source,role="execute"]
+----
+oc get secret noobaa-admin -n openshift-storage -o json | jq '.data|map_values(@base64d)'
+----
+[source,json,indent=5]
+----
+{
+  "AWS_ACCESS_KEY_ID": "5LqXmAljVYdcX6KVOOc5",
+  "AWS_SECRET_ACCESS_KEY": "7x9R895zSk7xhD+CP+w1ePvc4m6018F7aD4/W156",
+  "email": "admin@noobaa.io",
+  "password": "wLg04tfKYnUvC66WFd0p8Q==",
+  "system": "noobaa"
+}
+----
+
+* By default there is no OCP backing storage for Noobaa, but an AWS bucket
+* Creating Noobaa storage on OCP works, creates new Pods with default storage class
+* Noobaa dashboard reports "Multi cloud gateway is not running" after adding OCP backend storage...
+* Noobaa uses self-signed certificate even though OCP uses LetsEncrypt
+* OCP backing storage should be > 30GB to not trigger warning
