@@ -389,74 +389,33 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`
 // total_avail      3.0 TiB
 // total_space      3.0 TiB
 
+=== Change the default storage class to Ceph RBD
+
+After installing OCS, it is best practice to change the default storage class from AWS gp2 to our new OCS-backed storage class `ocs-storagecluster-ceph-rbd`.
+The easiest way to do this is using the Openshift Web Console. In there, expang the `Storage` item on the left navigation bar and select `Storage Classes`.
+
+.OCP Storage classes after OCS installation - AWS gp2 is the default storage class
+image:OCS-Storage-Classes-gp2-default.png[]
+
+Now click on the three dots next to the gp2 storage class and select `Edit Annotations`:
+
+image:OCS-edit-gp2-annotations.png[]
+
+click on the stop sign on the right to delete the only one entry. Proceed by clicking on `Save`.
+
+Now click on the three dots next to the ocs-storagecluster-ceph-rbd storage class and select `Edit Annotations`
+In the new window enter `storageclass.kubernetes.io/is-default-class` as the Key and `true` as the value of the new annotation. Proceed by clicking on `Save`.
+
+Now the `ocs-storagecluster-ceph-rbd` storage class should be marked as default, like in the below picture:
+
+.OCP Storage classes after OCS installation - Ceph RBD is now the default storage class
+image:OCS-Storage-Classes-rbd-default.png[]
+
 WARNING: End of current refresh work
 
 == Create new OCP deployment using Ceph RBD volume
 
-In this section the `rook-ceph-block` *storageclass* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the pool=`replicapool`.
-
-Because the Rails + PostgreSQL deployment uses the `default` *storageclass* you need to modify the current default, gp2, and then make `rook-ceph-block` the default *storageclass*.
-
-[source,role="execute"]
-----
-oc get sc
-----
-----
-NAME              PROVISIONER             AGE
-gp2 (default)     kubernetes.io/aws-ebs   2d
-rook-ceph-block   ceph.rook.io/block      8m27s
-----
-
-Now you want to change which *storageclass* is default.
-
-[source,role="execute"]
-----
-oc edit sc gp2
-----
-
-Remove this portion shown below from *storageclass* `gp2`. Make sure to note *EXACTLY* where this annotations is located in the *storageclass* (copying this portion to clipboard would be a good idea). The editing tool is `vi` when using *oc edit*. Make sure to save your changes before exiting `:wq!`.
-
-[source,yaml]
-----
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
-----
-
-Add the removed portion to `rook-ceph-block` in same place in the file so it will become the `default` *storageclass*. Make sure to save your changes before exiting `:wq!`.
-
-[source,role="execute"]
-----
-oc edit sc rook-ceph-block
-----
-
-After editing *storageclass* `rook-ceph-block` the result should be similar to below and `rook-ceph-block` should now be the `default` *storageclass*.
-
-[source,role="execute"]
-----
-oc get sc rook-ceph-block -o yaml
-----
-----
-apiVersion: storage.k8s.io/v1
-kind: StorageClass
-metadata:
-  annotations:
-    storageclass.kubernetes.io/is-default-class: "true"
-  creationTimestamp: "2019-04-26T22:24:29Z"
-  name: rook-ceph-block
-...omitted...
-----
-
-Validate that `rook-ceph-block` is now the default *storageclass* before starting the OCP application deployment.
-
-[source,role="execute"]
-----
-oc get sc
-----
-----
-NAME                        PROVISIONER             AGE
-gp2                         kubernetes.io/aws-ebs   2d1h
-rook-ceph-block (default)   ceph.rook.io/block      10m32s
-----
+In this section the `ocs-storagecluster-ceph-rbd` *storageclass* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
 
 Now you are ready to start the Rails + PostgreSQL deployment and monitor the deployment.
 
@@ -518,7 +477,8 @@ Lets now take another look at the Ceph `replicapool` created by the `rook-ceph-b
 
 [source,role="execute"]
 ----
-oc -n rook-ceph rsh $toolbox
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
 ----
 
 Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in `replicapool` now.
@@ -543,7 +503,8 @@ In this section you will upgrade the Ceph version from *Mimic* to *Nautilus* usi
 
 [source,role="execute"]
 ----
-oc -n rook-ceph rsh $toolbox
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
 ceph version
 ----
 
@@ -601,7 +562,8 @@ Now let's check the version of Ceph to see if it is upgraded. First you need to 
 
 [source,role="execute"]
 ----
-oc -n rook-ceph rsh $toolbox
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
 ----
 
 Running the `ceph versions` command shows each of the Ceph daemons (*MONs*, *MGR*, and *OSD*) have been upgraded to *Nautilus*. Run other Ceph commands to satisfy yourself (e.g., ceph status) the system is healthy after the Ceph upgrade from *Mimic* to *Nautilus*. You might even want to go back to the Rails + PostgreSQL application and save a few more articles to make sure Ceph storage is still working.
@@ -763,7 +725,8 @@ Now you can validate that Ceph is healthy and has the additional storage. You ag
 
 [source,role="execute"]
 ----
-oc -n rook-ceph rsh $toolbox
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
 ----
 
 And run Ceph commands to see the new OSDs.
