@@ -389,36 +389,7 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`
 // total_avail      3.0 TiB
 // total_space      3.0 TiB
 
-=== Create Rook storageclass for creating Ceph RBD volumes
-
-In this section you will download *storageclass.yaml* and then create the OCP *storageclass* `rook-ceph-block` that can be used by applications to dynamically claim persistent volumes (*PVCs*). The Ceph pool `replicapool` is created when the OCP *storageclass* is created.
-
-[source,role="execute"]
-----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4rook/storageclass.yaml
-cat  storageclass.yaml
-----
-
-Notice the `provisioner: ceph.rook.io/block` and that `replicated: size=2` which is a good practice when there are only 3 OSDs. This is because if one *OSD* is down OCP volumes can continue to be created and used.
-
-[source,role="execute"]
-----
-oc create -f storageclass.yaml
-----
-
-Login to *toolbox* pod to run Ceph commands. Compare results for `ceph df` and `rados df` executed in prior section before the new *storageclass* was created. You will see there is now a Ceph pool called `replicapool`. Also, the command `ceph osd pool ls detail` gives you information on how this pool is configured.
-
-[source,role="execute"]
-----
-oc -n rook-ceph rsh $toolbox
-
-ceph df
-rados df
-rados -p replicapool ls
-ceph osd pool ls detail
-----
-
-Make sure to `exit` the *toolbox* before continuing.
+WARNING: End of current refresh work
 
 == Create new OCP deployment using Ceph RBD volume
 
