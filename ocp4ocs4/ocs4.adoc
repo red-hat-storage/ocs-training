@@ -166,6 +166,13 @@ rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 
 Now switch over to your Openshift Web console. For me, the URL is https://console-openshift-console.apps.cluster-berlin-4c88.berlin-4c88.example.opentlc.com for you this will be slightly different.
 
+You get your URL by issuing:
+
+[source,role="execute"]
+----
+oc get -n openshift-console route  console
+----
+
 Once you are logged in, extend the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
 What you see, should be similar to the following example picture:
 
@@ -415,9 +422,9 @@ WARNING: End of current refresh work
 
 == Create new OCP deployment using Ceph RBD volume
 
-In this section the `ocs-storagecluster-ceph-rbd` *storageclass* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
+In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
 
-Now you are ready to start the Rails + PostgreSQL deployment and monitor the deployment.
+Make sure that you completed all previous chapters so that you are ready to start the Rails + PostgreSQL deployment.
 
 [source,role="execute"]
 ----
@@ -438,7 +445,7 @@ This step could take 5 or more minutes. Wait until there are 2 pods in `Running`
 
 [source,role="execute"]
 ----
-oc get pods -n my-database-app
+watch oc get pods -n my-database-app
 ----
 ----
 NAME                                READY   STATUS      RESTARTS   AGE
@@ -465,7 +472,7 @@ Copy your `HOST/PORT` to a browser window to create articles. You will need to a
 
 *Example link:*  http://rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com /articles
 
-Enter the `username` and `password` below to create articles and comments. The articles and comments are saved in a PostgreSQL database which stores its table spaces on the Ceph RBD volume provisioned using the `rook-ceph-block` *storagclass* during the application deployment.
+Enter the `username` and `password` below to create articles and comments. The articles and comments are saved in a PostgreSQL database which stores its table spaces on the Ceph RBD volume provisioned using the `ocs-storagecluster-ceph-rbd` *storagclass* during the application deployment.
 
 [source,ini]
 ----
@@ -473,7 +480,7 @@ username: openshift
 password: secret
 ----
 
-Lets now take another look at the Ceph `replicapool` created by the `rook-ceph-block` *storageclass*. Log into the *toolbox* pod again.
+Lets now take another look at the Ceph `ocs-storagecluster-cephblockpool` created by the `ocs-storagecluster-ceph-rbd` *storageclass*. Log into the *toolbox* pod again.
 
 [source,role="execute"]
 ----
@@ -481,133 +488,23 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in `replicapool` now.
+Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in `ocs-storagecluster-cephblockpool` now.
 
 [source,role="execute"]
 ----
 ceph df
 rados df
-rados -p replicapool ls | grep pvc
+rbd -p ocs-storagecluster-cephblockpool ls | grep vol
 ----
 
-Make sure to `exit` the *toolbox*. Validate the OCP *PersistentVolume* (PV) name is the same name as the volume name in the Ceph `replicapool`.
+Make sure to `exit` the *toolbox*. Validate the OCP *PersistentVolume* (PV) name is similar to the volume name in the Ceph `ocs-storagecluster-cephblockpool`.
 
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app
 ----
 
-== Using Rook to Upgrade Ceph
-
-In this section you will upgrade the Ceph version from *Mimic* to *Nautilus* using the Rook operator. First verify the current version by logging into the *toolbox* pod.
-
-[source,role="execute"]
-----
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD
-ceph version
-----
-
-Make sure to `exit` the *toolbox* before continuing.
-
-The result should be `ceph version 13.2.5 (cbff874f9007f1869bfd3821b7e33b2a6ffd4988) mimic (stable)`.
-
-The next thing you need to do is update the cluster CRD with a current *Nautilus* image name and version.
-
-[source,role="execute"]
-----
-oc edit cephcluster rook-ceph -n rook-ceph
-----
-
-Modify the Ceph version in the cluster CRD. Using `oc edit` is the same as using editing tool `vi`.
-
-[source,yaml]
-----
-spec:
-  cephVersion:
-    image: ceph/ceph:v13.2.5-20190410
-----
-
-To the version for Nautilus. Make sure to save your changes before exiting `:wq!`.
-
-[source,yaml]
-----
-spec:
-  cephVersion:
-    image: ceph/ceph:v14.2.0-20190410
-----
-
-This could step take 5 minutes or more. Once the change to the Ceph version is edited as shown above, the *MONs*, *MGR*, and *OSD* pods will be restarted. You can tell that they have been restarted when their `AGE` is seconds or just a few minutes.
-
-[source,role="execute"]
-----
-watch oc get pods -n rook-ceph
-----
-----
-NAME                                         READY   STATUS      RESTARTS   AGE
-...
-rook-ceph-mgr-a-777d64fb8f-q7tcz             1/1     Running     0          2m55s
-rook-ceph-mon-a-5c7fcdfcc4-zwzb7             1/1     Running     0          3m18s
-rook-ceph-mon-b-5597dbd64d-cdvjf             1/1     Running     0          4m33s
-rook-ceph-mon-c-779cbf9bc-2rfl5              1/1     Running     0          3m58s
-rook-ceph-operator-5f7967846f-zqqjl          1/1     Running     0          27h
-rook-ceph-osd-0-855bc669cd-45sk7             1/1     Running     0          2m8s
-rook-ceph-osd-1-7cc9cd8c8c-j9ffl             1/1     Running     0          115s
-rook-ceph-osd-2-5977cd8bff-9x85n             1/1     Running     0          98s
-...
-
-----
-
-Now let's check the version of Ceph to see if it is upgraded. First you need to login to the *toolbox* pod again.
-
-[source,role="execute"]
-----
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD
-----
-
-Running the `ceph versions` command shows each of the Ceph daemons (*MONs*, *MGR*, and *OSD*) have been upgraded to *Nautilus*. Run other Ceph commands to satisfy yourself (e.g., ceph status) the system is healthy after the Ceph upgrade from *Mimic* to *Nautilus*. You might even want to go back to the Rails + PostgreSQL application and save a few more articles to make sure Ceph storage is still working.
-
-[source,role="execute"]
-----
-ceph versions
-----
-----
-{
-    "mon": {
-        "ceph version 14.2.0 (3a54b2b6d167d4a2a19e003a705696d4fe619afc) nautilus (stable)": 3
-    },
-    "mgr": {
-        "ceph version 14.2.0 (3a54b2b6d167d4a2a19e003a705696d4fe619afc) nautilus (stable)": 1
-    },
-    "osd": {
-        "ceph version 14.2.0 (3a54b2b6d167d4a2a19e003a705696d4fe619afc) nautilus (stable)": 3
-    },
-    "mds": {},
-    "overall": {
-        "ceph version 14.2.0 (3a54b2b6d167d4a2a19e003a705696d4fe619afc) nautilus (stable)": 7
-    }
-}
-----
-
-Make sure to `exit` the *toolbox* before continuing.
-
-You can also execute this command to easily look at both the Rook and Ceph versions currently running for the *MONs*, *MGR* and *OSDs*.
-
-[source,role="execute"]
-----
-oc -n rook-ceph get deployments -o jsonpath='{range .items[*]}{.metadata.name}{" \trook="}{.metadata.labels.rook-version}{" \tceph="}{.metadata.labels.ceph-version}{"\n"}{end}' | sed s/v0.9.0-557.g48380dd/v1.0.0/g
-----
-----
-rook-ceph-mgr-a 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-mon-a 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-mon-b 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-mon-c 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-osd-0 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-osd-1 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-osd-2 	rook=v1.0.0 	ceph=14.2.0
-rook-ceph-osd-3 	rook=v1.0.0 	ceph=14.2.0
-----
+== Upgrading the Ceph version
 
 == Adding storage to the Ceph Cluster
 
