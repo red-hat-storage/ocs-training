@@ -420,11 +420,11 @@ image:OCS-Storage-Classes-rbd-default.png[]
 
 WARNING: End of current refresh work
 
-== Create new OCP deployment using Ceph RBD volume
+== Create a new OCP deployment using Ceph RBD volume
 
 In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
 
-Make sure that you completed all previous chapters so that you are ready to start the Rails + PostgreSQL deployment.
+Make sure that you completed all previous sections so that you are ready to start the Rails + PostgreSQL deployment.
 
 [source,role="execute"]
 ----
@@ -502,6 +502,100 @@ Make sure to `exit` the *toolbox*. Validate the OCP *PersistentVolume* (PV) name
 [source,role="execute"]
 ----
 oc get pvc -n my-database-app
+----
+
+== Create a new OCP deployment using CephFS
+
+In this section the `ocs-storagecluster-cephfs` will be used to create a RWX PVC that we can attach to multiple pods at the same time. As an example we will be running a highly-available container image registry. The persistent storage will be based on a CephFS volume in the Ceph pool `ocs-storagecluster-cephfilesystem-data0`.
+
+Make sure you completed the setup sections, so that you have the `ocs-storagecluster-cephfs` available.
+
+Deploy the registry like this:
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/csi/cephfs/kube-registry.yaml | sed 's/storageClassName: csi-cephfs/storageClassName: ocs-storagecluster-cephfs/g'| oc apply -f - 
+----
+
+This will create a PVC in the `kube-system` namespace:
+
+[source,role="execute"]
+----
+oc get pvc -n kube-system
+----
+----
+NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+cephfs-pvc   Bound    pvc-a7015af1-f0dd-11e9-8812-06aa2fd1035a   1Gi        RWX            ocs-storagecluster-cephfs   55s
+----
+
+As well as a deployment for our registry:
+
+[source,role="execute"]
+----
+oc get -n kube-system deployment
+----
+----
+NAME            READY   UP-TO-DATE   AVAILABLE   AGE
+kube-registry   3/3     3            3           100s
+----
+
+.The `kube-registry` deployment consists of more than one replica
+NOTE: Since our deployment consists of three containers, we need a RWX PVC, so that all replicas can access the persistent volume in parallel.
+
+Let's make our deployment accessible. First we create a service with an internal Cluster IP:
+
+[source,role="execute"]
+----
+oc expose -n kube-system deployment kube-registry
+----
+
+and then we create a route with a edge termination so that it serves our registry with tls:
+
+[source,role="execute"]
+----
+oc create route edge -n kube-system --service=kube-registry
+----
+
+Then we check on our new route to get the URL for our registry:
+
+[source,role="execute"]
+----
+oc get route
+----
+----
+NAME            HOST/PORT                                                                            PATH   SERVICES        PORT    TERMINATION   WILDCARD
+kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
+----
+
+We will now download the alpine container image as an example and upload it to our new registry:
+
+[source,role="execute"]
+----
+podman pull docker.io/library/alpine
+podman push docker.io/library/alpine kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com/alpine
+----
+
+CAUTION: Make sure to replace the URL in the push command with the URL of your route
+
+Next we use the toolbox pod to check on our underlying CephFS volume:
+
+[source,role="execute"]
+----
+# Create the directory
+mkdir /tmp/registry
+
+# Detect the mon endpoints and the user secret for the connection
+mon_endpoints=$(grep mon_host /etc/ceph/ceph.conf | awk '{print $3}')
+my_secret=$(grep key /etc/ceph/keyring | awk '{print $3}')
+
+# Mount the file system
+mount -t ceph -o mds_namespace=ocs-storagecluster-cephfilesystem,name=admin,secret=$my_secret $mon_endpoints:/ /tmp/registry
+
+# Find our uploaded container image
+ls /tmp/registry/volumes/csi/csi-vol-*/docker/registry/v2/repositories/alpine/
+
+# See your mounted file system
+df -h
 ----
 
 == Upgrading the Ceph version
