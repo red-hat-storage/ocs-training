@@ -392,7 +392,7 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`
 === Change the default storage class to Ceph RBD
 
 After installing OCS, it is best practice to change the default storage class from AWS gp2 to our new OCS-backed storage class `ocs-storagecluster-ceph-rbd`.
-The easiest way to do this is using the Openshift Web Console. In there, expang the `Storage` item on the left navigation bar and select `Storage Classes`.
+The easiest way to do this is using the Openshift Web Console. In there, expand the `Storage` item on the left navigation bar and select `Storage Classes`.
 
 .OCP Storage classes after OCS installation - AWS gp2 is the default storage class
 image:OCS-Storage-Classes-gp2-default.png[]
