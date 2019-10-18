@@ -601,6 +601,8 @@ df -h
 
 == Adding storage to the Ceph Cluster
 
+WARNING: This section has not been rewritten for OCS and still contains Rook steps!
+
 In this section you will add more storage to the cluster by increasing the number of OCP workerocs *machines* and worker nodes from 3 to 4 using one of the *machinesets* you already used. The new *machine* will also be an EC2 instance `m5d.large` and have an available 75 GB NVMe SSD. The Rook operator will `observe` when the new OCP node is added to the cluster and will then create a new *OSD* pod on this new worker node and the 75 GB SSD will be added to the Ceph cluster with no additional manual effort from the user.
 
 To increase the number of *machines* and the OCP nodes you will again use a *machineset*. Each of the *machinesets* you used earlier created just one machine because of `replicas: 1` in the configuration file. Your `cluster-api-cluster` and `name` is different than example shown below.
@@ -760,6 +762,72 @@ ceph status
 ----
 
 Make sure to `exit` the *toolbox*.
+
+== Using must-gather
+
+Must-gather is a tool for collecting data about the current'y running Openshift cluster. It loads a predefined set of containers that execute multiple programs and dump it on the local workstations filesystem.
+The local files can then be used by a remote support engineer to debug a problem more easily without needing direct cluster access. This is similar to sosreports for RHEL hosts.
+
+The OCS team has released its own image for the must-gather tool that runs storage specific commands.
+
+You can run this diagnostic tool like this for generic Openshift debugging:
+
+----
+oc adm must-gather
+----
+
+Or like this for OCS specific insights:
+
+----
+oc adm must-gather --image=quay.io/ocs-dev/ocs-must-gather
+----
+
+The output will then be saved in the current directory inside of a new folder called `must-gather.local.(random)`
+
+More runtime options can be displayed with
+
+----
+oc adm must-gather -h
+----
+----
+Launch a pod to gather debugging information
+
+ This command will launch a pod in a temporary namespace on your cluster that gathers debugging information and then
+downloads the gathered information.
+
+ Experimental: This command is under active development and may change without notice.
+
+Usage:
+  oc adm must-gather [flags]
+
+Examples:
+  # gather information using the default plug-in image and command, writing into ./must-gather.local.<rand>
+  oc adm must-gather
+  
+  # gather information with a specific local folder to copy to
+  oc adm must-gather --dest-dir=/local/directory
+  
+  # gather information using multiple plug-in images
+  oc adm must-gather --image=quay.io/kubevirt/must-gather --image=quay.io/openshift/origin-must-gather
+  
+  # gather information using a specific image stream plug-in
+  oc adm must-gather --image-stream=openshift/must-gather:latest
+  
+  # gather information using a specific image, command, and pod-dir
+  oc adm must-gather --image=my/image:tag --source-dir=/pod/directory -- myspecial-command.sh
+
+Options:
+      --dest-dir='': Set a specific directory on the local machine to write gathered data to.
+      --image=[]: Specify a must-gather plugin image to run. If not specified, OpenShift's default must-gather image
+will be used.
+      --image-stream=[]: Specify an image stream (namespace/name:tag) containing a must-gather plugin image to run.
+      --node-name='': Set a specific node to use - by default a random master will be used
+      --source-dir='/must-gather/': Set the specific directory on the pod copy the gathered data from.
+
+Use "oc adm options" for a list of global command-line options (applies to all commands).
+----
+
+// On the Openshift side must-gather has nowadays been replaced by `oc adm inspect`.
 
 == Using the MCG Management Console
 
