@@ -269,7 +269,6 @@ rook-ceph-osd-prepare-ocs-deviceset-0-0-8fls2-p7pd5               0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-1-0-lbrls-ztgfs               0/1     Completed   0          22m
 rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Completed   0          22m
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
-rook-ceph-tools-56db68cc99-hh577                                  1/1     Running     0          14m
 ----
 
 You can now also check the status of your storage cluster with the Dashboard that is included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
