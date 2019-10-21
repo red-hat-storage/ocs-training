@@ -30,94 +30,146 @@ image::Rook_diagram_4.png[Ceph on Openshift using Rook]
 
 == Deploy your storage backend using the OCS operator
 
-=== Scale OCP cluster and add two new worker nodes
+=== Scale OCP cluster and add 3 new nodes
 
-In this section, you will validate the OCP environment has three master and two worker nodes before adding two more worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+In this section, you will validate the OCP environment has 3 master and 3 worker nodes before increasing the cluster size by 3 worker nodes. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
 oc get nodes
 ----
 ----
-NAME                                            STATUS   ROLES    AGE   VERSION
-ip-10-0-134-228.eu-central-1.compute.internal   Ready    master   51m   v1.14.6+d3a139f63
-ip-10-0-139-194.eu-central-1.compute.internal   Ready    worker   46m   v1.14.6+d3a139f63
-ip-10-0-153-8.eu-central-1.compute.internal     Ready    master   51m   v1.14.6+d3a139f63
-ip-10-0-157-160.eu-central-1.compute.internal   Ready    worker   46m   v1.14.6+d3a139f63
-ip-10-0-174-74.eu-central-1.compute.internal    Ready    master   51m   v1.14.6+d3a139f63
+NAME                           STATUS   ROLES    AGE   VERSION
+ip-10-0-135-157.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
+ip-10-0-138-253.ec2.internal   Ready    master   42m   v1.14.6+c07e432da
+ip-10-0-157-189.ec2.internal   Ready    master   42m   v1.14.6+c07e432da
+ip-10-0-159-240.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
+ip-10-0-164-70.ec2.internal    Ready    master   42m   v1.14.6+c07e432da
 ----
 
-Now you are going to add two more OCP worker nodes to the cluster by scaling the appropriate *machinesets*.
+Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*.
 
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the two worker nodes that are in the cluster already. There is a *machineset* for each AWS availability zone (AZ) (eu-central-1a, eu-central-1b, eu-central-1c). Your *machinesets* `NAME` will be different than below.
+This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-2a, us-east-2b, us-east-2a). Your *machinesets* `NAME` will be different than below. 
 
 ----
-NAME                                             DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a   1         1         1       1           53m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b   1         1         1       1           53m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c   0         0                             53m
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-79cf-lj8wq-worker-us-east-1a   1         1         1       1           43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b   1         1         1       1           43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1c   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1d   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1e   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1f   0         0                             43m
 ----
 
-To create two new worker nodes, we will scale up the number of machines on two of these machinesets:
-[source]
-----
-oc scale -n openshift-machine-api --replicas=1 machinesets cluster-berlin-4c88-lvb7p-worker-eu-central-1c
-oc scale -n openshift-machine-api --replicas=2 machinesets cluster-berlin-4c88-lvb7p-worker-eu-central-1b
-----
-
-Watch the machinesets until the `DESIRED` column matches the `AVAILABLE` column
+To create the 3 new worker nodes with available storage you will download 3 more *machineset* definition files.
 
 [source,role="execute"]
 ----
-watch oc get machinesets -n openshift-machine-api
-----
-----
-NAME                                             DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a   1         1         1       1           59m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b   2         2         2       2           59m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c   1         1         1       1           59m
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1a.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1b.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1c.yaml
 ----
 
-Next you can get some detailed information on your machines using this command:
+The files just downloaded do not have the correct `cluster-api-cluster` label for your lab because every environment is unique.
+
+WARNING: *Make sure you do the next step for finding your CLUSTERID*
+
+This command will find the correct value.
+
+[source,role="execute"]
+----
+CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
+echo $CLUSTERID
+----
+
+Using this correct `cluster-api-cluster` label for your lab environment modify each of the 3 *machinesets* downloaded earlier using the variable `$CLUSTERID`.
+
+[source,role="execute"]
+----
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
+----
+
+Check that `cluster-api-cluster` label has been changed to `$CLUSTERID`.
+
+[source,role="execute"]
+----
+grep cluster-api-cluster cluster-workerocs-us-east-1*
+----
+
+The label for `cluster-api-cluster` should now match the results of `echo $CLUSTERID` from above for all occurrences.
+
+Now you are ready to create your 3 new OCP worker nodes using these modified *machinesets*.
+
+[source,role="execute"]
+----
+oc create -f cluster-workerocs-us-east-1a.yaml
+oc create -f cluster-workerocs-us-east-1b.yaml
+oc create -f cluster-workerocs-us-east-1c.yaml
+----
+
+Check that you have new *machines* created. 
+
 [source,role="execute"]
 ----
 oc get machines -n openshift-machine-api
 ----
 
-At this point all machines should be in the `running` state. The `NAME` of your machines will be different than shown below.
-You should see four workers now.
+They may be in `pending` for sometime so repeat command above until they are in a `running` STATE. The `NAME` of your machines will be different than shown below. 
 
 ----
-NAME                                                   STATE     TYPE         REGION         ZONE            AGE
-cluster-berlin-4c88-lvb7p-master-0                     running   m4.xlarge    eu-central-1   eu-central-1a   62m
-cluster-berlin-4c88-lvb7p-master-1                     running   m4.xlarge    eu-central-1   eu-central-1b   62m
-cluster-berlin-4c88-lvb7p-master-2                     running   m4.xlarge    eu-central-1   eu-central-1c   62m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a-zsfrs   running   m4.4xlarge   eu-central-1   eu-central-1a   60m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b-cf27c   running   m4.4xlarge   eu-central-1   eu-central-1b   60m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b-px8p8   running   m4.4xlarge   eu-central-1   eu-central-1b   4m25s
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c-tt4lb   running   m4.4xlarge   eu-central-1   eu-central-1c   4m48s
+NAME                                                STATE     TYPE         REGION      ZONE         AGE
+cluster-ocs-79cf-lj8wq-master-0                     running   m4.xlarge    us-east-1   us-east-1a   54m
+cluster-ocs-79cf-lj8wq-master-1                     running   m4.xlarge    us-east-1   us-east-1b   54m
+cluster-ocs-79cf-lj8wq-master-2                     running   m4.xlarge    us-east-1   us-east-1c   54m
+cluster-ocs-79cf-lj8wq-worker-us-east-1a-xscbs      running   m4.4xlarge   us-east-1   us-east-1a   54m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b-qcmrl      running   m4.4xlarge   us-east-1   us-east-1b   54m
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1a-xmd9q   running   m5.4xlarge   us-east-1   us-east-1a   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m5.4xlarge   us-east-1   us-east-1b   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m5.4xlarge   us-east-1   us-east-1c   45s
 ----
 
-You can see that the workers are provisioned using the instance type `m4.4xlarge`. This instance type comes with 16 vCPU and 64GB RAM. This is the recomended size for OCS installations.
-More information on instance type specifications can be found in the link:https://aws.amazon.com/ec2/instance-types/[AWS documentation].
+You can see that the workerocs *machines* are using a different AWS EC2 instance type `m5.4xlarge`. This is because this EC2 instance type comes with a 75GB NVMe SSD that will be used for our storage cluster. Now you want to see if our new *machines* are added to the OCP cluster.
 
-Now check to see that you have two new OCP worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+[source,role="execute"]
+----
+watch oc get machinesets -n openshift-machine-api
+----
+
+This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below. 
+
+----
+NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-79cf-lj8wq-worker-us-east-1a      1         1         1	      1           62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b      1         1         1	      1           62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1c      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1d      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1e      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1f      0         0                             62m
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1a   1         1         1       1           8m26s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1b   1         1         1       1           8m26s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1c   1         1         1       1           8m25s
+----
+
+Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
 oc get nodes -l node-role.kubernetes.io/worker
 ----
 ----
-NAME                                            STATUS   ROLES    AGE     VERSION
-ip-10-0-139-194.eu-central-1.compute.internal   Ready    worker   63m     v1.14.6+d3a139f63
-ip-10-0-145-140.eu-central-1.compute.internal   Ready    worker   8m19s   v1.14.6+d3a139f63
-ip-10-0-157-160.eu-central-1.compute.internal   Ready    worker   63m     v1.14.6+d3a139f63
-ip-10-0-160-205.eu-central-1.compute.internal   Ready    worker   8m20s   v1.14.6+d3a139f63
+NAME                           STATUS   ROLES    AGE     VERSION
+ip-10-0-131-236.ec2.internal   Ready    worker   4m32s   v1.14.6+c07e432da
+ip-10-0-135-157.ec2.internal   Ready    worker   60m     v1.14.6+c07e432da
+ip-10-0-145-58.ec2.internal    Ready    worker   4m28s   v1.14.6+c07e432da
+ip-10-0-159-240.ec2.internal   Ready    worker   60m     v1.14.6+c07e432da
+ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 ----
 
 === Installing the OCS operator
