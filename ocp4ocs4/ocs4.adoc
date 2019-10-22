@@ -354,6 +354,57 @@ Please make sure the three storage classes are available in your cluster before 
 
 NOTE: The Noobaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
 
+=== Configuring the local oc client
+
+This section will explain how you set up your workstation with the Openshift CLI.
+
+To get the latest Openshift CLI client run the following commands:
+
+
+.Mac steps
+[source]
+----
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-mac*" --quiet --recursive --level=1
+ls -1 openshift-client-linux-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+sudo mv oc /usr/bin
+----
+
+.Linux steps
+[source]
+----
+wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-linux*" --quiet --recursive --level=1
+ls -1 openshift-client-linux-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+sudo mv oc /usr/bin
+----
+
+Afterwards, go to your Openshift Web Console, log in and click on the username in the top right corner. There you will find the menu item `Copy Login Command`.
+
+.Copy Login command menu entry
+image::imgs/OCP-copy-login-command.png
+
+Clicking on `Copy Login Command` will open a new window and you might be required to login to your Openshift cluster again.
+After successfully login in, you see blue text `Display token` - click this and you will be shown your login command.
+
+The login command will look similar to this
+
+`oc login --token=zoNoANLOOoJzXV3sb-TE1xIcg2aLBssdN0bTNIuV29w --server=https://api.cluster-ocs-89db.ocs-89db.example.opentlc.com:6443`
+
+execute this login command on your terminal. If you did not provision your RHPDS environment with Let's Encrypt certificates, it will ask if you want to connect without certificate checks, accept this.
+
+Check if you are successfully connected by issuing a command against the cluster:
+
+[source,role="execute"]
+----
+oc version
+----
+.Example output:
+----
+Client Version: openshift-clients-4.2.0-201910041700
+Server Version: 4.2.0
+Kubernetes Version: v1.14.6+2e5ed54
+----
+
+
 === Using the Ceph toolbox to check on the Ceph backing storage
 
 Since the Ceph toolbox is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream Rook toolbox, but we need to modify the namespace.
