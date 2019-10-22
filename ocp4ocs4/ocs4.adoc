@@ -37,6 +37,7 @@ In this section, you will validate the OCP environment has 3 master and 3 worker
 ----
 oc get nodes
 ----
+.Example output:
 ----
 NAME                           STATUS   ROLES    AGE   VERSION
 ip-10-0-135-157.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
@@ -160,6 +161,7 @@ Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP no
 ----
 oc get nodes -l node-role.kubernetes.io/worker
 ----
+.Example output:
 ----
 NAME                           STATUS   ROLES    AGE     VERSION
 ip-10-0-131-236.ec2.internal   Ready    worker   4m32s   v1.14.6+c07e432da
@@ -191,6 +193,7 @@ This will fetch the manifest from the `release-4.2` tag. After applying this, yo
 ----
 watch oc -n openshift-storage get csv
 ----
+.Example output:
 ----
 NAME                            DISPLAY                                VERSION   REPLACES   PHASE
 local-storage-operator.v4.2.0   Local Storage                          4.2.0                Installing
@@ -205,6 +208,7 @@ You will now also see some new operator pods in the new `openshift-storage` name
 ----
 oc -n openshift-storage get pods
 ----
+.Example output:
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
 local-storage-operator-bcfd5765f-7bd86   1/1     Running   0          3m33s
@@ -556,6 +560,7 @@ This step could take 5 or more minutes. Wait until there are 2 pods in `Running`
 ----
 watch oc get pods -n my-database-app
 ----
+.Example output:
 ----
 NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-deploy                 0/1     Completed   0          5m48s
@@ -572,6 +577,7 @@ Once the deployment is complete you can now test the application and the persist
 ----
 oc get route -n my-database-app
 ----
+.Example output:
 ----
 NAME                     HOST/PORT                                                                         PATH   SERVICES                 PORT    TERMINATION   WILDCARD
 rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com          rails-pgsql-persistent
@@ -632,6 +638,7 @@ This will create a PVC in the `kube-system` namespace:
 ----
 oc get pvc -n kube-system
 ----
+.Example output:
 ----
 NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
 cephfs-pvc   Bound    pvc-a7015af1-f0dd-11e9-8812-06aa2fd1035a   1Gi        RWX            ocs-storagecluster-cephfs   55s
@@ -643,6 +650,7 @@ As well as a deployment for our registry:
 ----
 oc get -n kube-system deployment
 ----
+.Example output:
 ----
 NAME            READY   UP-TO-DATE   AVAILABLE   AGE
 kube-registry   3/3     3            3           100s
@@ -671,6 +679,7 @@ Then we check on our new route to get the URL for our registry:
 ----
 oc get route
 ----
+.Example output:
 ----
 NAME            HOST/PORT                                                                            PATH   SERVICES        PORT    TERMINATION   WILDCARD
 kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
@@ -721,6 +730,7 @@ To increase the number of *machines* and the OCP nodes you will again use a *mac
 ----
 cat machineset cluster-workerocs-us-east-2a.yaml | more
 ----
+.Example output:
 ----
 apiVersion: machine.openshift.io/v1beta1
 kind: MachineSet
@@ -757,6 +767,7 @@ Verify you now have 4 workerocs *machines*. One of the *machines* should have ju
 ----
 oc get machines -n openshift-machine-api
 ----
+.Example output:
 ----
 NAME                                            INSTANCE              STATE     TYPE         REGION      ZONE         AGE
 
@@ -774,6 +785,7 @@ This step could take more than 5 minutes. You can see now that one of the *machi
 ----
 watch oc get machinesets -n openshift-machine-api
 ----
+.Example output:
 ----
 NAME                                      DESIRED   CURRENT   READY   AVAILABLE   AGE
 ...
@@ -788,6 +800,7 @@ Now verify that you have a new OCP worker node. You should now have 7 worker nod
 ----
 oc get nodes -l node-role.kubernetes.io/worker
 ----
+.Example output:
 ----
 NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-135-6.us-east-2.compute.internal     Ready    worker   2d      v1.13.4+da48e8391
@@ -811,6 +824,7 @@ This step could take 5 minutes or more for the forth *OSD* pod to be in a `Runni
 ----
 watch oc get pods -n rook-ceph
 ----
+.Example output:
 ----
 NAME                                          READY   STATUS      RESTARTS   AGE
 
@@ -837,6 +851,7 @@ And run Ceph commands to see the new OSDs.
 ----
 ceph osd status
 ----
+.Example output:
 ----
 +----+--------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
 | id |                    host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
@@ -854,6 +869,7 @@ And you can see that Ceph is healthy and happy! There are now 4 *OSDs* `up` and 
 ----
 ceph status
 ----
+.Example output:
 ----
   cluster:
     id:     90306026-6e42-4877-9d4e-26eca2ecf6ef
@@ -899,6 +915,7 @@ More runtime options can be displayed with
 ----
 oc adm must-gather -h
 ----
+.Example output:
 ----
 Launch a pod to gather debugging information
 
