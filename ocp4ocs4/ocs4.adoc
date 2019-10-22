@@ -1,5 +1,5 @@
 
-= Lab: Deploying and Managing OpenShift Container Storage with Rook-Ceph Operator
+= Lab: Deploying and Managing OpenShift Container Storage
 
 == Lab Overview
 
@@ -8,13 +8,12 @@ This hands-on workshop is for both system administrators and application develop
 === In this lab you will learn how to
 
 * Configure and deploy containerized Ceph and Noobaa
-* Validate deployment of containerized Ceph Luminous and Noobbaa
+* Validate deployment of containerized Ceph Nautilus and Noobaa
 * Deploy the Rook toolbox to run Ceph and RADOS commands
 * Creating a Read-Write-Once (RWO) PVC that is based on Ceph RBDs
 * Creating a Read-Write-Many (RWX) PVC that is based on CephFS
 * Using the Noobaa console to generate a bucket that is replicated on multiple endpoints
-// * Upgrade Ceph version from Mimic to Nautilus using the Rook operator
-// * Add more storage to the Ceph cluster
+* Add more storage to the Ceph cluster
 
 .Rook and Kubernetes Architecture
 image::rook_diagram_3.png[Showing the Rook architecture]
@@ -30,104 +29,154 @@ image::Rook_diagram_4.png[Ceph on Openshift using Rook]
 
 == Deploy your storage backend using the OCS operator
 
-=== Scale OCP cluster and add two new worker nodes
+=== Scale OCP cluster and add 3 new nodes
 
-In this section, you will validate the OCP environment has three master and two worker nodes before adding two more worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+In this section, you will validate the OCP environment has 3 master and 3 worker nodes before increasing the cluster size by 3 worker nodes. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
 oc get nodes
 ----
 ----
-NAME                                            STATUS   ROLES    AGE   VERSION
-ip-10-0-134-228.eu-central-1.compute.internal   Ready    master   51m   v1.14.6+d3a139f63
-ip-10-0-139-194.eu-central-1.compute.internal   Ready    worker   46m   v1.14.6+d3a139f63
-ip-10-0-153-8.eu-central-1.compute.internal     Ready    master   51m   v1.14.6+d3a139f63
-ip-10-0-157-160.eu-central-1.compute.internal   Ready    worker   46m   v1.14.6+d3a139f63
-ip-10-0-174-74.eu-central-1.compute.internal    Ready    master   51m   v1.14.6+d3a139f63
+NAME                           STATUS   ROLES    AGE   VERSION
+ip-10-0-135-157.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
+ip-10-0-138-253.ec2.internal   Ready    master   42m   v1.14.6+c07e432da
+ip-10-0-157-189.ec2.internal   Ready    master   42m   v1.14.6+c07e432da
+ip-10-0-159-240.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
+ip-10-0-164-70.ec2.internal    Ready    master   42m   v1.14.6+c07e432da
 ----
 
-Now you are going to add two more OCP worker nodes to the cluster by scaling the appropriate *machinesets*.
+Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*.
 
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the two worker nodes that are in the cluster already. There is a *machineset* for each AWS availability zone (AZ) (eu-central-1a, eu-central-1b, eu-central-1c). Your *machinesets* `NAME` will be different than below.
+This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below. 
 
 ----
-NAME                                             DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a   1         1         1       1           53m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b   1         1         1       1           53m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c   0         0                             53m
+NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-79cf-lj8wq-worker-us-east-1a   1         1         1       1           43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b   1         1         1       1           43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1c   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1d   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1e   0         0                             43m
+cluster-ocs-79cf-lj8wq-worker-us-east-1f   0         0                             43m
 ----
 
-To create two new worker nodes, we will scale up the number of machines on two of these machinesets:
-[source]
-----
-oc scale -n openshift-machine-api --replicas=1 machinesets cluster-berlin-4c88-lvb7p-worker-eu-central-1c
-oc scale -n openshift-machine-api --replicas=2 machinesets cluster-berlin-4c88-lvb7p-worker-eu-central-1b
-----
-
-Watch the machinesets until the `DESIRED` column matches the `AVAILABLE` column
+To create the 3 new worker nodes with available storage you will download 3 more *machineset* definition files.
 
 [source,role="execute"]
 ----
-watch oc get machinesets -n openshift-machine-api
-----
-----
-NAME                                             DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a   1         1         1       1           59m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b   2         2         2       2           59m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c   1         1         1       1           59m
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1a.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1b.yaml
+curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1c.yaml
 ----
 
-Next you can get some detailed information on your machines using this command:
+The files just downloaded do not have the correct `cluster-api-cluster` label for your lab because every environment is unique.
+
+WARNING: *Make sure you do the next step for finding your CLUSTERID*
+
+[source,role="execute"]
+----
+CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
+echo $CLUSTERID
+----
+
+Using this correct `cluster-api-cluster` label for your lab environment modify each of the 3 *machinesets* downloaded earlier using the variable `$CLUSTERID`.
+
+[source,role="execute"]
+----
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
+sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
+----
+
+Check that `cluster-api-cluster` label has been changed to `$CLUSTERID`.
+
+[source,role="execute"]
+----
+grep cluster-api-cluster cluster-workerocs-us-east-1*
+----
+
+The label for `cluster-api-cluster` should now match the results of `echo $CLUSTERID` from above for all occurrences.
+
+Now you are ready to create your 3 new OCP worker nodes using these modified *machinesets*.
+
+[source,role="execute"]
+----
+oc create -f cluster-workerocs-us-east-1a.yaml
+oc create -f cluster-workerocs-us-east-1b.yaml
+oc create -f cluster-workerocs-us-east-1c.yaml
+----
+
+Check that you have new *machines* created. 
+
 [source,role="execute"]
 ----
 oc get machines -n openshift-machine-api
 ----
 
-At this point all machines should be in the `running` state. The `NAME` of your machines will be different than shown below.
-You should see four workers now.
+They may be in `pending` for sometime so repeat command above until they are in a `running` STATE. The `NAME` of your machines will be different than shown below. 
 
 ----
-NAME                                                   STATE     TYPE         REGION         ZONE            AGE
-cluster-berlin-4c88-lvb7p-master-0                     running   m4.xlarge    eu-central-1   eu-central-1a   62m
-cluster-berlin-4c88-lvb7p-master-1                     running   m4.xlarge    eu-central-1   eu-central-1b   62m
-cluster-berlin-4c88-lvb7p-master-2                     running   m4.xlarge    eu-central-1   eu-central-1c   62m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1a-zsfrs   running   m4.4xlarge   eu-central-1   eu-central-1a   60m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b-cf27c   running   m4.4xlarge   eu-central-1   eu-central-1b   60m
-cluster-berlin-4c88-lvb7p-worker-eu-central-1b-px8p8   running   m4.4xlarge   eu-central-1   eu-central-1b   4m25s
-cluster-berlin-4c88-lvb7p-worker-eu-central-1c-tt4lb   running   m4.4xlarge   eu-central-1   eu-central-1c   4m48s
+NAME                                                STATE     TYPE         REGION      ZONE         AGE
+cluster-ocs-79cf-lj8wq-master-0                     running   m4.xlarge    us-east-1   us-east-1a   54m
+cluster-ocs-79cf-lj8wq-master-1                     running   m4.xlarge    us-east-1   us-east-1b   54m
+cluster-ocs-79cf-lj8wq-master-2                     running   m4.xlarge    us-east-1   us-east-1c   54m
+cluster-ocs-79cf-lj8wq-worker-us-east-1a-xscbs      running   m4.4xlarge   us-east-1   us-east-1a   54m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b-qcmrl      running   m4.4xlarge   us-east-1   us-east-1b   54m
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1a-xmd9q   running   m5.4xlarge   us-east-1   us-east-1a   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m5.4xlarge   us-east-1   us-east-1b   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m5.4xlarge   us-east-1   us-east-1c   45s
 ----
 
-You can see that the workers are provisioned using the instance type `m4.4xlarge`. This instance type comes with 16 vCPU and 64GB RAM. This is the recomended size for OCS installations.
-More information on instance type specifications can be found in the link:https://aws.amazon.com/ec2/instance-types/[AWS documentation].
+You can see that the workerocs *machines* are using a different AWS EC2 instance type `m5.4xlarge`. The `m5.4xlarge` instance type follows our recommended instance sizing for OCS and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCP cluster.
 
-Now check to see that you have two new OCP worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+[source,role="execute"]
+----
+watch oc get machinesets -n openshift-machine-api
+----
+
+This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below. 
+
+----
+NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-79cf-lj8wq-worker-us-east-1a      1         1         1	      1           62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1b      1         1         1	      1           62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1c      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1d      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1e      0         0                             62m
+cluster-ocs-79cf-lj8wq-worker-us-east-1f      0         0                             62m
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1a   1         1         1       1           8m26s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1b   1         1         1       1           8m26s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1c   1         1         1       1           8m25s
+----
+
+Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
 oc get nodes -l node-role.kubernetes.io/worker
 ----
 ----
-NAME                                            STATUS   ROLES    AGE     VERSION
-ip-10-0-139-194.eu-central-1.compute.internal   Ready    worker   63m     v1.14.6+d3a139f63
-ip-10-0-145-140.eu-central-1.compute.internal   Ready    worker   8m19s   v1.14.6+d3a139f63
-ip-10-0-157-160.eu-central-1.compute.internal   Ready    worker   63m     v1.14.6+d3a139f63
-ip-10-0-160-205.eu-central-1.compute.internal   Ready    worker   8m20s   v1.14.6+d3a139f63
+NAME                           STATUS   ROLES    AGE     VERSION
+ip-10-0-131-236.ec2.internal   Ready    worker   4m32s   v1.14.6+c07e432da
+ip-10-0-135-157.ec2.internal   Ready    worker   60m     v1.14.6+c07e432da
+ip-10-0-145-58.ec2.internal    Ready    worker   4m28s   v1.14.6+c07e432da
+ip-10-0-159-240.ec2.internal   Ready    worker   60m     v1.14.6+c07e432da
+ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 ----
 
 === Installing the OCS operator
 
-In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster:
+In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4 is generally available (GA). At that time the OCS will be installed from OperatorHub in OCP 4 instead of using this manifest. 
 
 - The `openshift-storage` namespace
 - The `local-storage` namespace
 - Operator groups and sources for the OCS and local-storage operators
-- An OCS subbscription
+- An OCS subscription
 
 To apply this manifest, execute the following:
 
@@ -148,9 +197,9 @@ local-storage-operator.v4.2.0   Local Storage                          4.2.0    
 ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
 ----
 
-`Csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Suceeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
+The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Succeeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
 
-You will now also see some new pods in the new `openshift-storage` namespace:
+You will now also see some new operator pods in the new `openshift-storage` namespace:
 
 [source,role="execute"]
 ----
@@ -164,19 +213,17 @@ ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
 rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 ----
 
-Now switch over to your Openshift Web console. For me, the URL is https://console-openshift-console.apps.cluster-berlin-4c88.berlin-4c88.example.opentlc.com for you this will be slightly different.
-
-You get your URL by issuing:
+Now switch over to your Openshift Web console. You can get your URL by issuing command below to get the `console` route. Put this URL in a browser tab. You will use the same username and password you used to login and use the oc CLI to login to the OCP `console`.
 
 [source,role="execute"]
 ----
-oc get -n openshift-console route  console
+oc get -n openshift-console route console
 ----
 
-Once you are logged in, extend the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
+Once you are logged in, navigate to the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
 What you see, should be similar to the following example picture:
 
-.Installed operators - 1) Make sure you are in the right project 2) Check Operator status 3) Click on Openshift Container Storage Operator
+.Installed operators:  1) Make sure you are in the right project; 2) Check Operator status; 3) Click on Openshift Container Storage Operator
 image::OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
 
 Click on `Openshift Container Storage Operator` to get to the OCS configuration screen.
@@ -187,19 +234,26 @@ image::OCS-config-screen.jpg[OCS configuration screen]
 On the OCS configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
 
 .OCS create a new storage cluster
-image:OCS-create-storage-cluster.jpg[OCS create storage cluster screen]
+image::OCS-config-screen-new.png[OCS create a new storage cluster]
 
-In this dialog, select three nodes that have the role `worker` and click on the button `Create` on the end of the page.
+To select the worker nodes using the m5.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
 
-CAUTION: Make sure to select three workers in different availability zones. The OCS operator will automatically try to replicate data between those availability zones.
+[source,role="execute"]
+----
+oc get nodes --show-labels | grep storage-node
+----
+
+In this dialog, select these three nodes that have the role `storage-node` and `worker` and click on the button `Create` below the dialog box.
+
+CAUTION: Make sure to select three workers in different availability zones.
 
 In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
 [source,role="execute"]
 ----
-oc get po -n openshift-storage
+oc -n openshift-storage get pods 
 ----
-.Example of a pending installation of the OCS storage cluster:
+.Example of a in process installation of the OCS storage cluster:
 ----
 NAME                                            READY   STATUS                  RESTARTS   AGE
 csi-cephfsplugin-2frxn                          3/3     Running                 0          57s
@@ -222,12 +276,12 @@ rook-ceph-detect-version-lh6jx                  0/1     Pending                 
 rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
 ----
 
-You can also watch this inside of the Openshift Web Console by going back to the OCS configuration screen and selecting `All instances`.
+You can also watch the deployment using the Openshift Web Console by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
 
-Please wait until all Pods are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
+Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
 
 .OCS instance overview after cluster install is finished
-image:OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
+image::OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
 [source,role="execute"]
 ----
@@ -271,27 +325,34 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Comple
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
 ----
 
-You can now also check the status of your storage cluster with the Dashboard that is included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
+You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
-image:OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
+image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
-OCS ships with a Dashboard for the Object Store as well. From within the `Dashboard` menu click on the `Object Service` on the top navigation bar of the content page.
+OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
-image:OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
 
-On the left side of the dashboard you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
+On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
 
-Once this is all healthy, you will be able to use the three new StorageClasses:
+Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCS 4 Install:
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
 - openshift-storage.noobaa.io
 
-You can see them in the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. Please make sure the three storage classes are available in your cluster.
+You can see these three `StorageClasses` from the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. You can also run the command below:
 
-NOTE: The Noobaa pod is already using the `ocs-storagecluster-ceph-rbd` storage class for its internal database
+[source,role="execute"]
+----
+oc get sc -n openshift-storage
+----
+
+Please make sure the three storage classes are available in your cluster before proceeding.
+
+NOTE: The Noobaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
 
 === Using the Ceph toolbox to check on the Ceph backing storage
 
