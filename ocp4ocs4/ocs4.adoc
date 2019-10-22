@@ -53,7 +53,7 @@ Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-2a, us-east-2b, us-east-2a). Your *machinesets* `NAME` will be different than below. 
+This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below. 
 
 ----
 NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
