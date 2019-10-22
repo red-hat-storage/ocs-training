@@ -16,10 +16,10 @@ This hands-on workshop is for both system administrators and application develop
 * Add more storage to the Ceph cluster
 
 .Rook and Kubernetes Architecture
-image::rook_diagram_3.png[Showing the Rook architecture]
+image::imgs/rook_diagram_3.png[Showing the Rook architecture]
 
 .Ceph deployed on OpenShift using Rook
-image::Rook_diagram_4.png[Ceph on Openshift using Rook]
+image::imgs/Rook_diagram_4.png[Ceph on Openshift using Rook]
 
 [[labexercises]]
 :numbered:
@@ -224,17 +224,17 @@ Once you are logged in, navigate to the `Operators` menu on the left and select 
 What you see, should be similar to the following example picture:
 
 .Installed operators:  1) Make sure you are in the right project; 2) Check Operator status; 3) Click on Openshift Container Storage Operator
-image::OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
+image::imgs/OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
 
 Click on `Openshift Container Storage Operator` to get to the OCS configuration screen.
 
 .OCS configuration screen
-image::OCS-config-screen.jpg[OCS configuration screen]
+image::imgs/OCS-config-screen.jpg[OCS configuration screen]
 
 On the OCS configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
 
 .OCS create a new storage cluster
-image::OCS-config-screen-new.png[OCS create a new storage cluster]
+image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
 To select the worker nodes using the m5.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
 
@@ -281,7 +281,7 @@ You can also watch the deployment using the Openshift Web Console by going back 
 Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
 
 .OCS instance overview after cluster install is finished
-image::OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
+image::imgs/OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
 [source,role="execute"]
 ----
@@ -328,12 +328,12 @@ rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Runnin
 You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
-image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
+image::imgs/OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
 OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
-image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+image::imgs/OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
 
 On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
 
@@ -462,11 +462,11 @@ After installing OCS, it is best practice to change the default storage class fr
 The easiest way to do this is using the Openshift Web Console. In there, expand the `Storage` item on the left navigation bar and select `Storage Classes`.
 
 .OCP Storage classes after OCS installation - AWS gp2 is the default storage class
-image:OCS-Storage-Classes-gp2-default.png[]
+image::imgs/OCS-Storage-Classes-gp2-default.png[]
 
 Now click on the three dots next to the gp2 storage class and select `Edit Annotations`:
 
-image:OCS-edit-gp2-annotations.png[]
+image::imgs/OCS-edit-gp2-annotations.png[]
 
 click on the stop sign on the right to delete the only one entry. Proceed by clicking on `Save`.
 
@@ -476,7 +476,7 @@ In the new window enter `storageclass.kubernetes.io/is-default-class` as the Key
 Now the `ocs-storagecluster-ceph-rbd` storage class should be marked as default, like in the below picture:
 
 .OCP Storage classes after OCS installation - Ceph RBD is now the default storage class
-image:OCS-Storage-Classes-rbd-default.png[]
+image::imgs/OCS-Storage-Classes-rbd-default.png[]
 
 WARNING: End of current refresh work
 
