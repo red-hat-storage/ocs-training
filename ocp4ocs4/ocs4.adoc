@@ -529,8 +529,6 @@ Now the `ocs-storagecluster-ceph-rbd` storage class should be marked as default,
 .OCP Storage classes after OCS installation - Ceph RBD is now the default storage class
 image::imgs/OCS-Storage-Classes-rbd-default.png[]
 
-WARNING: End of current refresh work
-
 == Create a new OCP deployment using Ceph RBD volume
 
 In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCP application + database deployment to create persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
