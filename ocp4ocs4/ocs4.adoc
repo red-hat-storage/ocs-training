@@ -1,5 +1,5 @@
 
-= Lab: Deploying and Managing OpenShift Container Storage with Rook-Ceph Operator
+= Lab: Deploying and Managing OpenShift Container Storage
 
 == Lab Overview
 
@@ -8,13 +8,12 @@ This hands-on workshop is for both system administrators and application develop
 === In this lab you will learn how to
 
 * Configure and deploy containerized Ceph and Noobaa
-* Validate deployment of containerized Ceph Luminous and Noobbaa
+* Validate deployment of containerized Ceph Nautilus and Noobaa
 * Deploy the Rook toolbox to run Ceph and RADOS commands
 * Creating a Read-Write-Once (RWO) PVC that is based on Ceph RBDs
 * Creating a Read-Write-Many (RWX) PVC that is based on CephFS
 * Using the Noobaa console to generate a bucket that is replicated on multiple endpoints
-// * Upgrade Ceph version from Mimic to Nautilus using the Rook operator
-// * Add more storage to the Ceph cluster
+* Add more storage to the Ceph cluster
 
 .Rook and Kubernetes Architecture
 image::rook_diagram_3.png[Showing the Rook architecture]
@@ -78,8 +77,6 @@ curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/oc
 The files just downloaded do not have the correct `cluster-api-cluster` label for your lab because every environment is unique.
 
 WARNING: *Make sure you do the next step for finding your CLUSTERID*
-
-This command will find the correct value.
 
 [source,role="execute"]
 ----
@@ -174,12 +171,12 @@ ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 
 === Installing the OCS operator
 
-In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster:
+In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4 is generally available (GA). At that time the OCS will be installed from OperatorHub in OCP 4 instead of using this manifest. 
 
 - The `openshift-storage` namespace
 - The `local-storage` namespace
 - Operator groups and sources for the OCS and local-storage operators
-- An OCS subbscription
+- An OCS subscription
 
 To apply this manifest, execute the following:
 
@@ -200,9 +197,9 @@ local-storage-operator.v4.2.0   Local Storage                          4.2.0    
 ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
 ----
 
-`Csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Suceeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
+The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Succeeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
 
-You will now also see some new pods in the new `openshift-storage` namespace:
+You will now also see some new operator pods in the new `openshift-storage` namespace:
 
 [source,role="execute"]
 ----
@@ -216,19 +213,17 @@ ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
 rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 ----
 
-Now switch over to your Openshift Web console. For me, the URL is https://console-openshift-console.apps.cluster-berlin-4c88.berlin-4c88.example.opentlc.com for you this will be slightly different.
-
-You get your URL by issuing:
+Now switch over to your Openshift Web console. You can get your URL by issuing command below to get the `console` route. Put this URL in a browser tab. You will use the same username and password you used to login and use the oc CLI to login to the OCP `console`.
 
 [source,role="execute"]
 ----
-oc get -n openshift-console route  console
+oc get -n openshift-console route console
 ----
 
-Once you are logged in, extend the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
+Once you are logged in, navigate to the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
 What you see, should be similar to the following example picture:
 
-.Installed operators - 1) Make sure you are in the right project 2) Check Operator status 3) Click on Openshift Container Storage Operator
+.Installed operators:  1) Make sure you are in the right project; 2) Check Operator status; 3) Click on Openshift Container Storage Operator
 image::OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
 
 Click on `Openshift Container Storage Operator` to get to the OCS configuration screen.
@@ -239,19 +234,26 @@ image::OCS-config-screen.jpg[OCS configuration screen]
 On the OCS configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
 
 .OCS create a new storage cluster
-image:OCS-create-storage-cluster.jpg[OCS create storage cluster screen]
+image::OCS-config-screen-new.png[OCS create a new storage cluster]
 
-In this dialog, select three nodes that have the role `worker` and click on the button `Create` on the end of the page.
+To select the worker nodes using the m5.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
 
-CAUTION: Make sure to select three workers in different availability zones. The OCS operator will automatically try to replicate data between those availability zones.
+[source,role="execute"]
+----
+oc get nodes --show-labels | grep storage-node
+----
+
+In this dialog, select these three nodes that have the role `storage-node` and `worker` and click on the button `Create` below the dialog box.
+
+CAUTION: Make sure to select three workers in different availability zones.
 
 In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
 [source,role="execute"]
 ----
-oc get po -n openshift-storage
+oc -n openshift-storage get pods 
 ----
-.Example of a pending installation of the OCS storage cluster:
+.Example of a in process installation of the OCS storage cluster:
 ----
 NAME                                            READY   STATUS                  RESTARTS   AGE
 csi-cephfsplugin-2frxn                          3/3     Running                 0          57s
@@ -274,12 +276,12 @@ rook-ceph-detect-version-lh6jx                  0/1     Pending                 
 rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
 ----
 
-You can also watch this inside of the Openshift Web Console by going back to the OCS configuration screen and selecting `All instances`.
+You can also watch the deployment also using the Openshift Web Console by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
 
-Please wait until all Pods are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
+Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
 
 .OCS instance overview after cluster install is finished
-image:OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
+image::OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
 [source,role="execute"]
 ----
@@ -323,27 +325,34 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Comple
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
 ----
 
-You can now also check the status of your storage cluster with the Dashboard that is included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
+You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
-image:OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
+image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
-OCS ships with a Dashboard for the Object Store as well. From within the `Dashboard` menu click on the `Object Service` on the top navigation bar of the content page.
+OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
-image:OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
 
-On the left side of the dashboard you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
+On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
 
-Once this is all healthy, you will be able to use the three new StorageClasses:
+Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCS 4 Install:
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
 - openshift-storage.noobaa.io
 
-You can see them in the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. Please make sure the three storage classes are available in your cluster.
+You can see these three `StorageClasses` from the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. You can also run the command below:
 
-NOTE: The Noobaa pod is already using the `ocs-storagecluster-ceph-rbd` storage class for its internal database
+[source,role="execute"]
+----
+oc get sc -n openshift-storage
+----
+
+Please make sure the three storage classes are available in your cluster before proceeding.
+
+NOTE: The Noobaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
 
 === Using the Ceph toolbox to check on the Ceph backing storage
 
