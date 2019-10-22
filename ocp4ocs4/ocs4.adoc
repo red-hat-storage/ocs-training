@@ -276,7 +276,7 @@ rook-ceph-detect-version-lh6jx                  0/1     Pending                 
 rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
 ----
 
-You can also watch the deployment also using the Openshift Web Console by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
+You can also watch the deployment using the Openshift Web Console by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
 
 Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances as `Ready` in the Web Console.
 
