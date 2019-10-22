@@ -720,174 +720,211 @@ df -h
 
 == Adding storage to the Ceph Cluster
 
-WARNING: This section has not been rewritten for OCS and still contains Rook steps!
+Adding storage to OCS adds capacity and performance to your already present cluster. For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
 
-In this section you will add more storage to the cluster by increasing the number of OCP workerocs *machines* and worker nodes from 3 to 4 using one of the *machinesets* you already used. The new *machine* will also be an EC2 instance `m5d.large` and have an available 75 GB NVMe SSD. The Rook operator will `observe` when the new OCP node is added to the cluster and will then create a new *OSD* pod on this new worker node and the 75 GB SSD will be added to the Ceph cluster with no additional manual effort from the user.
+=== Add storage worker nodes
 
-To increase the number of *machines* and the OCP nodes you will again use a *machineset*. Each of the *machinesets* you used earlier created just one machine because of `replicas: 1` in the configuration file. Your `cluster-api-cluster` and `name` is different than example shown below.
+This section will explain how one can add more worker nodes to the present storage cluster. Afterwards follow the next sub-section on how to extend the OCS cluster to provision storage on these new nodes.
+
+To add more nodes, we could either add more machinesets like we did before, or scale the already present OCS machinesets. For this training, we will spawn more workers by scaling the already present OCS worker instances up:
+
+.Check on our present machinesets
+[source,role="execute"]
+----
+oc get machinesets -n openshift-machine-api 
+----
+Example output:
+----
+NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-89db-brbwq-worker-us-east-1a      1         1         1       1           7h19m
+cluster-ocs-89db-brbwq-worker-us-east-1b      1         1         1       1           7h19m
+cluster-ocs-89db-brbwq-worker-us-east-1c      1         1         1       1           7h19m
+cluster-ocs-89db-brbwq-worker-us-east-1d      0         0                             7h19m
+cluster-ocs-89db-brbwq-worker-us-east-1e      0         0                             7h19m
+cluster-ocs-89db-brbwq-worker-us-east-1f      0         0                             7h19m
+cluster-ocs-89db-brbwq-workerocs-us-east-1a   1         1         1       1           6h50m
+cluster-ocs-89db-brbwq-workerocs-us-east-1b   1         1         1       1           6h50m
+cluster-ocs-89db-brbwq-workerocs-us-east-1c   1         1         1       1           6h50m
+----
+
+Let's scale the workerocs machinesets up with this command:
 
 [source,role="execute"]
 ----
-cat machineset cluster-workerocs-us-east-2a.yaml | more
+oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1 -t oc scale -n openshift-machine-api --replicas=2
 ----
 .Example output:
 ----
-apiVersion: machine.openshift.io/v1beta1
-kind: MachineSet
-metadata:
-  labels:
-    machine.openshift.io/cluster-api-cluster: cluster-a26e-rx8bk
-    machine.openshift.io/cluster-api-machine-role: workerocs
-    machine.openshift.io/cluster-api-machine-type: workerocs
-  name: cluster-a26e-rx8bk-workerocs-us-east-2a
-  namespace: openshift-machine-api
-spec:
-  replicas: 1
-...
-
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1a 
+machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1b 
+machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1c 
+machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1c scaled
 ----
 
-Verify your `cluster-api-cluster` again by using the command below.
+Wait until the new workers are available.
+[source,role="execute"]
+----
+watch oc get machinesets -n openshift-machine-api 
+----
+
+Once they are available, we can check on their labels like this:
 
 [source,role="execute"]
 ----
-echo $CLUSTERID
-----
-
-You can easily create a new *machine* and OCP worker node in AWS AZ us-east-2a by just increasing the `replicas` count in one of the machinesets. Edit your machineset for us-east-2a to increase from `replicas: 1` to `replicas: 2`. Make sure to save your changes before exiting `:wq!`.
-
-[source,role="execute"]
-----
-oc edit machineset $CLUSTERID-workerocs-us-east-2a -n openshift-machine-api
-----
-
-Verify you now have 4 workerocs *machines*. One of the *machines* should have just been created in us-east-2a AZ so there are two in this AZ now. The `NAME` of your *machines* will be different than shown below.
-
-[source,role="execute"]
-----
-oc get machines -n openshift-machine-api
+oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-node") | .metadata.name,.metadata.labels'
 ----
 .Example output:
 ----
-NAME                                            INSTANCE              STATE     TYPE         REGION      ZONE         AGE
-
-cluster-a26e-rx8bk-workerocs-us-east-2a-8pnf4   i-0a497998c19a59ba3   running   m5d.large    us-east-2   us-east-2a   2d
-cluster-a26e-rx8bk-workerocs-us-east-2a-l4v5l   i-0e22f1078f1228086   running   m5d.large    us-east-2   us-east-2a   33s
-cluster-a26e-rx8bk-workerocs-us-east-2b-wwcmd   i-0c25eb473e452645d   running   m5d.large    us-east-2   us-east-2b   47h
-cluster-a26e-rx8bk-workerocs-us-east-2c-8456v   i-0e0d311e4590fa7e3   running   m5d.large    us-east-2   us-east-2c   47h
+"ip-10-0-132-94.ec2.internal"
+{
+  "beta.kubernetes.io/arch": "amd64",
+  "beta.kubernetes.io/instance-type": "m5.4xlarge",
+  "beta.kubernetes.io/os": "linux",
+  "failure-domain.beta.kubernetes.io/region": "us-east-1",
+  "failure-domain.beta.kubernetes.io/zone": "us-east-1a",
+  "kubernetes.io/arch": "amd64",
+  "kubernetes.io/hostname": "ip-10-0-132-94",
+  "kubernetes.io/os": "linux",
+  "node-role.kubernetes.io/worker": "",
+  "node.openshift.io/os_id": "rhcos",
+  "role": "storage-node"
+}
+"ip-10-0-141-58.ec2.internal"
+{
+  "beta.kubernetes.io/arch": "amd64",
+  "beta.kubernetes.io/instance-type": "m5.4xlarge",
+  "beta.kubernetes.io/os": "linux",
+  "cluster.ocs.openshift.io/openshift-storage": "",
+  "failure-domain.beta.kubernetes.io/region": "us-east-1",
+  "failure-domain.beta.kubernetes.io/zone": "us-east-1a",
+  "kubernetes.io/arch": "amd64",
+  "kubernetes.io/hostname": "ip-10-0-141-58",
+  "kubernetes.io/os": "linux",
+  "node-role.kubernetes.io/worker": "",
+  "node.openshift.io/os_id": "rhcos",
+  "role": "storage-node"
+}
+[...]
 ----
 
-Now you need to verify that this new *machine* is added to the OCP cluster.
-
-This step could take more than 5 minutes. You can see now that one of the *machinesets* has 2 machines, this is because you increased the replica count in the prior step. The *machineset* for us-east-2a should have an integer, in this case `2`, filled out for the entire row before you proceed to the next step. The `NAME` of your machinesets will be different than shown below.
+We can see that there are three new nodes, which do not yet have the `cluster.ocs.openshift.io/openshift-storage` label applied yet. We will apply this now:
 
 [source,role="execute"]
 ----
-watch oc get machinesets -n openshift-machine-api
+oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-node") | .metadata.name' | xargs -n1 -t -I {} oc label nodes {} cluster.ocs.openshift.io/openshift-storage=""
 ----
 .Example output:
 ----
-NAME                                      DESIRED   CURRENT   READY   AVAILABLE   AGE
-...
-cluster-a26e-rx8bk-workerocs-us-east-2a   2         2         2       2           2d
-cluster-a26e-rx8bk-workerocs-us-east-2b   1         1         1       1           2d
-cluster-a26e-rx8bk-workerocs-us-east-2c   1         1         1       1           2d
+oc label nodes ip-10-0-132-94.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+node/ip-10-0-132-94.ec2.internal labeled
+oc label nodes ip-10-0-141-58.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
+oc label nodes ip-10-0-146-221.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
+oc label nodes ip-10-0-148-151.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+node/ip-10-0-148-151.ec2.internal labeled
+oc label nodes ip-10-0-165-118.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+node/ip-10-0-165-118.ec2.internal labeled
+oc label nodes ip-10-0-171-221.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
 ----
 
-Now verify that you have a new OCP worker node. You should now have 7 worker nodes.
+We get errors for the nodes which already had the label applied, which is fine.
+Now we have the new instances prepared for extending the cluster, proceed to the next chapter to provision storage on these empty instances, the OCS operator will pick prefer the empty instances for new storage.
+
+=== Add storage capacity
+
+In this section we will add storage capacity and performance to the configured OCS worker nodes. If you have followed the previous section you should now have 6 OCS nodes, otherwise you have three worker nodes, which is fine too.
+
+To add storage, go to the Openshift Web Console and follow the steps to reach the OCS storage cluster overview:
+ 
+ - Click on `Operators` on the left navigation bar
+ - Select `Installed Operators`
+ - Click on `Openshift Container Storage Operator`
+ - In the top navigation bar, scroll right to find the item `Storage Cluster` and click on it
+
+image::imgs/OCS-Storage-Cluster-overview-reachit.png[]
+
+ - The visible list should list only one item - click on the three dots on the far right to extend the options menu
+ - Select `Add Capacity` from the options menu
+
+.Add capacity dialog
+image::imgs/OCS-add-capacity.png[]
+
+In the new dialog you can set the requested additional (usable) capacity and the storage class. On AWS, the storage class should be set to `gp2`.
+
+NOTE: The effectivly provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCS uses a replica count of 3.
+
+Once you are done with your setting, proceed by clicking on `Add`. You will see the Status of the Storage Cluster change until it reaches `Ready` again.
+
+You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCS worker nodes:
+
 
 [source,role="execute"]
 ----
-oc get nodes -l node-role.kubernetes.io/worker
+oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName -n openshift-storage
 ----
 .Example output:
 ----
-NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-135-6.us-east-2.compute.internal     Ready    worker   2d      v1.13.4+da48e8391
-ip-10-0-135-64.us-east-2.compute.internal    Ready    worker   2d2h    v1.13.4+da48e8391
-ip-10-0-137-156.us-east-2.compute.internal   Ready    worker   4m28s   v1.13.4+da48e8391
-ip-10-0-146-50.us-east-2.compute.internal    Ready    worker   2d2h    v1.13.4+da48e8391
-ip-10-0-156-83.us-east-2.compute.internal    Ready    worker   2d      v1.13.4+da48e8391
-ip-10-0-160-232.us-east-2.compute.internal   Ready    worker   2d2h    v1.13.4+da48e8391
-ip-10-0-164-65.us-east-2.compute.internal    Ready    worker   2d      v1.13.4+da48e8391
+NAME                                                              STATUS      NODE
+csi-cephfsplugin-27cvk                                            Running     ip-10-0-137-169.ec2.internal
+csi-cephfsplugin-2f97f                                            Running     ip-10-0-148-151.ec2.internal
+csi-cephfsplugin-9mkx7                                            Running     ip-10-0-161-77.ec2.internal
+csi-cephfsplugin-cm62v                                            Running     ip-10-0-132-94.ec2.internal
+csi-cephfsplugin-jkbms                                            Running     ip-10-0-165-118.ec2.internal
+csi-cephfsplugin-nshzq                                            Running     ip-10-0-141-58.ec2.internal
+csi-cephfsplugin-provisioner-57f65684f4-rrjml                     Running     ip-10-0-141-58.ec2.internal
+csi-cephfsplugin-provisioner-57f65684f4-x825t                     Running     ip-10-0-171-221.ec2.internal
+csi-cephfsplugin-rhclm                                            Running     ip-10-0-171-221.ec2.internal
+csi-cephfsplugin-wdgvj                                            Running     ip-10-0-146-221.ec2.internal
+csi-cephfsplugin-zqzxj                                            Running     ip-10-0-150-114.ec2.internal
+csi-rbdplugin-624xz                                               Running     ip-10-0-132-94.ec2.internal
+csi-rbdplugin-6g8xw                                               Running     ip-10-0-141-58.ec2.internal
+csi-rbdplugin-fkxrn                                               Running     ip-10-0-161-77.ec2.internal
+csi-rbdplugin-jb56g                                               Running     ip-10-0-148-151.ec2.internal
+csi-rbdplugin-lmcrj                                               Running     ip-10-0-150-114.ec2.internal
+csi-rbdplugin-m6fpm                                               Running     ip-10-0-165-118.ec2.internal
+csi-rbdplugin-provisioner-54985c744b-9rlfk                        Running     ip-10-0-146-221.ec2.internal
+csi-rbdplugin-provisioner-54985c744b-bkqj7                        Running     ip-10-0-171-221.ec2.internal
+csi-rbdplugin-q7585                                               Running     ip-10-0-146-221.ec2.internal
+csi-rbdplugin-rfhqs                                               Running     ip-10-0-137-169.ec2.internal
+csi-rbdplugin-zpzx7                                               Running     ip-10-0-171-221.ec2.internal
+local-storage-operator-bcfd5765f-9nbjc                            Running     ip-10-0-161-77.ec2.internal
+noobaa-core-0                                                     Running     ip-10-0-137-169.ec2.internal
+noobaa-operator-7c55776bf9-h8lpx                                  Running     ip-10-0-161-77.ec2.internal
+ocs-operator-967957d84-hq5fg                                      Running     ip-10-0-161-77.ec2.internal
+rook-ceph-drain-canary-ip-10-0-132-94-6f784866c8-9qjm9            Running     ip-10-0-132-94.ec2.internal
+rook-ceph-drain-canary-ip-10-0-141-58-7f96db6f5b-hjkcr            Running     ip-10-0-141-58.ec2.internal
+rook-ceph-drain-canary-ip-10-0-146-221-754bbd5779-gmw4b           Running     ip-10-0-146-221.ec2.internal
+rook-ceph-drain-canary-ip-10-0-148-151-5f86d55f67-4drxf           Running     ip-10-0-148-151.ec2.internal
+rook-ceph-drain-canary-ip-10-0-165-118-6b97f754fc-dz4s5           Running     ip-10-0-165-118.ec2.internal
+rook-ceph-drain-canary-ip-10-0-171-221-7648cfd899-9p2xr           Running     ip-10-0-171-221.ec2.internal
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-d9dc486cdwgml   Running     ip-10-0-146-221.ec2.internal
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-64d7dcd6gq2g5   Running     ip-10-0-141-58.ec2.internal
+rook-ceph-mgr-a-6586d7b847-fb8h5                                  Running     ip-10-0-141-58.ec2.internal
+rook-ceph-mon-a-764f55d988-r42fj                                  Running     ip-10-0-146-221.ec2.internal
+rook-ceph-mon-b-55c685f8f9-fnw72                                  Running     ip-10-0-171-221.ec2.internal
+rook-ceph-mon-c-6885798786-4l87g                                  Running     ip-10-0-141-58.ec2.internal
+rook-ceph-operator-8444cfdc4c-6854h                               Running     ip-10-0-161-77.ec2.internal
+rook-ceph-osd-0-6b844f6854-xvljm                                  Running     ip-10-0-141-58.ec2.internal
+rook-ceph-osd-1-7c6965fd8-qrk87                                   Running     ip-10-0-146-221.ec2.internal
+rook-ceph-osd-2-676499557-fzv9p                                   Running     ip-10-0-171-221.ec2.internal
+rook-ceph-osd-3-7bc65566fc-m9qgn                                  Running     ip-10-0-165-118.ec2.internal
+rook-ceph-osd-4-6999f4f67f-t9mss                                  Running     ip-10-0-148-151.ec2.internal
+rook-ceph-osd-5-5f8f6484f8-mm9hs                                  Running     ip-10-0-132-94.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-0-2wdvc-m4ghk               Succeeded   ip-10-0-146-221.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-1-qwvxs-ccvq2               Succeeded   ip-10-0-148-151.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-0-fzl92-wksmh               Succeeded   ip-10-0-141-58.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-1-c8htt-nrxkv               Succeeded   ip-10-0-132-94.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-0-m56kt-qmlbm               Succeeded   ip-10-0-171-221.ec2.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-1-hmhmv-j4nwk               Succeeded   ip-10-0-165-118.ec2.internal
+rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-84cbdcfgl82z   Running     ip-10-0-171-221.ec2.internal
+rook-ceph-tools-56db68cc99-bhzv7                                  Running     ip-10-0-137-169.ec2.internal
 ----
 
-Until Openshift Container Platform 4.2 rolls out, we will need to restart (delete) the operator pod to see OSD pod added.
-[source,bash,role="execute"]
-----
-oc delete pod -l app=rook-ceph-operator -n rook-ceph
-----
-
-This step could take 5 minutes or more for the forth *OSD* pod to be in a `Running` STATUS. Eventually your will see a new *OSD* pod, `rook-ceph-osd-3`, that has just been created.
-
-[source,role="execute"]
-----
-watch oc get pods -n rook-ceph
-----
-.Example output:
-----
-NAME                                          READY   STATUS      RESTARTS   AGE
-
-...
-rook-ceph-osd-0-855bc669cd-45sk7              1/1     Running     0          55m
-rook-ceph-osd-1-7cc9cd8c8c-j9ffl              1/1     Running     0          55m
-rook-ceph-osd-2-5977cd8bff-9x85n              1/1     Running     0          55m
-rook-ceph-osd-3-56b6c4f459-q7mhz              1/1     Running     0          114s
-...
-
-----
-
-Now you can validate that Ceph is healthy and has the additional storage. You again login to the *toolbox* pod.
-
-[source,role="execute"]
-----
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD
-----
-
-And run Ceph commands to see the new OSDs.
-
-[source,role="execute"]
-----
-ceph osd status
-----
-.Example output:
-----
-+----+--------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
-| id |                    host                    |  used | avail | wr ops | wr data | rd ops | rd data |   state   |
-+----+--------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
-| 0  |  ip-10-0-135-6.us-east-2.compute.internal  | 1051M | 68.8G |    0   |     0   |    0   |     0   | exists,up |
-| 1  | ip-10-0-156-83.us-east-2.compute.internal  | 1060M | 68.8G |    0   |     0   |    0   |     0   | exists,up |
-| 2  | ip-10-0-164-65.us-east-2.compute.internal  | 1062M | 68.8G |    0   |     0   |    0   |     0   | exists,up |
-| 3  | ip-10-0-137-156.us-east-2.compute.internal | 1061M | 67.9G |    0   |     0   |    0   |     0   | exists,up |
-+----+--------------------------------------------+-------+-------+--------+---------+--------+---------+-----------+
-----
-
-And you can see that Ceph is healthy and happy! There are now 4 *OSDs* `up` and `in`. You might even want to go back to the the Rails + PostgreSQL application and save a few more articles to make sure applications using Ceph storage are still working.
-
-[source,role="execute"]
-----
-ceph status
-----
-.Example output:
-----
-  cluster:
-    id:     90306026-6e42-4877-9d4e-26eca2ecf6ef
-    health: HEALTH_OK
-
-  services:
-    mon: 3 daemons, quorum b,a,c (age 59m)
-    mgr: a(active, since 5m)
-    osd: 4 osds: 4 up, 4 in
-
-  data:
-    pools:   1 pools, 100 pgs
-    objects: 36 objects, 73 MiB
-    usage:   4.1 GiB used, 274 GiB / 279 GiB avail
-    pgs:     100 active+clean
-----
-
-Make sure to `exit` the *toolbox*.
+This is everything that you need to do to extend the OCS storage.
 
 == Using must-gather
 
