@@ -132,7 +132,7 @@ cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m5.4xlarge   us-ea
 cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m5.4xlarge   us-east-1   us-east-1c   45s
 ----
 
-You can see that the workerocs *machines* are using a different AWS EC2 instance type `m5.4xlarge`. This is because this EC2 instance type comes with a 75GB NVMe SSD that will be used for our storage cluster. Now you want to see if our new *machines* are added to the OCP cluster.
+You can see that the workerocs *machines* are using a different AWS EC2 instance type `m5.4xlarge`. The `m5.4xlarge` instance type follows our recommended instance sizing for OCS and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCP cluster.
 
 [source,role="execute"]
 ----
