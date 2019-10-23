@@ -27,6 +27,8 @@ image::imgs/Rook_diagram_4.png[Ceph on Openshift using Rook]
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
+:toc: right
+
 == Deploy your storage backend using the OCS operator
 
 === Scale OCP cluster and add 3 new nodes
