@@ -1229,7 +1229,7 @@ sudo mv oc /usr/bin
 Afterwards, go to your Openshift Web Console, log in and click on the username in the top right corner. There you will find the menu item `Copy Login Command`.
 
 .Copy Login command menu entry
-image::imgs/OCP-copy-login-command.png
+image::imgs/OCP-copy-login-command.png[]
 
 Clicking on `Copy Login Command` will open a new window and you might be required to login to your Openshift cluster again.
 After successfully login in, you see blue text `Display token` - click this and you will be shown your login command.
