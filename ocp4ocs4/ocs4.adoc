@@ -131,12 +131,12 @@ cluster-ocs-79cf-lj8wq-master-1                     running   m4.xlarge    us-ea
 cluster-ocs-79cf-lj8wq-master-2                     running   m4.xlarge    us-east-1   us-east-1c   54m
 cluster-ocs-79cf-lj8wq-worker-us-east-1a-xscbs      running   m4.4xlarge   us-east-1   us-east-1a   54m
 cluster-ocs-79cf-lj8wq-worker-us-east-1b-qcmrl      running   m4.4xlarge   us-east-1   us-east-1b   54m
-cluster-ocs-79cf-lj8wq-workerocs-us-east-1a-xmd9q   running   m5.4xlarge   us-east-1   us-east-1a   46s
-cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m5.4xlarge   us-east-1   us-east-1b   46s
-cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m5.4xlarge   us-east-1   us-east-1c   45s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1a-xmd9q   running   m4.4xlarge   us-east-1   us-east-1a   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m4.4xlarge   us-east-1   us-east-1b   46s
+cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m4.4xlarge   us-east-1   us-east-1c   45s
 ----
 
-You can see that the workerocs *machines* are using a different AWS EC2 instance type `m5.4xlarge`. The `m5.4xlarge` instance type follows our recommended instance sizing for OCS and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCP cluster.
+You can see that the workerocs *machines* are using a different AWS EC2 instance type `m4.4xlarge`. The `m4.4xlarge` instance type follows our recommended instance sizing for OCS and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCP cluster.
 
 [source,role="execute"]
 ----
@@ -243,7 +243,7 @@ On the OCS configuration screen, scroll down to the box labelled `Storage cluste
 .OCS create a new storage cluster
 image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
-To select the worker nodes using the m5.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
+To select the worker nodes using the m4.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
 
 [source,role="execute"]
 ----
@@ -989,7 +989,7 @@ oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-n
 "ip-10-0-132-94.ec2.internal"
 {
   "beta.kubernetes.io/arch": "amd64",
-  "beta.kubernetes.io/instance-type": "m5.4xlarge",
+  "beta.kubernetes.io/instance-type": "m4.4xlarge",
   "beta.kubernetes.io/os": "linux",
   "failure-domain.beta.kubernetes.io/region": "us-east-1",
   "failure-domain.beta.kubernetes.io/zone": "us-east-1a",
@@ -1003,7 +1003,7 @@ oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-n
 "ip-10-0-141-58.ec2.internal"
 {
   "beta.kubernetes.io/arch": "amd64",
-  "beta.kubernetes.io/instance-type": "m5.4xlarge",
+  "beta.kubernetes.io/instance-type": "m4.4xlarge",
   "beta.kubernetes.io/os": "linux",
   "cluster.ocs.openshift.io/openshift-storage": "",
   "failure-domain.beta.kubernetes.io/region": "us-east-1",
