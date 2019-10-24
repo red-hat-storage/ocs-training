@@ -597,7 +597,9 @@ NAME            HOST/PORT                                                       
 kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
 ----
 
-Install podman on your bastion host.
+To continue you will need to install Podman. Installation steps for various operating systems can be found here: https://github.com/containers/libpod/blob/master/install.md
+
+For RHEL-based systems, it is as easy as:
 
 [source,role="execute"]
 ----
