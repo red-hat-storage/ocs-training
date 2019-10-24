@@ -2,6 +2,10 @@
 :toc: right
 :toclevels: 2
 :icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
 == Lab Overview
 
@@ -22,10 +26,6 @@ This hands-on workshop is for both system administrators and application develop
 image::imgs/OCS-Pods-Diagram.png[Showing OCS4 pods]
 
 [[labexercises]]
-:numbered:
-:language: bash
-// Activate experimental attribute for Keyboard Shortcut keys
-:experimental:
 
 == Deploy your storage backend using the OCS operator
 
