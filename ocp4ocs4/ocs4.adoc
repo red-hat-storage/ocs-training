@@ -5,7 +5,7 @@
 
 == Lab Overview
 
-This hands-on workshop is for both system administrators and application developers interested in learning how to deploy and manage OpenShift Container Storage (OCS). In this lab you will be using OpenShift Container Platform (OCP) 4.x and the OCS operator to deploy Ceph and the Multi-Cloud-Gateway (MCG) as a persistent storage solution for OCP workloads. This instruction was developed using the RHPDS `OpenShift 4.2 Workshop`.
+This hands-on workshop is for both system administrators and application developers interested in learning how to deploy and manage OpenShift Container Storage (OCS). In this lab you will be using OpenShift Container Platform (OCP) 4.x and the OCSfootnote:OCS[Openshift Container Storage] operator to deploy Ceph and the Multi-Cloud-Gateway (MCG) as a persistent storage solution for OCPfootnote:OCP[OpenShift Container Platform] workloads. This instruction was developed using the RHPDS `OpenShift 4.2 Workshop`.
 
 === In this lab you will learn how to
 
@@ -31,7 +31,7 @@ image::imgs/OCS-Pods-Diagram.png[Showing OCS4 pods]
 
 === Scale OCP cluster and add 3 new nodes
 
-In this section, you will validate the OCP environment has 3 master and 3 worker nodes before increasing the cluster size by 3 worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+In this section, you will validate the OCPfootnote:OCP[] environment has 3 master and 3 worker nodes before increasing the cluster size by 3 worker nodes. The `NAME` of your OCPfootnote:OCP[] nodes will be different than shown below.
 
 [source,role="execute"]
 ----
@@ -47,14 +47,14 @@ ip-10-0-159-240.ec2.internal   Ready    worker   38m   v1.14.6+c07e432da
 ip-10-0-164-70.ec2.internal    Ready    master   42m   v1.14.6+c07e432da
 ----
 
-Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*.
+Now you are going to add 3 more OCPfootnote:OCP[] compute nodes to cluster using *machinesets*.
 
 [source,role="execute"]
 ----
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below.
+This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWSfootnote:AWS[Amazon Web Services] AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below. 
 
 ----
 NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
@@ -103,7 +103,7 @@ grep cluster-api-cluster cluster-workerocs-us-east-1*
 
 The label for `cluster-api-cluster` should now match the results of `echo $CLUSTERID` from above for all occurrences.
 
-Now you are ready to create your 3 new OCP worker nodes using these modified *machinesets*.
+Now you are ready to create your 3 new OCPfootnote:OCP[] worker nodes using these modified *machinesets*.
 
 [source,role="execute"]
 ----
@@ -133,7 +133,7 @@ cluster-ocs-79cf-lj8wq-workerocs-us-east-1b-jh6k4   running   m4.4xlarge   us-ea
 cluster-ocs-79cf-lj8wq-workerocs-us-east-1c-649kq   running   m4.4xlarge   us-east-1   us-east-1c   45s
 ----
 
-You can see that the workerocs *machines* are using a different AWS EC2 instance type `m4.4xlarge`. The `m4.4xlarge` instance type follows our recommended instance sizing for OCS and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCP cluster.
+You can see that the workerocs *machines* are using a different AWSfootnote:AWS[] EC2 instance type `m4.4xlarge`. The `m4.4xlarge` instance type follows our recommended instance sizing for OCSfootnote:OCS[] and provides the best performance/price ratio. Now you want to see if our new *machines* are added to the OCPfootnote:OCP[] cluster.
 
 [source,role="execute"]
 ----
@@ -155,7 +155,7 @@ cluster-ocs-79cf-lj8wq-workerocs-us-east-1b   1         1         1       1     
 cluster-ocs-79cf-lj8wq-workerocs-us-east-1c   1         1         1       1           8m25s
 ----
 
-Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+Now check to see that you have 3 new OCPfootnote:OCP[] worker nodes. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
@@ -173,12 +173,12 @@ ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 
 === Installing the OCS operator
 
-In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4 is generally available (GA). At that time the OCS will be installed from OperatorHub in OCP 4 instead of using this manifest.
+In this section you will be using three of the worker OCPfootnote:OCP[] nodes to deploy OCSfootnote:OCS[] 4. For this you will be using a manifest file, which adds multiple items to your OCPfootnote:OCP[] cluster as shown below. Using the manifest for deployment is temporary until OCSfootnote:OCS[] 4 is generally available (GA). At that time the OCSfootnote:OCS[] will be installed from OperatorHub in OCPfootnote:OCP[] 4 instead of using this manifest.
 
 - The `openshift-storage` namespace
 - The `local-storage` namespace
-- Operator groups and sources for the OCS and local-storage operators
-- An OCS subscription
+- Operator groups and sources for the OCSfootnote:OCS[] and local-storage operators
+- An OCSfootnote:OCS[] subscription
 
 To apply this manifest, execute the following:
 
@@ -217,7 +217,7 @@ ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
 rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 ----
 
-Now switch over to your Openshift Web console. You can get your URL by issuing command below to get the `console` route. Put this URL in a browser tab. You will use the same username and password you used to login and use the oc CLI to login to the OCP `console`.
+Now switch over to your Openshift Web console. You can get your URL by issuing command below to get the `console` route. Put this URL in a browser tab. You will use the same username and password you used to login and use the oc CLI to login to the OCPfootnote:OCP[] `console`.
 
 [source,role="execute"]
 ----
@@ -230,17 +230,17 @@ What you see, should be similar to the following example picture:
 .Installed operators:  1) Make sure you are in the right project; 2) Check Operator status; 3) Click on Openshift Container Storage Operator
 image::imgs/OCP-installed-operators.jpg[Openshift showing the installed operators in namespace openshift-storage]
 
-Click on `Openshift Container Storage Operator` to get to the OCS configuration screen.
+Click on `Openshift Container Storage Operator` to get to the OCSfootnote:OCS[] configuration screen.
 
 .OCS configuration screen
 image::imgs/OCS-config-screen.jpg[OCS configuration screen]
 
-On the OCS configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
+On the OCSfootnote:OCS[] configuration screen, scroll down to the box labelled `Storage cluster` and click on `Create Instance`.
 
 .OCS create a new storage cluster
 image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
-To select the worker nodes using the m4.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCP nodes.
+To select the worker nodes using the m4.4xlarge EC2 instance type that you created earlier in the lab, you can find them by searching for `role=storage-node`. It would be a good practice to add a unique label to OCPfootnote:OCP[] nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` so they are easy to find in list of OCPfootnote:OCP[] nodes.
 
 [source,role="execute"]
 ----
@@ -329,19 +329,19 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Comple
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
 ----
 
-You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
+You can now also check the status of your storage cluster with the OCSfootnote:OCS[] specific *Dashboards* that are included in your Openshift Web Console. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
 image::imgs/OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
-OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
+OCSfootnote:OCS[] ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
 image::imgs/OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
 
 On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
 
-Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCS 4 Install:
+Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCSfootnote:OCS[] 4 Install:
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
@@ -360,7 +360,7 @@ NOTE: The Noobaa pod used the `ocs-storagecluster-ceph-rbd` storage class for cr
 
 === Using the Rook-Ceph toolbox to check on the Ceph backing storage
 
-Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream `toolbox.yaml` file, but we need to modify the namespace as shown below.
+Since the Rook-Ceph *toolbox* is not shipped with OCSfootnote:OCS[], we need to deploy it manually. For this, we can leverage the upstream `toolbox.yaml` file, but we need to modify the namespace as shown below.
 
 [source,role="execute"]
 ----
@@ -418,7 +418,7 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
 
 === Change the default storage class to Ceph RBD
 
-After installing OCS, it is best practice to change the default *storage class* from AWS gp2 to our new OCS-backed storage class `ocs-storagecluster-ceph-rbd`.
+After installing OCSfootnote:OCS[], it is best practice to change the default *storage class* from AWSfootnote:AWS[] gp2 to our new OCS-backed storage class `ocs-storagecluster-ceph-rbd`.
 The easiest way to do this is using the *Openshift Web Console*. In the Console expand the `Storage` item on the left navigation bar and select `Storage Classes`.
 
 .OCP storage classes after OCS installation - AWS gp2 is the default storage class
@@ -440,7 +440,7 @@ image::imgs/OCS-Storage-Classes-rbd-default.png[]
 
 == Create a new OCP deployment using Ceph RBD volume
 
-In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCP application + database *deployment* to create RWO (ReadWriteOnce) persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
+In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCPfootnote:OCP[] application + database *deployment* to create RWO (ReadWriteOnce) persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
 
 Make sure that you completed all previous sections so that you are ready to start the Rails + PostgreSQL deployment.
 
@@ -910,13 +910,13 @@ As you can see, the secret gives us the S3 access credentials, while the CM cont
 
 == Adding storage to the Ceph Cluster
 
-Adding storage to OCS adds capacity and performance to your already present cluster. For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+Adding storage to OCSfootnote:OCS[] adds capacity and performance to your already present cluster. For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
 
 === Add storage worker nodes
 
-This section will explain how one can add more worker nodes to the present storage cluster. Afterwards follow the next sub-section on how to extend the OCS cluster to provision storage on these new nodes.
+This section will explain how one can add more worker nodes to the present storage cluster. Afterwards follow the next sub-section on how to extend the OCSfootnote:OCS[] cluster to provision storage on these new nodes.
 
-To add more nodes, we could either add more machinesets like we did before, or scale the already present OCS machinesets. For this training, we will spawn more workers by scaling the already present OCS worker instances up:
+To add more nodes, we could either add more machinesets like we did before, or scale the already present OCSfootnote:OCS[] machinesets. For this training, we will spawn more workers by scaling the already present OCSfootnote:OCS[] worker instances up:
 
 .Check on our present machinesets
 [source,role="execute"]
@@ -1022,13 +1022,13 @@ error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and 
 ----
 
 We get errors for the nodes which already had the label applied, which is fine.
-Now we have the new instances prepared for extending the cluster, proceed to the next chapter to provision storage on these empty instances, the OCS operator will pick prefer the empty instances for new storage.
+Now we have the new instances prepared for extending the cluster, proceed to the next chapter to provision storage on these empty instances, the OCSfootnote:OCS[] operator will pick prefer the empty instances for new storage.
 
 === Add storage capacity
 
-In this section we will add storage capacity and performance to the configured OCS worker nodes. If you have followed the previous section you should now have 6 OCS nodes, otherwise you have three worker nodes, which is fine too.
+In this section we will add storage capacity and performance to the configured OCSfootnote:OCS[] worker nodes. If you have followed the previous section you should now have 6 OCSfootnote:OCS[] nodes, otherwise you have three worker nodes, which is fine too.
 
-To add storage, go to the Openshift Web Console and follow the steps to reach the OCS storage cluster overview:
+To add storage, go to the Openshift Web Console and follow the steps to reach the OCSfootnote:OCS[] storage cluster overview:
 
  - Click on `Operators` on the left navigation bar
  - Select `Installed Operators`
@@ -1043,13 +1043,13 @@ image::imgs/OCS-Storage-Cluster-overview-reachit.png[]
 .Add capacity dialog
 image::imgs/OCS-add-capacity.png[]
 
-In the new dialog you can set the requested additional (usable) capacity and the storage class. On AWS, the storage class should be set to `gp2`.
+In the new dialog you can set the requested additional (usable) capacity and the storage class. On AWSfootnote:AWS[], the storage class should be set to `gp2`.
 
-NOTE: The effectivly provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCS uses a replica count of 3.
+NOTE: The effectivly provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCSfootnote:OCS[] uses a replica count of 3.
 
 Once you are done with your setting, proceed by clicking on `Add`. You will see the Status of the Storage Cluster change until it reaches `Ready` again.
 
-You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCS worker nodes:
+You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCSfootnote:OCS[] worker nodes:
 
 
 [source,role="execute"]
@@ -1114,14 +1114,14 @@ rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-84cbdcfgl82z   Running     ip
 rook-ceph-tools-56db68cc99-bhzv7                                  Running     ip-10-0-137-169.ec2.internal
 ----
 
-This is everything that you need to do to extend the OCS storage.
+This is everything that you need to do to extend the OCSfootnote:OCS[] storage.
 
 == Using must-gather
 
 Must-gather is a tool for collecting data about the current'y running Openshift cluster. It loads a predefined set of containers that execute multiple programs and dump it on the local workstations filesystem.
 The local files can then be used by a remote support engineer to debug a problem more easily without needing direct cluster access. This is similar to sosreports for RHEL hosts.
 
-The OCS team has released its own image for the must-gather tool that runs storage specific commands.
+The OCSfootnote:OCS[] team has released its own image for the must-gather tool that runs storage specific commands.
 
 You can run this diagnostic tool like this for generic Openshift debugging:
 
@@ -1129,7 +1129,7 @@ You can run this diagnostic tool like this for generic Openshift debugging:
 oc adm must-gather
 ----
 
-Or like this for OCS specific insights:
+Or like this for OCSfootnote:OCS[] specific insights:
 
 ----
 oc adm must-gather --image=quay.io/ocs-dev/ocs-must-gather
