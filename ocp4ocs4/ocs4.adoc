@@ -374,7 +374,7 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-Once inside the toolbox, try out the Ceph following commands:
+Once inside the toolbox, try out the following Ceph commands:
 
 [source,role="execute"]
 ----
