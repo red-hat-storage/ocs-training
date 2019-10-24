@@ -1,6 +1,7 @@
 = Lab: Deploying and Managing OpenShift Container Storage
 :toc: right
 :toclevels: 2
+:icons: font
 
 == Lab Overview
 
