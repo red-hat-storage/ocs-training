@@ -284,6 +284,8 @@ You can also watch the deployment using the Openshift Web Console by going back 
 
 Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances shown below as `Ready` Status in the Web Console. Some instances may stay in `Unknown` Status.
 
+include::workarounds/fix-pool-crush-rules.adoc[]
+
 .OCS instance overview after cluster install is finished
 image::imgs/OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
