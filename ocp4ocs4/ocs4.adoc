@@ -53,7 +53,7 @@ Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*
 oc get machinesets -n openshift-machine-api
 ----
 
-This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below. 
+This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below.
 
 ----
 NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
@@ -111,14 +111,14 @@ oc create -f cluster-workerocs-us-east-1b.yaml
 oc create -f cluster-workerocs-us-east-1c.yaml
 ----
 
-Check that you have new *machines* created. 
+Check that you have new *machines* created.
 
 [source,role="execute"]
 ----
 oc get machines -n openshift-machine-api
 ----
 
-They may be in `pending` for sometime so repeat command above until they are in a `running` STATE. The `NAME` of your machines will be different than shown below. 
+They may be in `pending` for sometime so repeat command above until they are in a `running` STATE. The `NAME` of your machines will be different than shown below.
 
 ----
 NAME                                                STATE     TYPE         REGION      ZONE         AGE
@@ -139,7 +139,7 @@ You can see that the workerocs *machines* are using a different AWS EC2 instance
 watch oc get machinesets -n openshift-machine-api
 ----
 
-This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below. 
+This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below.
 
 ----
 NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
@@ -172,7 +172,7 @@ ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 
 === Installing the OCS operator
 
-In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4 is generally available (GA). At that time the OCS will be installed from OperatorHub in OCP 4 instead of using this manifest. 
+In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4 is generally available (GA). At that time the OCS will be installed from OperatorHub in OCP 4 instead of using this manifest.
 
 - The `openshift-storage` namespace
 - The `local-storage` namespace
@@ -254,7 +254,7 @@ In the background this will start initiating a lot of new pods in the `openshift
 
 [source,role="execute"]
 ----
-oc -n openshift-storage get pods 
+oc -n openshift-storage get pods
 ----
 .Example of a in process installation of the OCS storage cluster:
 ----
@@ -281,7 +281,7 @@ rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 
 
 You can also watch the deployment using the Openshift Web Console by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
 
-Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances shown below as `Ready` Status in the Web Console. Some instances may stay in `Unknown` Status. 
+Please wait until all *Pods* are marked as `Running` in the CLI or until you see all instances shown below as `Ready` Status in the Web Console. Some instances may stay in `Unknown` Status.
 
 .OCS instance overview after cluster install is finished
 image::imgs/OCS-finished-cluster-install.png[OCS instance overview after cluster install is finished]
@@ -391,27 +391,27 @@ sh-4.2# ceph status
   cluster:
     id:     ce04255f-ca4c-499f-8819-58fb38095105
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum a,b,c (age 43m)
     mgr: a(active, since 42m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 3 osds: 3 up (since 41m), 3 in (since 41m)
     rgw: 1 daemon active (ocs.storagecluster.cephobjectstore.a)
- 
+
   task status:
     scrub status:
         mds.0: idle
- 
+
   data:
     pools:   10 pools, 80 pgs
     objects: 326 objects, 80 MiB
     usage:   3.1 GiB used, 3.0 TiB / 3.0 TiB avail
     pgs:     80 active+clean
- 
+
   io:
     client:   938 B/s rd, 6.8 KiB/s wr, 1 op/s rd, 0 op/s wr
-----	
+----
 
 You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
 
@@ -526,7 +526,7 @@ Deploy the registry like this:
 
 [source,role="execute"]
 ----
-curl -s https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/csi/cephfs/kube-registry.yaml | sed 's/storageClassName: csi-cephfs/storageClassName: ocs-storagecluster-cephfs/g'| oc apply -f - 
+curl -s https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/csi/cephfs/kube-registry.yaml | sed 's/storageClassName: csi-cephfs/storageClassName: ocs-storagecluster-cephfs/g'| oc apply -f -
 ----
 
 This will create a PVC in the `kube-system` namespace:
@@ -556,7 +556,7 @@ kube-registry   3/3     3            3           100s
 .The `kube-registry` deployment consists of more than one replica
 NOTE: Since our deployment consists of three containers, we need a RWX PVC, so that all replicas can access the persistent volume in parallel.
 
-There are also 3 *Pods* sharing the same Ceph FS PVC for read/write operations. 
+There are also 3 *Pods* sharing the same Ceph FS PVC for read/write operations.
 
 [source,role="execute"]
 ----
@@ -684,44 +684,44 @@ noobaa status
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.0.1                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5           
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.1 
-INFO[0000] Namespace: noobaa201                         
-INFO[0000]                                              
-INFO[0000] CRD Status:                                  
-INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
-INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
-INFO[0002] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
-INFO[0002] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
-INFO[0002] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
-INFO[0002]                                              
-INFO[0002] Operator Status:                             
-INFO[0002] ✅ Exists: Namespace "noobaa201"              
-INFO[0003] ✅ Exists: ServiceAccount "noobaa"            
-INFO[0003] ✅ Exists: Role "noobaa"                      
-INFO[0003] ✅ Exists: RoleBinding "noobaa"               
-INFO[0003] ✅ Exists: ClusterRole "noobaa201.noobaa.io"  
-INFO[0003] ✅ Exists: ClusterRoleBinding "noobaa201.noobaa.io" 
-INFO[0003] ✅ Exists: Deployment "noobaa-operator"       
-INFO[0003]                                              
-INFO[0003] System Status:                               
-INFO[0004] ✅ Exists: NooBaa "noobaa"                    
-INFO[0004] ✅ Exists: StatefulSet "noobaa-core"          
-INFO[0004] ✅ Exists: Service "noobaa-mgmt"              
-INFO[0004] ✅ Exists: Service "s3"                       
-INFO[0004] ✅ Exists: Secret "noobaa-server"             
-INFO[0004] ✅ Exists: Secret "noobaa-operator"           
-INFO[0005] ✅ Exists: Secret "noobaa-admin"              
-INFO[0005] ✅ Exists: StorageClass "noobaa201.noobaa.io" 
-INFO[0005] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
-INFO[0005] ✅ Exists: BackingStore "noobaa-default-backing-store" 
-INFO[0005] ✅ Exists: CredentialsRequest "noobaa-cloud-creds" 
-INFO[0005] ✅ Exists: PrometheusRule "noobaa-prometheus-rules" 
-INFO[0006] ✅ Exists: ServiceMonitor "noobaa-service-monitor" 
-INFO[0006] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0" 
-INFO[0006] ✅ System Phase is "Ready"                    
-INFO[0006] ✅ Exists: Secret "noobaa-admin"              
+INFO[0000] CLI version: 2.0.1
+INFO[0000] noobaa-image: noobaa/noobaa-core:5
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.1
+INFO[0000] Namespace: noobaa201
+INFO[0000]
+INFO[0000] CRD Status:
+INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0002]
+INFO[0002] Operator Status:
+INFO[0002] ✅ Exists: Namespace "noobaa201"
+INFO[0003] ✅ Exists: ServiceAccount "noobaa"
+INFO[0003] ✅ Exists: Role "noobaa"
+INFO[0003] ✅ Exists: RoleBinding "noobaa"
+INFO[0003] ✅ Exists: ClusterRole "noobaa201.noobaa.io"
+INFO[0003] ✅ Exists: ClusterRoleBinding "noobaa201.noobaa.io"
+INFO[0003] ✅ Exists: Deployment "noobaa-operator"
+INFO[0003]
+INFO[0003] System Status:
+INFO[0004] ✅ Exists: NooBaa "noobaa"
+INFO[0004] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0004] ✅ Exists: Service "noobaa-mgmt"
+INFO[0004] ✅ Exists: Service "s3"
+INFO[0004] ✅ Exists: Secret "noobaa-server"
+INFO[0004] ✅ Exists: Secret "noobaa-operator"
+INFO[0005] ✅ Exists: Secret "noobaa-admin"
+INFO[0005] ✅ Exists: StorageClass "noobaa201.noobaa.io"
+INFO[0005] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0005] ✅ Exists: BackingStore "noobaa-default-backing-store"
+INFO[0005] ✅ Exists: CredentialsRequest "noobaa-cloud-creds"
+INFO[0005] ✅ Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0006] ✅ Exists: ServiceMonitor "noobaa-service-monitor"
+INFO[0006] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0"
+INFO[0006] ✅ System Phase is "Ready"
+INFO[0006] ✅ Exists: Secret "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
@@ -764,21 +764,21 @@ AWS_SECRET_ACCESS_KEY: 922pAbpN4d55555N1V8QO33MwnlbIvgO4jjkGiy3
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE      
-noobaa-default-backing-store   aws-s3   noobaa-backing-store-8858a19c-94ad-44ec-bbe3-404fdf22bdfa   Ready   13m51s   
+NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE
+noobaa-default-backing-store   aws-s3   noobaa-backing-store-8858a19c-94ad-44ec-bbe3-404fdf22bdfa   Ready   13m51s
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE      
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   13m52s   
+NAME                          PLACEMENT                                                             PHASE   AGE
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   13m52s
 
 #-----------------#
 #- Bucket Claims -#
 #-----------------#
 
-NAMESPACE   NAME      BUCKET-NAME                                    STORAGE-CLASS         BUCKET-CLASS   PHASE   
+NAMESPACE   NAME      BUCKET-NAME                                    STORAGE-CLASS         BUCKET-CLASS   PHASE
 ----
 
 As you can see - the Noobaa CLI will first check on the environment and will then print all the information about the environment.
@@ -920,7 +920,7 @@ To add more nodes, we could either add more machinesets like we did before, or s
 .Check on our present machinesets
 [source,role="execute"]
 ----
-oc get machinesets -n openshift-machine-api 
+oc get machinesets -n openshift-machine-api
 ----
 Example output:
 ----
@@ -944,18 +944,18 @@ oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1
 ----
 .Example output:
 ----
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1a 
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1a
 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1b 
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1b
 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1c 
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1c
 machineset.machine.openshift.io/cluster-ocs-89db-brbwq-workerocs-us-east-1c scaled
 ----
 
 Wait until the new workers are available.
 [source,role="execute"]
 ----
-watch oc get machinesets -n openshift-machine-api 
+watch oc get machinesets -n openshift-machine-api
 ----
 
 Once they are available, we can check on their labels like this:
@@ -1006,17 +1006,17 @@ oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-n
 ----
 .Example output:
 ----
-oc label nodes ip-10-0-132-94.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-132-94.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 node/ip-10-0-132-94.ec2.internal labeled
-oc label nodes ip-10-0-141-58.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-141-58.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-146-221.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-146-221.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-148-151.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-148-151.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 node/ip-10-0-148-151.ec2.internal labeled
-oc label nodes ip-10-0-165-118.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-165-118.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 node/ip-10-0-165-118.ec2.internal labeled
-oc label nodes ip-10-0-171-221.ec2.internal cluster.ocs.openshift.io/openshift-storage= 
+oc label nodes ip-10-0-171-221.ec2.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
 ----
 
@@ -1028,7 +1028,7 @@ Now we have the new instances prepared for extending the cluster, proceed to the
 In this section we will add storage capacity and performance to the configured OCS worker nodes. If you have followed the previous section you should now have 6 OCS nodes, otherwise you have three worker nodes, which is fine too.
 
 To add storage, go to the Openshift Web Console and follow the steps to reach the OCS storage cluster overview:
- 
+
  - Click on `Operators` on the left navigation bar
  - Select `Installed Operators`
  - Click on `Openshift Container Storage Operator`
@@ -1156,16 +1156,16 @@ Usage:
 Examples:
   # gather information using the default plug-in image and command, writing into ./must-gather.local.<rand>
   oc adm must-gather
-  
+
   # gather information with a specific local folder to copy to
   oc adm must-gather --dest-dir=/local/directory
-  
+
   # gather information using multiple plug-in images
   oc adm must-gather --image=quay.io/kubevirt/must-gather --image=quay.io/openshift/origin-must-gather
-  
+
   # gather information using a specific image stream plug-in
   oc adm must-gather --image-stream=openshift/must-gather:latest
-  
+
   # gather information using a specific image, command, and pod-dir
   oc adm must-gather --image=my/image:tag --source-dir=/pod/directory -- myspecial-command.sh
 
