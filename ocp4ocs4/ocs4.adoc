@@ -687,101 +687,101 @@ noobaa status
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.0.1
-INFO[0000] noobaa-image: noobaa/noobaa-core:5
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.1
-INFO[0000] Namespace: noobaa201
-INFO[0000]
-INFO[0000] CRD Status:
-INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
-INFO[0002] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0002] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
-INFO[0002] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
-INFO[0002]
-INFO[0002] Operator Status:
-INFO[0002] ✅ Exists: Namespace "noobaa201"
-INFO[0003] ✅ Exists: ServiceAccount "noobaa"
-INFO[0003] ✅ Exists: Role "noobaa"
-INFO[0003] ✅ Exists: RoleBinding "noobaa"
-INFO[0003] ✅ Exists: ClusterRole "noobaa201.noobaa.io"
-INFO[0003] ✅ Exists: ClusterRoleBinding "noobaa201.noobaa.io"
-INFO[0003] ✅ Exists: Deployment "noobaa-operator"
-INFO[0003]
-INFO[0003] System Status:
-INFO[0004] ✅ Exists: NooBaa "noobaa"
-INFO[0004] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0004] ✅ Exists: Service "noobaa-mgmt"
-INFO[0004] ✅ Exists: Service "s3"
-INFO[0004] ✅ Exists: Secret "noobaa-server"
-INFO[0004] ✅ Exists: Secret "noobaa-operator"
-INFO[0005] ✅ Exists: Secret "noobaa-admin"
-INFO[0005] ✅ Exists: StorageClass "noobaa201.noobaa.io"
-INFO[0005] ✅ Exists: BucketClass "noobaa-default-bucket-class"
-INFO[0005] ✅ Exists: BackingStore "noobaa-default-backing-store"
-INFO[0005] ✅ Exists: CredentialsRequest "noobaa-cloud-creds"
-INFO[0005] ✅ Exists: PrometheusRule "noobaa-prometheus-rules"
-INFO[0006] ✅ Exists: ServiceMonitor "noobaa-service-monitor"
-INFO[0006] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0"
-INFO[0006] ✅ System Phase is "Ready"
-INFO[0006] ✅ Exists: Secret "noobaa-admin"
+INFO[0000] CLI version: 2.0.3                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5           
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.3 
+INFO[0000] Namespace: openshift-storage                 
+INFO[0000]                                              
+INFO[0000] CRD Status:                                  
+INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
+INFO[0001]                                              
+INFO[0001] Operator Status:                             
+INFO[0001] ✅ Exists: Namespace "openshift-storage"      
+INFO[0001] ✅ Exists: ServiceAccount "noobaa"            
+INFO[0002] ❌ Not Found: Role "noobaa"                   
+INFO[0002] ❌ Not Found: RoleBinding "noobaa"            
+INFO[0002] ❌ Not Found: ClusterRole "openshift-storage.noobaa.io" 
+INFO[0002] ❌ Not Found: ClusterRoleBinding "openshift-storage.noobaa.io" 
+INFO[0002] ✅ Exists: Deployment "noobaa-operator"       
+INFO[0002]                                              
+INFO[0002] System Status:                               
+INFO[0002] ✅ Exists: NooBaa "noobaa"                    
+INFO[0002] ✅ Exists: StatefulSet "noobaa-core"          
+INFO[0002] ✅ Exists: Service "noobaa-mgmt"              
+INFO[0002] ✅ Exists: Service "s3"                       
+INFO[0003] ✅ Exists: Secret "noobaa-server"             
+INFO[0003] ✅ Exists: Secret "noobaa-operator"           
+INFO[0003] ✅ Exists: Secret "noobaa-admin"              
+INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io" 
+INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
+INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store" 
+INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds" 
+INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules" 
+INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor" 
+INFO[0004] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0" 
+INFO[0004] ✅ System Phase is "Ready"                    
+INFO[0004] ✅ Exists: Secret "noobaa-admin"              
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://a4fd12697f4c211e99e8c026ac919a8b-123456789.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://a2cda7307f66011e990940a5305de57b-1618762379.us-east-1.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.163.235:32200]
+NodePorts   : [https://10.0.171.35:32253]
 InternalDNS : [https://noobaa-mgmt.openshift-storage:443]
-InternalIP  : [https://172.30.232.67:443]
-PodPorts    : [https://10.131.0.180:8443]
+InternalIP  : [https://172.30.50.123:443]
+PodPorts    : [https://10.129.2.26:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
-email: admin@noobaa.io
-password: By4Jk3Z8t6vOvcg/PFVolQ==
 system: noobaa
+email: admin@noobaa.io
+password: O9qBQf8eJZy6cN5yqaughA==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://a4fd4c63cf4c211e99e8c026ac919a8b-123456789.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://a2cdff448f66011e990940a5305de57b-1965616628.us-east-1.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.163.235:30010]
+NodePorts   : [https://10.0.171.35:31242]
 InternalDNS : [https://s3.openshift-storage:443]
-InternalIP  : [https://172.30.82.63:443]
-PodPorts    : [https://10.131.0.180:6443]
+InternalIP  : [https://172.30.145.183:443]
+PodPorts    : [https://10.129.2.26:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID: P95HA2aGGLtpfabcZrpR
-AWS_SECRET_ACCESS_KEY: 922pAbpN4d55555N1V8QO33MwnlbIvgO4jjkGiy3
+AWS_ACCESS_KEY_ID: XQT3v1VF7QFiYBHdYSJ2
+AWS_SECRET_ACCESS_KEY: IBte14e6VOwWJRrSShlTS9M3bZ6AOUfxKDgULgDe
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE
-noobaa-default-backing-store   aws-s3   noobaa-backing-store-8858a19c-94ad-44ec-bbe3-404fdf22bdfa   Ready   13m51s
+NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE     
+noobaa-default-backing-store   aws-s3   noobaa-backing-store-8a7f9c1b-2616-41fa-bd9e-dbf7334f4768   Ready   2m24s   
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   13m52s
+NAME                          PLACEMENT                                                             PHASE   AGE     
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   2m24s   
 
 #-----------------#
 #- Bucket Claims -#
 #-----------------#
 
-NAMESPACE   NAME      BUCKET-NAME                                    STORAGE-CLASS         BUCKET-CLASS   PHASE
+No OBC's found. 
 ----
 
 As you can see - the Noobaa CLI will first check on the environment and will then print all the information about the environment.
@@ -806,20 +806,28 @@ INFO[0001] ✅ Created: ObjectBucketClaim "test21obc"
 ----
 
 The Noobaa CLI has created the necessary configuration inside of Noobaa and has informed Openshift about the new OBC:
-[source]
------
+
+[source,role="execute"]
+----
 oc get obc
+----
+.Example output:
+----
 NAME        STORAGE-CLASS                 PHASE   AGE
 test21obc   openshift-storage.noobaa.io   Bound   38s
------
+----
 
-[source,yaml]
+[source,role="execute"]
 ----
 oc get obc test21obc -o yaml
+----
+.Example output:
+[source,yaml]
+----
 apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  creationTimestamp: "2019-10-22T12:06:54Z"
+  creationTimestamp: "2019-10-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   generation: 2
@@ -829,12 +837,12 @@ metadata:
     noobaa-domain: openshift-storage.noobaa.io
   name: test21obc
   namespace: openshift-storage
-  resourceVersion: "23233576"
+  resourceVersion: "40756"
   selfLink: /apis/objectbucket.io/v1alpha1/namespaces/openshift-storage/objectbucketclaims/test21obc
-  uid: 701800e5-f4c4-11e9-b850-0a40f81e875e
+  uid: 64f04cba-f662-11e9-bc3c-0295250841af
 spec:
   ObjectBucketName: obc-openshift-storage-test21obc
-  bucketName: test21obc-87af5dac-ca7b-4517-9aba-193767b6137f
+  bucketName: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
   generateBucketName: test21obc
   storageClassName: openshift-storage.noobaa.io
 status:
@@ -843,16 +851,20 @@ status:
 
 Inside of your `openshift-storage` namespace, you will now find the CM and the secret to use this OBC. The CM and the secret have the same name as the OBC:
 
-[source,yaml]
+[source,role="execute"]
 ----
 oc get -n openshift-storage secret test21obc -o yaml
+----
+.Example output:
+[source,yaml]
+----
 apiVersion: v1
 data:
-  AWS_ACCESS_KEY_ID: SE1rMUkyYWFmYUppWURRajV2T0U=
-  AWS_SECRET_ACCESS_KEY: dStQZTNkalZ4eEphd3JGTUJuRWlDd2t0Q1BReEk3MkxlUi9QdDJBTg==
+  AWS_ACCESS_KEY_ID: c0M0R2xVanF3ODR3bHBkVW94cmY=
+  AWS_SECRET_ACCESS_KEY: Wi9kcFluSWxHRzlWaFlzNk1hc0xma2JXcjM1MVhqa051SlBleXpmOQ==
 kind: Secret
 metadata:
-  creationTimestamp: "2019-10-22T12:06:54Z"
+  creationTimestamp: "2019-10-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -867,27 +879,30 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 701800e5-f4c4-11e9-b850-0a40f81e875e
-  resourceVersion: "23233571"
+    uid: 64f04cba-f662-11e9-bc3c-0295250841af
+  resourceVersion: "40751"
   selfLink: /api/v1/namespaces/openshift-storage/secrets/test21obc
-  uid: 7037b227-f4c4-11e9-9e8c-026ac919a8be
+  uid: 65117c1c-f662-11e9-9094-0a5305de57bb
 type: Opaque
 ----
 
-
+[source,role="execute"]
+----
+oc get -n openshift-storage cm test21obc -o yaml
+----
+.Example output:
 [source,yaml]
 ----
-oc get -n openshift-storage cm  test21obc -o yaml
 apiVersion: v1
 data:
-  BUCKET_HOST: 10.0.163.235
-  BUCKET_NAME: test21obc-87af5dac-ca7b-4517-9aba-193767b6137f
-  BUCKET_PORT: "30010"
+  BUCKET_HOST: 10.0.171.35
+  BUCKET_NAME: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
+  BUCKET_PORT: "31242"
   BUCKET_REGION: ""
   BUCKET_SUBREGION: ""
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2019-10-22T12:06:54Z"
+  creationTimestamp: "2019-10-24T13:30:07Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
@@ -902,10 +917,10 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 701800e5-f4c4-11e9-b850-0a40f81e875e
-  resourceVersion: "23233572"
+    uid: 64f04cba-f662-11e9-bc3c-0295250841af
+  resourceVersion: "40752"
   selfLink: /api/v1/namespaces/openshift-storage/configmaps/test21obc
-  uid: 70393658-f4c4-11e9-9e8c-026ac919a8be
+  uid: 651c6501-f662-11e9-9094-0a5305de57bb
 ----
 
 As you can see, the secret gives us the S3 access credentials, while the CM contains the S3 endpoint information for our application.
