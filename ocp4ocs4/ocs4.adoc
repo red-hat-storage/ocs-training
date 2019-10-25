@@ -647,12 +647,15 @@ my_secret=$(grep key /etc/ceph/keyring | awk '{print $3}')
 # Mount the file system
 mount -t ceph -o mds_namespace=ocs-storagecluster-cephfilesystem,name=admin,secret=$my_secret $mon_endpoints:/ /tmp/registry
 
+# See your mounted file system
+df -h /tmp/registry
+
 # Find our uploaded container image
 ls /tmp/registry/volumes/csi/csi-vol-*/docker/registry/v2/repositories/alpine/
-
-# See your mounted file system
-df -h
 ----
+
+Once you finished these steps, you can see that we successfully mounted the *RWX PVC* inside of our toolbox *Pod*, while it is also still mounted on the registry *Pods*. The `ls` shows the content of the alpine folder, which should now show our uploaded alpine container image.
+Changes to this filesystem is immediately affecting the registry *Pods* and this procedure is great to debug issues that your *Pods* have with persistent files.
 
 == Using the Multi-Cloud-Gateway
 
