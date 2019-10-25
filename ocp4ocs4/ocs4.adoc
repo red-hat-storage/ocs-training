@@ -200,7 +200,10 @@ local-storage-operator.v4.2.0   Local Storage                          4.2.0    
 ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
 ----
 
-The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. Please wait until the operator `PHASE` changes to `Succeeded` - this will mark that the installation of your operators was successful. Reaching this state can take several minutes.
+The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`. 
+
+.Please wait until the operator `PHASE` changes to `Succeeded`
+CAUTION: This will mark that the installation of your operators was successful. Reaching this state can take several minutes.
 
 You will now also see some new operator pods in the new `openshift-storage` namespace:
 
