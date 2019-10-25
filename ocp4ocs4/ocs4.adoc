@@ -619,7 +619,11 @@ Now that podman is installed we can now download the alpine container image as a
 sudo podman pull docker.io/library/alpine
 ----
 
-.Example command.
+[source,role="edit"]
+----
+sudo podman push docker.io/library/alpine --tls-verify=false <KUBE_REGISTRY_ROUTE>/alpine
+----
+.Example command:
 ----
 sudo podman push docker.io/library/alpine --tls-verify=false kube-registry-kube-system.apps.cluster-ocs-3ed9.ocs-3ed9.example.opentlc.com/alpine
 ----
