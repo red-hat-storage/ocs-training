@@ -1,0 +1,20 @@
+= Lab: Deploying Red Hat AMQ Streams backed by OpenShift Container Storage
+#:toc: right
+#:toclevels: 2
+
+== Lab Overview
+
+In this lab, you be deploying Red Hat AMQ Streams which is based on Apache Kafka, a popular platform for streaming data delivery and processing. 
+
+
+=== In this lab you will learn
+
+* Kafka introduction and storage considerations
+* Installing Red Hat AMQ Streams Operator from OpenShift operator catalog (to check)
+* Deploying Zookeeper and Kafka with persistent storage from OCS
+* Creating Kafka topic and user, using their respective operators
+* Creating a Kafka Producer and Consmer application
+* Testing Kafka High Availablity powered by OCS
+
+== Kafka introduction
+
