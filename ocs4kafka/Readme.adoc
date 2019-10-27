@@ -16,7 +16,15 @@ In this lab, you be deploying Red Hat AMQ Streams which is based on Apache Kafka
 * Creating a Kafka Producer and Consmer application
 * Testing Kafka High Availablity powered by OCS
 
-== Kafka introduction
+== Introduction
+
+image::imgs/image-03.png[Apache Kafka]
+image::imgs/image-04.png[Apache Kafka Architecture]
+image::imgs/image-05.png[Apache Kafka use cases]
+image::imgs/image-06.png[Red Hat AMQ Streams]
+image::imgs/image-07.png[Storage use cases for Apache Kafka]
+
+== Installing Red Hat AMQ Streams
 
 - create a new project for RHT AMQ Streams
 
@@ -24,6 +32,12 @@ In this lab, you be deploying Red Hat AMQ Streams which is based on Apache Kafka
 oc new-project amq-streams
 ----
 - Install Red Hat AMQ Operator from Console
+
+image::imgs/image-08.png[Red Hat AMQ Streams]
+image::imgs/image-09.png[Storage use cases for Apache Kafka]
+image::imgs/image-10.png[Red Hat AMQ Streams]
+image::imgs/image-11.png[Storage use cases for Apache Kafka]
+image::imgs/image-12.png[Storage use cases for Apache Kafka]
 
 - Install AMQ cluster operator which is Responsible for deploying and managing Apache Kafka clusters within an OpenShift cluster.
 
