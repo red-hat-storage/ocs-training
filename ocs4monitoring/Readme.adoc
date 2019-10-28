@@ -1,0 +1,211 @@
+# Lab: Leveraging OCS as a persistent Prometheus backend
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+
+## In this lab you will learn
+
+- Check the current storage backend of your Prometheus environment
+- Make your monitoring data persistent
+- Benchmark Prometheus before and after persisting it
+
+## Prometheus introduction
+
+[NOTE]
+====
+Write generic stuff about:
+
+- What is Prometheus
+- What are the problems that Prometheus tries to solve
+- How is it deployed inside of Openshift 4.x
+- How is it scaled
+- How can I use Prometheus
+  * To send data into Prometheus
+  * To get data out (Grafana)
+====
+
+## Discover your Prometheus environment
+
+Openshift comes with a pre-installed Prometheus installation, no matter where you deploy.
+The monitoring bits can be found in the openshift-monitoring project.
+
+Let's discover what we already have:
+
+[source,role="execute"]
+----
+oc get all -n openshift-monitoring
+----
+.Example output:
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                            3/3     Running   0          6d23h
+pod/alertmanager-main-1                            3/3     Running   0          6d23h
+pod/alertmanager-main-2                            3/3     Running   0          6d23h
+pod/cluster-monitoring-operator-84cd9df668-74wnk   1/1     Running   0          6d23h
+pod/grafana-5db6fd97f8-fqj5g                       2/2     Running   0          6d23h
+pod/kube-state-metrics-895899678-pm8h7             3/3     Running   0          6d23h
+pod/node-exporter-69hqs                            2/2     Running   0          6d23h
+pod/node-exporter-mw7lf                            2/2     Running   0          6d23h
+pod/node-exporter-npngl                            2/2     Running   0          6d23h
+pod/node-exporter-p8nv7                            2/2     Running   0          6d23h
+pod/node-exporter-pgppl                            2/2     Running   0          6d23h
+pod/node-exporter-pnnhb                            2/2     Running   0          6d23h
+pod/node-exporter-rb4wv                            2/2     Running   0          6d23h
+pod/node-exporter-rwpwj                            2/2     Running   0          6d23h
+pod/node-exporter-xpvv7                            2/2     Running   0          6d23h
+pod/openshift-state-metrics-77d5f699d8-km8dn       3/3     Running   0          6d23h
+pod/prometheus-adapter-7cd7578f49-2wr84            1/1     Running   0          5d23h
+pod/prometheus-adapter-7cd7578f49-hbwgg            1/1     Running   0          5d23h
+pod/prometheus-k8s-0                               6/6     Running   1          6d23h
+pod/prometheus-k8s-1                               6/6     Running   1          6d23h
+pod/prometheus-operator-cbfd89f9-95bgj             1/1     Running   0          156m
+pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          6d23h
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+service/alertmanager-main             ClusterIP   172.30.81.103    <none>        9094/TCP                     6d23h
+service/alertmanager-operated         ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   6d23h
+service/cluster-monitoring-operator   ClusterIP   None             <none>        8080/TCP                     6d23h
+service/grafana                       ClusterIP   172.30.240.192   <none>        3000/TCP                     6d23h
+service/kube-state-metrics            ClusterIP   None             <none>        8443/TCP,9443/TCP            6d23h
+service/node-exporter                 ClusterIP   None             <none>        9100/TCP                     6d23h
+service/openshift-state-metrics       ClusterIP   None             <none>        8443/TCP,9443/TCP            6d23h
+service/prometheus-adapter            ClusterIP   172.30.147.60    <none>        443/TCP                      6d23h
+service/prometheus-k8s                ClusterIP   172.30.35.130    <none>        9091/TCP,9092/TCP            6d23h
+service/prometheus-operated           ClusterIP   None             <none>        9090/TCP                     6d23h
+service/prometheus-operator           ClusterIP   None             <none>        8080/TCP                     6d23h
+service/telemeter-client              ClusterIP   None             <none>        8443/TCP                     6d23h
+
+NAME                           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/node-exporter   9         9         9       9            9           kubernetes.io/os=linux   6d23h
+
+NAME                                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cluster-monitoring-operator   1/1     1            1           6d23h
+deployment.apps/grafana                       1/1     1            1           6d23h
+deployment.apps/kube-state-metrics            1/1     1            1           6d23h
+deployment.apps/openshift-state-metrics       1/1     1            1           6d23h
+deployment.apps/prometheus-adapter            2/2     2            2           6d23h
+deployment.apps/prometheus-operator           1/1     1            1           6d23h
+deployment.apps/telemeter-client              1/1     1            1           6d23h
+
+NAME                                                     DESIRED   CURRENT   READY   AGE
+replicaset.apps/cluster-monitoring-operator-84cd9df668   1         1         1       6d23h
+replicaset.apps/grafana-5db6fd97f8                       1         1         1       6d23h
+replicaset.apps/kube-state-metrics-895899678             1         1         1       6d23h
+replicaset.apps/openshift-state-metrics-77d5f699d8       1         1         1       6d23h
+replicaset.apps/prometheus-adapter-57db7c5495            0         0         0       6d4h
+replicaset.apps/prometheus-adapter-67469c5b8b            0         0         0       6d23h
+replicaset.apps/prometheus-adapter-74f79b678f            0         0         0       6d4h
+replicaset.apps/prometheus-adapter-7cd7578f49            2         2         2       5d23h
+replicaset.apps/prometheus-operator-5df7bc8b4f           0         0         0       6d23h
+replicaset.apps/prometheus-operator-6584955c55           0         0         0       6d23h
+replicaset.apps/prometheus-operator-cbfd89f9             1         1         1       6d23h
+replicaset.apps/telemeter-client-66db9b8bb5              0         0         0       6d23h
+replicaset.apps/telemeter-client-7c65855db4              1         1         1       6d23h
+
+NAME                                 READY   AGE
+statefulset.apps/alertmanager-main   3/3     6d23h
+statefulset.apps/prometheus-k8s      2/2     6d23h
+
+NAME                                         HOST/PORT                                                                      PATH   SERVICES            PORT    TERMINATION          WILDCARD
+route.route.openshift.io/alertmanager-main   alertmanager-main-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com          alertmanager-main   web     reencrypt/Redirect   None
+route.route.openshift.io/grafana             grafana-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com                    grafana             https   reencrypt/Redirect   None
+route.route.openshift.io/prometheus-k8s      prometheus-k8s-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com             prometheus-k8s      web     reencrypt/Redirect   None
+----
+
+This is a lot! So let's go through it one by one:
+
+### Daemonsets
+
+----
+oc get daemonset -n openshift-monitoring
+NAME            DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+node-exporter   9         9         9       9            9           kubernetes.io/os=linux   6d23h
+----
+
+https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[Daemonsets] are rather special in the Kubernetes environment, since they automatically scale. *Daemonsets* are used to running a copy of your *Pod* on all nodes in your cluster.
+
+In our project, we have one *deamonset*, which is used to run the node-exporter on all linux nodes.
+
+The https://prometheus.io/docs/guides/node-exporter/[node-exporter] is a vital part of Prometheus monitoring that collects system information of a node and prepares it to be scraped by Prometheus.
+// Prometheus is a pull-based system in which Prometheus is in charge to collect the information which are then evaluated by alerting rules.
+
+### Replicasets
+
+[source,role="execute"]
+----
+oc get replicaset -n openshift-monitoring
+----
+.Example output:
+----
+NAME                                     DESIRED   CURRENT   READY   AGE
+cluster-monitoring-operator-84cd9df668   1         1         1       6d23h
+grafana-5db6fd97f8                       1         1         1       6d23h
+kube-state-metrics-895899678             1         1         1       6d23h
+openshift-state-metrics-77d5f699d8       1         1         1       6d23h
+prometheus-adapter-57db7c5495            0         0         0       6d4h
+prometheus-adapter-67469c5b8b            0         0         0       6d23h
+prometheus-adapter-74f79b678f            0         0         0       6d4h
+prometheus-adapter-7cd7578f49            2         2         2       6d
+prometheus-operator-5df7bc8b4f           0         0         0       6d23h
+prometheus-operator-6584955c55           0         0         0       6d23h
+prometheus-operator-cbfd89f9             1         1         1       6d23h
+telemeter-client-66db9b8bb5              0         0         0       6d23h
+telemeter-client-7c65855db4              1         1         1       6d23h
+----
+
+A https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/[ReplicaSet] ensures that a specific number of *Pods* are running at the same time. As you can see, we have some *ReplicaSets* that run 0,1 or 2 *Pods* at the same time. One disadvantage of *ReplicaSets* is that they do not have a built-in mechanism for updates. For this you are supposed to use *Deployments*.
+
+If you have closely watched the initial output, you will see that there are some similarities between the *ReplicaSets* and the *Deployments*. This is no coincidence, since the *ReplicaSets* are deployed by the *Deployments*. To get the binding between the two, we will look at the `ownerReferences` of the *ReplicaSets*, to get the name of the corresponding *deployment*:
+
+[source,role="execute"]
+----
+oc get replicaset -n openshift-monitoring -o 'custom-columns=REPLICASET:.metadata.name,DEPLOYMENT:.metadata.ownerReferences[0].name'
+----
+.Example output:
+----
+REPLICASET                               DEPLOYMENT
+cluster-monitoring-operator-84cd9df668   cluster-monitoring-operator
+grafana-5db6fd97f8                       grafana
+kube-state-metrics-895899678             kube-state-metrics
+openshift-state-metrics-77d5f699d8       openshift-state-metrics
+prometheus-adapter-57db7c5495            prometheus-adapter
+prometheus-adapter-67469c5b8b            prometheus-adapter
+prometheus-adapter-74f79b678f            prometheus-adapter
+prometheus-adapter-7cd7578f49            prometheus-adapter
+prometheus-operator-5df7bc8b4f           prometheus-operator
+prometheus-operator-6584955c55           prometheus-operator
+prometheus-operator-cbfd89f9             prometheus-operator
+telemeter-client-66db9b8bb5              telemeter-client
+telemeter-client-7c65855db4              telemeter-client
+----
+
+### Deployments
+
+[source,role="execute"]
+----
+oc get -n openshift-monitoring deployments
+----
+.Example output:
+----
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+cluster-monitoring-operator   1/1     1            1           7d
+grafana                       1/1     1            1           7d
+kube-state-metrics            1/1     1            1           7d
+openshift-state-metrics       1/1     1            1           7d
+prometheus-adapter            2/2     2            2           7d
+prometheus-operator           1/1     1            1           7d
+telemeter-client              1/1     1            1           7d
+----
+
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployments] provide declarative updates for *Pods* and *ReplicaSets*. Deployments can be used to describe a desired state and the Deployment Controller will ensure that this state is eventually achieved by making the necessary changes to the objects inside of the Deployment. These changes are most often image tag updates to roll out a new version of an application.
+
+We won't go into detail which deployment does what for every deployment, but the most important for us at the moment are: `grafana` and `prometheus-operator`:
+
+Grafana deploys the Grafana pods, which can be used to observe and analyze the data collected by Prometheus and other monitoring software.
+
+The Prometheus-Operator Deployment deploys the 
