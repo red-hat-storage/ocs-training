@@ -1,0 +1,161 @@
+= Registry Introduction
+OpenShift Container Platform provides a built in container image registry which runs as a standard workload on the cluster. 
+
+=== Configured and managed by an infrastructure operator. 
+A registry is typically used as a publication target for images built on the cluster as well as a source of images for workloads running on the cluster. 
+
+== Storage
+A registy needs to have storage to store its contents in. 
+Image data is stored in two locations. 
+The actual image data is stored in a configurable 
+storage location such as cloud storage or a filesystem volume. 
+The image metadata, which is exposed by the standard cluster APIs and is used to perform access control, is stored as standard API resources, specifically images and imagestreams. 
+
+== Project
+The registry is arranged in a Project (namespace) named: ‘openshift-image-registry’
+
+== oc describe project
+
+[source,role="execute"]
+----
+$ oc describe project openshift-image-registry
+Name:			openshift-image-registry
+Created:		3 hours ago
+Labels:			openshift.io/cluster-monitoring=true
+Annotations:		openshift.io/node-selector=
+			openshift.io/sa.scc.mcs=s0:c18,c17
+			openshift.io/sa.scc.supplemental-groups=1000340000/10000
+			openshift.io/sa.scc.uid-range=1000340000/10000
+Display Name:		<none>
+Description:		<none>
+Status:			Active
+Node Selector:		<none>
+Quota:			<none>
+Resource limits:	<none>
+----
+
+
+== Pods
+To view the pods it uses:
+
+[source,role="execute"]
+----
+oc get pods -n openshift-image-registry
+
+NAME                                               READY   STATUS    RESTARTS   AGE
+cluster-image-registry-operator-74465655b4-gq44m   2/2     Running   0          3h16m
+image-registry-7489584ddc-jhw2j                    1/1     Running   0          3h16m
+node-ca-4x477                                      1/1     Running   0          116m
+node-ca-d82rv                                      1/1     Running   0          3h16m
+node-ca-gxd8r                                      1/1     Running   0          3h16m
+node-ca-kjp28                                      1/1     Running   0          3h16m
+node-ca-lvb48                                      1/1     Running   0          116m
+node-ca-ndwhh                                      1/1     Running   0          3h16m
+node-ca-nwstp                                      1/1     Running   0          116m
+node-ca-pwrrs                                      1/1     Running   0          3h16m
+----
+
+== Review Registry Operator Settings
+
+[source,role="execute"]
+----
+oc edit configs.imageregistry.operator.openshift.io/cluster
+
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  creationTimestamp: "2019-10-28T09:07:09Z"
+  finalizers:
+  - imageregistry.operator.openshift.io/finalizer
+  generation: 3
+  name: cluster
+  resourceVersion: "16463"
+  selfLink: /apis/imageregistry.operator.openshift.io/v1/configs/cluster
+  uid: 52880e6b-f962-11e9-8995-12a861d1434e
+spec:
+  defaultRoute: true
+  httpSecret: 0c394aabee8e6a9ef8aa2c927c8f8c487f8ad3249ff67794a8685af4f76c72811c97ee4ddf936602dd9fca12e198c4eff413130568a4c356d7b6f14f805bcb59
+  logging: 2
+  managementState: Managed
+  proxy:
+    http: ""
+    https: ""
+    noProxy: ""
+  readOnly: false
+  replicas: 1
+  requests:
+    read:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+    write:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+  storage:
+    s3:
+      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
+      encrypt: true
+      keyID: ""
+      region: us-east-1
+      regionEndpoint: ""
+status:
+  conditions:
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+reason: S3 Bucket Exists
+    status: "True"
+    type: StorageExists
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Public access to the S3 bucket and its contents have been successfully
+      blocked.
+    reason: Public Access Block Successful
+    status: "True"
+    type: StoragePublicAccessBlocked
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Tags were successfully applied to the S3 bucket
+    reason: Tagging Successful
+    status: "True"
+    type: StorageTagged
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Default AES256 encryption was successfully enabled on the S3 bucket
+    reason: Encryption Successful
+    status: "True"
+    type: StorageEncrypted
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Default cleanup of incomplete multipart uploads after one (1) day was
+    successfully enabled
+    reason: Enable Cleanup Successful
+    status: "True"
+    type: StorageIncompleteUploadCleanupEnabled
+  - lastTransitionTime: "2019-10-28T09:07:56Z"
+    message: The registry is ready
+    reason: Ready
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2019-10-28T09:18:32Z"
+    message: The registry is ready
+    reason: Ready
+    status: "False"
+    type: Progressing
+  - lastTransitionTime: "2019-10-28T09:07:11Z"
+    status: "False"
+    type: Degraded
+  - lastTransitionTime: "2019-10-28T09:07:11Z"
+    status: "False"
+    type: Removed
+  observedGeneration: 3
+  readyReplicas: 0
+  storage:
+    s3:
+      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
+      encrypt: true
+      keyID: ""
+      region: us-east-1
+      regionEndpoint: ""
+  storageManaged: true
+----
+
