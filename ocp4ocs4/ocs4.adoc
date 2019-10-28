@@ -334,7 +334,7 @@ This can be resolved by updating the noobaa-operator version
 
 - Execute this: 
 
-    oc edit csv
+    oc edit csv -n openshift-storage
 
 - This will open an editor, in the last third of the file, you will find this line:
 
