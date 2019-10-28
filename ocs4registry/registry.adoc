@@ -1,7 +1,15 @@
 = Registry Introduction
 OpenShift Container Platform provides a built in container image registry which runs as a standard workload on the cluster. 
 
-=== Configured and managed by an infrastructure operator. 
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== The Registry is configured and managed by an infrastructure operator. 
 A registry is typically used as a publication target for images built on the cluster as well as a source of images for workloads running on the cluster. 
 
 == Storage
@@ -15,7 +23,7 @@ The image metadata, which is exposed by the standard cluster APIs and is used to
 The registry is arranged in a Project (namespace) named: ‘openshift-image-registry’
 
 == oc describe project
-
+press kbd:[Ctrl+C] to cancel
 [source,role="execute"]
 ----
 $ oc describe project openshift-image-registry
