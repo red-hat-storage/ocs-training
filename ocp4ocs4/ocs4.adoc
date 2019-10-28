@@ -303,13 +303,53 @@ This can be resolved by setting all pool crush rules to the default crush rule:
 - Enter the <<Using the Rook-Ceph toolbox to check on the Ceph backing storage,Rook toolbox>>
 - Execute this: 
 
-    `ceph osd lspools | awk '{print $2}' | xargs -n1 -t -I {} ceph osd pool set {} crush_rule replicated_rule`
+    ceph osd lspools | awk '{print $2}' | xargs -n1 -t -I {} ceph osd pool set {} crush_rule replicated_rule
 
 - Still inside the toolbox: 
-    `watch ceph status`
-  and check that the pgs all become active+clean
+    
+    watch ceph status
+
+and check that the pgs all become active+clean
 
 https://bugzilla.redhat.com/show_bug.cgi?id=1760929[Bugzilla link]
+====
+
+#### Fix `noobaa-operator` stuck in `CrashLoopBackOff` state
+
+[NOTE]
+====
+If you observe the following:
+
+- You are deploying in the us-east-1 region
+- When you execute
+
+    oc -n openshift-storage get pods
+
+You see a line similar to this:
+
+    noobaa-operator-7c55776bf9-kbcjp                0/1     CrashLoopBackOff          0          91m
+
+
+This can be resolved by updating the noobaa-operator version
+
+- Execute this: 
+
+    oc edit csv
+
+- This will open an editor, in the last third of the file, you will find this line:
+
+    image: noobaa/noobaa-operator:2.0.2
+
+https://github.com/openshift/ocs-operator/blob/622ee51194726905c9a39db97501534ef4477bff/deploy/olm-catalog/ocs-operator/0.0.1/ocs-operator.v0.0.1.clusterserviceversion.yaml#L976[See this on Github]
+
+change the line to:
+
+    image: noobaa/noobaa-operator:2.0.3
+
+save and exit the editor.
+
+- Your noobaa-operator should recover now.
+
 ====
 
 .OCS instance overview after cluster install is finished
