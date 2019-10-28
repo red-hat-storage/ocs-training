@@ -1242,8 +1242,8 @@ To get the latest Openshift CLI client run the following commands:
 [source]
 ----
 wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-mac*" --quiet --recursive --level=1
-ls -1 openshift-client-linux-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
-sudo mv oc /usr/bin
+ls -1 openshift-client-mac-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+sudo mv oc /usr/local/bin
 ----
 
 .Linux steps
