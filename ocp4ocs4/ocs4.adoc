@@ -31,7 +31,7 @@ image::imgs/OCS-Pods-Diagram.png[Showing OCS4 pods]
 
 === Scale OCP cluster and add 3 new nodes
 
-In this section, you will validate the OCP environment has 3 master and 3 worker nodes before increasing the cluster size by 3 worker nodes. The `NAME` of your OCP nodes will be different than shown below.
+In this section, you will first validate the OCP environment has 3 master and 2 worker nodes (or 3 worker nodes) before increasing the cluster size by additional 3 worker nodes for OCS resources. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
 ----
