@@ -1,11 +1,15 @@
 = Lab: Deploying Red Hat AMQ Streams backed by OpenShift Container Storage
-#:toc: right
-#:toclevels: 2
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
 == Lab Overview
 
 In this lab, you be deploying Red Hat AMQ Streams which is based on Apache Kafka, a popular platform for streaming data delivery and processing. 
-
 
 === In this lab you will learn
 
@@ -26,35 +30,47 @@ image::imgs/image-07.png[Storage use cases for Apache Kafka]
 
 == Installing Red Hat AMQ Streams
 
-- Create a new project called ``amq-streams``
+- Create a new project called ``amq-streams`` from openshift console by navigating to the projects as shown below
+    
+image::imgs/image-13.png[Create amq-stream project]
 
-- Either from Command Line
+NOTE: You can also create the project from command line as shown below
+[source,role="execute"]
 ----
 oc new-project amq-streams
 ----
 
-- Or from OpenShift Console
+- Make sure to select the ``amq-streams`` project and search AMQ Streams Operator from the OperatorHub
 
-image::imgs/image-13.png[Create amq-stream project]
+image::imgs/image-08.png[Red Hat AMQ Streams Operator Installation]
+- Install the AMQ Streams Operator
 
-- Install Red Hat AMQ Operator from Console
+image::imgs/image-09.png[Red Hat AMQ Streams Operator Installation]
 
-image::imgs/image-08.png[Red Hat AMQ Streams]
-image::imgs/image-09.png[Storage use cases for Apache Kafka]
-image::imgs/image-10.png[Red Hat AMQ Streams]
-image::imgs/image-11.png[Storage use cases for Apache Kafka]
-image::imgs/image-12.png[Storage use cases for Apache Kafka]
+- Under Installation Mode, select ``amq-stream`` as the namespace 
+
+NOTE: Selecting a specific namespace help us purge the operator and its resources easily
+
+image::imgs/image-10.png[Red Hat AMQ Streams Operator Installation]
+
+- Verify the installed operator
+
+image::imgs/image-11.png[Red Hat AMQ Streams Operator Installation]
+image::imgs/image-12.png[Red Hat AMQ Streams Operator Installation]
+
+NOTE: At this stage you should have Red Hat AMQ Streams operator installed on your OpenShift 4 environment
 
 == Creating Zookeeper and Kafka Clusters
 
 Red Hat AMQ Streams provides the nessary operators which are responsible for deploying and managing Apache Kafka clusters on OpenShift.
 
-- Make sure the default storage class is set to ``ocs-storagecluster-ceph-rbd`` (configured in module-1, section 2.4)
+- Make sure the default storage class is set to ``ocs-storagecluster-ceph-rbd`` Refer to link:https://github.com/red-hat-storage/ocs-training/tree/master/ocp4ocs4#change-the-default-storage-class-to-ceph-rbd[change the default storage class to Ceph RBD] module for more information.
 
-```
+[source,role="execute"]
+----
 oc get sc
-```
-- Ouput should look similar to below
+----
+Example output:
 ```
 $ oc get sc
 NAME                                    PROVISIONER                             AGE
@@ -66,15 +82,17 @@ $
 
 - Create a Kafka cluster which will also deploy a zookeeper cluster required by Kafka
 
-```
+[source,role="execute"]
+----
 oc project amq-streams
 oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/01-kafka-zookeeper.yaml
-``` 
+---- 
 - Monitor the cluster progress
 
-```
+[source,role="execute"]
+----
 watch oc get all
-```
+----
 - Finally once the Kafka cluster is up and running, you should see output similar to below
 ```
 $ oc get all
@@ -108,12 +126,13 @@ statefulset.apps/kafka-cluster-zookeeper   3/3     15m
 $
 
 ```
-- Verify the PVC and PV, created as a part of the Kafka/Zookeepeer cluster creation
-```
+- As a part of the Kafka/Zookeepeer cluster creation PV and PVC were created. Verify the status of PVC is ``Bound``
+[source,role="execute"]
+----
 oc get pvc -n amq-streams
 oc get pv -o json | jq -r '.items | sort_by(.spec.capacity.storage)[]| select(.spec.claimRef.namespace=="amq-streams") | [.spec.claimRef.name,.spec.capacity.storage] | @tsv'
-```
-- Output should look similar to below
+----
+Example output:
 ```
 $ oc get pvc -n amq-streams
 NAME                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
@@ -140,11 +159,17 @@ At this point you have a running Kafka and Zookeeper cluster on OpenShift 4, dep
 == Create Kafka Topic and Kafka User
 
 - To start consuming Kafka, we first need to create a kafka topic. AMQ Streams provides an operator to manage Kafka Topics and Kafka Users
-```
+[source,role="execute"]
+----
 oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/02-kafka-topic.yaml
-```
+----
 - List Kafka Topics (kt)
 
+[source,role="execute"]
+----
+oc get kt
+----
+Example output:
 ```
 $ oc get kt
 NAME       PARTITIONS   REPLICATION FACTOR
@@ -153,12 +178,17 @@ $
 ```
 - Create Kafka user
 
-```
-$ oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/03-kafka-user.yaml
-kafkauser.kafka.strimzi.io/kafka-user1 created
-```
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/03-kafka-user.yaml
+----
 - List Kafka Users
 
+[source,role="execute"]
+----
+oc get kafkauser
+----
+Example output:
 ```
 $ oc get kafkauser
 NAME          AUTHENTICATION   AUTHORIZATION
@@ -170,17 +200,19 @@ At this point we have a Kafka Topic and a Kafka user created on our Kafka Cluste
 == Create a sample Kafka Producer and Consumer Application
 
 - To demonstrate Kafka usage, let's deploy a sample hello-world-producer application
-```
+[source,role="execute"]
+----
 oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/04-hello-world-producer.yaml
-```
+----
 This sample application will produce 1000 messages in an iterative manner
 
 - To review the kafka producer messages, lets tail to the logs of ``hello-world-producer`` app
 
-```
+[source,role="execute"]
+----
 oc logs -n amq-streams -f $(oc get pods -l app=hello-world-producer -o name)
-```
-You can leave the  hello-world-consumer shell tab open to see live messages production, however you can always press ``ctrl+c`` to cancel this producer messages
+----
+You can leave the  hello-world-consumer shell tab open to see live messages production, however you can always press kbd:[Ctrl+C] to cancel the producer messages
 
 - Instead of CLI you could also view logs from GUI
 
@@ -190,12 +222,15 @@ image::imgs/image-02.png[Producer app logs]
 We now have a Kafka producer app generating messages and pushing the messages to Kafka Topic. We now deploy a sample hello world consumer app, which will consume messages from the Kafka Topic
 
 - Deploy Kafka consumer application
-```
+[source,role="execute"]
+----
 oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/05-hello-world-consumer.yaml
+----
 
-```
 - Monitor logs of kafka consumer app, in real time using CLI Or via GIU (shown above)
-```
+[source,role="execute"]
+----
 oc logs -n amq-streams -f $(oc get pods -l app=hello-world-consumer -o name)
-```
-press ``ctrl+c`` to cancel
+----
+press kbd:[Ctrl+C] to cancel
+
