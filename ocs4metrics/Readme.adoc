@@ -208,4 +208,248 @@ We won't go into detail which deployment does what for every deployment, but the
 
 Grafana deploys the Grafana pods, which can be used to observe and analyze the data collected by Prometheus and other monitoring software.
 
-The Prometheus-Operator Deployment deploys the 
+The Prometheus-Operator Deployment deploys the Prometheus-Operator Pods. Operators are similar to Deployments, since they also care that certain Kubernetes objects are deployed with a certain replication factor. Operators support the full life-cycle of an application including updates and fixing certain failure scenarios. Deployments only deploy Kubernetes objects which are already present, while Operators can introduce *CustomResourceDefinitions* (CRDs), which are also controlled and can be updated by the Operator.
+
+In our case, the prometheus-operator deploys multiple CRDs, one of which is the prometheuses.monitoring.coreos.com CRD which deploys a Prometheus cluster. In Openshift 4, there automatically is one cluster called k8s deployed. Let's have a closer look at it:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring describe prometheuses.monitoring.coreos.com k8s
+----
+.Example output:
+[source, yaml]
+----
+Name:         k8s
+Namespace:    openshift-monitoring
+Labels:       prometheus=k8s
+Annotations:  <none>
+API Version:  monitoring.coreos.com/v1
+Kind:         Prometheus
+Metadata:
+  Creation Timestamp:  2019-10-21T14:24:54Z
+  Generation:          1
+  Resource Version:    15495
+  Self Link:           /apis/monitoring.coreos.com/v1/namespaces/openshift-monitoring/prometheuses/k8s
+  UID:                 8ce33d67-f40e-11e9-8460-00505681bc30
+Spec:
+  Affinity:
+    Pod Anti Affinity:
+      Preferred During Scheduling Ignored During Execution:
+        Pod Affinity Term:
+          Label Selector:
+            Match Expressions:
+              Key:       prometheus
+              Operator:  In
+              Values:
+                k8s
+          Namespaces:
+            openshift-monitoring
+          Topology Key:  kubernetes.io/hostname
+        Weight:          100
+  Alerting:
+    Alertmanagers:
+      Bearer Token File:  /var/run/secrets/kubernetes.io/serviceaccount/token
+      Name:               alertmanager-main
+      Namespace:          openshift-monitoring
+      Port:               web
+      Scheme:             https
+      Tls Config:
+        Ca File:      /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+        Server Name:  alertmanager-main.openshift-monitoring.svc
+  Base Image:         openshift/prometheus
+  Config Maps:
+    serving-certs-ca-bundle
+    kubelet-serving-ca-bundle
+  Containers:
+    Args:
+      -provider=openshift
+      -https-address=:9091
+      -http-address=
+      -email-domain=*
+      -upstream=http://localhost:9090
+      -htpasswd-file=/etc/proxy/htpasswd/auth
+      -openshift-service-account=prometheus-k8s
+      -openshift-sar={"resource": "namespaces", "verb": "get"}
+      -openshift-delegate-urls={"/": {"resource": "namespaces", "verb": "get"}}
+      -tls-cert=/etc/tls/private/tls.crt
+      -tls-key=/etc/tls/private/tls.key
+      -client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+      -cookie-secret-file=/etc/proxy/secrets/session_secret
+      -openshift-ca=/etc/pki/tls/cert.pem
+      -openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      -skip-auth-regex=^/metrics
+    Env:
+      Name:  HTTP_PROXY
+      Name:  HTTPS_PROXY
+      Name:  NO_PROXY
+    Image:   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6d952943885b8c9d972db55153206cb8ef5ee8e1d3aa4f76dec0cc616b31b4cc
+    Name:    prometheus-proxy
+    Ports:
+      Container Port:  9091
+      Name:            web
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+    Volume Mounts:
+      Mount Path:  /etc/tls/private
+      Name:        secret-prometheus-k8s-tls
+      Mount Path:  /etc/proxy/secrets
+      Name:        secret-prometheus-k8s-proxy
+      Mount Path:  /etc/proxy/htpasswd
+      Name:        secret-prometheus-k8s-htpasswd
+    Args:
+      --secure-listen-address=0.0.0.0:9092
+      --upstream=http://127.0.0.1:9095
+      --config-file=/etc/kube-rbac-proxy/config.yaml
+      --tls-cert-file=/etc/tls/private/tls.crt
+      --tls-private-key-file=/etc/tls/private/tls.key
+      --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+      --logtostderr=true
+      --v=10
+    Image:  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:39e4cab7d820c14689b17dd5d6e9bb678e1c9601d3eb59dd5c692ed1b63db3bd
+    Name:   kube-rbac-proxy
+    Ports:
+      Container Port:  9092
+      Name:            tenancy
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+    Volume Mounts:
+      Mount Path:  /etc/tls/private
+      Name:        secret-prometheus-k8s-tls
+      Mount Path:  /etc/kube-rbac-proxy
+      Name:        secret-kube-rbac-proxy
+    Args:
+      --insecure-listen-address=127.0.0.1:9095
+      --upstream=http://127.0.0.1:9090
+      --label=namespace
+    Image:  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:54750214851b4600eaf616440f41b27054277f0b513f09a5452d68f7d211be9b
+    Name:   prom-label-proxy
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+  External URL:                  https://prometheus-k8s-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com/
+  Image:                         quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e03b477f13b4bbcc981922863322dc08a61cd499d2bdab39f82c56a87415f785
+  Listen Local:                  true
+  Node Selector:
+    kubernetes.io/os:  linux
+  Pod Monitor Selector:
+  Priority Class Name:  system-cluster-critical
+  Replicas:             2
+  Resources:
+    Requests:
+      Cpu:     200m
+      Memory:  1Gi
+  Retention:   15d
+  Rule Namespace Selector:
+  Rule Selector:
+  Rules:
+    Alert:
+  Secrets:
+    kube-etcd-client-certs
+    prometheus-k8s-tls
+    prometheus-k8s-proxy
+    prometheus-k8s-htpasswd
+    kube-rbac-proxy
+  Security Context:
+  Service Account Name:  prometheus-k8s
+  Service Monitor Namespace Selector:
+  Service Monitor Selector:
+  Version:  v2.7.1
+Events:     <none>
+----
+
+In here you see details about our currently deployed Prometheus cluster. In the next section we will look at modifying this cluster while it is running.
+
+## Modifying your Prometheus environment
+
+After you have looked at your Prometheus environment and understood how the parts are inter-connected, it is now time to talk about adjusting the environment to your needs. Every supported configuration change is controlled through a central *ConfigMap*, which needs to be created before we can make changes:
+
+### Creating the ConfigMap
+
+When you start off with a clean installation of Openshift, the ConfigMap to configure the Prometheus environment may not be present. To check if your ConfigMap is present, execute this:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring get configmap cluster-monitoring-config
+----
+.Output if the ConfigMap is not yet created:
+----
+Error from server (NotFound): configmaps "cluster-monitoring-config" not found
+----
+
+If you are missing the ConfigMap, create it:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring create configmap cluster-monitoring-config
+----
+
+You can edit the ConfigMap with the following command. Do this now and ensure that the ConfigMap looks like below - especially the data section should be present:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring edit configmap cluster-monitoring-config
+----
+.ConfigMap content
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+----
+
+### Configuring persistent storage for the Prometheus stack
+
+The Prometheus stack consists of the Prometheus database and the alertmanager data. Persisting both is best-practice since data loss on any of these will cause you to lose your collected metrics and alerting data.
+The official Openshift 4.2 documentation about this topic can be found https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html#configuring-persistent-storage[here].
+
+While the documentation recomends using the local-storage provider, we will set up the Prometheus stack to use OCS. By doing so, we will ensure that the Prometheus Pods can move freely between Nodes. In a later section, we will show what this means for performance, by comparing the performance of the default EmptyDir, the recommended local-storage and OCS-backed Prometheus.
+
+To configure the Prometheus stack to use OCS, edit the ConfigMap that was created in the previous section:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring edit configmap cluster-monitoring-config
+----
+.ConfigMap content
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    prometheusK8s:
+      volumeClaimTemplate:
+        metadata:
+          name: prometheusDB
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+    alertmanagerMain:
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+----
+
+Once you save and exit the editor, the affected Pods will automatically be restarted and the new storage will be applied.
