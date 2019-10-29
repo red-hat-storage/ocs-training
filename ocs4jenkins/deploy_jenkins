@@ -20,7 +20,7 @@ function wait_for_jenkins()
   local jenkins_is_ready=""
   while true;
   do
-    jenkins_is_ready=$(oc get pods -n ${PROJECT_NAME} | grep jenkins | grep -v deploy | grep Running | grep 1/1 | wc -l)
+    jenkins_is_ready=$(oc get pods -n ${PROJECT_NAME} | grep jenkins | grep -v deploy | grep Running | grep 1/1 | wc -l | tr -d ' ')
     if [[ "${jenkins_is_ready}" == "1" ]]; then
       echo "Jenkins is ready ..."
       break

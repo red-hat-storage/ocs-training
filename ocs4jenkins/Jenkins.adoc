@@ -24,6 +24,7 @@ Jenkins is one of the most important development infrastructure components, but 
 
 * Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
 * a copy of this git repo
+* *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
 
 == Deploying Jenkins
 
@@ -67,6 +68,11 @@ The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self expla
 3. Add/change the size of the PV we want for the Jenkins pod. +
 4. Add some Jenkins Java pod creation parameters to speed up new containers creation. +
 5. Run the "oc create" command and the create the new template +
+Run the create_ocs_jenkins_template script:
+[source,role="execute"]
+----
+$ bash create_ocs_jenkins_template
+----
 
 After running the script, you should see another jenkins template:
 [source,role="execute"]
@@ -133,7 +139,7 @@ Since these dependencies don't really change most of the time for the same code,
 after explaining all this, lets run the script:
 [source,role="bash"]
 ----
-$ bash deploy_jenkins myjenkins-1 rook-ceph-block
+$ bash deploy_jenkins myjenkins-1 ocs-storagecluster-ceph-rbd
 ----
 
 === Running the build and looking at results
@@ -142,16 +148,16 @@ The "oc" command to run a build is very simple and it is literally "oc start-bui
 The script accept two variables, the OCP project name where you created Jenkins and our BuildConfig, and a directory to place the outputs.
 [source,role="bash"]
 ----
-$ bash run_builds myjenkins-1 test1
+$ bash run_builds myjenkins-1 myjenkins-1
 ----
 
-if we'll look at the newly created "test1" directory, it should have 10 files, 2 files for each run of the build: + 
+if we'll look at the newly created "test1" directory, it should have 10 files (2 files for each run of the build): + 
 The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins runs. + 
 The files starting with "log-" will hold the build duration data.
 a quick grep sample of the results will show something similar results to these:
 [source,role="bash"]
 ----
-$ cat log-test1-jax-rs-build-*|grep 'Total time'
+$ cat myjenkins-1/log-myjenkins-1-jax-rs-build-*|grep 'Total time'
 [INFO] Total time: 01:39 min
 [INFO] Total time: 5.337 s
 [INFO] Total time: 3.510 s
@@ -186,11 +192,13 @@ $ bash run_builds-parallel running_60_jenkins
 ----
 Once all runs are done (should take roughly 10 minutes), you can simply run the *calculate_results* script to go through all directories and calculate all the averages per run. +
 This script have some variables that needs to match previous scripts, NUMBER_OF_PROJECTS, PROJECT_PREFIX, BUILD_CONFIG and NUMBER_OF_BUILDS must match the variables from all 4 previous scripts. The script also accept the RUN_NAME variable, the same one we used in the *run_builds-parallel* script.
+*NOTE:* depending on where you are running the scripts (remotely from your laptop or a node/pod inside the lab) and how good did the Kubernetes scheduler "spread" the Jenkins and maven pods, the run of 60 Jenkins pods doing 5 builds in parallel can take between 10 to 20 minutes, so you might want to change the number of projects running in parallel to a smaller number if you don't want to wait. +
+
 [source,role="bash"]
 ----
 $ bash calculate_results running_60_jenkins
 ----
-The output should be similar to this (these numbers are in seconds):
+The output should be similar to this in the sense that average of first build will be significantly higher than the rest (these numbers are in seconds):
 [source,role="bash"]
 ----
 $ bash calculate_results testing_60
@@ -199,4 +207,10 @@ Average for build 2: 8.248
 Average for build 3: 5.41643
 Average for build 4: 5.64875
 Average for build 5: 4.7366
+----
+
+*For the curious mind:* Check to see if the Kubernetes scheduler have done a good job at distributing the 60 Jenkins pods:
+[source,role="bash"]
+----
+$ oc get pods -o wide --all-namespaces|grep jenkins |grep -vi deploy|grep 1/1|awk '{print $8}'|sort|uniq -c
 ----

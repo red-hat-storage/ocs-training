@@ -16,7 +16,7 @@ function wait_for_build()
   local build_is_complete=""
   while true;
   do
-    build_is_complete=$(oc get build -n ${PROJECT_NAME} ${build_name} | grep Complete | wc -l)
+    build_is_complete=$(oc get build -n ${PROJECT_NAME} ${build_name} | grep Complete | wc -l | tr -d ' ')
     if [[ "${build_is_complete}" == "1" ]]; then
       echo "Project ${PROJECT_NAME}, Build ${BUILD_CONFIG} number ${build_number} is complete ..."
       break
@@ -29,7 +29,11 @@ function wait_for_build()
 function get_build_logs()
 {
   service_account=$(oc -n ${PROJECT_NAME} describe serviceaccount jenkins|grep Tokens|awk '{print $2}')
-  jenkins_token=$(oc -n ${PROJECT_NAME} get secret ${service_account} -o=jsonpath={.data.token} | base64 -d)
+  if [ "$(uname -s)" == "Linux" ];then
+    jenkins_token=$(oc -n ${PROJECT_NAME} get secret ${service_account} -o=jsonpath={.data.token} | base64 -d)
+  else
+    jenkins_token=$(oc -n ${PROJECT_NAME} get secret ${service_account} -o=jsonpath={.data.token} | base64 --decode)
+  fi
   jenkins_route=$(oc -n ${PROJECT_NAME} get route|grep jenkins|awk '{print $2}')
   jenkins_build_console="https://${jenkins_route}/job/${PROJECT_NAME}/job/${PROJECT_NAME}-${BUILD_CONFIG}/${build_number}/consoleText"
   build_console_file=${RUN_DIR}/${PROJECT_NAME}-${BUILD_CONFIG}-${build_number}
@@ -44,6 +48,10 @@ function get_build_time()
 if [[ $# -eq 0 || $# -ne 2 ]]; then
  echo "Come on, gimme a few variables..."
  exit 1
+fi
+
+if [[ ! -d "${RUN_DIR}" ]]; then
+  mkdir -p "${RUN_DIR}"
 fi
 
 for ((build_number=1; build_number<=${NUMBER_OF_BUILDS}; build_number++))
