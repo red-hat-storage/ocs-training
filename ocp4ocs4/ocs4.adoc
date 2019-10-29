@@ -517,7 +517,7 @@ Copy your `rails-pgsql-persistent` route (different than above) to a browser win
 
 *Example*  http://<your_route>/articles
 
-Enter the `username` and `password` below to create articles and comments. The articles and comments are saved in a PostgreSQL database which stores its table spaces on the Ceph RBD volume provisioned using the `ocs-storagecluster-ceph-rbd` *storagclass* during the application deployment.
+Enter the `username` and `password` below to create articles and comments. The articles and comments are saved in a PostgreSQL database which stores its table spaces on the Ceph RBD volume provisioned using the `ocs-storagecluster-ceph-rbd` *storageclass* during the application deployment.
 
 [source,ini]
 ----
