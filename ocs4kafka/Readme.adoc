@@ -1,39 +1,101 @@
 = Lab: Deploying Red Hat AMQ Streams backed by OpenShift Container Storage
-#:toc: right
-#:toclevels: 2
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
 == Lab Overview
 
 In this lab, you be deploying Red Hat AMQ Streams which is based on Apache Kafka, a popular platform for streaming data delivery and processing. 
 
-
 === In this lab you will learn
 
-* Kafka introduction and storage considerations
-* Installing Red Hat AMQ Streams Operator from OpenShift operator catalog (to check)
+* Kafka / RHT AMQ Streams introduction, architecture and storage use-case.
+* Installing Red Hat AMQ Streams Operator from OpenShift OperatorHub
 * Deploying Zookeeper and Kafka with persistent storage from OCS
-* Creating Kafka topic and user, using their respective operators
+* Creating Kafka topic and Kafka user, using their respective operators
 * Creating a Kafka Producer and Consmer application
 * Testing Kafka High Availablity powered by OCS
 
-== Kafka introduction
+== Introduction
 
-- create a new project for RHT AMQ Streams
+image::imgs/image-03.png[Apache Kafka]
+image::imgs/image-04.png[Apache Kafka Architecture]
+image::imgs/image-05.png[Apache Kafka use cases]
+image::imgs/image-06.png[Red Hat AMQ Streams]
+image::imgs/image-07.png[Storage use cases for Apache Kafka]
 
+== Installing Red Hat AMQ Streams
+
+- Create a new project called ``amq-streams`` from openshift console by navigating to the projects as shown below
+    
+image::imgs/image-13.png[Create amq-stream project]
+
+NOTE: You can also create the project from command line as shown below
+[source,role="execute"]
 ----
 oc new-project amq-streams
 ----
-- Install Red Hat AMQ Operator from Console
 
-- Install AMQ cluster operator which is Responsible for deploying and managing Apache Kafka clusters within an OpenShift cluster.
+- Make sure to select the ``amq-streams`` project and search AMQ Streams Operator from the OperatorHub
 
+image::imgs/image-08.png[Red Hat AMQ Streams Operator Installation]
+- Install the AMQ Streams Operator
+
+image::imgs/image-09.png[Red Hat AMQ Streams Operator Installation]
+
+- Under Installation Mode, select ``amq-stream`` as the namespace 
+
+NOTE: Selecting a specific namespace help us purge the operator and its resources easily
+
+image::imgs/image-10.png[Red Hat AMQ Streams Operator Installation]
+
+- Verify the installed operator
+
+image::imgs/image-11.png[Red Hat AMQ Streams Operator Installation]
+image::imgs/image-12.png[Red Hat AMQ Streams Operator Installation]
+
+NOTE: At this stage you should have Red Hat AMQ Streams operator installed on your OpenShift 4 environment
+
+== Creating Zookeeper and Kafka Clusters
+
+Red Hat AMQ Streams provides the nessary operators which are responsible for deploying and managing Apache Kafka clusters on OpenShift.
+
+- Make sure the default storage class is set to ``ocs-storagecluster-ceph-rbd`` Refer to link:https://github.com/red-hat-storage/ocs-training/tree/master/ocp4ocs4#change-the-default-storage-class-to-ceph-rbd[change the default storage class to Ceph RBD] module for more information.
+
+[source,role="execute"]
+----
+oc get sc
+----
+Example output:
 ```
-oc apply -f 01-kafka-zookeeper.yaml
-oc get all
-``` 
-
+$ oc get sc
+NAME                                    PROVISIONER                             AGE
+gp2                                     kubernetes.io/aws-ebs                   11d
+ocs-storagecluster-ceph-rbd (default)   openshift-storage.rbd.csi.ceph.com      10d
+ocs-storagecluster-cephfs               openshift-storage.cephfs.csi.ceph.com   10d
+$
 ```
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$ oc get all
+
+- Create a Kafka cluster which will also deploy a zookeeper cluster required by Kafka
+
+[source,role="execute"]
+----
+oc project amq-streams
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/01-kafka-zookeeper.yaml
+---- 
+- Monitor the cluster progress
+
+[source,role="execute"]
+----
+watch oc get all
+----
+- Finally once the Kafka cluster is up and running, you should see output similar to below
+```
+$ oc get all
 NAME                                                 READY   STATUS    RESTARTS   AGE
 pod/amq-streams-cluster-operator-b985c7c7f-fxjdc     1/1     Running   0          102m
 pod/kafka-cluster-entity-operator-84bfd5bdc4-755np   3/3     Running   0          13m
@@ -61,17 +123,18 @@ replicaset.apps/kafka-cluster-entity-operator-84bfd5bdc4   1         1         1
 NAME                                       READY   AGE
 statefulset.apps/kafka-cluster-kafka       3/3     14m
 statefulset.apps/kafka-cluster-zookeeper   3/3     15m
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$
+$
 
 ```
-- Verify PVC and PV
-```
+- As a part of the Kafka/Zookeepeer cluster creation PV and PVC were created. Verify the status of PVC is ``Bound``
+[source,role="execute"]
+----
 oc get pvc -n amq-streams
 oc get pv -o json | jq -r '.items | sort_by(.spec.capacity.storage)[]| select(.spec.claimRef.namespace=="amq-streams") | [.spec.claimRef.name,.spec.capacity.storage] | @tsv'
+----
+Example output:
 ```
-
-```
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$ oc get pvc -n amq-streams
+$ oc get pvc -n amq-streams
 NAME                             STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
 data-kafka-cluster-kafka-0       Bound    pvc-91601dfe-f1b4-11e9-b1e6-0a6f9f40dc3e   100Gi      RWO            ocs-storagecluster-ceph-rbd   18h
 data-kafka-cluster-kafka-1       Bound    pvc-9160e85a-f1b4-11e9-843c-12e73ceaa62c   100Gi      RWO            ocs-storagecluster-ceph-rbd   18h
@@ -79,62 +142,95 @@ data-kafka-cluster-kafka-2       Bound    pvc-91613a33-f1b4-11e9-843c-12e73ceaa6
 data-kafka-cluster-zookeeper-0   Bound    pvc-73630d23-f1b4-11e9-843c-12e73ceaa62c   10Gi       RWO            ocs-storagecluster-ceph-rbd   18h
 data-kafka-cluster-zookeeper-1   Bound    pvc-7374c25c-f1b4-11e9-843c-12e73ceaa62c   10Gi       RWO            ocs-storagecluster-ceph-rbd   18h
 data-kafka-cluster-zookeeper-2   Bound    pvc-73736821-f1b4-11e9-b1e6-0a6f9f40dc3e   10Gi       RWO            ocs-storagecluster-ceph-rbd   18h
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$ oc get pv -o json | jq -r '.items | sort_by(.spec.capacity.storage)[]| select(.spec.claimRef.namespace=="amq-streams") | [.spec.claimRef.name,.spec.capacity.storage] | @tsv'
+$
+
+
+$ oc get pv -o json | jq -r '.items | sort_by(.spec.capacity.storage)[]| select(.spec.claimRef.namespace=="amq-streams") | [.spec.claimRef.name,.spec.capacity.storage] | @tsv'
 data-kafka-cluster-kafka-0	100Gi
 data-kafka-cluster-kafka-1	100Gi
 data-kafka-cluster-kafka-2	100Gi
 data-kafka-cluster-zookeeper-0	10Gi
 data-kafka-cluster-zookeeper-2	10Gi
 data-kafka-cluster-zookeeper-1	10Gi
-datacenter:~/git/ocs-training/ocs4_amq_streams_ocs4$
+$
 ```
+At this point you have a running Kafka and Zookeeper cluster on OpenShift 4, deployed through Red Hat AMQ Streams Operator, consuming persistent block storagem from OpenShift Container Storage 4
 
-- Create kafka topic
-```
-oc apply -f 02-kafka-topic.yaml
-```
+== Create Kafka Topic and Kafka User
 
+- To start consuming Kafka, we first need to create a kafka topic. AMQ Streams provides an operator to manage Kafka Topics and Kafka Users
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/02-kafka-topic.yaml
+----
+- List Kafka Topics (kt)
+
+[source,role="execute"]
+----
+oc get kt
+----
+Example output:
 ```
 $ oc get kt
 NAME       PARTITIONS   REPLICATION FACTOR
 my-topic   3            3
 $
 ```
-
 - Create Kafka user
+
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/03-kafka-user.yaml
+----
+- List Kafka Users
+
+[source,role="execute"]
+----
+oc get kafkauser
+----
+Example output:
 ```
-$ oc apply -f 03-kafka-user.yaml
-kafkauser.kafka.strimzi.io/kafka-user1 created
 $ oc get kafkauser
 NAME          AUTHENTICATION   AUTHORIZATION
 kafka-user1   tls              simple
 $
 ```
-## Create a sample Kafka Producer and Consumer Application
-- Kafka producer
-```
-oc apply -f 04-hello-world-producer.yaml
-```
-- review the producer messages
-```
+At this point we have a Kafka Topic and a Kafka user created on our Kafka Cluster using Red Hat AMQ Streams Operator
+
+== Create a sample Kafka Producer and Consumer Application
+
+- To demonstrate Kafka usage, let's deploy a sample hello-world-producer application
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/04-hello-world-producer.yaml
+----
+This sample application will produce 1000 messages in an iterative manner
+
+- To review the kafka producer messages, lets tail to the logs of ``hello-world-producer`` app
+
+[source,role="execute"]
+----
 oc logs -n amq-streams -f $(oc get pods -l app=hello-world-producer -o name)
-```
-- press ``ctrl+c`` to cancel this producer messages
+----
+You can leave the  hello-world-consumer shell tab open to see live messages production, however you can always press kbd:[Ctrl+C] to cancel the producer messages
 
 - Instead of CLI you could also view logs from GUI
 
-image::imgs/image-01.png[Showing OCS4 pods]
-image::imgs/image-02.png[Showing OCS4 pods]
+image::imgs/image-01.png[Producer app logs]
+image::imgs/image-02.png[Producer app logs]
 
+We now have a Kafka producer app generating messages and pushing the messages to Kafka Topic. We now deploy a sample hello world consumer app, which will consume messages from the Kafka Topic
 
-- Kafka consumer
-```
-oc apply -f 05-hello-world-consumer.yaml
+- Deploy Kafka consumer application
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4kafka/05-hello-world-consumer.yaml
+----
 
-```
-```
+- Monitor logs of kafka consumer app, in real time using CLI Or via GIU (shown above)
+[source,role="execute"]
+----
 oc logs -n amq-streams -f $(oc get pods -l app=hello-world-consumer -o name)
+----
+press kbd:[Ctrl+C] to cancel
 
-```
-press ``ctrl+c`` to cancel
