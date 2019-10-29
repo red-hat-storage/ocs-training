@@ -44,7 +44,7 @@ The pipeline have clear stages: +
 (Pipelines usually have more stages, at least one testing stage, we are skipping these stages).
 
 .Jenkins pipeline demo components
-image::/Users/svolkov/Downloads/Jenkins_pipeline.png[Showing Jenkins pods]
+image::imgs/Jenkins_pipeline.png[Showing Jenkins pods]
 
 === Creating a Jenkins template that uses OpenShift Container Storage 4
 
