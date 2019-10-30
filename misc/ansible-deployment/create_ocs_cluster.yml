@@ -32,8 +32,8 @@
         until: (mons | json_query('resources[*].status.conditions[?type==`Ready`][].status')) == ["True","True","True"]
         retries: 30
         delay: 15
-      - debug: 
-          msg: 
-          - "All MON pods are running" 
+      - debug:
+          msg:
+          - "All MON pods are running"
 
 

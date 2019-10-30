@@ -11,8 +11,8 @@
           - requests
 
     - name: validate that the OCP environment has 3 master and 3 worker nodes
-      block: 
-      - name: Getting nodes list    
+      block:
+      - name: Getting nodes list
         k8s_facts:
           kind: Node
         register: Nodes
@@ -20,7 +20,7 @@
         set_fact:
           workers: "{{ Nodes | json_query('resources[*].metadata.labels.\"node-role.kubernetes.io/worker\"') | count }}"
           masters: "{{ Nodes | json_query('resources[*].metadata.labels.\"node-role.kubernetes.io/master\"') | count }}"
-      - debug: 
+      - debug:
           msg:
             - "OK"
             - "Workers: {{ workers }}"

@@ -32,8 +32,8 @@
         until: (tools | json_query('resources[*].status.conditions[?type==`Ready`][].status')) == ["True"]
         retries: 30
         delay: 15
-      - debug: 
-          msg: 
-          - "Ceph toolbox is running" 
+      - debug:
+          msg:
+          - "Ceph toolbox is running"
 
 

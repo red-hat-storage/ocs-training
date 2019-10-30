@@ -31,7 +31,7 @@
         until: ((operators | to_json | from_json | json_query('resources[?contains(metadata.name, \'local-storage-operator\')].status.phase | [0]')) == "Succeeded") and ((operators | to_json | from_json | json_query('resources[?contains(metadata.name, \'ocs-operator\')].status.phase | [0]')) == "Succeeded")
         retries: 30
         delay: 15
-      - debug: 
+      - debug:
           msg:
             - "Operators are ready"
 

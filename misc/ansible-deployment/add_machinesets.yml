@@ -7,7 +7,7 @@
   tasks:
     - name: validate machine sets
       block:
-      - name: Checking current machinesets  
+      - name: Checking current machinesets
         k8s_facts:
           api_version: machine.openshift.io/v1beta1
           kind: MachineSet
@@ -16,7 +16,7 @@
       - name: Parsing data
         set_fact:
           machinesets: "{{ r_get_machinesets | json_query('resources[*].spec.selector.matchLabels.\"machine.openshift.io/cluster-api-machineset\"') | unique | count }}"
-      - debug: 
+      - debug:
           msg:
             - You currently have {{ machinesets|int }} machinesets
       - fail:
@@ -50,7 +50,7 @@
         until: r_get_machinesets | json_query('resources[?spec.template.metadata.labels.\"machine.openshift.io/cluster-api-machine-role\"==\'workerocs\'].status.readyReplicas') | count | int == 3
         retries: 30
         delay: 15
-      - debug: 
+      - debug:
           msg:
             - "You currently have {{ r_get_machinesets | json_query('resources[?spec.template.metadata.labels.\"machine.openshift.io/cluster-api-machine-role\"==\"workerocs\"].status.readyReplicas') | count }} ready OCS worker machinesets"
 
@@ -65,6 +65,6 @@
         until: worker_nodes | json_query('resources[*].metadata.name') | unique | count >= 5
         retries: 30
         delay: 15
-      - debug: 
+      - debug:
           msg:
             - "You currently have {{ worker_nodes | json_query('resources[*].metadata.name') | unique | count }} OCP worker nodes"
