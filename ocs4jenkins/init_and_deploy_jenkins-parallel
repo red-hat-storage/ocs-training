@@ -12,7 +12,7 @@ function wait_until_pods_are_ready()
   local number_of_pods=${2}
   while true;
   do
-    ready_pods=$(oc get pod --all-namespaces | grep -i jenkins | grep -iv deploy | grep Running | grep 1/1 | wc -l)
+    ready_pods=$(oc get pod --all-namespaces | grep -i jenkins | grep -iv deploy | grep Running | grep 1/1 | wc -l | tr -d ' ')
     if [[ "${ready_pods}" == "${number_of_pods}" ]]; then
       echo "pods are ready"
       break
@@ -28,7 +28,7 @@ do
   do
     echo "running until $((i+4))..."
     echo "deploying on ${PROJECT_PREFIX}-${j}..."
-    ${RUN_DIR}/deploy_jenkins ${PROJECT_PREFIX}-${j} rook-ceph-block &
+    ${RUN_DIR}/deploy_jenkins ${PROJECT_PREFIX}-${j} ocs-storagecluster-ceph-rbd &
   done
   wait_until_pods_are_ready 5 $((i+DEPLOY_INCREMENT-1))
 done

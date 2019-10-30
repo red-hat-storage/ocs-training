@@ -2,7 +2,7 @@
 
 readonly NUMBER_OF_PROJECTS=60
 readonly PROJECT_PREFIX=myjenkins
-readonly RUN_DIR=/home/sagy/CICD
+readonly RUN_DIR=$(dirname $0)
 readonly RUN_NAME=${1}
 
 if [[ $# -eq 0 || $# -ne 1 ]]; then

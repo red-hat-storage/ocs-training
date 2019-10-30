@@ -23,7 +23,8 @@ Jenkins is one of the most important development infrastructure components, but 
 == Prerequisites:
 
 * Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
-* A copy of this git repo
+* a copy of this git repo
+* *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
 
 == Deploying Jenkins
 
@@ -64,14 +65,20 @@ jenkins-ephemeral
 jenkins-persistent
 ----
 
-We are going to create a new template based on the *jenkins-persistent* template, to do so, please run the *create_ocs_jenkins_template* script. +
-The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that other scripts in this lab might use the default value of NEW_TEMPLATE_NAME. The script will:
+We are going to create a new template based on the jenkins-persistent template, to do so, we are going to run the *create_ocs_jenkins_template* script. +
+The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that other scripts in this lab might use the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks:
 
 1. Change the name of the template (so it can co-exists with the one we copied from).
-2. Add the storage class (SC) we want to use in the template (the jenkins-persistent template just uses the default SC).
-3. Add/change the size of the PV we want for the Jenkins *Pod*.
-4. Add some Jenkins Java *Pod* creation parameters to speed up new containers creation.
-5. Run the "oc create" command and then create the new template
+2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default storage class in OCP).
+3. Add/change the size of the PV we want for the Jenkins pod.
+4. Add some Jenkins Java pod creation parameters to speed up new containers creation.
+5. Run the "oc create" command and the create the new template
+
+Run the create_ocs_jenkins_template script:
+[source,role="execute"]
+----
+$ bash create_ocs_jenkins_template
+----
 
 After running the script, you should see another jenkins template:
 [source,role="execute"]
@@ -96,9 +103,16 @@ Now that we have a Jenkins OCS4 template, we can deploy Jenkins and use the *dep
 3. Create a Jenkins server *Pod* (using the template from previous step)
 4. Create the Jenkins pipeline build configuration (as a BuildConfig) for our openshit-tasks project
 
-The script accepts two variables from the command line, the OCP project name you want to use and the persistent storage driver you want to use (in our case OCS4).
-The real "magic" takes place at the *BuildConfig*, lets take a look:
-[source,yaml,linenums]
+Now that we have a template a Jenkins OCS4 template, we can deploy Jenkins and to so we're going to use the *deploy_jenkins* bash script to:
+
+1. Create a project
+2. Create a PVC that will be used for all our builds
+3. Create a Jenkins server pod (using the template from previous step)
+4. Create the Jenkins pipeline build configuration (as a BuildConfig) for our openshit-tasks project.
+
+The script accept two variables from the command line, the OCP project name you want to use and the persistent storage driver you want to use (in our case ocs-storagecluster-ceph-rbd). +
+The real "magic" takes place at the BuildConfig object, so before running the script lets take a look:
+[source,role="yaml"]
 ----
   1 kind: "BuildConfig"
   2 apiVersion: "v1"
@@ -140,25 +154,25 @@ Since these dependencies don't really change most of the time for the same code,
 after explaining all this, lets run the script:
 [source,role="execute"]
 ----
-bash deploy_jenkins myjenkins-1 rook-ceph-block
+bash deploy_jenkins myjenkins-1 ocs-storagecluster-ceph-rbd
 ----
 
 === Running the build and looking at results
 
-The "oc" command to run a build is very simple and it is literally "oc start-build <build_name>", however we are going to use the bash script *run_builds* which will not only run this command for you, but also run the build 5 times in a sequential manner, measure the duration of each run and output this data into a log file per run.
-The script accept three variables, the OCP project name where you created Jenkins, our BuildConfig, and a directory to place the outputs.
+The "oc" command to run a build is very simple and it is literally "oc start-build <build_name>", however we are going to use the bash script *run_builds* to not only run this command for you, but also run the build 5 times in a sequential manner, measure the duration of each run and output this data into a log file per run.
+The script accept two variables, the OCP project name where you created the Jenkins pod (and of course the BuildConfig and PV), and a directory to place the outputs.
 [source,role="execute"]
 ----
-bash run_builds myjenkins-1 test1
+$ bash run_builds myjenkins-1 myjenkins-1
 ----
 
-If we look at the newly created "test1" directory, it should have 10 files, 2 files for each run of the build: +
-The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins runs. +
+if we'll look at the newly created "myjenkins-1" directory, it should have 10 files (2 files for each of the 5 runs of the build): + 
+The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins build runs. + 
 The files starting with "log-" will hold the build duration data.
 A quick grep sample of the results will show similar results to these:
 [source,role="execute"]
 ----
-cat log-test1-jax-rs-build-*|grep 'Total time'
+cat myjenkins-1/log-myjenkins-1-jax-rs-build-*|grep 'Total time'
 ----
 .Example output:
 ----
@@ -168,8 +182,9 @@ cat log-test1-jax-rs-build-*|grep 'Total time'
 [INFO] Total time: 3.258 s
 [INFO] Total time: 2.930 s
 ----
-What we are "grepping" for is the total time it took for the actual Maven *Pod* to run the build, or to be precise, the "mvn clean package -DskipTests=true" command, and as you can see, the first build took in this example, 99 seconds, while all the consecutive builds took less than 5 seconds. The reason was already explained before, the dependencies are downloaded for the first build and then reused again and again for any other build that follows. +
-It is important to note that this is a fairly small project/code that we're using and bigger projects/code, will have even a bigger impact on the Maven commands as the dependencies will most likely be much larger.
+What we are "grepping" for is the total time it took for the actual maven *Pod* to run the build, or to be precise, the "mvn clean package -DskipTests=true" command, and as you can see, the first build took in this example, 99 seconds, while all the consecutive builds took less than 5 seconds. The reason was already explained before, the dependencies are downloaded for the first build and then reused again and again for any other build that follows. +
+It is important to note that this is a fairly small project/code that we're using and bigger projects/code, will have even a bigger impact on the maven commands as the dependencies will most likely be much larger. +
+Also important to note, if we would have used ephermal storage for our maven *Pods*, each of the 5 builds would have take roughly 99 seconds. If we do a simple math, using ephermal storage would have taken us roughly 500 seconds to run 5 builds vs something like roughly 115 seconds if we are using OCP4 persistent storage for the maven pods!!!
 
 === Running our demo in a multi-tenant environment
 
@@ -195,12 +210,16 @@ To run the script:
 bash run_builds-parallel running_60_jenkins
 ----
 Once all runs are done (should take roughly 10 minutes), you can simply run the *calculate_results* script to go through all directories and calculate all the averages per run. +
-This script have some variables that needs to match previous scripts, NUMBER_OF_PROJECTS, PROJECT_PREFIX, BUILD_CONFIG and NUMBER_OF_BUILDS must match the variables from all 4 previous scripts. The script also accepts the RUN_NAME variable, the same one we used in the *run_builds-parallel* script.
-[source,role="execute"]
+This script have some variables that needs to match previous scripts, NUMBER_OF_PROJECTS, PROJECT_PREFIX, BUILD_CONFIG and NUMBER_OF_BUILDS must match the variables from all 4 previous scripts. The script also accept the RUN_NAME variable, the same one we used in the *run_builds-parallel* script.
+
+[NOTE]
+Depending on where you are running the scripts (remotely from your laptop or a node/pod inside the lab) and how good did the Kubernetes scheduler "spread" the Jenkins and maven pods, the run of 60 Jenkins pods doing 5 builds in parallel can take between 10 to 20 minutes, so you might want to change the number of projects running in parallel to a smaller number if you don't want to wait. +
+
+[source,role="bash"]
 ----
 bash calculate_results running_60_jenkins
 ----
-The output should be similar to this (these numbers are in seconds):
+The output should be similar to this in the sense that average of first build will be significantly higher than the rest (these numbers are in seconds):
 [source,role="execute"]
 ----
 bash calculate_results testing_60
@@ -212,4 +231,10 @@ Average for build 2: 8.248
 Average for build 3: 5.41643
 Average for build 4: 5.64875
 Average for build 5: 4.7366
+----
+
+*For the curious mind:* Check to see if the Kubernetes scheduler have done a good job at distributing the 60 Jenkins pods:
+[source,role="bash"]
+----
+$ oc get pods -o wide --all-namespaces|grep jenkins |grep -vi deploy|grep 1/1|awk '{print $8}'|sort|uniq -c
 ----
