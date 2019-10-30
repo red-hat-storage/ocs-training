@@ -1,0 +1,32 @@
+---
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  gather_facts: no
+
+  tasks:
+    - python_requirements_facts:
+        dependencies:
+          - openshift
+          - requests
+
+    - name: validate that the OCP environment has 3 master and 3 worker nodes
+      block:
+      - name: Getting nodes list
+        k8s_facts:
+          kind: Node
+        register: Nodes
+      - name: Finding masters and workers
+        set_fact:
+          workers: "{{ Nodes | json_query('resources[*].metadata.labels.\"node-role.kubernetes.io/worker\"') | count }}"
+          masters: "{{ Nodes | json_query('resources[*].metadata.labels.\"node-role.kubernetes.io/master\"') | count }}"
+      - debug:
+          msg:
+            - "OK"
+            - "Workers: {{ workers }}"
+            - "Masters: {{ masters }}"
+      - name: Fail on problem
+        fail:
+          msg: You don't have enough masters or workers
+        when: (workers|int < 2 or masters|int < 3)
+

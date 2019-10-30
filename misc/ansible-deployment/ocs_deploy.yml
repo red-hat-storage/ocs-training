@@ -1,0 +1,7 @@
+---
+- import_playbook: check_nodes.yml
+- import_playbook: add_machinesets.yml
+- import_playbook: install_ocs_operator.yml
+- import_playbook: create_ocs_cluster.yml
+- import_playbook: install_ceph_tools.yml
+

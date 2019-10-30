@@ -1,0 +1,38 @@
+---
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  gather_facts: no
+
+  tasks:
+
+    - name: install ocs operator
+      block:
+      - name: Getting operator definition
+        uri:
+          url: https://raw.githubusercontent.com/openshift/ocs-operator/release-4.2/deploy/deploy-with-olm.yaml
+          return_content: yes
+        register: ocs_operator_yml
+      - name: Adding operator
+        k8s:
+          api: v1
+          state: present
+          definition: "{{ ocs_operator_yml.content }}"
+
+    - name: validate operators
+      block:
+      - name: Validating new operators are running
+        k8s_facts:
+          api_version: operators.coreos.com/v1alpha1
+          kind: ClusterServiceVersion
+          namespace: openshift-storage
+        register: operators
+        # | to_json | from_json | needed because of this bug: https://github.com/ansible/ansible/issues/27299
+        until: ((operators | to_json | from_json | json_query('resources[?contains(metadata.name, \'local-storage-operator\')].status.phase | [0]')) == "Succeeded") and ((operators | to_json | from_json | json_query('resources[?contains(metadata.name, \'ocs-operator\')].status.phase | [0]')) == "Succeeded")
+        retries: 30
+        delay: 15
+      - debug:
+          msg:
+            - "Operators are ready"
+
+
