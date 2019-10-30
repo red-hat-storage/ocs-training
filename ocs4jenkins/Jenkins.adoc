@@ -35,7 +35,7 @@ Because of this level of integration with version control software, builds can e
 
 === Our Jenkins demo
 
-In our demo/example, we are going to use a Jenkins pipeline to build the openshift-tasks project (https://github.com/redhat-gpte-devopsautomation/openshift-tasks) to demonstrate how to implement a JAX-RS service. We are going to create an openshift project that will hold a Jenkins pod (that also uses OCS4 persistent storage) and then when we start our build, the Jenkins master pod is going to create a maven pod to actually run the build. That maven pod will use OCP4 persistent storage. +
+In our demo/example, we are going to use a Jenkins pipeline to build the openshift-tasks project (https://github.com/redhat-gpte-devopsautomation/openshift-tasks). This project is an example for building an application that implement a JAX-RS service (JAX-RS = Java API for RESTful Web Services). We are going to create an openshift project that will hold a Jenkins pod (that also uses OCS4 persistent storage) and then when we start our build, the Jenkins master pod is going to create a maven pod to actually run the build. That maven pod will use a PVC that is provided by OCP4 persistent storage. +
 The actual code we compiling is not important for the demo, we are just utilizing the build stages to show how OCS4 can save build time significantly.
 The pipeline have clear stages: +
 1. Create the maven pod +
@@ -61,10 +61,10 @@ jenkins-ephemeral
 jenkins-persistent
 ----
 
-We are going to create a new template based on the *jenkins-persistent* template, to do so, please run the *create_ocs_jenkins_template* script. +
-The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that other scripts in this lab might use the default value of NEW_TEMPLATE_NAME. The script will: +
+We are going to create a new template based on the jenkins-persistent template, to do so, we are going to run the *create_ocs_jenkins_template* script. +
+The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that other scripts in this lab might use the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks: +
 1. Change the name of the template (so it can co-exists with the one we copied from). +
-2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default sc). +
+2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default storage class in OCP). +
 3. Add/change the size of the PV we want for the Jenkins pod. +
 4. Add some Jenkins Java pod creation parameters to speed up new containers creation. +
 5. Run the "oc create" command and the create the new template +
@@ -95,8 +95,9 @@ Now that we have a template a Jenkins OCS4 template, we can deploy Jenkins and t
 2. Create a PVC that will be used for all our builds +
 3. Create a Jenkins server pod (using the template from previous step) +
 4. Create the Jenkins pipeline build configuration (as a BuildConfig) for our openshit-tasks project. +
-The script accept two variables from the command line, the OCP project name you want to use and the persistent storage driver you want to use (in our case OCS4).
-The real "magic" takes place at the *BuildConfig*, lets take a look:
+
+The script accept two variables from the command line, the OCP project name you want to use and the persistent storage driver you want to use (in our case ocs-storagecluster-ceph-rbd). +
+The real "magic" takes place at the BuildConfig object, so before running the script lets take a look:
 [source,role="yaml"]
 ----
   1 kind: "BuildConfig"
@@ -132,8 +133,8 @@ The real "magic" takes place at the *BuildConfig*, lets take a look:
 ----
 
 So the pipeline is very simple, we create a maven pod (based on the OCP maven default image, line #10), git clone our code (line #18), and then create the artifact using maven (line #27). +
-The "podTemplate" section is where we attached the PV that is created in the previous step in the script (the claim is called "dependencies"). +
-The importance of keeping the same claim is simple, for each build, when we build the artifact, we need to download all the dependencies to compile the code. 
+The "podTemplate" section is where we attached the PV that is created in a previous step in the script (the claim is called "dependencies"). +
+The importance of keeping the same claim is simple, for each build, when we build the artifact, we need to download all the dependencies to compile the code. + 
 Since these dependencies don't really change most of the time for the same code, we use OCS4 persistent storage to keep the data persistent for each build, thus making any maven build that follows the first build, up to 90% faster.
 
 after explaining all this, lets run the script:
@@ -144,15 +145,15 @@ $ bash deploy_jenkins myjenkins-1 ocs-storagecluster-ceph-rbd
 
 === Running the build and looking at results
 
-The "oc" command to run a build is very simple and it is literally "oc start-build <build_name>", however we are going to use the bash script *run_builds* will not only run this command for you, but also run the build 5 times in a sequential manner, measure the duration of each run and output this data into a log file per run.
-The script accept two variables, the OCP project name where you created Jenkins and our BuildConfig, and a directory to place the outputs.
+The "oc" command to run a build is very simple and it is literally "oc start-build <build_name>", however we are going to use the bash script *run_builds* to not only run this command for you, but also run the build 5 times in a sequential manner, measure the duration of each run and output this data into a log file per run.
+The script accept two variables, the OCP project name where you created the Jenkins pod (and of course the BuildConfig and PV), and a directory to place the outputs.
 [source,role="bash"]
 ----
 $ bash run_builds myjenkins-1 myjenkins-1
 ----
 
-if we'll look at the newly created "test1" directory, it should have 10 files (2 files for each run of the build): + 
-The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins runs. + 
+if we'll look at the newly created "myjenkins-1" directory, it should have 10 files (2 files for each of the 5 runs of the build): + 
+The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins build runs. + 
 The files starting with "log-" will hold the build duration data.
 a quick grep sample of the results will show something similar results to these:
 [source,role="bash"]
@@ -165,7 +166,8 @@ $ cat myjenkins-1/log-myjenkins-1-jax-rs-build-*|grep 'Total time'
 [INFO] Total time: 2.930 s
 ----
 What we are "grepping" for is the total time it took for the actual maven pod to run the build, or to be precise, the "mvn clean package -DskipTests=true" command, and as you can see, the first build took in this example, 99 seconds, while all the consecutive builds took less than 5 seconds. The reason was already explained before, the dependencies are downloaded for the first build and then reused again and again for any other build that follows. +
-It is important to note that this is a fairly small project/code that we're using and bigger projects/code, will have even a bigger impact on the maven commands as the dependencies will most likely be much larger.
+It is important to note that this is a fairly small project/code that we're using and bigger projects/code, will have even a bigger impact on the maven commands as the dependencies will most likely be much larger. +
+Also important to note, if we would have used ephermal storage for our maven pods, each of the 5 builds would have take roughly 99 seconds. If we do a simple math, using ephermal storage would have taken us roughly 500 seconds to run 5 builds vs something like roughly 115 seconds if we are using OCP4 persistent storage for the maven pods!!!
 
 === Running our demo in a multi-tenant environment
 
