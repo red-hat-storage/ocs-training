@@ -1033,7 +1033,12 @@ As you can see, the secret gives us the S3 access credentials, while the CM cont
 
 == Adding storage to the Ceph Cluster
 
-Adding storage to OCS adds capacity and performance to your already present cluster. For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+Adding storage to OCS adds capacity and performance to your already present cluster. 
+
+[NOTE]
+====
+For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+====
 
 === Add storage worker nodes
 
