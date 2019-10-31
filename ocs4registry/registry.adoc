@@ -102,7 +102,7 @@ node-ca-pwrrs                                      1/1     Running   0          
 ----
 
 
-== Review Registry Operator configuration settings
+== Review the current Registry Operator configuration settings
 
 [source,role="execute"]
 ----
@@ -209,7 +209,7 @@ reason: S3 Bucket Exists
   storageManaged: true
 ----
 
-Note the `storage` designation currently refers to `s3` and a `bucket` name.
+NOTE: The `storage` designation currently refers to `s3` and a `bucket` name.
 
 [source,role="execute"]
 ----
@@ -222,7 +222,7 @@ storage:
       regionEndpoint: ""
 ----
 
-Close the `VI` editor by pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply useL kbd:[Shift + ZZ]
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
 
 == Moving the registry storage to OCS
 In this section we will change the registry storage to OCS, where it will consume CephFS RWX storage, as multiple pods will need to access the storage concurrently.
@@ -315,20 +315,86 @@ Now configure the registry to use the OCS storage
 ----
 oc edit configs.imageregistry.operator.openshift.io
 
-storage:
-  pvc:
-    claim: ocs4registry
+  storage:
+    pvc:
+     claim: ocs4registry
 ----
 
 
-Then check the cluster operator status
+Then check the `/registry` mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS `pvc` instead of the `s3` resources on AWS. Here is how to do this:
 
 [source,role="execute"]
 ----
-oc get clusteroperator image-registry
+oc get pods
 ----
 
+NOTE: The `NAME` of your machines will be different than shown below
+
+[source,role="execute"]
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+cluster-image-registry-operator-6d65bcbd4b-7h6b6   2/2     Running   0          8h
+image-registry-6c4dbbcdbb-9bl8w                    1/1     Running   0          8m59s
+node-ca-26q5d                                      1/1     Running   0          8h
+node-ca-6tdrs                                      1/1     Running   0          8h
+node-ca-9jdwt                                      1/1     Running   0          8h
+node-ca-g6dr5                                      1/1     Running   0          8h
+node-ca-jt7w8                                      1/1     Running   0          8h
+node-ca-r9qtx                                      1/1     Running   0          7h41m
+node-ca-srgv9                                      1/1     Running   0          7h41m
+node-ca-wg2xs                                      1/1     Running   0          7h41m
+----
+
+
+We now open a up remote shell on the `registry` pod. This is the podname that starts with `image-registry-*`
+
+NOTE: The `NAME` of your registry pod will be different than shown below
+
+[source,role="execute"]
+----
+oc rsh image-registry-6c4dbbcdbb-9bl8w
+----
+
+Once connected, a bash prompt appears. You are now running a bash shell on the pod itself.
+
+From within this remote shell, we can run both the `df -h` and/or `mount` command, which shows the result information from pod perspective:
+
+[source,role="execute"]
+----
+sh-4.2$ df -h | grep registry
+----
+
+This results in the following output:
+
+[source,role="execute"]
+----
+172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206  100G     0  100G   0% /registry
+----
+
+Another approach to take could be to use the `mount` command.
+
+[source,role="execute"]
+----
+sh-4.2$ mount|grep registry
+----
+
+Resulting in the following output:
+[source,role="execute"]
+----
+172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206 on /registry type ceph (rw,relatime,name=csi-cephfs-node,secret=<hidden>,acl,mds_namespace=ocs-storagecluster-cephfilesystem)
+----
+
+
 At this point, the image registry should be using the OCS RWX volume, backed by CephFS.
+
+In the output from either command, it is shown that the `/registry` filesystem mount originates from `/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206` sourced from Ceph nodes, managed by the `rook` operator.
+
+As a result from the `df -h` command, we can verify it has 100Gi available space.
+The `mount` command shows which options were when mounting the `/registry` filesystem slice.
+
+You can exit the pod remote shell `rsh` by either pressing kbd:[Ctrl+D] or by executing `exit`.
+
+
 
 
 
