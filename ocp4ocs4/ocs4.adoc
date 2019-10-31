@@ -1203,7 +1203,13 @@ As you can see, the secret gives us the S3 access credentials, while the CM cont
 
 == Adding storage to the Ceph Cluster
 
-Adding storage to OCS adds capacity and performance to your already present cluster. For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+Adding storage to OCS adds capacity and performance to your already present cluster. 
+
+[NOTE]
+====
+For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+The reason for adding more OCP worker nodes for storage is because the existing nodes do not have adequate CPU and/or Memory available.
+====
 
 === Add storage worker nodes
 
@@ -1408,6 +1414,110 @@ rook-ceph-tools-56db68cc99-bhzv7                                  Running     ip
 ----
 
 This is everything that you need to do to extend the OCS storage.
+
+=== Verify new storage
+
+Once you added the capacity and made sure that the OSD pods are present, you can also optionally check the additional storage capacity using the Ceph tools. To do this, follow these steps:
+
+.Enter the tools pod that you created in <<Using the Rook-Ceph toolbox to check on the Ceph backing storage,the previous section>>
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+.Check the status of the Ceph cluster
+[source,role="execute"]
+----
+ceph status
+----
+.Example output:
+----
+cluster:
+id: aa6f29a9-8de3-4e41-963a-8adb0c5d8bee
+health: HEALTH_OK
+
+services:
+mon: 3 daemons, quorum a,b,c (age 2h)
+mgr: a(active, since 2h)
+mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+osd: 6 osds: 6 up (since 73s), 6 in (since 73s) <1>
+rgw: 1 daemon active (ocs.storagecluster.cephobjectstore.a)
+
+data:
+pools: 10 pools, 80 pgs
+objects: 392 objects, 388 MiB
+usage: 6.9 GiB used, 6.0 TiB / 6.0 TiB avail <2>
+pgs: 80 active+clean
+
+io:
+client: 1.2 KiB/s rd, 46 KiB/s wr, 2 op/s rd, 4 op/s wr
+----
+
+In the Ceph status output, we can already see that:
+
+<1> We now use 6 osds in total and they are `up` and `in` (meaning the deamons are running and being used to store data)
+<2> The available raw capacity has increased from 3 TiB to 6 TiB
+
+Besides that, nothing has changed in the output.
+
+.Check the topology of your cluster
+[source,role="execute"]
+----
+ceph osd crush tree
+----
+.Example output:
+----
+ID  CLASS WEIGHT  TYPE NAME
+ -1       5.99396 root default
+ -5       5.99396     region us-east-1
+ -4       1.99799         zone us-east-1a
+ -3       0.99899             host ocs-deviceset-2-0-cx2vg
+  0   ssd 0.99899                 osd.0
+-19       0.99899             host ocs-deviceset-2-1-4j7fb <1>
+  5   ssd 0.99899                 osd.5
+-10       1.99799         zone us-east-1b
+ -9       0.99899             host ocs-deviceset-1-0-s87kw
+  1   ssd 0.99899                 osd.1
+-21       0.99899             host ocs-deviceset-1-1-2rjn6 <1>
+  4   ssd 0.99899                 osd.4
+-14       1.99799         zone us-east-1c
+-13       0.99899             host ocs-deviceset-0-0-chvdn
+  2   ssd 0.99899                 osd.2
+-17       0.99899             host ocs-deviceset-0-1-pt9ts <1>
+  3   ssd 0.99899                 osd.3
+----
+
+<1> We now have additional hosts, which are extending the hosts in the respective zone
+
+Since our Ceph cluster's CRUSH rules are set up to replicate data between the zones, this is an effective way to relax the load on the previous nodes.
+
+If you did not add more nodes and skipped the <<Add storage worker nodes>> section, then your output will be similar to this:
+
+.Example output:
+----
+ID  CLASS WEIGHT  TYPE NAME
+ -1       5.99396 root default
+ -5       5.99396     region us-east-1
+ -4       1.99799         zone us-east-1a
+ -3       0.99899             host ocs-deviceset-2-0-cx2vg
+  0   ssd 0.99899                 osd.0
+  5   ssd 0.99899                 osd.5 <1>
+-10       1.99799         zone us-east-1b
+ -9       0.99899             host ocs-deviceset-1-0-s87kw
+  1   ssd 0.99899                 osd.1
+  4   ssd 0.99899                 osd.4 <1>
+-14       1.99799         zone us-east-1c
+-13       0.99899             host ocs-deviceset-0-0-chvdn
+  2   ssd 0.99899                 osd.2
+  3   ssd 0.99899                 osd.3 <1>
+----
+
+<1> These are the new OSDs that we added to the existing hosts
+
+This is an effective way to scale out capacity and performance if you observe that your hosts are not exhausted, but you are running out of either capacity or IOPs.
+
+In both scale-out cases, existing data on the old OSDs will be balanced out automatically, so that the old and the new OSDs share the load.
 
 == Using must-gather
 
