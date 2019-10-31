@@ -267,7 +267,7 @@ To select the OCP 4 nodes that you created earlier in the lab specifically for O
 
 [source,role="execute"]
 ----
-oc get nodes --show-labels | grep storage-node
+oc get nodes --show-labels | grep storage-node |cut -d' ' -f1
 ----
 
 In this dialog, select these three nodes that have the role `storage-node` and `worker` and click on the button `Create` below the dialog box.
@@ -302,83 +302,6 @@ ocs-operator-967957d84-9lc76                    0/1     Running                 
 rook-ceph-detect-version-lh6jx                  0/1     Pending                 0          52s
 rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
 ----
-
-#### Fix `noobaa-core-0` stuck in `Pending` state
-
-[NOTE]
-====
-If you observe the following:
-
-- The `noobaa-core-0` pod is stuck in `Pending`
-  * If you do `oc describe po noobaa-core-0 -n openshift-storage` it is waiting to get its PVC bound
-- RWO PVCs cannot be generated with the rbd-based storage class
-- The Rook toolbox shows in `ceph status` that 64 pgs are stuck in "unknown" state
-
-This can be resolved by setting all pool crush rules to the default crush rule:
-
-- Enter the <<Using the Rook-Ceph toolbox to check on the Ceph backing storage,Rook toolbox>>
-- Execute this: 
-
-    ceph osd lspools | awk '{print $2}' | xargs -n1 -t -I {} ceph osd pool set {} crush_rule replicated_rule
-
-- Still inside the toolbox: 
-    
-    watch ceph status
-
-Check that the pgs all become active+clean and `health: HEALTH_OK`
-
-https://bugzilla.redhat.com/show_bug.cgi?id=1760929[Bugzilla link]
-====
-
-#### Fix `noobaa-operator` stuck in `CrashLoopBackOff` state
-
-[NOTE]
-====
-If you observe the following:
-
-- You are deploying in the us-east-1 region
-- When you execute
-
-    oc -n openshift-storage get pods
-
-You see a line similar to this:
-
-    noobaa-operator-7c55776bf9-kbcjp                0/1     CrashLoopBackOff          0          91m
-
-
-This can be resolved by updating the noobaa-operator version
-
-- Execute this: 
-
-    oc edit csv -n openshift-storage
-
-- This will open an editor, in the last third of the file, you will find this line:
-
-    image: noobaa/noobaa-operator:2.0.2
-
-https://github.com/openshift/ocs-operator/blob/622ee51194726905c9a39db97501534ef4477bff/deploy/olm-catalog/ocs-operator/0.0.1/ocs-operator.v0.0.1.clusterserviceversion.yaml#L976[See this on Github]
-
-change the line to:
-
-    image: noobaa/noobaa-operator:2.0.3
-
-save and exit the editor.
-----
-clusterserviceversion.operators.coreos.com/local-storage-operator.4.2.0-201910101614 skipped
-clusterserviceversion.operators.coreos.com/ocs-operator.v0.0.1 edited
-----
-
-Your noobaa-operator should recover in less than 5 minutes to a Running state. You can now see if noobaa is Ready.
-
-.Example command and output
-----
-oc -n openshift-storage get noobaa
-NAME     MGMT-ENDPOINTS                 S3-ENDPOINTS                   IMAGE                  PHASE   AGE
-noobaa   [https://10.0.155.197:31489]   [https://10.0.155.197:31038]   noobaa/noobaa-core:5   Ready   35m
-----
-
-You are now ready to continue.
-====
 
 You can also watch the deployment using the *Openshift Web Console* by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
 
@@ -620,9 +543,188 @@ rbd -p ocs-storagecluster-cephblockpool ls | grep vol
 
 You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
 
-== Create a new OCP deployment using CephFS
+== Create a new OCP application deployment using CephFS volume
+
+In this section the `ocs-storagecluster-cephfs` *Storage Class* will be used to create a RWX (ReadWriteMany) PVC that can be used by multiple pods at the same time. The application we will use is called `File Uploader`.
+
+Create a new project:
+
+[source,role="execute"]
+----
+oc new-project my-shared-storage
+----
+
+Next deploy the example PHP application called `file-uploader`:
+
+[source,role="execute"]
+----
+oc new-app openshift/php:7.1~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
+----
+
+.Sample Output
+----
+--> Found image 691930e (5 weeks old) in image stream "openshift/php" under tag "7.1" for "openshift/php:7.1"
+
+    Apache 2.4 with PHP 7.1
+    -----------------------
+    PHP 7.1 available as container is a base platform for building and running various PHP 7.1 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
+
+    Tags: builder, php, php71, rh-php71
+
+    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
+      * The resulting image will be pushed to image stream tag "file-uploader:latest"
+      * Use 'start-build' to trigger a new build
+    * This image will be deployed in deployment config "file-uploader"
+    * Ports 8080/tcp, 8443/tcp will be load balanced by service "file-uploader"
+      * Other containers can access this service through the hostname "file-uploader"
+
+--> Creating resources ...
+    imagestream.image.openshift.io "file-uploader" created
+    buildconfig.build.openshift.io "file-uploader" created
+    deploymentconfig.apps.openshift.io "file-uploader" created
+    service "file-uploader" created
+--> Success
+    Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
+     'oc expose svc/file-uploader'
+    Run 'oc status' to view your app.
+----
+
+Watch and wait for the application to be deployed:
+
+[source,role="execute"]
+----
+oc logs -f bc/file-uploader -n my-shared-storage
+----
+
+.Sample Output
+----
+Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
+	Commit:	7508da63d78b4abc8d03eac480ae930beec5d29d (Update index.html)
+	Author:	Christian Hernandez <christianh814@users.noreply.github.com>
+	Date:	Thu Mar 23 09:59:38 2017 -0700
+---> Installing application source
+
+[...]
+
+Pushing image docker-registry.default.svc:5000/my-shared-storage/file-uploader:latest ...
+Pushed 2/6 layers, 34% complete
+Pushed 3/6 layers, 55% complete
+Pushed 4/6 layers, 82% complete
+Pushed 5/6 layers, 97% complete
+Pushed 6/6 layers, 100% complete
+Push successful
+----
+
+The command prompt returns out of the tail mode once you see _Push successful_.
+
+[NOTE]
+====
+This use of the `new-app` command directly asked for application code to be
+built and did not involve a template. That's why it only created a *single
+Pod* deployment with a *Service* and no *Route*.
+====
+
+Let's make our application production ready by exposing it via a `Route` and scale to 3 instances for high availability:
+
+[source,role="execute"]
+----
+oc expose svc/file-uploader -n my-shared-storage
+oc scale --replicas=3 dc/file-uploader -n my-shared-storage
+oc get pods -n my-shared-storage
+----
+
+You should have 3 `file-uploader` *Pods* in a few minutes.
+
+[CAUTION]
+====
+Never attempt to store persistent data in a *Pod* that has no persistent
+volume associated with it. *Pods* and their containers are ephemeral by
+definition, and any stored data will be lost as soon as the *Pod* terminates
+for whatever reason.
+====
+
+The app is of course not useful like this. We can fix this by providing shared
+storage to this app.
+
+You can create a *PersistentVolumeClaim* and attach it into an application with
+the `oc set volume` command. Execute the following
+
+[source,role="execute"]
+----
+oc set volume dc/file-uploader --add --name=my-shared-storage \
+-t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
+--claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
+--mount-path=/opt/app-root/src/uploaded \
+-n my-shared-storage
+----
+
+This command will:
+
+* create a *PersistentVolumeClaim*
+* update the *DeploymentConfig* to include a `volume` definition
+* update the *DeploymentConfig* to attach a `volumemount` into the specified
+  `mount-path`
+* cause a new deployment of the 3 application *Pods*
+
+For more information on what `oc set volume` is capable of, look at its help output
+with `oc set volume -h`. Now, let's look at the result of adding the volume:
+
+[source,role="execute"]
+----
+oc get pvc -n my-shared-storage
+----
+
+.Sample Output
+----
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+my-shared-storage   Bound    pvc-371c2184-fb73-11e9-b901-0aad1a53052d   1Gi        RWX            ocs-storagecluster-cephfs   47s
+----
+
+Notice the `ACCESSMODE` being set to *RWX* (short for `ReadWriteMany`).
+
+All 3 `file-uploader`*Pods* are using the sane *RWX* volume. Without this `ACCESSMODE`, OpenShift will not attempt to attach multiple *Pods* to the same *PersistentVolume*
+reliably. If you attempt to scale up deployments that are using *RWO* or `ReadWriteOnce` storage, the *Pods* will actually all become co-located on the same
+node.
+
+Try it out in your file uploader web application using your browser. Upload
+new files.
+
+Now, check the *Route* that has been created:
+
+[source,role="execute"]
+----
+oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.host}"
+----
+
+This will return a route similar to this one (careful: there is no line break at the end so your shell prompt appears right after the output).
+
+.Sample Output
+----
+file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com
+----
+
+Point your browser to the web application using the URL advertised by your route. *Your `route` will be different*
+
+The web app simply lists all uploaded files and offers the ability to upload new ones as well as download the existing data. Right now there is
+nothing.
+
+Select an arbitrary file from your local machine and upload it to the app.
+
+.A simple PHP-based file upload tool
+image::imgs/uploader_screen_upload.png[]
+
+Once done click *_List uploaded files_* to see the list of all currently
+uploaded files.
+
+== Create a new OCP registry using CephFS (Optional)
 
 In this section the `ocs-storagecluster-cephfs` *Storage Class* will be used to create a RWX (ReadWriteMany) PVC that can be used by multiple pods at the same time. As an example we will be running a highly-available container image registry. The persistent storage will be based on a CephFS volume in the Ceph pool `ocs-storagecluster-cephfilesystem-data0`.
+
+[CAUTION]
+====
+*This section requires either installing or downloading podman. The utility podman is known to not operator correctly with Mac OS.*
+====
 
 Deploy the registry like this:
 
@@ -788,8 +890,7 @@ The MCG status can be checked with the Noobaa CLI. Make sure you are in the `ope
 
 [source,role="execute"]
 ----
-oc project openshift-storage
-noobaa status
+noobaa status -n openshift-storage
 ----
 .Example output:
 ----
@@ -904,7 +1005,7 @@ Creating an OBC is as simple as using the Noobaa CLI:
 
 [source,role="execute"]
 ----
-noobaa obc create test21obc
+noobaa obc create test21obc -n openshift-storage
 ----
 .Example output:
 ----
@@ -915,7 +1016,7 @@ The Noobaa CLI has created the necessary configuration inside of Noobaa and has 
 
 [source,role="execute"]
 ----
-oc get obc
+oc get obc -n openshift-storage
 ----
 .Example output:
 ----
