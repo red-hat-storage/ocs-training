@@ -393,7 +393,7 @@ At this point, the image registry should be using the OCS RWX volume, backed by 
 In the output from either command, it is shown that the `/registry` filesystem mount originates from `/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206` sourced from Ceph nodes, managed by the `rook` operator.
 
 As a result from the `df -h` command, we can verify it has 100Gi available space.
-The `mount` command shows which options were when mounting the `/registry` filesystem slice.
+The `mount` command shows which options were used when mounting the `/registry` filesystem slice.
 
 You can exit the pod remote shell `rsh` by either pressing kbd:[Ctrl+D] or by executing `exit`.
 
