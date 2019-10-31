@@ -532,7 +532,7 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in `ocs-storagecluster-cephblockpool` now.
+Run the same Ceph commands as before the application deployment and compare to results in prior section. Notice the number of objects in `ocs-storagecluster-cephblockpool` has increased. The third command lists RBDs and we should now have two RBDs.
 
 [source,role="execute"]
 ----
@@ -542,6 +542,75 @@ rbd -p ocs-storagecluster-cephblockpool ls | grep vol
 ----
 
 You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
+
+=== Matching PVs to RBDs
+
+A handy way to match persistent volumes to Ceph RBDs is to execute:
+
+[source,role="execute"]
+----
+oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,STORAGECLASS:.spec.storageClassName,RBD:.spec.csi.volumeHandle'
+----
+.Example output:
+----
+NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+ocs-deviceset-0-0-z2xzg   pvc-1b636a3f-f978-11e9-9bdd-005056818b15   thin                          <none>
+ocs-deviceset-1-0-wcrql   pvc-1b64c8e5-f978-11e9-9bdd-005056818b15   thin                          <none>
+ocs-deviceset-2-0-b82nr   pvc-1b6618fa-f978-11e9-9bdd-005056818b15   thin                          <none>
+postgresql                pvc-3967abba-fbcd-11e9-9bdd-005056818b15   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-39787034-fbcd-11e9-8be1-0a580a810213
+my-shared-storage         pvc-ab06ddc4-fbc0-11e9-9d0a-00505681bc30   ocs-storagecluster-cephfs     0001-0011-openshift-storage-0000000000000001-ab869bbf-fbc0-11e9-92f8-0a580a800411
+db-noobaa-core-0          pvc-b8490616-f977-11e9-9bdd-005056818b15   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-5c29f1e6-f978-11e9-8be1-0a580a810213
+rook-ceph-mon-a           pvc-c434ab90-f977-11e9-9bdd-005056818b15   thin                          <none>
+rook-ceph-mon-b           pvc-c74f9f10-f977-11e9-9bdd-005056818b15   thin                          <none>
+rook-ceph-mon-c           pvc-ca4eea2e-f977-11e9-9bdd-005056818b15   thin                          <none>
+----
+
+The second half of the `VOLUMEHANDLE` column mostly matches what your RBD is named inside of Ceph. All you have to do is append `csi-vol-` to the front like this:
+
+.Get the full RBD name of our postgreSQL PV in one command
+[source,role="execute"]
+----
+oc get pv pvc-3967abba-fbcd-11e9-9bdd-005056818b15 -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}'
+----
+.Example output:
+----
+csi-vol-39787034-fbcd-11e9-8be1-0a580a810213
+----
+
+[NOTE]
+====
+It is important to use the `PVNAME` in the above command
+====
+
+Now we can check on the details of our RBD from inside of the tools pod:
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+
+oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool info csi-vol-39787034-fbcd-11e9-8be1-0a580a810213
+----
+.Example output:
+----
+rbd image 'csi-vol-39787034-fbcd-11e9-8be1-0a580a810213':
+        size 5 GiB in 1280 objects
+        order 22 (4 MiB objects)
+        snapshot_count: 0
+        id: 75a68ab19dfcb
+        block_name_prefix: rbd_data.75a68ab19dfcb
+        format: 2
+        features: layering
+        op_features: 
+        flags: 
+        create_timestamp: Thu Oct 31 10:57:27 2019
+        access_timestamp: Thu Oct 31 10:57:27 2019
+        modify_timestamp: Thu Oct 31 10:57:27 2019
+----
+
+[NOTE]
+====
+You will need to adjust the command to fit to your RBD name
+====
 
 == Create a new OCP application deployment using CephFS volume
 
