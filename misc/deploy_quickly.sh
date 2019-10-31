@@ -37,9 +37,3 @@ until [[ $(kubectl get pods -l app=rook-ceph-mon -o 'jsonpath={..status.conditio
  echo -n "."
  sleep 5
 done
-
-
-#REMOVEME
-# Set Crush rules for pools
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage "$TOOLS_POD" sh -c "ceph osd lspools | cut -d ' ' -f 2 | xargs -n1 -t -I {} ceph osd pool set {} crush_rule replicated_rule"
