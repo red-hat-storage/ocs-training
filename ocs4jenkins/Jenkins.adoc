@@ -25,7 +25,7 @@ Jenkins is one of the most important development infrastructure components, but 
 * Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
 * a copy of this git repo
 * *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
-* Please git clone our repository and once close, you'll find all the scripts needed in the ocs4jenkins directory: 
+* Please git clone our repository and once cloned, you'll find all the scripts needed in the `ocs4jenkins` directory:
 [source,role="execute"]
 ----
 git clone https://github.com/red-hat-storage/ocs-training.git
@@ -171,8 +171,8 @@ The script accept two variables, the OCP project name where you created the Jenk
 $ bash run_builds myjenkins-1 myjenkins-1
 ----
 
-if we'll look at the newly created "myjenkins-1" directory, it should have 10 files (2 files for each of the 5 runs of the build): + 
-The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins build runs. + 
+if we'll look at the newly created "myjenkins-1" directory, it should have 10 files (2 files for each of the 5 runs of the build): +
+The files that matches <project_name>-<BuildConfig_name>-<run_number> are literally the output of the Jenkins build runs. +
 The files starting with "log-" will hold the build duration data.
 A quick grep sample of the results will show similar results to these:
 [source,role="execute"]
