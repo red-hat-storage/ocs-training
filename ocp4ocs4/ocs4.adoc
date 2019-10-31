@@ -1038,6 +1038,7 @@ Adding storage to OCS adds capacity and performance to your already present clus
 [NOTE]
 ====
 For this you can select to either add more storage worker nodes, or leverage the already present nodes to add more storage capacity.
+The reason for adding more OCP worker nodes for storage is because the existing nodes do not have adequate CPU and/or Memory available.
 ====
 
 === Add storage worker nodes
