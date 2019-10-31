@@ -25,6 +25,11 @@ Jenkins is one of the most important development infrastructure components, but 
 * Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
 * a copy of this git repo
 * *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
+* Please git clone our repository and once close, you'll find all the scripts needed in the ocs4jenkins directory: 
+[source,role="execute"]
+----
+git clone https://github.com/red-hat-storage/ocs-training.git
+----
 
 == Deploying Jenkins
 
