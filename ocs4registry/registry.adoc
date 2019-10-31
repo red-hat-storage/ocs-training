@@ -309,7 +309,9 @@ ocs4registry   Bound    pvc-b7339457-fb23-11e9-846d-0a3016334dd1   100Gi      RW
 In this section we will instruct the registry operator to use the CephFS-backed RWX PVC
 
 
-Now configure the registry to use the OCS storage
+Now configure the registry to use the OCS storage.
+Find the `storage:` stanza and remove it and everything below it. 
+Everthing above it should remain in place. Then put the following instead:
 
 [source,role="execute"]
 ----
@@ -320,6 +322,7 @@ oc edit configs.imageregistry.operator.openshift.io
      claim: ocs4registry
 ----
 
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
 
 Then check the `/registry` mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS `pvc` instead of the `s3` resources on AWS. Here is how to do this:
 
