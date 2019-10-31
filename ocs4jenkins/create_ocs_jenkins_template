@@ -1,0 +1,28 @@
+#!/bin/bash
+
+temp_file=/tmp/template.$$
+
+readonly CSI_DRIVER=ocs-storagecluster-ceph-rbd
+readonly PV_SIZE=10Gi
+readonly NEW_TEMPLATE_NAME=jenkins-persistent-ocs
+
+oc get template -n openshift jenkins-persistent -o yaml > ${temp_file}
+
+echo -e "- description: Override jenkins options to speed up slave spawning\n  displayName: Override jenkins options to speed up slave spawning\n  name: JAVA_OPTS\n  value: \"-Dhudson.slaves.NodeProvisioner.initialDelay=0 -Dhudson.slaves.NodeProvisioner.MARGIN=50 -Dhudson.slaves.NodeProvisioner.MARGIN0=0.85\"" >> ${temp_file}
+
+if [ "$(uname -s)" == "Linux" ];then
+  sed -i "s/jenkins-persistent/${NEW_TEMPLATE_NAME}/g" ${temp_file}
+  sed -i '/PersistentVolumeClaim/{n;d}' ${temp_file}
+  sed -i "/PersistentVolumeClaim/a\  \metadata:\n    annotations:\n      volume.beta.kubernetes.io/storage-class: ${CSI_DRIVER}" ${temp_file}
+  sed -i '/\${JENKINS_UC_INSECURE}/a\          \- name: JAVA_OPTS\n            value: ${JAVA_OPTS}' ${temp_file}
+  sed -i '/name: VOLUME_CAPACITY/{n;N;d}' ${temp_file}
+  sed -i "/name: VOLUME_CAPACITY/a\ \ required: true\n  value: ${PV_SIZE}" ${temp_file}
+else
+  sed -i '' -e "s/jenkins-persistent/${NEW_TEMPLATE_NAME}/g" ${temp_file}
+  sed -i '' -e '/PersistentVolumeClaim/{n;d;}' ${temp_file}
+  sed -i '' -e $'s/kind: PersistentVolumeClaim/kind: PersistentVolumeClaim\\\n  metadata:\\\n    annotations:\\\n      volume.beta.kubernetes.io\\/storage-class: '${CSI_DRIVER}'/' ${temp_file}
+  sed -i '' -e '/name: VOLUME_CAPACITY/{n;N;d;}' ${temp_file}
+  sed -i '' -e $'s/name: VOLUME_CAPACITY/name: VOLUME_CAPACITY\\\n  required: true\\\n  value: '${PV_SIZE}'/' ${temp_file}
+fi
+
+oc create -n openshift -f ${temp_file}

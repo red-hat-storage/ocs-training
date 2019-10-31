@@ -1,0 +1,67 @@
+#!/bin/bash
+
+readonly PROJECT_NAME=${1}
+readonly RUN_DIR=${2}
+readonly NUMBER_OF_BUILDS=5
+readonly BUILD_CONFIG=jax-rs-build
+
+function start_build()
+{
+  build_name=$(oc -n ${PROJECT_NAME} start-build ${BUILD_CONFIG} | awk '{print $1}' | awk -F/ '{print $2}')
+}
+
+function wait_for_build()
+{
+  local interval="$1"
+  local build_is_complete=""
+  while true;
+  do
+    build_is_complete=$(oc get build -n ${PROJECT_NAME} ${build_name} | grep Complete | wc -l | tr -d ' ')
+    if [[ "${build_is_complete}" == "1" ]]; then
+      echo "Project ${PROJECT_NAME}, Build ${BUILD_CONFIG} number ${build_number} is complete ..."
+      break
+    fi
+    echo "Project ${PROJECT_NAME}, Build ${BUILD_CONFIG} number ${build_number} is not done yet... waiting ..."
+    sleep ${interval}
+  done
+}
+
+function get_build_logs()
+{
+  service_account=$(oc -n ${PROJECT_NAME} describe serviceaccount jenkins|grep Tokens|awk '{print $2}')
+  if [ "$(uname -s)" == "Linux" ];then
+    jenkins_token=$(oc -n ${PROJECT_NAME} get secret ${service_account} -o=jsonpath={.data.token} | base64 -d)
+  else
+    jenkins_token=$(oc -n ${PROJECT_NAME} get secret ${service_account} -o=jsonpath={.data.token} | base64 --decode)
+  fi
+  jenkins_route=$(oc -n ${PROJECT_NAME} get route|grep jenkins|awk '{print $2}')
+  jenkins_build_console="https://${jenkins_route}/job/${PROJECT_NAME}/job/${PROJECT_NAME}-${BUILD_CONFIG}/${build_number}/consoleText"
+  build_console_file=${RUN_DIR}/${PROJECT_NAME}-${BUILD_CONFIG}-${build_number}
+  wget --no-check-certificate --header "Authorization: Bearer ${jenkins_token}" "${jenkins_build_console}" -O ${build_console_file}
+}
+
+function get_build_time()
+{
+  cat ${build_console_file}|grep 'Total time:\|msecs'
+}
+
+if [[ $# -eq 0 || $# -ne 2 ]]; then
+ echo "Come on, gimme a few variables..."
+ exit 1
+fi
+
+if [[ ! -d "${RUN_DIR}" ]]; then
+  mkdir -p "${RUN_DIR}"
+fi
+
+for ((build_number=1; build_number<=${NUMBER_OF_BUILDS}; build_number++))
+do
+  SECONDS=0
+  start_build
+  build_run_log=${RUN_DIR}/log-${PROJECT_NAME}-${BUILD_CONFIG}-${build_number}
+  wait_for_build 2
+  duration=$SECONDS
+  echo "Build number ${build_number} for project ${PROJECT_NAME} took $(($duration / 60)) minutes and $(($duration % 60)) seconds." >> ${build_run_log}
+  get_build_logs
+  get_build_time >> ${build_run_log}
+done

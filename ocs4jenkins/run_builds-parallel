@@ -1,0 +1,22 @@
+#!/bin/bash
+
+readonly NUMBER_OF_PROJECTS=60
+readonly PROJECT_PREFIX=myjenkins
+readonly RUN_DIR=$(dirname $0)
+readonly RUN_NAME=${1}
+
+if [[ $# -eq 0 || $# -ne 1 ]]; then
+ echo "Come on, gimme a few variables..."
+ exit 1
+fi
+
+if [[ ! -d "${RUN_NAME}" ]]; then
+  mkdir -p "${RUN_NAME}"
+fi
+
+for ((i=1;i<=${NUMBER_OF_PROJECTS};i++))
+do
+  echo "starting run on project ${PROJECT_PREFIX}-${i}..."
+  mkdir ${RUN_NAME}/${PROJECT_PREFIX}-${i}
+  ${RUN_DIR}/run_builds ${PROJECT_PREFIX}-${i} ${RUN_NAME}/${PROJECT_PREFIX}-${i} &
+done

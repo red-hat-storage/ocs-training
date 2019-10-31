@@ -1,0 +1,100 @@
+#!/bin/bash
+
+readonly PROJECT_NAME=${1}
+readonly PVC_DRIVER=${2}
+
+function create_project()
+{
+  oc adm new-project ${PROJECT_NAME}
+}
+
+function create_app_jenkins()
+{
+  oc new-app -n ${PROJECT_NAME} --name=jenkins-ocs-rbd --template=jenkins-persistent-ocs
+}
+
+
+function wait_for_jenkins()
+{
+  local interval="$1"
+  local jenkins_is_ready=""
+  while true;
+  do
+    jenkins_is_ready=$(oc get pods -n ${PROJECT_NAME} | grep jenkins | grep -v deploy | grep Running | grep 1/1 | wc -l | tr -d ' ')
+    if [[ "${jenkins_is_ready}" == "1" ]]; then
+      echo "Jenkins is ready ..."
+      break
+    fi
+    echo "Jenkins is not ready yet... waiting ..."
+    sleep ${interval}
+  done
+}
+
+function create_build_pvc()
+{
+  if ! oc get -n ${PROJECT_NAME} pvc dependencies > /dev/null 2>&1;then
+    cat <<EOF | oc create -n ${PROJECT_NAME} -f -
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  annotations:
+  name: dependencies
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ${PVC_DRIVER}
+EOF
+  fi
+}
+
+function create_buildconfig()
+{
+  if ! oc get -n ${PROJECT_NAME} buildconfig jax-rs-build > /dev/null 2>&1;then
+    cat <<EOF | oc create -n ${PROJECT_NAME} -f -
+kind: "BuildConfig"
+apiVersion: "v1"
+metadata:
+  name: "jax-rs-build"
+spec:
+  strategy:
+    type: JenkinsPipeline
+    jenkinsPipelineStrategy:
+      jenkinsfile: |-
+        podTemplate(label: 'maven-s',
+                    cloud: 'openshift',
+                    inheritFrom: 'maven',
+                    name: 'maven-s',
+                    volumes: [persistentVolumeClaim(mountPath: '/home/jenkins/.m2', claimName: 'dependencies', readOnly: false) ]
+              ) {
+          node("maven-s") {
+            stage('Source Checkout') {
+              git url: "https://github.com/redhat-gpte-devopsautomation/openshift-tasks.git"
+              script {
+                def pom = readMavenPom file: 'pom.xml'
+                def version = pom.version
+              }
+            }
+            // Using Maven build the war file
+            stage('Build JAX-RS') {
+              echo "Building war file"
+              sh "mvn clean package -DskipTests=true"
+            }
+          }
+        }
+EOF
+  fi
+}
+
+if [[ $# -eq 0 || $# -ne 2 ]]; then
+ echo "Come on, gimme a few variables..."
+ exit 1
+fi
+
+create_project
+create_build_pvc
+create_app_jenkins
+create_buildconfig
+wait_for_jenkins 4
