@@ -50,7 +50,7 @@ storage location such as cloud storage or a filesystem volume.
 
 The image metadata, which is exposed by the standard cluster APIs and is used to perform access control, is stored as standard API resources, specifically images and imagestreams. 
 
-== Project
+=== Project
 The registry is arranged in a Project (namespace) named: ‘openshift-image-registry’
 
 To get more information about this project, run the following oc command:
@@ -78,7 +78,7 @@ Resource limits:	<none>
 ----
 
 
-== Pods
+=== Pods
 To view the registry related pods, run the command: 
 [source,role="execute"]
 ----
@@ -396,7 +396,6 @@ As a result from the `df -h` command, we can verify it has 100Gi available space
 The `mount` command shows which options were used when mounting the `/registry` filesystem slice.
 
 You can exit the pod remote shell `rsh` by either pressing kbd:[Ctrl+D] or by executing `exit`.
-
 
 
 
