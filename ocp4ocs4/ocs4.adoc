@@ -1642,3 +1642,22 @@ curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | gr
 ----
 curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/
 ----
+
+Check that your noobaa CLI installation was successful with this command:
+
+[source,role="execute"]
+----
+noobaa version
+----
+.Example output:
+----
+noobaa version
+INFO[0000] CLI version: 2.0.4
+INFO[0000] noobaa-image: noobaa/noobaa-core:5
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.4
+----
+
+[NOTE]
+====
+The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output
+====
