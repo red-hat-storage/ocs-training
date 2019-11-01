@@ -103,7 +103,7 @@ node-ca-pwrrs                                      1/1     Running   0          
 
 
 == Review the current Registry Operator configuration settings
-Lets review the current Registry Settuing first. To do so, please run the command:
+Lets review the current Registry settings first. To do so, please run the command:
 
 [source,role="execute"]
 ----
