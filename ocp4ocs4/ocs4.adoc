@@ -148,7 +148,7 @@ Now you want to see if our new *machines* are added to the OCP cluster.
 
 [source,role="execute"]
 ----
-oc get machinesets -n openshift-machine-api -w
+watch oc get machinesets -n openshift-machine-api
 ----
 
 This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below.
@@ -204,7 +204,7 @@ This will fetch the manifest from the `release-4.2` tag. After applying this, yo
 
 [source,role="execute"]
 ----
-oc -n openshift-storage get csv -w
+watch oc -n openshift-storage get csv
 ----
 .Example output:
 ----
@@ -485,7 +485,7 @@ This step could take 5 or more minutes. Wait until there are 2 *Pods* in `Runnin
 
 [source,role="execute"]
 ----
-oc get pods -n my-database-app -w
+watch oc get pods -n my-database-app
 ----
 .Example output:
 ----
@@ -1575,7 +1575,7 @@ Use "oc adm options" for a list of global command-line options (applies to all c
 
 This section will explain how you set up your workstation with the Openshift CLI.
 
-To get the latest Openshift CLI client run the following commands:
+To get the latest OpenShift CLI client run the following commands:
 
 
 .Mac steps
@@ -1585,6 +1585,21 @@ wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-dire
 ls -1 openshift-client-mac-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
 sudo mv oc /usr/local/bin
 ----
+
+In addition install the watch command to use with the `oc client` on your Mac using Homebrew.
+
+----
+brew install watch
+----
+Alternatively, add the following lines to your $HOME/.profile. 
+
+----
+function watch {
+while :; do clear; date; echo; $@; sleep 2; done
+}
+----
+
+Then reload your profile with `source $HOME/.profile`.
 
 .Linux steps
 [source]
