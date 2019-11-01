@@ -1621,6 +1621,11 @@ Server Version: 4.2.0
 Kubernetes Version: v1.14.6+2e5ed54
 ----
 
+[NOTE]
+====
+The above commands will always pull the latest oc version, so your version might be higher than the version in the example output.
+====
+
 [appendix]
 == Install the Noobaa CLI client
 
@@ -1659,5 +1664,5 @@ INFO[0000] operator-image: noobaa/noobaa-operator:2.0.4
 
 [NOTE]
 ====
-The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output
+The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output.
 ====
