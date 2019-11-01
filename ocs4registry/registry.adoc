@@ -19,7 +19,6 @@ oc describe project openshift-storage|grep Status
 
 The result of the above command should be similar like:
 
-[source,role="execute"]
 ----
 Status:			Active
 ----
@@ -39,7 +38,7 @@ The Image Registry Operator runs in the `openshift-image-registry` namespace, an
 In case you want to see detailed information about the registry operator then run:
 [source,role="execute"]
 ----
-$ oc describe configs.imageregistry.operator.openshift.io
+oc describe configs.imageregistry.operator.openshift.io
 ----
 
 == Registry storage needs
@@ -57,10 +56,10 @@ To get more information about this project, run the following oc command:
 
 [source,role="execute"]
 ----
-$ oc describe project openshift-image-registry
+oc describe project openshift-image-registry
 ----
 
-[source,role="execute"]
+[source,yaml]
 ----
 Name:			openshift-image-registry
 Created:		3 hours ago
@@ -86,7 +85,6 @@ oc get pods -n openshift-image-registry
 ----
 (The `NAME` of your machines will be different than shown below)
 
-[source,role="execute"]
 ----
 NAME                                               READY   STATUS    RESTARTS   AGE
 cluster-image-registry-operator-74465655b4-gq44m   2/2     Running   0          3h16m
@@ -110,7 +108,6 @@ Lets review the current Registry settings first. To do so, please run the comman
 oc edit configs.imageregistry.operator.openshift.io/cluster
 ----
 
-[source,role="execute"]
 ----
 # Please edit the object below. Lines beginning with a '#' will be ignored,
 # and an empty file will abort the edit. If an error occurs while saving this file will be
@@ -210,9 +207,12 @@ reason: S3 Bucket Exists
   storageManaged: true
 ----
 
-NOTE: The `storage` designation currently refers to `s3` and a `bucket` name. This is   initial deployment of OCP4 on AWS infrastructure.
+[NOTE]
+====
+The `storage` designation currently refers to `s3` and a `bucket` name. This is   initial deployment of OCP4 on AWS infrastructure.
+====
 
-[source,role="execute"]
+[source,yaml]
 ----
 storage:
     s3:
@@ -240,7 +240,6 @@ oc get sc
 
 This should result in an outcome similar to:
 
-[source,role="execute"]
 ----
 NAME                                    PROVISIONER                             AGE
 gp2                                     kubernetes.io/aws-ebs                   5h57m
@@ -267,7 +266,7 @@ In order to create the pvc, please run the following command:
 
 [source,role="execute"]
 ----
-$ oc create -f <(echo '{
+oc create -f <(echo '{
    "apiVersion": "v1",
    "kind": "PersistentVolumeClaim", 
    "metadata": {
@@ -286,7 +285,6 @@ $ oc create -f <(echo '{
 
 This should result in:
 
-[source,role="execute"]
 ----
 persistentvolumeclaim/ocs4registry created
 ----
@@ -298,8 +296,7 @@ To check if it worked out well:
 ----
 oc get pvc
 ----
-
-[source,role="execute"]
+.Example output:
 ----
 NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
 ocs4registry   Bound    pvc-b7339457-fb23-11e9-846d-0a3016334dd1   100Gi      RWX            ocs-storagecluster-cephfs   60s
@@ -309,8 +306,10 @@ ocs4registry   Bound    pvc-b7339457-fb23-11e9-846d-0a3016334dd1   100Gi      RW
 === Configure Image registry to use the newly created PVC
 In this section we will instruct the registry operator to use the CephFS-backed RWX PVC.
 
-NOTE: This method of moving the registry to OCS will work exactly the same for OCP on VMware infrastructure.
-
+[NOTE]
+====
+This method of moving the registry to OCS will work exactly the same for OCP on VMware infrastructure.
+====
 
 Now configure the registry to use the OCS storage.
 Find the `storage:` stanza and remove it and everything below it. 
@@ -319,7 +318,10 @@ Everthing above it should remain in place. Then put the following instead:
 [source,role="execute"]
 ----
 oc edit configs.imageregistry.operator.openshift.io
+----
 
+.Find the storage section and add the following:
+----
   storage:
     pvc:
      claim: ocs4registry
@@ -334,9 +336,12 @@ Then check the `/registry` mountpoint inside the image-registry pod, as a valida
 oc get pods
 ----
 
-NOTE: The `NAME` of your machines will be different than shown below
+[NOTE]
+====
+The `NAME` of your machines will be different than shown below
+====
 
-[source,role="execute"]
+.Example output:
 ----
 NAME                                               READY   STATUS    RESTARTS   AGE
 cluster-image-registry-operator-6d65bcbd4b-7h6b6   2/2     Running   0          8h
@@ -354,7 +359,10 @@ node-ca-wg2xs                                      1/1     Running   0          
 
 We now open a up remote shell on the `registry` pod. This is the podname that starts with `image-registry-*`
 
-NOTE: The `NAME` of your registry pod will be different than shown below
+[NOTE]
+====
+The `NAME` of your registry pod will be different than shown below
+====
 
 [source,role="execute"]
 ----
@@ -372,7 +380,6 @@ sh-4.2$ df -h | grep registry
 
 This results in the following output:
 
-[source,role="execute"]
 ----
 172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206  100G     0  100G   0% /registry
 ----
@@ -381,11 +388,10 @@ Another approach to take could be to use the `mount` command.
 
 [source,role="execute"]
 ----
-sh-4.2$ mount|grep registry
+sh-4.2$ mount | grep registry
 ----
 
 Resulting in the following output:
-[source,role="execute"]
 ----
 172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206 on /registry type ceph (rw,relatime,name=csi-cephfs-node,secret=<hidden>,acl,mds_namespace=ocs-storagecluster-cephfilesystem)
 ----
@@ -399,7 +405,3 @@ As a result from the `df -h` command, we can verify it has 100Gi available space
 The `mount` command shows which options were used when mounting the `/registry` filesystem slice.
 
 You can exit the pod remote shell `rsh` by either pressing kbd:[Ctrl+D] or by executing `exit`.
-
-
-
-
