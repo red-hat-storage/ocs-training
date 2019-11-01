@@ -1,0 +1,405 @@
+= Openshift Image Registry 
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Requirement
+This exercise scenario supposes that you already have Openshift Container Storage running inside your Openshift environment. If not, then please return back the previous installation section that takes care of fulfilling this requirement.
+
+In order to be sure on the presence of Openshift Container Storage, please run:
+
+[source,role="execute"]
+----
+oc describe project openshift-storage|grep Status
+----
+
+The result of the above command should be similar like:
+
+[source,role="execute"]
+----
+Status:			Active
+----
+
+== Registry introduction
+OpenShift Container Platform provides a built in Container Image Registry which runs as a standard workload on the cluster.
+A registry is typically used as a publication target for images built on the cluster as well as a source of images for workloads running on the cluster. 
+
+In addition, it is integrated into the cluster user authentication and authorization system which means that access to create and retrieve images is controlled by defining user permissions on the image resources.
+
+== Image Registry Operator
+The Registry is configured and managed by an infrastructure operator. 
+The Image Registry Operator installs a single instance of the OpenShift Container Platform registry, and it manages all configuration of the registry, including setting up registry storage when you install an installer-provisioned infrastructure cluster on AWS, GCP, Azure, or OpenStack. 
+
+The Image Registry Operator runs in the `openshift-image-registry` namespace, and manages the registry instance in that location as well. All configuration and workload resources for the registry reside in that namespace.
+
+In case you want to see detailed information about the registry operator then run:
+[source,role="execute"]
+----
+$ oc describe configs.imageregistry.operator.openshift.io
+----
+
+== Registry storage needs
+A registy needs to have storage to store its contents in. 
+Image data is stored in two locations. 
+The actual image data is stored in a configurable 
+storage location such as cloud storage or a filesystem volume. 
+
+The image metadata, which is exposed by the standard cluster APIs and is used to perform access control, is stored as standard API resources, specifically images and imagestreams. 
+
+=== Project
+The registry is arranged in a Project (namespace) named: ‘openshift-image-registry’
+
+To get more information about this project, run the following oc command:
+
+[source,role="execute"]
+----
+$ oc describe project openshift-image-registry
+----
+
+[source,role="execute"]
+----
+Name:			openshift-image-registry
+Created:		3 hours ago
+Labels:			openshift.io/cluster-monitoring=true
+Annotations:		openshift.io/node-selector=
+			openshift.io/sa.scc.mcs=s0:c18,c17
+			openshift.io/sa.scc.supplemental-groups=1000340000/10000
+			openshift.io/sa.scc.uid-range=1000340000/10000
+Display Name:		<none>
+Description:		<none>
+Status:			Active
+Node Selector:		<none>
+Quota:			<none>
+Resource limits:	<none>
+----
+
+
+=== Pods
+To view the registry related pods, run the command: 
+[source,role="execute"]
+----
+oc get pods -n openshift-image-registry
+----
+(The `NAME` of your machines will be different than shown below)
+
+[source,role="execute"]
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+cluster-image-registry-operator-74465655b4-gq44m   2/2     Running   0          3h16m
+image-registry-7489584ddc-jhw2j                    1/1     Running   0          3h16m
+node-ca-4x477                                      1/1     Running   0          116m
+node-ca-d82rv                                      1/1     Running   0          3h16m
+node-ca-gxd8r                                      1/1     Running   0          3h16m
+node-ca-kjp28                                      1/1     Running   0          3h16m
+node-ca-lvb48                                      1/1     Running   0          116m
+node-ca-ndwhh                                      1/1     Running   0          3h16m
+node-ca-nwstp                                      1/1     Running   0          116m
+node-ca-pwrrs                                      1/1     Running   0          3h16m
+----
+
+
+== Review the current Registry Operator configuration settings
+Lets review the current Registry Settuing first. To do so, please run the command:
+
+[source,role="execute"]
+----
+oc edit configs.imageregistry.operator.openshift.io/cluster
+----
+
+[source,role="execute"]
+----
+# Please edit the object below. Lines beginning with a '#' will be ignored,
+# and an empty file will abort the edit. If an error occurs while saving this file will be
+# reopened with the relevant failures.
+#
+apiVersion: imageregistry.operator.openshift.io/v1
+kind: Config
+metadata:
+  creationTimestamp: "2019-10-28T09:07:09Z"
+  finalizers:
+  - imageregistry.operator.openshift.io/finalizer
+  generation: 3
+  name: cluster
+  resourceVersion: "16463"
+  selfLink: /apis/imageregistry.operator.openshift.io/v1/configs/cluster
+  uid: 52880e6b-f962-11e9-8995-12a861d1434e
+spec:
+  defaultRoute: true
+  httpSecret: 0c394aabee8e6a9ef8aa2c927c8f8c487f8ad3249ff67794a8685af4f76c72811c97ee4ddf936602dd9fca12e198c4eff413130568a4c356d7b6f14f805bcb59
+  logging: 2
+  managementState: Managed
+  proxy:
+    http: ""
+    https: ""
+    noProxy: ""
+  readOnly: false
+  replicas: 1
+  requests:
+    read:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+    write:
+      maxInQueue: 0
+      maxRunning: 0
+      maxWaitInQueue: 0s
+  storage:
+    s3:
+      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
+      encrypt: true
+      keyID: ""
+      region: us-east-1
+      regionEndpoint: ""
+status:
+  conditions:
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+reason: S3 Bucket Exists
+    status: "True"
+    type: StorageExists
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Public access to the S3 bucket and its contents have been successfully
+      blocked.
+    reason: Public Access Block Successful
+    status: "True"
+    type: StoragePublicAccessBlocked
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Tags were successfully applied to the S3 bucket
+    reason: Tagging Successful
+    status: "True"
+    type: StorageTagged
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Default AES256 encryption was successfully enabled on the S3 bucket
+    reason: Encryption Successful
+    status: "True"
+    type: StorageEncrypted
+  - lastTransitionTime: "2019-10-28T09:07:10Z"
+    message: Default cleanup of incomplete multipart uploads after one (1) day was
+    successfully enabled
+    reason: Enable Cleanup Successful
+    status: "True"
+    type: StorageIncompleteUploadCleanupEnabled
+  - lastTransitionTime: "2019-10-28T09:07:56Z"
+    message: The registry is ready
+    reason: Ready
+    status: "True"
+    type: Available
+  - lastTransitionTime: "2019-10-28T09:18:32Z"
+    message: The registry is ready
+    reason: Ready
+    status: "False"
+    type: Progressing
+  - lastTransitionTime: "2019-10-28T09:07:11Z"
+    status: "False"
+    type: Degraded
+  - lastTransitionTime: "2019-10-28T09:07:11Z"
+    status: "False"
+    type: Removed
+  observedGeneration: 3
+  readyReplicas: 0
+  storage:
+    s3:
+      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
+      encrypt: true
+      keyID: ""
+      region: us-east-1
+      regionEndpoint: ""
+  storageManaged: true
+----
+
+NOTE: The `storage` designation currently refers to `s3` and a `bucket` name. This is   initial deployment of OCP4 on AWS infrastructure.
+
+[source,role="execute"]
+----
+storage:
+    s3:
+      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
+      encrypt: true
+      keyID: ""
+      region: us-east-1
+      regionEndpoint: ""
+----
+
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
+
+== Moving the registry storage to OCS
+In this section we will change the registry storage to OCS, where it will consume CephFS RWX storage, as multiple pods will need to access the storage concurrently.
+
+=== Storage Class
+First we want to make sure that a CephFS storageclass is present, in order to create a Persistant Volume Claim for the registry storage.
+
+To check for presence of an existing CephFS storage class, please run the following command:
+
+[source,role="execute"]
+----
+oc get sc
+----
+
+This should result in an outcome similar to:
+
+[source,role="execute"]
+----
+NAME                                    PROVISIONER                             AGE
+gp2                                     kubernetes.io/aws-ebs                   5h57m
+ocs-storagecluster-ceph-rbd (default)   openshift-storage.rbd.csi.ceph.com      4h5m
+ocs-storagecluster-cephfs               openshift-storage.cephfs.csi.ceph.com   4h5m
+openshift-storage.noobaa.io             openshift-storage.noobaa.io/obc         3h59m
+----
+
+
+According to the above output, there is already a storageclass named `ocs-storagecluster-cephfs`
+
+=== PVC (Persistent Volume Claim)
+In this step we will setup a `pvc` named `ocs4registry` addressed to our storageclass named `ocs-storagecluster-cephfs`, which is going to be used for storing registry data.
+
+First, please make sure to be inside the `openshift-image-registry` project.
+
+[source,role="execute"]
+----
+oc project openshift-image-registry
+----
+
+
+In order to create the pvc, please run the following command:
+
+[source,role="execute"]
+----
+$ oc create -f <(echo '{
+   "apiVersion": "v1",
+   "kind": "PersistentVolumeClaim", 
+   "metadata": {
+     "name": "ocs4registry"
+   },
+   "spec": {
+     "storageClassName": "ocs-storagecluster-cephfs", 
+     "accessModes": [ "ReadWriteMany" ],
+     "resources": {
+       "requests": { "storage": "100Gi"
+     } 
+   }
+ } 
+}');
+----
+
+This should result in:
+
+[source,role="execute"]
+----
+persistentvolumeclaim/ocs4registry created
+----
+
+
+To check if it worked out well:
+
+[source,role="execute"]
+----
+oc get pvc
+----
+
+[source,role="execute"]
+----
+NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+ocs4registry   Bound    pvc-b7339457-fb23-11e9-846d-0a3016334dd1   100Gi      RWX            ocs-storagecluster-cephfs   60s
+----
+
+
+=== Configure Image registry to use the newly created PVC
+In this section we will instruct the registry operator to use the CephFS-backed RWX PVC.
+
+NOTE: This method of moving the registry to OCS will work exactly the same for OCP on VMware infrastructure.
+
+
+Now configure the registry to use the OCS storage.
+Find the `storage:` stanza and remove it and everything below it. 
+Everthing above it should remain in place. Then put the following instead:
+
+[source,role="execute"]
+----
+oc edit configs.imageregistry.operator.openshift.io
+
+  storage:
+    pvc:
+     claim: ocs4registry
+----
+
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
+
+Then check the `/registry` mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS `pvc` instead of the `s3` resources on AWS. Here is how to do this:
+
+[source,role="execute"]
+----
+oc get pods
+----
+
+NOTE: The `NAME` of your machines will be different than shown below
+
+[source,role="execute"]
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+cluster-image-registry-operator-6d65bcbd4b-7h6b6   2/2     Running   0          8h
+image-registry-6c4dbbcdbb-9bl8w                    1/1     Running   0          8m59s
+node-ca-26q5d                                      1/1     Running   0          8h
+node-ca-6tdrs                                      1/1     Running   0          8h
+node-ca-9jdwt                                      1/1     Running   0          8h
+node-ca-g6dr5                                      1/1     Running   0          8h
+node-ca-jt7w8                                      1/1     Running   0          8h
+node-ca-r9qtx                                      1/1     Running   0          7h41m
+node-ca-srgv9                                      1/1     Running   0          7h41m
+node-ca-wg2xs                                      1/1     Running   0          7h41m
+----
+
+
+We now open a up remote shell on the `registry` pod. This is the podname that starts with `image-registry-*`
+
+NOTE: The `NAME` of your registry pod will be different than shown below
+
+[source,role="execute"]
+----
+oc rsh image-registry-6c4dbbcdbb-9bl8w
+----
+
+Once connected, a bash prompt appears. You are now running a bash shell on the pod itself.
+
+From within this remote shell, we can run both the `df -h` and/or `mount` command, which shows the result information from pod perspective:
+
+[source,role="execute"]
+----
+sh-4.2$ df -h | grep registry
+----
+
+This results in the following output:
+
+[source,role="execute"]
+----
+172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206  100G     0  100G   0% /registry
+----
+
+Another approach to take could be to use the `mount` command.
+
+[source,role="execute"]
+----
+sh-4.2$ mount|grep registry
+----
+
+Resulting in the following output:
+[source,role="execute"]
+----
+172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206 on /registry type ceph (rw,relatime,name=csi-cephfs-node,secret=<hidden>,acl,mds_namespace=ocs-storagecluster-cephfilesystem)
+----
+
+
+At this point, the image registry should be using the OCS RWX volume, backed by CephFS.
+
+In the output from either command, it is shown that the `/registry` filesystem mount originates from `/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206` sourced from Ceph nodes, managed by the `rook` operator.
+
+As a result from the `df -h` command, we can verify it has 100Gi available space.
+The `mount` command shows which options were used when mounting the `/registry` filesystem slice.
+
+You can exit the pod remote shell `rsh` by either pressing kbd:[Ctrl+D] or by executing `exit`.
+
+
+
+
