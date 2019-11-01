@@ -932,24 +932,8 @@ Changes to this filesystem is immediately affecting the registry *Pods* and this
 
 This section discusses the usage of the Multi-Cloud-Gateway (MCG). It is expected that the installation of MCG has been finished successfully and the local `oc` client is configured correctly to connect to the Openshift cluster.
 Currently the best way to configure the MCG is to use the CLI.
-To install the CLI, follow these steps on your workstation:
 
-.Mac steps
-[source]
-----
-brew install noobaa/noobaa/noobaa
-----
-.Mac steps without Homebrew
-[source]
-----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/
-----
-
-.Linux steps
-[source]
-----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/
-----
+To install the CLI follow the <<Install the Noobaa CLI client>> section.
 
 NOTE: While the Noobaa Web Management Console is accessible, it should not be used to create any resources, since they are currently not syncronised back to the Openshift cluster.
 
@@ -1636,3 +1620,49 @@ Client Version: openshift-clients-4.2.0-201910041700
 Server Version: 4.2.0
 Kubernetes Version: v1.14.6+2e5ed54
 ----
+
+[NOTE]
+====
+The above commands will always pull the latest oc version, so your version might be higher than the version in the example output.
+====
+
+[appendix]
+== Install the Noobaa CLI client
+
+To install the CLI, follow these steps on your workstation:
+
+.Mac steps
+[source]
+----
+brew install noobaa/noobaa/noobaa
+----
+.Mac steps without Homebrew
+[source]
+----
+curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/
+----
+
+.Linux steps
+[source]
+----
+curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/
+----
+
+Check that your noobaa CLI installation was successful with this command:
+
+[source,role="execute"]
+----
+noobaa version
+----
+.Example output:
+----
+noobaa version
+INFO[0000] CLI version: 2.0.4
+INFO[0000] noobaa-image: noobaa/noobaa-core:5
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.4
+----
+
+[NOTE]
+====
+The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output.
+====
