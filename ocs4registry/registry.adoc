@@ -103,6 +103,7 @@ node-ca-pwrrs                                      1/1     Running   0          
 
 
 == Review the current Registry Operator configuration settings
+Lets review the current Registry Settuing first. To do so, please run the command:
 
 [source,role="execute"]
 ----
@@ -209,7 +210,7 @@ reason: S3 Bucket Exists
   storageManaged: true
 ----
 
-NOTE: The `storage` designation currently refers to `s3` and a `bucket` name.
+NOTE: The `storage` designation currently refers to `s3` and a `bucket` name. This is   initial deployment of OCP4 on AWS infrastructure.
 
 [source,role="execute"]
 ----
