@@ -476,4 +476,7 @@ prometheusdb-prometheus-k8s-0      Bound    pvc-e0f7b201-ff0c-11e9-9bdd-00505681
 prometheusdb-prometheus-k8s-1      Bound    pvc-e101b1db-ff0c-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   4m34s
 ----
 
-This concludes this workshop in which you learned about the different parts of Openshift Monitoring and how to add persistent storage.
+
+### Configure even more
+
+Configuring more than the persistent storage exceeds the scope of this Workshop. A great way to learn more is to go to the official OpenShift Containter Platform documentation for this topic: https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html
