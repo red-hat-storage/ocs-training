@@ -10,24 +10,16 @@
 
 ## In this lab you will learn
 
+- What Prometheus is
+- How Prometheus is deployed inside of Openshift
 - Check the current storage backend of your Prometheus environment
-- Make your monitoring data persistent
-- Benchmark Prometheus before and after persisting it
+- Make your monitoring and data persistent
 
-## Prometheus introduction
+## What is Prometheus?
 
-[NOTE]
-====
-Write generic stuff about:
+Prometheus was started in 2012 by Soundcloud and is an open-source monitoring and alerting toolkit. Nowadays it is a stand-alone project and independent of any single company. Due to its design, it doesn't rely itself on a cluster or distributed database, but all its nodes are autonomous. All the communication happen through HTTP and Prometheus pulls information from it's nodes rather than receiving them like Nagios for example.
 
-- What is Prometheus
-- What are the problems that Prometheus tries to solve
-- How is it deployed inside of Openshift 4.x
-- How is it scaled
-- How can I use Prometheus
-  * To send data into Prometheus
-  * To get data out (Grafana)
-====
+To learn more about Prometheus, check out their official website at https://prometheus.io/docs/introduction/overview/
 
 ## Discover your Prometheus environment
 
