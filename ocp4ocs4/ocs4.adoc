@@ -549,7 +549,7 @@ A handy way to match persistent volumes to Ceph RBDs is to execute:
 
 [source,role="execute"]
 ----
-oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,STORAGECLASS:.spec.storageClassName,RBD:.spec.csi.volumeHandle'
+oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,PVNAME:.metadata.name,STORAGECLASS:.spec.storageClassName,VOLUMEHANDLE:.spec.csi.volumeHandle'
 ----
 .Example output:
 ----
