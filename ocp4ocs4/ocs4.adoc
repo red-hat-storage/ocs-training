@@ -353,15 +353,34 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Comple
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
 ----
 
+### Getting to know the Storage Dashboards
+
 You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your *Openshift Web Console*. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
-image::imgs/OCS-dashboard-healthy-new.png[OCS Dashboard after successful backing storage installation]
+image::imgs/OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
+
+[cols="0,1,10a"]
+|===
+|<1> | Health | Quick overview of the general health of the storage cluster
+|<2> | Details | Overview of the deployed storage cluster version and backend provider
+|<3> | Inventory | List of all the resources that are used and offered by the storage system
+|<4> | Events | Live overview of all the changes that are being done affecting the storage cluster
+|<5> | Utilization | Overview of the storage cluster usage and performance
+|===
 
 OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
 image::imgs/OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
+
+[cols="0,1,10a"]
+|===
+|<1> | Health | Quick overview of the general health of the Multi-Cloud-Gateway
+|<2> | Details | Overview of the deployed MCG version and backend provider including a link to the MCG Dashboard
+|<3> | Buckets | List of all the ObjectBucket with are offered and ObjectBucketClaims which are connected to them
+|<4> | Resource Providers | Shows the list of configured Resource Providers that are available as backing storage in the MCG
+|===
 
 // On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
 
