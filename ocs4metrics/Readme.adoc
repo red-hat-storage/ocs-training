@@ -471,4 +471,5 @@ prometheusdb-prometheus-k8s-1      Bound    pvc-e101b1db-ff0c-11e9-9bdd-00505681
 
 ### Configure even more
 
-Configuring more than the persistent storage exceeds the scope of this Workshop. A great way to learn more is to go to the official OpenShift Containter Platform documentation for this topic: https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html
+You can configure a lot more inside of the cluster-monitoring-config *ConfigMap*. Since this Workshop is focussed on Storage, the other options have been omitted. A great way to learn more is to go to the official OpenShift Containter Platform documentation for this topic: https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html +
+One thing you want to check out in the documentation is how you can set up the alertmanager.yml and how to define the retention time of Prometheus. By default, Prometheus only retains the last 15 days worth of data.
