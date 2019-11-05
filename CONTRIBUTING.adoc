@@ -47,7 +47,7 @@ It is best practice to copy this to the beginning of your workshop:
 :toc: right
 :toclevels: 2
 :icons: font
-:language: bash
+:source-language: bash
 :numbered:
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
