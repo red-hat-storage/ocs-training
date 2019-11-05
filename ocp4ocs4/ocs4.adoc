@@ -352,10 +352,12 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Comple
 rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
 ----
 
+### Getting to know the Storage Dashboards
+
 You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your *Openshift Web Console*. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 .OCS Dashboard after successful backing storage installation
-image::imgs/OCS-dashboard-healthy-new.png[OCS Dashboard after successful backing storage installation]
+image::imgs/OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage installation]
 
 OCS ships with a *Dashboard* for the Object Store service as well. From within the *Dashboard* menu click on the `Object Service` on the top navigation bar of the content page.
 
