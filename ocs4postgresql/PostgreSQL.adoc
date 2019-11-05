@@ -1,0 +1,227 @@
+= Lab: Deploying and using PostgreSQL with OCS4
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Lab Overview
+
+PostgreSQL have been in the last few years the fastest growing open source RDBMS from market perspective. It will probably supress MySQL at some point in the future in terms of market share. It has a solid community and have been around for many years adding more and more features.
+PostgreSQL features ACID ((Atomicity, Consistent, Isolation and Durability) properties. It has indexes (primary/unique), updatable views, triggers, foreign keys (FKs) and even stored procedures (SPs)
+PostgreSQL also features built-in replication via shipping WAL (Write Ahead Log) to a number of  different database replicas. These replicas are in can be used in read-only mode. It also have a synchronous replication, where the master waits for at least one replica have written the data before ACKing.
+
+
+=== In this lab you will learn how to:
+* Create a PostgreSQL template that uses OpenShift Container Storage 4 persistent storage and learn about the template variables.
+* Deploy a PostgreSQL via "oc new-app" using our new template
+* Learn about pgbench basics and deploy a pgbench container 
+* Run performance testing to measure the performance of your database
+* How to do all this from the command line :)
+
+== Prerequisites:
+
+* Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
+* a copy of this git repo
+* *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
+* Please git clone our repository, you'll find all the scripts needed in the ocs4jenkins directory: 
+[source,role="execute"]
+----
+git clone https://github.com/red-hat-storage/ocs-training.git
+----
+
+== Deploying PostgreSQL
+
+=== Our PostgreSQL demo
+
+This demo will deploy a PostgreSQL database that will use OCS4 persistent storage and then run pgbench on the newly deployed database.
+pgbench is maintained together with PostgreSQL. it is used to create data and also to stress the database. It has many options and variations, we are going to use the default workload scenario which is loosely based on TCP-B (a more write oriented workload).
+We will also learn about the pgbench output.
+
+=== Creating a PostgreSQL template that uses OpenShift Container Storage 4
+
+OCP4 comes preconfigured with two PostgreSQL templates to use:
+
+[source,role="execute"]
+----
+oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i ^postgres
+----
+.Example output:
+----
+postgresql-ephemeral
+postgresql-persistent
+----
+
+We are going to create a new template based on the postgresql-persistent template, to do so, we are going to run the *create_ocs_postgresql_template* script. +
+The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that going forward, some sectios might reference the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks:
+
+1. Change the name of the template (so it can co-exists with the one we copied from).
+2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default storage class in OCP).
+3. Add/change the size of the PV we want for the PostgreSQL database.
+4. Run the "oc create" command and the create the new template
+
+Run the create_ocs_jenkins_template script:
+[source,role="execute"]
+----
+$ bash create_ocs_postgresql_template
+----
+
+After running the script, you should see another jenkins template:
+[source,role="execute"]
+----
+oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i jenkins
+----
+.Example output:
+----
+postgresql-ephemeral
+postgresql-persistent
+postgresql-persistent-ocs
+----
+
+The last jenkins template *postgresql-persistent-ocs* is the one that we are going to use.
+
+=== Creating our project
+
+lets create a project that will run our demo:
+[source,role="execute"]
+----
+oc new-project my-postgresql
+----
+
+Once the project is created (oc will automatically use it), lets create postgresql database:
+[source,role="execute"]
+----
+oc new-app --name=postgresql --template=postgresql-persistent-ocs
+----
+
+Pay good attention to the output of the "new-app" command, especially to the section below "* With parameters:" as it contains the randomally created username and password to connect to the database, for example:
+[source,role="bash"]
+----
+     * With parameters:
+        * Memory Limit=512Mi
+        * Namespace=openshift
+        * Database Service Name=postgresql
+        * PostgreSQL Connection Username=user8CK # generated
+        * PostgreSQL Connection Password=DmoXvvuh6PetIG5V # generated
+        * PostgreSQL Database Name=sampledb
+        * Volume Capacity=50Gi
+        * Version of PostgreSQL Image=10
+----
+
+You can monitor the creation of the PosqgreSQL pod using "oc get pods", two pods will be created, a sidecar named postgresql-<some_number>-deploy, and the actual pod running the database named, postgresql-<somenumber>-<random_pod_identifier>. +
+The output should similar to this:
+[source,role="bash"]
+----
+$ oc get pods
+NAME                  READY   STATUS      RESTARTS   AGE
+postgresql-1-deploy   0/1     Completed   0          65s
+postgresql-1-ptcdm    1/1     Running     0          57s
+----
+
+So once the PostgreSQL pods is running and ready (in the above output the name is "postgresql-1-ptcdm"), we have a running database.
+Now we can create a pod that will contain pgbench, to do so we will use a container I've created and used for all my PostgreSQL tests. +
+The yaml file looks like this:
+[source,role="yaml"]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  labels:
+    name: pgbench
+  name: pgbench
+spec:
+  containers:
+    - image: quay.io/sagyvolkov/pgbench-container:0.1
+      imagePullPolicy: IfNotPresent
+      name: pgbench-pod
+      resources: {}
+      securityContext:
+        capabilities: {}
+        privileged: false
+      terminationMessagePath: /dev/termination-log
+  dnsPolicy: Default
+  restartPolicy: OnFailure
+  serviceAccount: ""
+status: {}
+----
+
+You can copy/paste this yaml to a file (lets call it pgbench.yaml) and then run:
+[source,role="execute"]
+----
+oc -n my-postgresql -f pgbench.yaml
+----
+
+Once the pgbench pod is up, lets make sure we can connect to our PostgreSQL database. +
+First we need the username and password that the "oc new-app" command output have returned. We also need the service IP address that was created when we ran "oc new-app". To get the service IP, run:
+[source,role="execute"]
+----
+oc get svc -o custom-columns=CLUSTER-IP:.spec.clusterIP
+----
+now that we have all the information to test connectivity, we can rsh into the pgbench pod:
+[source,role="execute"]
+----
+oc rsh pgbench
+----
+and then once inside the pod, run: psql -U <our new-app username> -h <the clusterIP> sampledb +
+for example:
+[source,role="execute"]
+----
+psql -U user8CK -h 172.30.126.152 sampledb
+----
+Once you can see that you can login to the the sampledb database, just type "exit" to leave psql. +
+Now we can load data via pgbench. The pgbench container holds a wrapper script to run pgbench (as I wrote, this container is used for performance testing). It is out of the scope of this lab to go over all the parameters of the "run_pgbench" script, but feel free to "cat" the script once you rsh to the pgbench pod or contact me after the lab +
+lets load our data, the command will be (again, this is running from within the pgbench pod):
+./run_pgbench init <our clusterIP> <our username> 10 1 1 simple time 60 yes no <our password> sampledb 10 +
+NOTE: Please leave the parameters that are not enclosed with <> as they are. +
+for example:
+[source,role="execute"]
+----
+./run_pgbench init 172.30.126.152 user8CK 10 1 1 simple time 60 yes no DmoXvvuh6PetIG5V sampledb 5
+----
+One of the parameters in this script is the scale factor of the data, in this case it is set to 10 (4th parameter) which will create a very small database, 
+When the load is done, we can now use the same script to run the workload:
+[source,role="execute"]
+----
+./run_pgbench workload 172.30.126.152 user8CK 10 1 1 simple time 60 yes no DmoXvvuh6PetIG5V sampledb 5
+----
+With these variables used by the run_pgbench we are going to run pgbench for 60 seconds, using a 2 threads and 2 jobs and the output will be sampled every 5 seconds. +
+The output will be similar to this:
+[source,role="execute"]
+----
+
+Running pgbench workload ...
+starting vacuum...end.
+progress: 5.0 s, 589.6 tps, lat 3.390 ms stddev 2.279
+progress: 10.0 s, 613.2 tps, lat 3.261 ms stddev 2.026
+progress: 15.0 s, 623.6 tps, lat 3.207 ms stddev 2.399
+progress: 20.0 s, 624.2 tps, lat 3.204 ms stddev 4.685
+progress: 25.0 s, 690.2 tps, lat 2.898 ms stddev 1.555
+progress: 30.0 s, 681.8 tps, lat 2.933 ms stddev 2.599
+progress: 35.0 s, 632.4 tps, lat 3.141 ms stddev 7.810
+progress: 40.0 s, 628.4 tps, lat 3.204 ms stddev 5.069
+progress: 45.0 s, 568.6 tps, lat 3.517 ms stddev 3.696
+progress: 50.0 s, 601.8 tps, lat 3.323 ms stddev 2.555
+progress: 55.0 s, 583.4 tps, lat 3.429 ms stddev 3.358
+progress: 60.0 s, 623.0 tps, lat 3.211 ms stddev 1.025
+transaction type: <builtin: simple update>
+scaling factor: 10
+query mode: simple
+number of clients: 2
+number of threads: 2
+duration: 60 s
+number of transactions actually processed: 37303
+latency average = 3.217 ms
+latency stddev = 3.716 ms
+tps = 621.691291 (including connections establishing)
+tps = 621.719866 (excluding connections establishing)
+END-PGBENCH-WORKLOAD
+
+real 1m0.026s
+user 0m0.482s
+sys 0m2.045s
+----
+What we can see here is that we acheived 37303 transactions during out 60 seconds test with an average tps (transaction per seconds) of roughly 621 and latency average 3.217 ms.
+
+As previously stated, you can play with parameters of the run_pgbench script to run a heavier, longer workload or to create a bigger database.
