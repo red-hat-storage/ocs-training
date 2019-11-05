@@ -9,7 +9,7 @@
 
 == Lab Overview
 
-PostgreSQL have been in the last few years the fastest growing open source RDBMS from market perspective. It will probably supress MySQL at some point in the future in terms of market share. It has a solid community and have been around for many years adding more and more features.
+PostgreSQL have been in the last few years the fastest growing open source RDBMS from market perspective. It will probably suppress MySQL at some point in the future in terms of market share. It has a solid community and have been around for many years adding more and more features.
 PostgreSQL features ACID ((Atomicity, Consistent, Isolation and Durability) properties. It has indexes (primary/unique), updatable views, triggers, foreign keys (FKs) and even stored procedures (SPs)
 PostgreSQL also features built-in replication via shipping WAL (Write Ahead Log) to a number of  different database replicas. These replicas are in can be used in read-only mode. It also have a synchronous replication, where the master waits for at least one replica have written the data before ACKing.
 
@@ -55,7 +55,7 @@ postgresql-persistent
 ----
 
 We are going to create a new template based on the postgresql-persistent template, to do so, we are going to run the *create_ocs_postgresql_template* script. +
-The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that going forward, some sectios might reference the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks:
+The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that going forward, some sections might reference the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks:
 
 1. Change the name of the template (so it can co-exists with the one we copied from).
 2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default storage class in OCP).
@@ -71,7 +71,7 @@ $ bash create_ocs_postgresql_template
 After running the script, you should see another jenkins template:
 [source,role="execute"]
 ----
-oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i jenkins
+oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i ^jenkins
 ----
 .Example output:
 ----
@@ -96,7 +96,7 @@ Once the project is created (oc will automatically use it), lets create postgres
 oc new-app --name=postgresql --template=postgresql-persistent-ocs
 ----
 
-Pay good attention to the output of the "new-app" command, especially to the section below "* With parameters:" as it contains the randomally created username and password to connect to the database, for example:
+Pay good attention to the output of the "new-app" command, especially to the section below "* With parameters:" as it contains the randomly created username ("PostgreSQL Connection Username=") and password ("PostgreSQL Connection Username") to connect to the database, for example:
 [source,role="bash"]
 ----
      * With parameters:
@@ -110,7 +110,7 @@ Pay good attention to the output of the "new-app" command, especially to the sec
         * Version of PostgreSQL Image=10
 ----
 
-You can monitor the creation of the PosqgreSQL pod using "oc get pods", two pods will be created, a sidecar named postgresql-<some_number>-deploy, and the actual pod running the database named, postgresql-<somenumber>-<random_pod_identifier>. +
+You can monitor the creation of the PostgreSQL pod using "oc get pods" and you can see that two pods are being created, a sidecar named postgresql-<some_number>-deploy, and the actual pod running the database named, postgresql-<some_number>-<random_pod_identifier>. +
 The output should similar to this:
 [source,role="bash"]
 ----
@@ -170,7 +170,7 @@ for example:
 ----
 psql -U user8CK -h 172.30.126.152 sampledb
 ----
-Once you can see that you can login to the the sampledb database, just type "exit" to leave psql. +
+Once you can see that you can login to the sampledb database, just type "exit" to leave psql. +
 Now we can load data via pgbench. The pgbench container holds a wrapper script to run pgbench (as I wrote, this container is used for performance testing). It is out of the scope of this lab to go over all the parameters of the "run_pgbench" script, but feel free to "cat" the script once you rsh to the pgbench pod or contact me after the lab +
 lets load our data, the command will be (again, this is running from within the pgbench pod):
 ./run_pgbench init <our clusterIP> <our username> 10 1 1 simple time 60 yes no <our password> sampledb 10 +
@@ -180,7 +180,7 @@ for example:
 ----
 ./run_pgbench init 172.30.126.152 user8CK 10 1 1 simple time 60 yes no DmoXvvuh6PetIG5V sampledb 5
 ----
-One of the parameters in this script is the scale factor of the data, in this case it is set to 10 (4th parameter) which will create a very small database, 
+One of the parameters in this script is the scale factor of the data, in this case it is set to 10 (4th parameter) which will create a very small database, you can use a much larger scale factor to create bigger database (for example, a scale factor of 5350 is about 75GB in database size).
 When the load is done, we can now use the same script to run the workload:
 [source,role="execute"]
 ----
@@ -222,6 +222,6 @@ real 1m0.026s
 user 0m0.482s
 sys 0m2.045s
 ----
-What we can see here is that we acheived 37303 transactions during out 60 seconds test with an average tps (transaction per seconds) of roughly 621 and latency average 3.217 ms.
+What we can see here is that we achieved 37303 transactions during out 60 seconds test with an average tps (transaction per seconds) of roughly 621 and latency average 3.217 ms.
 
 As previously stated, you can play with parameters of the run_pgbench script to run a heavier, longer workload or to create a bigger database.
