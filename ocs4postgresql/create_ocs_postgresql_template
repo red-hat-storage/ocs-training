@@ -2,7 +2,7 @@
 
 temp_file=/tmp/template.$$
 
-readonly CSI_DRIVER=rook-ceph-block
+readonly CSI_DRIVER=ocs-storagecluster-ceph-rbd
 readonly PV_SIZE=50Gi
 readonly NEW_TEMPLATE_NAME=postgresql-persistent-ocs
 
