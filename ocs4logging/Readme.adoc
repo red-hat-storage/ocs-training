@@ -1,0 +1,50 @@
+= Lab: Deploying OpenShift Cluster Logging backed by OpenShift Container Storage
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Lab Overview
+
+In this lab, you will be deploying OpenShift Cluster Logging to an OpenShift cluster. Cluster logging increases the observability and operational experience for applications running in OpenShift.
+
+=== In this lab you will learn
+
+* OpenShift Cluster Logging components and architecture
+* Redundancy configuration options, and which to use with OCS
+* Deploying Cluster Logging
+* Deploying Event Router
+
+== Introduction
+
+image::imgs/image-01.png[Components - Operator, Elasticsearch]
+image::imgs/image-02.png[Components - Fluentd, Kibana]
+image::imgs/image-03.png[Components - Event Router]
+image::imgs/image-04.png[Cluster Logging - Architecture]
+image::imgs/image-05.png[Redundancy - Zero]
+image::imgs/image-06.png[Redundancy - Single]
+image::imgs/image-07.png[Redundancy - Multiple]
+image::imgs/image-08.png[Redundancy - Full]
+image::imgs/image-09.png[Redundancy - OCS]
+
+== Deploying Cluster Logging
+
+
+
+- Example Step
+    
+NOTE: Example Note
+[source,role="execute"]
+----
+example -v --command
+----
+
+
+```
+example cli output
+```
+
+Summary: 
