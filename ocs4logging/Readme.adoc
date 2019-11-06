@@ -33,6 +33,8 @@ image::imgs/image-09.png[Redundancy - OCS]
 
 == Deploying Cluster Logging
 
+=== Setup Operators
+
 Before we install the Logging operator, we need to setup several namespaces, subscribe to the Elasticsearch operator, and setup RBAC policies. This is all handled by the ``logging-init.yaml`` file.
 
 - Submit ``logging-init.yaml`` file
@@ -76,7 +78,9 @@ NAME                                      READY   STATUS    RESTARTS   AGE
 elasticsearch-operator-5979dddc8f-gb69w   1/1     Running   0          4m6s
 ```
 
-Once both operators are good to go, the next step is to create a ``ClusterLogging`` custom resource. The two important parameters
+=== Creating a Cluster Logging Instance
+
+The next step is to create a ``ClusterLogging`` custom resource. The two important parameters
 
 * ``storageClassName: ocs-storagecluster-ceph-rbd``
 * ``redundancyPolicy: ZeroRedundancy``
@@ -200,4 +204,4 @@ image::imgs/image-33.png[Kibana - Search For Example Logs]
 
 == Summary
 
-
+By this point you have successfully added Cluster Logging to your OpenShift environment, and done so in such a way that it will benefit from all the persistent goodness that comes from OpenShift Container Storage. You've also configured the Event Router to collect Kubernetes events and foward them to your freshly setup Cluster Logging infrastructure. Finally, you were able to use the Kibana dashboard to search for logs for one of the OpenShift Container Storage pods!
