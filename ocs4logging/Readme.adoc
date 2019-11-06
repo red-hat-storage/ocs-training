@@ -2,7 +2,7 @@
 :toc: right
 :toclevels: 2
 :icons: font
-:language: bash
+:source-language: bash
 :numbered:
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
@@ -61,10 +61,10 @@ oc get pods -n openshift-logging
 
 The output should look something like this:
 
-```
+----
 NAME                                        READY   STATUS    RESTARTS   AGE
 cluster-logging-operator-64967c849b-w68sh   1/1     Running   0          108s
-```
+----
 
 [source,role="execute"]
 ----
@@ -73,10 +73,10 @@ oc get pods -n openshift-operators-redhat
 
 The output should look something like this:
 
-```
+----
 NAME                                      READY   STATUS    RESTARTS   AGE
 elasticsearch-operator-5979dddc8f-gb69w   1/1     Running   0          4m6s
-```
+----
 
 === Creating a Cluster Logging Instance
 
@@ -87,7 +87,8 @@ The next step is to create a ``ClusterLogging`` custom resource. The two importa
 
 This example CR will result in Elasticsearch indexes being sharded across all Elasticsearch instances, and stored on OpenShift Container Storage RWO Persistent Volumes (RBD). The amount of replication will not change if the number of Elasticsearch instances is scaled, which would not be the case with ``Multiple``  or ``Full`` redundancy policies.
 
-```
+[source,yaml]
+----
 apiVersion: "logging.openshift.io/v1"
 kind: "ClusterLogging"
 metadata:
@@ -115,7 +116,7 @@ spec:
     logs:
       type: "fluentd"
       fluentd: {}
-```
+----
 
 - Submit ``logging-cr.yaml`` file
 
@@ -128,12 +129,12 @@ Verify all the components come online properly.
 
 [source,role="execute"]
 ----
-oc get pods -n openshift-logging
+watch oc get pods -n openshift-logging
 ----
 
 The output should detail the following pods, and they should all reach the Running state:
 
-```
+----
 NAME                                            READY   STATUS    RESTARTS   AGE
 cluster-logging-operator-64967c849b-w68sh       1/1     Running   0          37m
 elasticsearch-cdm-wedgisnx-1-769b67bdfb-c6nkj   2/2     Running   0          20m
@@ -146,7 +147,7 @@ fluentd-kv9qq                                   1/1     Running   0          20m
 fluentd-r6ptj                                   1/1     Running   0          20m
 fluentd-xkb6s                                   1/1     Running   0          20m
 kibana-56bcf46446-f6z6x                         2/2     Running   0          20m
-```
+----
 Furthermore, verify that the Elasticsearch pod are utilizing OCS by examining the PVs
 
 [source,role="execute"]
@@ -156,11 +157,11 @@ oc get pv | grep elasticsearch
 
 The output should show ``ocs-storagecluster-ceph-rbd`` as the storage class for all three of the Elasticsearch persistent volumes.
 
-```
+----
 pvc-603e200d-006f-11ea-ba33-02eab89269b1   187Gi      RWO            Delete           Bound    openshift-logging/elasticsearch-elasticsearch-cdm-wedgisnx-1   ocs-storagecluster-ceph-rbd            22m
 pvc-604229fa-006f-11ea-ba33-02eab89269b1   187Gi      RWO            Delete           Bound    openshift-logging/elasticsearch-elasticsearch-cdm-wedgisnx-2   ocs-storagecluster-ceph-rbd            22m
 pvc-60437864-006f-11ea-ba33-02eab89269b1   187Gi      RWO            Delete           Bound    openshift-logging/elasticsearch-elasticsearch-cdm-wedgisnx-3   ocs-storagecluster-ceph-rbd            22m
-```
+----
 
 ==  Deploying the Event Router
 
@@ -168,15 +169,15 @@ The Event Router ensures that OpenShift Events make their way into the Cluster L
 
 [source,role="execute"]
 ----
-oc set env ds/fluentd TRANSFORM_EVENTS=true
-oc process -f event-router.yaml | oc apply -f -
+oc set env ds/fluentd TRANSFORM_EVENTS=true -n openshift-logging
+oc process -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4logging/event-router.yaml | oc apply -f -
 ----
 
 Validate that the Event Router installed:
 
 [source,role="execute"]
 ----
-oc logs $(oc get pods --selector  component=eventrouter -o name)
+oc logs $(oc get pods --selector component=eventrouter -o name -n openshift-logging) -n openshift-logging
 ----
 
 The event router deployment is now complete!
@@ -190,10 +191,10 @@ Use the following command to retrieve the web URI for the Kibana dashboard:
 oc get -n openshift-logging route kibana
 ----
 
-```
+----
 NAME     HOST/PORT                                                                     PATH   SERVICES   PORT    TERMINATION          WILDCARD
 kibana   kibana-openshift-logging.apps.cluster-lax-8763.lax-8763.example.opentlc.com          kibana     <all>   reencrypt/Redirect   None
-```
+----
 
 Once you open the dashboard in a browser, you will need to authorize access. Once in you can do an example search by typing in ``noobaa``  in the search bar. Doing so will load the relevant log messages for the the Noobaa component of OCS. Not only is Cluster Logging consuming OpenShift Container Storage, but Cluster Logging can be used to gain additional operational visibility into OpenShift Container Storage!
 
