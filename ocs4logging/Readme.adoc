@@ -41,7 +41,7 @@ Before we install the Logging operator, we need to setup several namespaces, sub
 
 [source,role="execute"]
 ----
-oc create -f logging-init.yaml
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4logging/logging-init.yaml
 ----
     
 Once submitted, then we can use the OpenShift Console to install the Cluster Logging operator from the catalog.
@@ -121,7 +121,7 @@ spec:
 
 [source,role="execute"]
 ----
-oc create -f logging-cr.yaml
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4logging/logging-cr.yaml
 ----
 
 Verify all the components come online properly.
