@@ -91,9 +91,9 @@ Using this correct `cluster-api-cluster` label for your lab environment modify e
 .Mac steps
 [source,role="execute"]
 ----
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
+sed -i'.backup' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
+sed -i'.backup' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
+sed -i'.backup' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
 ----
 
 .Linux steps
