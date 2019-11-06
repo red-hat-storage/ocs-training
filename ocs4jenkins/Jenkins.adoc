@@ -168,7 +168,7 @@ The "oc" command to run a build is very simple and it is literally "oc start-bui
 The script accept two variables, the OCP project name where you created the Jenkins pod (and of course the BuildConfig and PV), and a directory to place the outputs.
 [source,role="execute"]
 ----
-$ bash run_builds myjenkins-1 myjenkins-1
+bash run_builds myjenkins-1 myjenkins-1
 ----
 
 if we'll look at the newly created "myjenkins-1" directory, it should have 10 files (2 files for each of the 5 runs of the build): +
