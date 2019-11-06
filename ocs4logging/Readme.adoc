@@ -32,19 +32,87 @@ image::imgs/image-09.png[Redundancy - OCS]
 
 == Deploying Cluster Logging
 
+Before we install the Logging operator, we need to setup several namespaces, subscribe to the elastic operator, and setup rbac. This is all handled by the ``logging-init.yaml`` file.
 
+- Submit ``logging-init.yaml`` file
 
-- Example Step
-    
-NOTE: Example Note
 [source,role="execute"]
 ----
-example -v --command
+oc create -f logging-init.yaml
+----
+    
+Once submitted, then we can use the OpenShift Console to install the Cluster Logging operator from the catalog.
+
+image:imgs/image-21.png[OperatorHub - Search]
+image:imgs/image-22.png[Cluster Logging - Install]
+image:imgs/image-23.png[Cluster Logging - Subscribe]
+
+NOTE: Make sure to modify the namespace to openshift-logging!
+
+After the Cluster Logging operator subscription has been configured, you can return to the console to verify that both the Cluster Logging and Elasticsearch operators reach the Running state.
+
+[source,role="execute"]
+----
+oc get pods -n openshift-logging
 ----
 
+```
+NAME                                        READY   STATUS    RESTARTS   AGE
+cluster-logging-operator-64967c849b-w68sh   1/1     Running   0          108s
+```
+
+[source,role="execute"]
+----
+oc get pods -n openshift-operators-redhat
+----
 
 ```
-example cli output
+NAME                                      READY   STATUS    RESTARTS   AGE
+elasticsearch-operator-5979dddc8f-gb69w   1/1     Running   0          4m6s
 ```
+
+Once both operators are good to go, the next step is to create a ``ClusterLogging`` custom resource. The two important parameters to be cognizant of are the ``storageClassName`` and ``redundancyPolicy``, they should be ``ocs-storagecluster-ceph-rbd`` and ``ZeroRedundancy`` respectively.
+
+```
+apiVersion: "logging.openshift.io/v1"
+kind: "ClusterLogging"
+metadata:
+  name: "instance"
+  namespace: "openshift-logging"
+spec:
+  managementState: "Managed"
+  logStore:
+    type: "elasticsearch"
+    elasticsearch:
+      nodeCount: 3
+      storage:
+        storageClassName: ocs-storagecluster-ceph-rbd
+        size: 200G
+      redundancyPolicy: "ZeroRedundancy"
+  visualization:
+    type: "kibana"
+    kibana:
+      replicas: 1
+  curation:
+    type: "curator"
+    curator:
+      schedule: "30 3 * * *"
+  collection:
+    logs:
+      type: "fluentd"
+      fluentd: {}
+```
+
+[source,role="execute"]
+----
+oc create -f logging-cr.yaml
+----
+
+Verify all the components come online properly.
+
+[source,role="execute"]
+----
+watch oc get pods -n openshift-logging
+----
 
 Summary: 
