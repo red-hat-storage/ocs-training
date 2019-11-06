@@ -17,6 +17,6 @@ These folders contain Workloads that explain how to leverage OCS 4 with common a
 * [CICD / Jenkins](ocs4jenkins/Jenkins.adoc)
 * [Streaming / Kafka](ocs4kafka/Readme.adoc)
 * [Metrics / Prometheus](ocs4metrics/Readme.adoc)
-* [Databases / PostgreSQL](ocs4postgresql) (pending)
+* [Databases / PostgreSQL](ocs4postgresql/PostgreSQL.adoc)
 * [Container Image Registry / Quay](ocs4registry/registry.adoc)
-* [Logging / Elasticsearch](ocs4logging) (pending)
+* [Logging / Elasticsearch](ocs4logging/Readme.adoc)
