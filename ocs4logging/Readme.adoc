@@ -32,7 +32,7 @@ image::imgs/image-09.png[Redundancy - OCS]
 
 == Deploying Cluster Logging
 
-Before we install the Logging operator, we need to setup several namespaces, subscribe to the elastic operator, and setup rbac. This is all handled by the ``logging-init.yaml`` file.
+Before we install the Logging operator, we need to setup several namespaces, subscribe to the Elasticsearch operator, and setup RBAC policies. This is all handled by the ``logging-init.yaml`` file.
 
 - Submit ``logging-init.yaml`` file
 
@@ -49,12 +49,14 @@ image:imgs/image-23.png[Cluster Logging - Subscribe]
 
 NOTE: Make sure to modify the namespace to openshift-logging!
 
-After the Cluster Logging operator subscription has been configured, you can return to the console to verify that both the Cluster Logging and Elasticsearch operators reach the Running state.
+After the Cluster Logging operator subscription has been configured, you can return to the console to verify that both the Cluster Logging and Elasticsearch operators reach the ``Running`` state.
 
 [source,role="execute"]
 ----
 oc get pods -n openshift-logging
 ----
+
+The output should look something like this:
 
 ```
 NAME                                        READY   STATUS    RESTARTS   AGE
@@ -66,12 +68,19 @@ cluster-logging-operator-64967c849b-w68sh   1/1     Running   0          108s
 oc get pods -n openshift-operators-redhat
 ----
 
+The output should look something like this:
+
 ```
 NAME                                      READY   STATUS    RESTARTS   AGE
 elasticsearch-operator-5979dddc8f-gb69w   1/1     Running   0          4m6s
 ```
 
-Once both operators are good to go, the next step is to create a ``ClusterLogging`` custom resource. The two important parameters to be cognizant of are the ``storageClassName`` and ``redundancyPolicy``, they should be ``ocs-storagecluster-ceph-rbd`` and ``ZeroRedundancy`` respectively.
+Once both operators are good to go, the next step is to create a ``ClusterLogging`` custom resource. The two important parameters
+
+* ``storageClassName: ocs-storagecluster-ceph-rbd``
+* ``redundancyPolicy: ZeroRedundancy``
+
+This will result Elasticsearch indexes being sharded across all Elasticsearch instances, and stored on OpenShift Container Storage RWO Persistent Volumes (RBD). The amount of replication will not change if the number of Elasticsearch instances is scaled, which would not be the case with ``Multiple``  or ``Full`` redundancy policies.
 
 ```
 apiVersion: "logging.openshift.io/v1"
