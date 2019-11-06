@@ -14,8 +14,8 @@ This hands-on workshop is for both system administrators and application develop
 
 === In this lab you will learn how to
 
-* Configure and deploy containerized Ceph and Noobaa
-* Validate deployment of containerized Ceph Nautilus and Noobaa
+* Configure and deploy containerized Ceph and NooBaa
+* Validate deployment of containerized Ceph Nautilus and NooBaa
 * Deploy the Rook toolbox to run Ceph and RADOS commands
 * Creating a Read-Write-Once (RWO) PVC that is based on Ceph RBDs
 * Creating a Read-Write-Many (RWX) PVC that is based on CephFS
@@ -91,9 +91,9 @@ Using this correct `cluster-api-cluster` label for your lab environment modify e
 .Mac steps
 [source,role="execute"]
 ----
-sed -i '' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
-sed -i '' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
-sed -i '' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
+sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
+sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
+sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
 ----
 
 .Linux steps
@@ -382,7 +382,7 @@ image::imgs/OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard a
 |<4> | Resource Providers | Shows the list of configured Resource Providers that are available as backing storage in the MCG
 |===
 
-// On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the Noobaa Management Console. We will discuss this Management Console later in more detail.
+// On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the NooBaa Management Console. We will discuss this Management Console later in more detail.
 
 Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCS 4 Install:
 
@@ -399,7 +399,7 @@ oc -n openshift-storage get sc
 
 Please make sure the three storage classes are available in your cluster before proceeding.
 
-NOTE: The Noobaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
+NOTE: The NooBaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
 
 === Using the Rook-Ceph toolbox to check on the Ceph backing storage
 
@@ -954,13 +954,13 @@ Changes to this filesystem is immediately affecting the registry *Pods* and this
 This section discusses the usage of the Multi-Cloud-Gateway (MCG). It is expected that the installation of MCG has been finished successfully and the local `oc` client is configured correctly to connect to the Openshift cluster.
 Currently the best way to configure the MCG is to use the CLI.
 
-To install the CLI follow the <<Install the Noobaa CLI client>> section.
+To install the CLI follow the <<Install the NooBaa CLI client>> section.
 
-NOTE: While the Noobaa Web Management Console is accessible, it should not be used to create any resources, since they are currently not syncronised back to the Openshift cluster.
+NOTE: While the NooBaa Web Management Console is accessible, it should not be used to create any resources, since they are currently not syncronised back to the Openshift cluster.
 
 === Checking on the MCG status
 
-The MCG status can be checked with the Noobaa CLI. Make sure you are in the `openshift-storage` project when you execute this command.
+The MCG status can be checked with the NooBaa CLI. Make sure you are in the `openshift-storage` project when you execute this command.
 
 [source,role="execute"]
 ----
@@ -1041,8 +1041,8 @@ PodPorts    : [https://10.129.2.26:6443]
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID: <Noobaa_ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY:<Noobaa_SECRET_ACCESS_KEY_ID>
+AWS_ACCESS_KEY_ID: <NooBaa_ACCESS_KEY_ID>
+AWS_SECRET_ACCESS_KEY:<NooBaa_SECRET_ACCESS_KEY_ID>
 
 #------------------#
 #- Backing Stores -#
@@ -1065,7 +1065,7 @@ noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-
 No OBC's found.
 ----
 
-As you can see - the Noobaa CLI will first check on the environment and will then print all the information about the environment.
+As you can see - the NooBaa CLI will first check on the environment and will then print all the information about the environment.
 Besides the status of the MCG, the second most intersting information for us are the available S3 addresses that we can use to connect to our MCG buckets. We can chose between using the external DNS which incurs DNS traffic cost, or route internally inside of our Openshift cluster.
 
 You can get a more basic overview of the MCG status using the Object Storage *Dashboard*. To reach this, log into the *Openshift Web Console*, click on `Home` and select the `Dashboards` item. In the main view, select `Object Service` in the top navigation bar.
@@ -1075,7 +1075,7 @@ This dashboard does not give you connection information for your S3 endpoint, bu
 
 An Object Bucket Claim (OBC) can be used to request a S3 compatible bucket backend for your workloads. When creating an OBC you get a ConfigMap (CM) and a Secret that together contain all the information your application needs to use the object storage service.
 
-Creating an OBC is as simple as using the Noobaa CLI:
+Creating an OBC is as simple as using the NooBaa CLI:
 
 [source,role="execute"]
 ----
@@ -1086,7 +1086,7 @@ noobaa obc create test21obc -n openshift-storage
 INFO[0001] ✅ Created: ObjectBucketClaim "test21obc"
 ----
 
-The Noobaa CLI has created the necessary configuration inside of Noobaa and has informed Openshift about the new OBC:
+The NooBaa CLI has created the necessary configuration inside of NooBaa and has informed Openshift about the new OBC:
 
 [source,role="execute"]
 ----
@@ -1100,7 +1100,7 @@ test21obc   openshift-storage.noobaa.io   Bound   38s
 
 [source,role="execute"]
 ----
-oc get obc test21obc -o yaml
+oc get obc test21obc -o yaml -n openshift-storage
 ----
 .Example output:
 [source,yaml,linenums]
@@ -1353,6 +1353,10 @@ In the new dialog you can set the requested additional (usable) capacity and the
 NOTE: The effectivly provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCS uses a replica count of 3.
 
 Once you are done with your setting, proceed by clicking on `Add`. You will see the Status of the Storage Cluster change until it reaches `Ready` again.
+
+
+NOTE: Due to a bug in the current version, a new storage capacity won't be added. will be fixed soon
+
 
 You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCS worker nodes:
 
@@ -1664,7 +1668,7 @@ The above commands will always pull the latest oc version, so your version might
 ====
 
 [appendix]
-== Install the Noobaa CLI client
+== Install the NooBaa CLI client
 
 To install the CLI, follow these steps on your workstation:
 
