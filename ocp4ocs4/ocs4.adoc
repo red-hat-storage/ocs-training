@@ -67,17 +67,6 @@ cluster-ocs-79cf-lj8wq-worker-us-east-1e   0         0                          
 cluster-ocs-79cf-lj8wq-worker-us-east-1f   0         0                             43m
 ----
 
-To create the 3 new worker nodes with available storage you will download 3 more *machineset* definition files.
-
-[source,role="execute"]
-----
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1a.yaml
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1b.yaml
-curl -O https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs-us-east-1c.yaml
-----
-
-The files just downloaded do not have the correct `cluster-api-cluster` label for your lab because every environment is unique.
-
 WARNING: *Make sure you do the next step for finding your CLUSTERID*
 
 [source,role="execute"]
@@ -86,40 +75,9 @@ CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].m
 echo $CLUSTERID
 ----
 
-Using this correct `cluster-api-cluster` label for your lab environment modify each of the 3 *machinesets* downloaded earlier using the variable `$CLUSTERID`.
-
-.Mac steps
 [source,role="execute"]
 ----
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
-sed -i'' "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
-----
-
-.Linux steps
-[source,role="execute"]
-----
-sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1a.yaml
-sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1b.yaml
-sed -i "s/cluster-28cf-t22gs/$CLUSTERID/g" cluster-workerocs-us-east-1c.yaml
-----
-
-Check that `cluster-api-cluster` label has been changed to `$CLUSTERID`.
-
-[source,role="execute"]
-----
-grep cluster-api-cluster cluster-workerocs-us-east-1*
-----
-
-The label for `cluster-api-cluster` should now match the results of `echo $CLUSTERID` from above for all occurrences.
-
-Now you are ready to create your 3 new OCP worker nodes using these modified *machinesets*.
-
-[source,role="execute"]
-----
-oc create -f cluster-workerocs-us-east-1a.yaml
-oc create -f cluster-workerocs-us-east-1b.yaml
-oc create -f cluster-workerocs-us-east-1c.yaml
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs.yaml | sed "s/CLUSTERID/$CLUSTERID/g" | oc apply -f
 ----
 
 Check that you have new *machines* created.
