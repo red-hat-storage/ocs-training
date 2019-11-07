@@ -150,7 +150,7 @@ status: {}
 You can copy/paste this yaml to a file (lets call it pgbench.yaml) and then run:
 [source,role="execute"]
 ----
-oc -n my-postgresql -f pgbench.yaml
+oc -n my-postgresql apply -f pgbench.yaml
 ----
 
 Once the pgbench pod is up, lets make sure we can connect to our PostgreSQL database. +
