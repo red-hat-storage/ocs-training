@@ -1,0 +1,475 @@
+# Lab: Leveraging OCS as a persistent Prometheus backend
+:toc: right
+:toclevels: 2
+:icons: font
+:language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+
+## In this lab you will learn
+
+- What Prometheus is
+- How Prometheus is deployed inside of Openshift
+- Check the current storage backend of your Prometheus environment
+- Make your monitoring and data persistent
+
+## What is Prometheus?
+
+Prometheus was started in 2012 by Soundcloud and is an open-source monitoring and alerting toolkit. Nowadays it is a stand-alone project and independent of any single company. Due to its design, it doesn't rely itself on a cluster or distributed database, but all its nodes are autonomous. All the communication happen through HTTP and Prometheus pulls information from it's nodes rather than receiving them like Nagios for example.
+
+To learn more about Prometheus, check out their official website at https://prometheus.io/docs/introduction/overview/
+
+## Discover your Prometheus environment
+
+Openshift comes with a pre-installed Prometheus installation, no matter where you deploy.
+The monitoring bits can be found in the openshift-monitoring project.
+
+Let's discover what we already have:
+
+[source,role="execute"]
+----
+oc get all -n openshift-monitoring
+----
+.Example output:
+----
+NAME                                               READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                            3/3     Running   0          6d23h
+pod/alertmanager-main-1                            3/3     Running   0          6d23h
+pod/alertmanager-main-2                            3/3     Running   0          6d23h
+pod/cluster-monitoring-operator-84cd9df668-74wnk   1/1     Running   0          6d23h
+pod/grafana-5db6fd97f8-fqj5g                       2/2     Running   0          6d23h
+pod/kube-state-metrics-895899678-pm8h7             3/3     Running   0          6d23h
+pod/node-exporter-69hqs                            2/2     Running   0          6d23h
+pod/node-exporter-mw7lf                            2/2     Running   0          6d23h
+pod/node-exporter-npngl                            2/2     Running   0          6d23h
+pod/node-exporter-p8nv7                            2/2     Running   0          6d23h
+pod/node-exporter-pgppl                            2/2     Running   0          6d23h
+pod/node-exporter-pnnhb                            2/2     Running   0          6d23h
+pod/node-exporter-rb4wv                            2/2     Running   0          6d23h
+pod/node-exporter-rwpwj                            2/2     Running   0          6d23h
+pod/node-exporter-xpvv7                            2/2     Running   0          6d23h
+pod/openshift-state-metrics-77d5f699d8-km8dn       3/3     Running   0          6d23h
+pod/prometheus-adapter-7cd7578f49-2wr84            1/1     Running   0          5d23h
+pod/prometheus-adapter-7cd7578f49-hbwgg            1/1     Running   0          5d23h
+pod/prometheus-k8s-0                               6/6     Running   1          6d23h
+pod/prometheus-k8s-1                               6/6     Running   1          6d23h
+pod/prometheus-operator-cbfd89f9-95bgj             1/1     Running   0          156m
+pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          6d23h
+
+NAME                                  TYPE        CLUSTER-IP       EXTERNAL-IP   PORT(S)                      AGE
+service/alertmanager-main             ClusterIP   172.30.81.103    <none>        9094/TCP                     6d23h
+service/alertmanager-operated         ClusterIP   None             <none>        9093/TCP,9094/TCP,9094/UDP   6d23h
+service/cluster-monitoring-operator   ClusterIP   None             <none>        8080/TCP                     6d23h
+service/grafana                       ClusterIP   172.30.240.192   <none>        3000/TCP                     6d23h
+service/kube-state-metrics            ClusterIP   None             <none>        8443/TCP,9443/TCP            6d23h
+service/node-exporter                 ClusterIP   None             <none>        9100/TCP                     6d23h
+service/openshift-state-metrics       ClusterIP   None             <none>        8443/TCP,9443/TCP            6d23h
+service/prometheus-adapter            ClusterIP   172.30.147.60    <none>        443/TCP                      6d23h
+service/prometheus-k8s                ClusterIP   172.30.35.130    <none>        9091/TCP,9092/TCP            6d23h
+service/prometheus-operated           ClusterIP   None             <none>        9090/TCP                     6d23h
+service/prometheus-operator           ClusterIP   None             <none>        8080/TCP                     6d23h
+service/telemeter-client              ClusterIP   None             <none>        8443/TCP                     6d23h
+
+NAME                           DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+daemonset.apps/node-exporter   9         9         9       9            9           kubernetes.io/os=linux   6d23h
+
+NAME                                          READY   UP-TO-DATE   AVAILABLE   AGE
+deployment.apps/cluster-monitoring-operator   1/1     1            1           6d23h
+deployment.apps/grafana                       1/1     1            1           6d23h
+deployment.apps/kube-state-metrics            1/1     1            1           6d23h
+deployment.apps/openshift-state-metrics       1/1     1            1           6d23h
+deployment.apps/prometheus-adapter            2/2     2            2           6d23h
+deployment.apps/prometheus-operator           1/1     1            1           6d23h
+deployment.apps/telemeter-client              1/1     1            1           6d23h
+
+NAME                                                     DESIRED   CURRENT   READY   AGE
+replicaset.apps/cluster-monitoring-operator-84cd9df668   1         1         1       6d23h
+replicaset.apps/grafana-5db6fd97f8                       1         1         1       6d23h
+replicaset.apps/kube-state-metrics-895899678             1         1         1       6d23h
+replicaset.apps/openshift-state-metrics-77d5f699d8       1         1         1       6d23h
+replicaset.apps/prometheus-adapter-57db7c5495            0         0         0       6d4h
+replicaset.apps/prometheus-adapter-67469c5b8b            0         0         0       6d23h
+replicaset.apps/prometheus-adapter-74f79b678f            0         0         0       6d4h
+replicaset.apps/prometheus-adapter-7cd7578f49            2         2         2       5d23h
+replicaset.apps/prometheus-operator-5df7bc8b4f           0         0         0       6d23h
+replicaset.apps/prometheus-operator-6584955c55           0         0         0       6d23h
+replicaset.apps/prometheus-operator-cbfd89f9             1         1         1       6d23h
+replicaset.apps/telemeter-client-66db9b8bb5              0         0         0       6d23h
+replicaset.apps/telemeter-client-7c65855db4              1         1         1       6d23h
+
+NAME                                 READY   AGE
+statefulset.apps/alertmanager-main   3/3     6d23h
+statefulset.apps/prometheus-k8s      2/2     6d23h
+
+NAME                                         HOST/PORT                                                                      PATH   SERVICES            PORT    TERMINATION          WILDCARD
+route.route.openshift.io/alertmanager-main   alertmanager-main-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com          alertmanager-main   web     reencrypt/Redirect   None
+route.route.openshift.io/grafana             grafana-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com                    grafana             https   reencrypt/Redirect   None
+route.route.openshift.io/prometheus-k8s      prometheus-k8s-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com             prometheus-k8s      web     reencrypt/Redirect   None
+----
+
+This is a lot! So let's go through it one by one:
+
+### Daemonsets
+
+----
+oc get daemonset -n openshift-monitoring
+NAME            DESIRED   CURRENT   READY   UP-TO-DATE   AVAILABLE   NODE SELECTOR            AGE
+node-exporter   9         9         9       9            9           kubernetes.io/os=linux   6d23h
+----
+
+https://kubernetes.io/docs/concepts/workloads/controllers/daemonset/[Daemonsets] are rather special in the Kubernetes environment, since they automatically scale. *Daemonsets* are used to running a copy of your *Pod* on all nodes in your cluster.
+
+In our project, we have one *deamonset*, which is used to run the node-exporter on all linux nodes.
+
+The https://prometheus.io/docs/guides/node-exporter/[node-exporter] is a vital part of Prometheus monitoring that collects system information of a node and prepares it to be scraped by Prometheus.
+// Prometheus is a pull-based system in which Prometheus is in charge to collect the information which are then evaluated by alerting rules.
+
+### Replicasets
+
+[source,role="execute"]
+----
+oc get replicaset -n openshift-monitoring
+----
+.Example output:
+----
+NAME                                     DESIRED   CURRENT   READY   AGE
+cluster-monitoring-operator-84cd9df668   1         1         1       6d23h
+grafana-5db6fd97f8                       1         1         1       6d23h
+kube-state-metrics-895899678             1         1         1       6d23h
+openshift-state-metrics-77d5f699d8       1         1         1       6d23h
+prometheus-adapter-57db7c5495            0         0         0       6d4h
+prometheus-adapter-67469c5b8b            0         0         0       6d23h
+prometheus-adapter-74f79b678f            0         0         0       6d4h
+prometheus-adapter-7cd7578f49            2         2         2       6d
+prometheus-operator-5df7bc8b4f           0         0         0       6d23h
+prometheus-operator-6584955c55           0         0         0       6d23h
+prometheus-operator-cbfd89f9             1         1         1       6d23h
+telemeter-client-66db9b8bb5              0         0         0       6d23h
+telemeter-client-7c65855db4              1         1         1       6d23h
+----
+
+A https://kubernetes.io/docs/concepts/workloads/controllers/replicaset/[ReplicaSet] ensures that a specific number of *Pods* are running at the same time. As you can see, we have some *ReplicaSets* that run 0,1 or 2 *Pods* at the same time. One disadvantage of *ReplicaSets* is that they do not have a built-in mechanism for updates. For this you are supposed to use *Deployments*.
+
+If you have closely watched the initial output, you will see that there are some similarities between the *ReplicaSets* and the *Deployments*. This is no coincidence, since the *ReplicaSets* are deployed by the *Deployments*. To get the binding between the two, we will look at the `ownerReferences` of the *ReplicaSets*, to get the name of the corresponding *deployment*:
+
+[source,role="execute"]
+----
+oc get replicaset -n openshift-monitoring -o 'custom-columns=REPLICASET:.metadata.name,DEPLOYMENT:.metadata.ownerReferences[0].name'
+----
+.Example output:
+----
+REPLICASET                               DEPLOYMENT
+cluster-monitoring-operator-84cd9df668   cluster-monitoring-operator
+grafana-5db6fd97f8                       grafana
+kube-state-metrics-895899678             kube-state-metrics
+openshift-state-metrics-77d5f699d8       openshift-state-metrics
+prometheus-adapter-57db7c5495            prometheus-adapter
+prometheus-adapter-67469c5b8b            prometheus-adapter
+prometheus-adapter-74f79b678f            prometheus-adapter
+prometheus-adapter-7cd7578f49            prometheus-adapter
+prometheus-operator-5df7bc8b4f           prometheus-operator
+prometheus-operator-6584955c55           prometheus-operator
+prometheus-operator-cbfd89f9             prometheus-operator
+telemeter-client-66db9b8bb5              telemeter-client
+telemeter-client-7c65855db4              telemeter-client
+----
+
+### Deployments
+
+[source,role="execute"]
+----
+oc get -n openshift-monitoring deployments
+----
+.Example output:
+----
+NAME                          READY   UP-TO-DATE   AVAILABLE   AGE
+cluster-monitoring-operator   1/1     1            1           7d
+grafana                       1/1     1            1           7d
+kube-state-metrics            1/1     1            1           7d
+openshift-state-metrics       1/1     1            1           7d
+prometheus-adapter            2/2     2            2           7d
+prometheus-operator           1/1     1            1           7d
+telemeter-client              1/1     1            1           7d
+----
+
+https://kubernetes.io/docs/concepts/workloads/controllers/deployment/[Deployments] provide declarative updates for *Pods* and *ReplicaSets*. Deployments can be used to describe a desired state and the Deployment Controller will ensure that this state is eventually achieved by making the necessary changes to the objects inside of the Deployment. These changes are most often image tag updates to roll out a new version of an application.
+
+We won't go into detail which deployment does what for every deployment, but the most important for us at the moment are: `grafana` and `prometheus-operator`:
+
+Grafana deploys the Grafana pods, which can be used to observe and analyze the data collected by Prometheus and other monitoring software.
+
+The Prometheus-Operator Deployment deploys the Prometheus-Operator Pods. Operators are similar to Deployments, since they also care that certain Kubernetes objects are deployed with a certain replication factor. Operators support the full life-cycle of an application including updates and fixing certain failure scenarios. Deployments only deploy Kubernetes objects which are already present, while Operators can introduce *CustomResourceDefinitions* (CRDs), which are also controlled and can be updated by the Operator.
+
+In our case, the prometheus-operator deploys multiple CRDs, one of which is the prometheuses.monitoring.coreos.com CRD which deploys a Prometheus cluster. In Openshift 4, there automatically is one cluster called k8s deployed. Let's have a closer look at it:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring describe prometheuses.monitoring.coreos.com k8s
+----
+.Example output:
+[source, yaml]
+----
+Name:         k8s
+Namespace:    openshift-monitoring
+Labels:       prometheus=k8s
+Annotations:  <none>
+API Version:  monitoring.coreos.com/v1
+Kind:         Prometheus
+Metadata:
+  Creation Timestamp:  2019-10-21T14:24:54Z
+  Generation:          1
+  Resource Version:    15495
+  Self Link:           /apis/monitoring.coreos.com/v1/namespaces/openshift-monitoring/prometheuses/k8s
+  UID:                 8ce33d67-f40e-11e9-8460-00505681bc30
+Spec:
+  Affinity:
+    Pod Anti Affinity:
+      Preferred During Scheduling Ignored During Execution:
+        Pod Affinity Term:
+          Label Selector:
+            Match Expressions:
+              Key:       prometheus
+              Operator:  In
+              Values:
+                k8s
+          Namespaces:
+            openshift-monitoring
+          Topology Key:  kubernetes.io/hostname
+        Weight:          100
+  Alerting:
+    Alertmanagers:
+      Bearer Token File:  /var/run/secrets/kubernetes.io/serviceaccount/token
+      Name:               alertmanager-main
+      Namespace:          openshift-monitoring
+      Port:               web
+      Scheme:             https
+      Tls Config:
+        Ca File:      /etc/prometheus/configmaps/serving-certs-ca-bundle/service-ca.crt
+        Server Name:  alertmanager-main.openshift-monitoring.svc
+  Base Image:         openshift/prometheus
+  Config Maps:
+    serving-certs-ca-bundle
+    kubelet-serving-ca-bundle
+  Containers:
+    Args:
+      -provider=openshift
+      -https-address=:9091
+      -http-address=
+      -email-domain=*
+      -upstream=http://localhost:9090
+      -htpasswd-file=/etc/proxy/htpasswd/auth
+      -openshift-service-account=prometheus-k8s
+      -openshift-sar={"resource": "namespaces", "verb": "get"}
+      -openshift-delegate-urls={"/": {"resource": "namespaces", "verb": "get"}}
+      -tls-cert=/etc/tls/private/tls.crt
+      -tls-key=/etc/tls/private/tls.key
+      -client-secret-file=/var/run/secrets/kubernetes.io/serviceaccount/token
+      -cookie-secret-file=/etc/proxy/secrets/session_secret
+      -openshift-ca=/etc/pki/tls/cert.pem
+      -openshift-ca=/var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+      -skip-auth-regex=^/metrics
+    Env:
+      Name:  HTTP_PROXY
+      Name:  HTTPS_PROXY
+      Name:  NO_PROXY
+    Image:   quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:6d952943885b8c9d972db55153206cb8ef5ee8e1d3aa4f76dec0cc616b31b4cc
+    Name:    prometheus-proxy
+    Ports:
+      Container Port:  9091
+      Name:            web
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+    Volume Mounts:
+      Mount Path:  /etc/tls/private
+      Name:        secret-prometheus-k8s-tls
+      Mount Path:  /etc/proxy/secrets
+      Name:        secret-prometheus-k8s-proxy
+      Mount Path:  /etc/proxy/htpasswd
+      Name:        secret-prometheus-k8s-htpasswd
+    Args:
+      --secure-listen-address=0.0.0.0:9092
+      --upstream=http://127.0.0.1:9095
+      --config-file=/etc/kube-rbac-proxy/config.yaml
+      --tls-cert-file=/etc/tls/private/tls.crt
+      --tls-private-key-file=/etc/tls/private/tls.key
+      --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+      --logtostderr=true
+      --v=10
+    Image:  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:39e4cab7d820c14689b17dd5d6e9bb678e1c9601d3eb59dd5c692ed1b63db3bd
+    Name:   kube-rbac-proxy
+    Ports:
+      Container Port:  9092
+      Name:            tenancy
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+    Volume Mounts:
+      Mount Path:  /etc/tls/private
+      Name:        secret-prometheus-k8s-tls
+      Mount Path:  /etc/kube-rbac-proxy
+      Name:        secret-kube-rbac-proxy
+    Args:
+      --insecure-listen-address=127.0.0.1:9095
+      --upstream=http://127.0.0.1:9090
+      --label=namespace
+    Image:  quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:54750214851b4600eaf616440f41b27054277f0b513f09a5452d68f7d211be9b
+    Name:   prom-label-proxy
+    Resources:
+      Requests:
+        Cpu:                     10m
+        Memory:                  20Mi
+    Termination Message Policy:  FallbackToLogsOnError
+  External URL:                  https://prometheus-k8s-openshift-monitoring.apps.perf2.ocs.lab.eng.blr.redhat.com/
+  Image:                         quay.io/openshift-release-dev/ocp-v4.0-art-dev@sha256:e03b477f13b4bbcc981922863322dc08a61cd499d2bdab39f82c56a87415f785
+  Listen Local:                  true
+  Node Selector:
+    kubernetes.io/os:  linux
+  Pod Monitor Selector:
+  Priority Class Name:  system-cluster-critical
+  Replicas:             2
+  Resources:
+    Requests:
+      Cpu:     200m
+      Memory:  1Gi
+  Retention:   15d
+  Rule Namespace Selector:
+  Rule Selector:
+  Rules:
+    Alert:
+  Secrets:
+    kube-etcd-client-certs
+    prometheus-k8s-tls
+    prometheus-k8s-proxy
+    prometheus-k8s-htpasswd
+    kube-rbac-proxy
+  Security Context:
+  Service Account Name:  prometheus-k8s
+  Service Monitor Namespace Selector:
+  Service Monitor Selector:
+  Version:  v2.7.1
+Events:     <none>
+----
+
+In here you see details about our currently deployed Prometheus cluster. In the next section we will look at modifying this cluster while it is running.
+
+## Modifying your Prometheus environment
+
+After you have looked at your Prometheus environment and understood how the parts are inter-connected, it is now time to talk about adjusting the environment to your needs. Every supported configuration change is controlled through a central *ConfigMap*, which needs to be created before we can make changes:
+
+### Creating the ConfigMap
+
+When you start off with a clean installation of Openshift, the ConfigMap to configure the Prometheus environment may not be present. To check if your ConfigMap is present, execute this:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring get configmap cluster-monitoring-config
+----
+.Output if the ConfigMap is not yet created:
+----
+Error from server (NotFound): configmaps "cluster-monitoring-config" not found
+----
+
+If you are missing the ConfigMap, create it:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring create configmap cluster-monitoring-config
+----
+
+You can edit the ConfigMap with the following command. Do this now and ensure that the ConfigMap looks like below - especially the data section should be present:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring edit configmap cluster-monitoring-config
+----
+.ConfigMap content
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+----
+
+### Configuring persistent storage for the Prometheus stack
+
+The Prometheus stack consists of the Prometheus database and the alertmanager data. Persisting both is best-practice since data loss on any of these will cause you to lose your collected metrics and alerting data.
+The official Openshift 4.2 documentation about this topic can be found https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html#configuring-persistent-storage[here].
+
+While the documentation recomends using the local-storage provider, we will set up the Prometheus stack to use OCS. By doing so, we will ensure that the Prometheus Pods can move freely between Nodes. Watch out for our performance briefs where we will show what this means for performance, by comparing the performance of the default EmptyDir, the recommended local-storage and OCS-backed Prometheus.
+
+To configure the Prometheus stack to use OCS, edit the ConfigMap that was created <<Creating the ConfigMap,in the previous section>>:
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring edit configmap cluster-monitoring-config
+----
+.ConfigMap content
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+data:
+  config.yaml: |
+    prometheusK8s:
+      volumeClaimTemplate:
+        metadata:
+          name: prometheusdb
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+    alertmanagerMain:
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+----
+
+Once you save and exit the editor, the affected Pods will automatically be restarted and the new storage will be applied.
+
+[NOTE]
+====
+It is not possible to retain data that was written on the default EmptyDir-based installation. Thus you will start with an empty DB after changing the backend storage.
+====
+
+After a couple of minutes, the Alertmanager and Prometheus *Pods* will have restarted and you will see new *PVCs* in the `openshift-monitoring` namespace:
+
+[source,role="execute"]
+----
+oc get -n openshift-monitoring pvc
+----
+.Example output:
+[source,yaml]
+----
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+alertmanager-alertmanager-main-0   Bound    pvc-2f6714f7-feff-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   102m
+alertmanager-alertmanager-main-1   Bound    pvc-2f6dd091-feff-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   102m
+alertmanager-alertmanager-main-2   Bound    pvc-2f74e00d-feff-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   102m
+prometheusdb-prometheus-k8s-0      Bound    pvc-e0f7b201-ff0c-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   4m34s
+prometheusdb-prometheus-k8s-1      Bound    pvc-e101b1db-ff0c-11e9-9bdd-005056818b15   40Gi       RWO            ocs-storagecluster-ceph-rbd   4m34s
+----
+
+
+### Configure even more
+
+You can configure a lot more inside of the cluster-monitoring-config *ConfigMap*. Since this Workshop is focussed on Storage, the other options have been omitted. A great way to learn more is to go to the official OpenShift Containter Platform documentation for this topic: https://docs.openshift.com/container-platform/4.2/monitoring/cluster-monitoring/configuring-the-monitoring-stack.html +
+One thing you want to check out in the documentation is how you can set up the alertmanager.yml and how to define the retention time of Prometheus. By default, Prometheus only retains the last 15 days worth of data.

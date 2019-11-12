@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  gather_facts: no
+
+  tasks:
+
+    - name: install Ceph toolbox
+      block:
+      - name: Getting definition file
+        uri:
+          url: https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml
+          return_content: yes
+        register: ocs_cluster_yml
+      - name: Installing Ceph toolbox
+        k8s:
+          api: v1
+          state: present
+          definition: "{{ ocs_cluster_yml.content | regex_replace('namespace: rook-ceph','namespace: openshift-storage') }}"
+
+    - name: validate Ceph toolbox
+      block:
+      - name: Validating Ceph toolbox is running
+        k8s_facts:
+          api_version: v1
+          kind: Pod
+          namespace: openshift-storage
+          label_selectors:
+            - app = rook-ceph-tools
+        register: tools
+        until: (tools | json_query('resources[*].status.conditions[?type==`Ready`][].status')) == ["True"]
+        retries: 30
+        delay: 15
+      - debug:
+          msg:
+          - "Ceph toolbox is running"
+
+

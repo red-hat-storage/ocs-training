@@ -1,0 +1,39 @@
+---
+- hosts: localhost
+  vars:
+    ansible_python_interpreter: "{{ ansible_playbook_python }}"
+  gather_facts: no
+
+  tasks:
+
+    - name: install ocs cluster
+      block:
+      - name: Getting definition file
+        uri:
+          url: https://raw.githubusercontent.com/openshift/ocs-operator/release-4.2/deploy/crds/ocs_v1_storagecluster_cr.yaml
+          return_content: yes
+        register: ocs_cluster_yml
+      - name: Creating OCS cluster
+        k8s:
+          api: v1
+          state: present
+          definition: "{{ ocs_cluster_yml.content | regex_replace('name: example-storagecluster','name: ocs-storagecluster') }}"
+
+    - name: validate ocs cluster
+      block:
+      - name: Validating MON Pods are running
+        k8s_facts:
+          api_version: v1
+          kind: Pod
+          namespace: openshift-storage
+          label_selectors:
+            - app = rook-ceph-mon
+        register: mons
+        until: (mons | json_query('resources[*].status.conditions[?type==`Ready`][].status')) == ["True","True","True"]
+        retries: 30
+        delay: 15
+      - debug:
+          msg:
+          - "All MON pods are running"
+
+

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+readonly PROJECT_PREFIX=myjenkins
+readonly NUMBER_OF_PROJECTS=60
+readonly RUN_DIR=$(dirname $0)
+readonly DEPLOY_INCREMENT=5
+
+
+function wait_until_pods_are_ready()
+{
+  local interval=${1}
+  local number_of_pods=${2}
+  while true;
+  do
+    ready_pods=$(oc get pod --all-namespaces | grep -i jenkins | grep -iv deploy | grep Running | grep 1/1 | wc -l | tr -d ' ')
+    if [[ "${ready_pods}" == "${number_of_pods}" ]]; then
+      echo "pods are ready"
+      break
+    fi
+    echo "Pods are not ready yet... waiting for ${number_of_pods} got only ${ready_pods}"
+    sleep ${interval}
+  done
+}
+
+for ((i=1; i<=${NUMBER_OF_PROJECTS}; i+=${DEPLOY_INCREMENT}))
+do
+  for ((j=i;j<=i+DEPLOY_INCREMENT-1;j++))
+  do
+    echo "running until $((i+4))..."
+    echo "deploying on ${PROJECT_PREFIX}-${j}..."
+    ${RUN_DIR}/deploy_jenkins ${PROJECT_PREFIX}-${j} ocs-storagecluster-ceph-rbd &
+  done
+  wait_until_pods_are_ready 5 $((i+DEPLOY_INCREMENT-1))
+done

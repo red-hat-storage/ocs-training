@@ -1,0 +1,12 @@
+#!/bin/bash
+
+readonly NUMBER_OF_PROJECTS=60
+readonly PROJECT_PREFIX=myjenkins
+readonly BUILD_CONFIG=jax-rs-build
+readonly NUMBER_OF_BUILDS=5
+readonly RUN_NAME=${1}
+
+for ((i=1;i<=NUMBER_OF_BUILDS;i++))
+do
+  echo "Average for build ${i}:" $(grep 'Total time:' ${RUN_NAME}/myjenkins-*/log-myjenkins-*-jax-rs-build-${i}|awk '{print $4":"$5}'|awk -F":" '{if ($3 == "min") {print $1*60 + $2} else {print $1}}'|awk '{sum+=$1} END {print sum/NR}')
+done
