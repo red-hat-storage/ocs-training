@@ -1670,14 +1670,15 @@ The above commands will always pull the latest noobaa version, so your version m
 == Ceph 101 - An introduction to Ceph concepts and terminology
 
 This section will go through some Ceph fundamental knowledge for a better understanding of the underlying storage solution
-underneath COS 4.
+underneath OCS 4.
 
 .*Timeline*
-The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
-solution.
 
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
+
+The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
+solution.
 
 .*Architecture*
 The Ceph cluster provides a scalable storage solution while providing multiple access methods to enable the different types of
