@@ -1752,6 +1752,7 @@ Ceph was designed to provides the IT environment with all the necessary access m
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
 
+[.lead]
 Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage trhough the Ceph Filesystem (aka CephFS) access method and
 object storage through its native `librados` API or through the RADOS Gateway (aka RADOSGW or RGW) for compatibilty with the S3 and Swift protocols.
 
