@@ -1672,14 +1672,14 @@ The above commands will always pull the latest noobaa version, so your version m
 This section will go through some Ceph fundamental knowledge for a better understanding of the underlying storage solution
 underneath COS 4.
 
-=== Timeline
+.Timeline
 The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
 solution.
 
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
 
-=== Architecture
+.*Architecture*
 The Ceph cluster provides a scalable storage solution while providing multiple access methods to enable the different types of
 clients present within the IT infrastructure to get access to the data. The entire Ceph architecture is resilient and does not present
 any Single Point Of Failure.
@@ -1711,13 +1711,13 @@ The Managers are tightly integrated with the Monitors and collect the statistics
 cluster through a pluggable Python interface aimed at expanding the Ceph existing capabilities. The current list of modules developed around the Manager framework
 are:
 
-<1> Balancer module
-<2> Placement Group auto-scaler module
-<3> Dashboard module
-<4> RESTful module
-<5> Prometheus module
-<6> Zabbix module
-<7> Rook module
+* Balancer module
+* Placement Group auto-scaler module
+* Dashboard module
+* RESTful module
+* Prometheus module
+* Zabbix module
+* Rook module
 
 .MDSs
 The Meta Data Servers manage the metadata for the POSIX compliant shared filesystem such as the directory hierarchy and the file metadata (ownership, timestamps, mode, ...).
