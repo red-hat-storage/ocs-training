@@ -1672,7 +1672,7 @@ The above commands will always pull the latest noobaa version, so your version m
 This section will go through some Ceph fundamental knowledge for a better understanding of the underlying storage solution
 underneath COS 4.
 
-.Timeline
+.*Timeline*
 The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
 solution.
 
@@ -1729,13 +1729,14 @@ If we look at the Ceph cluster foundation layer, the full picture with the diffe
 .RADOS as it stands
 image::imgs/ceph101-rados.png[RADOS Overview,align="center"]
 
-=== Access Methods
-Ceph was designed to provides the IT environment with all the necessary access methods.
+.*Access Methods*
+Ceph was designed to provides the IT environment with all the necessary access methods so that any application can use what is the best solution for its use-case.
 
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
 
-==== Librados
+
+.*Librados*
 Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint. The Ceph native
 API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
 
