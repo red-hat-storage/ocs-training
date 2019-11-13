@@ -1680,7 +1680,7 @@ The Ceph project has a long history behind it and is not as young as ones may th
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
 
-
+[.lead]
 It is a battle-tested software defined storage solution that has been available as a storage backend with Openstack and Kubernetes for quite some time.
 
 [.lead]
@@ -1712,12 +1712,12 @@ The Monitors maintain the cluster map and state and provide distributed decision
 on the size and the topology of the cluster, to prevent split-brain situations. The Monitors are not in the data-path and do not serve IO
 requests to and from the clients.
 
-.OSDs
+.*_OSDs_*
 One OSD is typically deployed for each local block devices and the native scalable nature of Ceph allows for tghousands of OSDs to be part of the cluster.
 The OSDs are serving IO requests from the clients while guaranteeing the protection of the data (replication or erasure coding), the rebalancing of the data
 in case of an OSD or a node failure, the coherence of the data (scrubbing and deep-scrubbing of the existing data).
 
-.MGRs
+.*_MGRs_*
 The Managers are tightly integrated with the Monitors and collect the statistics within the cluster. Additionally they provide an extensible framework for the
 cluster through a pluggable Python interface aimed at expanding the Ceph existing capabilities. The current list of modules developed around the Manager framework
 are:
@@ -1730,7 +1730,7 @@ are:
 * Zabbix module
 * Rook module
 
-.MDSs
+.*_MDSs_*
 The Meta Data Servers manage the metadata for the POSIX compliant shared filesystem such as the directory hierarchy and the file metadata (ownership, timestamps, mode, ...).
 All the metadata is stored with RADOS and they do not server any data to the clients. MDSs are only deployed when a shared filesystem is configured in the Ceph cluster.
 To avoid
@@ -1740,53 +1740,73 @@ If we look at the Ceph cluster foundation layer, the full picture with the diffe
 .RADOS as it stands
 image::imgs/ceph101-rados.png[RADOS Overview,align="center"]
 
-.*Access Methods*
+[.lead]
+The circle represent the MONs, the 'M' represent the MGRs and the squares with the bars represent the OSDs. In the diagram above the cluster operates with
+3 Monitors, 2 Managers and 23 OSDs.
+
+[.lead]
+*Access Methods*
+
 Ceph was designed to provides the IT environment with all the necessary access methods so that any application can use what is the best solution for its use-case.
 
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
 
+[.lead]
+*Librados*
 
-.*Librados*
 Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint. The Ceph native
 API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
 
 .Application Native Object API
 image::imgs/ceph101-librados.png[librados,align="center"]
 
-==== RADOS Block Device (RBD)
-This access method is used in Red Hat Enterprise Linux or Openshift 3 and 4. This mode currently does not allow leveraging the
-RBD Mirroring feature. RBD are typically used for RWO claims in OCP3 and 4.
+[.lead]
+*RADOS Block Device (RBD)*
 
-.Kernel Module (kRBD)
-This access method is used in Red Hat Openstack Environment or in Openshift through the RBD-NBD driver when it lands in RHEL 8.1 kernel.
-This mode will allow us to leverage RBD Mirroring in future version. RBD are typically used for RWO claims in OCP3 and 4
+This access method is used in Red Hat Enterprise Linux or Openshift 3 and 4. RBDs can be accessed either through a kernel module (RHEL, OCS4)
+or through the 'librbd` API (RHOSP). In the OCP world, RBDs are designed to address the need for RWO PVCs.
+
+[.lead]
+*_Kernel Module (kRBD)_*
+
+The kernel RBD driver offers superior performance compared to the userspace `librbd` method. However, kRBD is currently limited and does
+not provide the same level of functionality. e.g. no RBD Mirroring support.
 
 .kRBD Diagram
 image::imgs/ceph101-krbd.png[Kernel based RADOS Block Device,align="center"]
 
-.Userspace RBD (librbd)
-This method allows clients to jointly access a shared POSIX compliant filesystem. The client initally contacts the Meta Data Server to obtain
-the location of the object(s) for a given inode and then communicates directly with an OSD to perform the final IO request. CephFS is typically
-used for RWX claims but can also be used to support RWO claims.
+[.lead]
+*_Userspace RBD (librbd)_*
+
+This access method is used in Red Hat Openstack Environment or in Openshift through the RBD-NBD driver when it lands in RHEL 8.1 kernel.
+This mode allows us to leverage all existing RBD features such as RBD Mirroring.
 
 .librbd Diagram
 image::imgs/ceph101-librbd.png[Userspace RADOS Block Device,align="center"]
 
-==== Shared Filesystem (CephFS)
-This access method offers support for the Amazon S3 and Openstack Swift support on top of a Ceph cluster. The Openshift Conatiner Storage MultiCloud
-Gateway can leverage the RADOS to support Object Bucket Claims.
+[.lead]
+*_Shared Filesystem (CephFS)_*
+
+This method allows clients to jointly access a shared POSIX compliant filesystem. The client initally contacts the Meta Data Server to obtain
+the location of the object(s) for a given inode and then communicates directly with an OSD to perform the final IO request. CephFS is typically
+used for RWX claims but can also be used to support RWO claims.
 
 .File Access (Ceph Filesystem or CephFS)
 image::imgs/ceph101-cephfs.png[Kernel Based CephFS Client,align="center"]
 
-.Object Storage (S3 and Swift Support)
-The Ceph cluster being a distributed architecture, some solution had to be designed to provide an efficient way to distribute the data across the multiple
-OSDs in the cluster. The technique used is called CRUSH or Controlled Replication Under Scalable Hashing. With CRUSH, every object is assigned to one
-and only one hash bucket know as a Placement Group (aka PG).
+[.lead]
+*_Object Storage, S3 and Swift (Ceph RADOS Gateway)_*
+
+This access method offers support for the Amazon S3 and Openstack Swift support on top of a Ceph cluster. The Openshift Conatiner Storage MultiCloud
+Gateway can leverage the RADOS to support Object Bucket Claims.
 
 .Amazone S3 or Openstack Swift (Ceph RADOS Gateway)
 image::imgs/ceph101-rgw.png[S3 and Swift Support,align="center"]
+
+The Ceph cluster being a distributed architecture, some solution had to be designed to provide an efficient way to distribute the data across the multiple
+OSDs in the cluster. The technique used is called CRUSH or Controlled Replication Under Scalable Hashing. With CRUSH, every object is assigned to one
+and only one hash bucket know as a Placement Group (aka PG).
 
 === CRUSH
 CRUSH is the central point of configuration for the topolgy of the cluster. It offers a pseudo-random placement algorithm to distribute the objects across
