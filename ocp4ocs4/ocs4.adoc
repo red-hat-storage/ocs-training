@@ -1766,6 +1766,8 @@ the PGs and uses rules to determine the mapping of the PGs to the OSDs. In essen
 and the OSDs (physical layer). In case of failure, the PG will be remapped to a different physical devices (OSD) and eventually see its content resynchronized
 to match the protection rules  selected by the storage administrator.
 
+image::imgs/ceph101-thefullpicture.png[From Object to OSD Detailed]
+
 .Ceph Data Protection
 The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
 The cluster will be separated into logical partitions, knwown as a pool. Each pool has the following properties that can be adjusted:
