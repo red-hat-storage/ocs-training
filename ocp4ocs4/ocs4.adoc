@@ -1673,22 +1673,23 @@ This section will go through some Ceph fundamental knowledge for a better unders
 underneath OCS 4.
 
 .*Timeline*
+The Ceph project has a long history behind it and is not as young as ones may think.
 
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
 
-The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
-solution.
+It is a battle-tested software defined storage solution that has been available as a storage backend with Openstack and Kubernetes for quite some time.
 
 .*Architecture*
 The Ceph cluster provides a scalable storage solution while providing multiple access methods to enable the different types of
-clients present within the IT infrastructure to get access to the data. The entire Ceph architecture is resilient and does not present
-any Single Point Of Failure.
+clients present within the IT infrastructure to get access to the data.
 
 .Ceph Architecture
 image::imgs/ceph101-overview.png[Ceph From Above]
 
-=== RADOS
+The entire Ceph architecture is resilient and does not present any Single Point Of Failure.
+
+.*RADOS*
 The heart of Ceph is an object store known as RADOS (Reliable Autonomic Distributed Object Store) bottom layer on the screen. This
 layer provides the Ceph software defined storage with the ability to store data (serve IO requests, to protect the data, to check
 the consistency and the integrity of the data through built-in mechanisms. The RADOS layer is composed of the following daemons:
@@ -1699,8 +1700,9 @@ the consistency and the integrity of the data through built-in mechanisms. The R
 <4> MDSs or Meta Data Servers
 
 .Monitors
-The Monitors maintain the cluster map and state and provide distributed decision-making while configured in an odd number to prevent split-brain situations.
-The Monitors are not in the data-path and do not serve IO requests to and from the clients.
+The Monitors maintain the cluster map and state and provide distributed decision-making while configured in an odd number, 3 or 5 depending
+on the size and the topology of the cluster, to prevent split-brain situations. The Monitors are not in the data-path and do not serve IO
+requests to and from the clients.
 
 .OSDs
 One OSD is typically deployed for each local block devices and the native scalable nature of Ceph allows for tghousands of OSDs to be part of the cluster.
