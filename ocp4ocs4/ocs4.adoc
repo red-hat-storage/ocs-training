@@ -1741,7 +1741,7 @@ If we look at the Ceph cluster foundation layer, the full picture with the diffe
 image::imgs/ceph101-rados.png[RADOS Overview,align="center"]
 
 [.lead]
-The circle represent the MONs, the 'M' represent the MGRs and the squares with the bars represent the OSDs. In the diagram above the cluster operates with
+The circle represent the MONs, the 'M' represent the MGRs and the squares with the bars represent the OSDs. In the diagram above, the cluster operates with
 3 Monitors, 2 Managers and 23 OSDs.
 
 [.lead]
@@ -1751,6 +1751,9 @@ Ceph was designed to provides the IT environment with all the necessary access m
 
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
+
+Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage trhough the Ceph Filesystem (aka CephFS) access method and
+object storage through its native `librados` API or through the RADOS Gateway (aka RADOSGW or RGW) for compatibilty with the S3 and Swift protocols.
 
 [.lead]
 *Librados*
