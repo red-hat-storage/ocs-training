@@ -1752,18 +1752,18 @@ Ceph was designed to provides the IT environment with all the necessary access m
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
 
-[.lead]
 Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage trhough the Ceph Filesystem (aka CephFS) access method and
 object storage through its native `librados` API or through the RADOS Gateway (aka RADOSGW or RGW) for compatibilty with the S3 and Swift protocols.
 
 [.lead]
 *Librados*
 
-Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint. The Ceph native
-API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
+Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint.
 
 .Application Native Object API
 image::imgs/ceph101-librados.png[librados,align="center"]
+
+The Ceph native API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
 
 [.lead]
 *RADOS Block Device (RBD)*
@@ -1774,11 +1774,11 @@ or through the 'librbd` API (RHOSP). In the OCP world, RBDs are designed to addr
 [.lead]
 *_Kernel Module (kRBD)_*
 
-The kernel RBD driver offers superior performance compared to the userspace `librbd` method. However, kRBD is currently limited and does
-not provide the same level of functionality. e.g. no RBD Mirroring support.
-
 .kRBD Diagram
 image::imgs/ceph101-krbd.png[Kernel based RADOS Block Device,align="center"]
+
+The kernel RBD driver offers superior performance compared to the userspace `librbd` method. However, kRBD is currently limited and does
+not provide the same level of functionality. e.g. no RBD Mirroring support.
 
 [.lead]
 *_Userspace RBD (librbd)_*
