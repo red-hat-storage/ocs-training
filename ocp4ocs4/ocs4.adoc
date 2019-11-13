@@ -1688,9 +1688,11 @@ clients present within the IT infrastructure to get access to the data.
 .Ceph Architecture
 image::imgs/ceph101-overview.png[Ceph From Above]
 
-The entire Ceph architecture is resilient and does not present any Single Point Of Failure.
+The entire Ceph architecture is resilient and does not present any single point of failure (SPOF).
 
-.*RADOS*
+[.lead]
+RADOS
+
 The heart of Ceph is an object store known as RADOS (Reliable Autonomic Distributed Object Store) bottom layer on the screen. This
 layer provides the Ceph software defined storage with the ability to store data (serve IO requests, to protect the data, to check
 the consistency and the integrity of the data through built-in mechanisms. The RADOS layer is composed of the following daemons:
