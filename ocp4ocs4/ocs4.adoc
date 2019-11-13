@@ -1830,12 +1830,14 @@ to match the protection rules  selected by the storage administrator.
 The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
 The cluster will be separated into logical partitions, known as a pool. Each pool has the following properties that can be adjusted:
 
-* Each pool has an ID (immutable)
-* Each pool has a name
+* An ID (immutable)
+* A name
 * A number of PGs to distribute the objects across the OSDs
 * A CRUSH rule to determine the mapping of the PGs for this pool
 * A type of protection (Replication or Erasure Coding)
-* The parameters associated with the type of protection
+* Parameters associated with the type of protection
+** Number of copies for replicated pools
+** K and M chunks for Erasure Coding
 * Various flags to influence the behavior of the cluster
 
 [.lead]
@@ -1874,10 +1876,12 @@ EC can be used for the RADOS Gateway access method and for the RBD access method
 
 To leverage the Ceph architecture at its best, all access methods but librados, will access the data in the cluster through a collection of objects. Hence a 1GB
 block device will be a collection of objects, each supporting a set of device sectors, a 1GB file stored in a CephFS directory will be split in multiple objects,
-a 5GB S3 object stored through the RADOS Gateway via the MultiCloud Gateway will be divided in multiple objects.
+a 5GB S3 object stored through the RADOS Gateway via the Multi Cloud Gateway will be divided in multiple objects.
 
 .Data Distribution
 image::imgs/ceph101-rbdlayout.png[RADOS Block Device Layout]
 
-Out of the box, each access method uses an object size of 4MB. The above diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will
-actually be scattered throughout the cluster.
+[NOTE]
+====
+By default, each access method uses an object size of 4MB. The above diagram details how a 32MB RBD (Block Device) data supporting a RWO PVC will be scattered throughout the cluster.
+====
