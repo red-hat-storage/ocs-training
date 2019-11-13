@@ -1766,7 +1766,7 @@ This access method offers support for the Amazon S3 and Openstack Swift support 
 Gateway can leverage the RADOS to support Object Bucket Claims.
 
 .File Access (Ceph Filesystem or CephFS)
-image::imgs/ceph101-cephs.png[Kernel Based CephFS Client,align="center"]
+image::imgs/ceph101-cephfs.png[Kernel Based CephFS Client,align="center"]
 
 .Object Storage (S3 and Swift Support)
 The Ceph cluster being a distributed architecture, some solution had to be designed to provide an efficient way to distribute the data across the multiple
