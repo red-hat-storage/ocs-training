@@ -1667,7 +1667,7 @@ The above commands will always pull the latest noobaa version, so your version m
 ====
 
 [appendix]
-== Ceph 101 - An introduction to Ceph concepts and terminology
+== Ceph 101 - Introduction to Ceph
 
 This section will go through some Ceph fundamental knowledge for a better understanding of the underlying storage solution
 underneath OCS 4.
@@ -1677,6 +1677,7 @@ The Ceph project has a long history behind it and is not as young as ones may th
 
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
+
 
 It is a battle-tested software defined storage solution that has been available as a storage backend with Openstack and Kubernetes for quite some time.
 
