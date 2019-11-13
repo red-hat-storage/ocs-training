@@ -1672,14 +1672,14 @@ The above commands will always pull the latest noobaa version, so your version m
 This section will go through some Ceph fundamental knowledge for a better understanding of the underlying storage solution
 underneath COS 4.
 
-.Timeline
+=== Timeline
 The Ceph project has a long history behind it and is not as young as ones may think. It is a battle-tested software defined storage
 solution.
 
 .Ceph Project History
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
 
-.Architecture
+=== Architecture
 The Ceph cluster provides a scalable storage solution while providing multiple access methods to enable the different types of
 clients present within the IT infrastructure to get access to the data. The entire Ceph architecture is resilient and does not present
 any Single Point Of Failure.
@@ -1687,7 +1687,7 @@ any Single Point Of Failure.
 .Ceph Architecture
 image::imgs/ceph101-overview.png[Ceph From Above]
 
-.RADOS
+=== RADOS
 The heart of Ceph is an object store known as RADOS (Reliable Autonomic Distributed Object Store) bottom layer on the screen. This
 layer provides the Ceph software defined storage with the ability to store data (serve IO requests, to protect the data, to check
 the consistency and the integrity of the data through built-in mechanisms. The RADOS layer is composed of the following daemons:
@@ -1729,20 +1729,20 @@ If we look at the Ceph cluster foundation layer, the full picture with the diffe
 .RADOS as it stands
 image::imgs/ceph101-rados.png[RADOS Overview,align="center"]
 
-.Access Methods
+=== Access Methods
 Ceph was designed to provides the IT environment with all the necessary access methods.
 
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes,align="center"]
 
-.Librados
+==== Librados
 Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint. The Ceph native
 API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
 
 .Application Native Object API
 image::imgs/ceph101-librados.png[librados,align="center"]
 
-.RADOS Block Device (RBD)
+==== RADOS Block Device (RBD)
 This access method is used in Red Hat Enterprise Linux or Openshift 3 and 4. This mode currently does not allow leveraging the
 RBD Mirroring feature. RBD are typically used for RWO claims in OCP3 and 4.
 
@@ -1761,7 +1761,7 @@ used for RWX claims but can also be used to support RWO claims.
 .librbd Diagram
 image::imgs/ceph101-librbd.png[Userspace RADOS Block Device,align="center"]
 
-.Shared Filesystem (CephFS)
+==== Shared Filesystem (CephFS)
 This access method offers support for the Amazon S3 and Openstack Swift support on top of a Ceph cluster. The Openshift Conatiner Storage MultiCloud
 Gateway can leverage the RADOS to support Object Bucket Claims.
 
@@ -1776,7 +1776,7 @@ and only one hash bucket know as a Placement Group (aka PG).
 .Amazone S3 or Openstack Swift (Ceph RADOS Gateway)
 image::imgs/ceph101-rgw.png[S3 and Swift Support,align="center"]
 
-.CRUSH
+=== CRUSH
 CRUSH is the central point of configuration for the topolgy of the cluster. It offers a pseudo-random placement algorithm to distribute the objects across
 the PGs and uses rules to determine the mapping of the PGs to the OSDs. In essence, the PGs are an abstraction layer between the objects (application layer)
 and the OSDs (physical layer). In case of failure, the PG will be remapped to a different physical devices (OSD) and eventually see its content resynchronized
@@ -1785,7 +1785,7 @@ to match the protection rules  selected by the storage administrator.
 .Ceph Data Placement
 image::imgs/ceph101-crushfromobjecttoosd.png[From Object to OSD,align="center"]
 
-.Cluster Partitioning
+=== Cluster Partitioning
 The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
 The cluster will be separated into logical partitions, knwown as a pool. Each pool has the following properties that can be adjusted:
 
@@ -1796,12 +1796,16 @@ The cluster will be separated into logical partitions, knwown as a pool. Each po
 <5> The parameters associated with the type of protection
 <6> Various flags to influence the behaviour of the cluster
 
-.Pools and PGs
+=== Pools and PGs
 image::imgs/ceph101-thefullpicture.png[From Object to OSD,align="center"]
+
+=== Data Protection
+Ceph supports two types of data protection presented in the diagram below.
 
 .Ceph Data Protection
 image::imgs/ceph101-dataprotection.png[Replicated Pools vs Erasure Coded Pools,align="center"]
 
+=== Data Distribution
 To leverage the Ceph architecture at its best, all access methods but librados, will access the data in the cluster through a collection of objects. Hence a 1GB
 block device will be a collection of objects, each supporting a set of device sectors, a 1GB file stored in a CephFS directory will be split in multiple objects,
 a 5GB S3 object stored through the RADOS Gateway via the MultiCloud Gateway will be divided in multiple objects.
