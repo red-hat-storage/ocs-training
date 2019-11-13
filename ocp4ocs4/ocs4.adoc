@@ -1783,45 +1783,49 @@ not provide the same level of functionality. e.g. no RBD Mirroring support.
 [.lead]
 *_Userspace RBD (librbd)_*
 
-This access method is used in Red Hat Openstack Environment or in Openshift through the RBD-NBD driver when it lands in RHEL 8.1 kernel.
-This mode allows us to leverage all existing RBD features such as RBD Mirroring.
-
 .librbd Diagram
 image::imgs/ceph101-librbd.png[Userspace RADOS Block Device,align="center"]
+
+This access method is used in Red Hat Openstack Environment or in Openshift through the RBD-NBD driver when it lands in RHEL 8.1 kernel.
+This mode allows us to leverage all existing RBD features such as RBD Mirroring.
 
 [.lead]
 *_Shared Filesystem (CephFS)_*
 
 This method allows clients to jointly access a shared POSIX compliant filesystem. The client initally contacts the Meta Data Server to obtain
-the location of the object(s) for a given inode and then communicates directly with an OSD to perform the final IO request. CephFS is typically
-used for RWX claims but can also be used to support RWO claims.
+the location of the object(s) for a given inode and then communicates directly with an OSD to perform the final IO request.
 
 .File Access (Ceph Filesystem or CephFS)
 image::imgs/ceph101-cephfs.png[Kernel Based CephFS Client,align="center"]
 
+CephFS is typically used for RWX claims but can also be used to support RWO claims.
+
 [.lead]
 *_Object Storage, S3 and Swift (Ceph RADOS Gateway)_*
+
+.Amazone S3 or Openstack Swift (Ceph RADOS Gateway)
+image::imgs/ceph101-rgw.png[S3 and Swift Support,align="center"]
 
 This access method offers support for the Amazon S3 and Openstack Swift support on top of a Ceph cluster. The Openshift Conatiner Storage MultiCloud
 Gateway can leverage the RADOS to support Object Bucket Claims.
 
-.Amazone S3 or Openstack Swift (Ceph RADOS Gateway)
-image::imgs/ceph101-rgw.png[S3 and Swift Support,align="center"]
+[.lead]
+*CRUSH*
 
 The Ceph cluster being a distributed architecture, some solution had to be designed to provide an efficient way to distribute the data across the multiple
 OSDs in the cluster. The technique used is called CRUSH or Controlled Replication Under Scalable Hashing. With CRUSH, every object is assigned to one
 and only one hash bucket know as a Placement Group (aka PG).
 
-=== CRUSH
+image::imgs/ceph101-crushfromobjecttoosd.png[From Object to OSD,align="center"]
+
 CRUSH is the central point of configuration for the topolgy of the cluster. It offers a pseudo-random placement algorithm to distribute the objects across
 the PGs and uses rules to determine the mapping of the PGs to the OSDs. In essence, the PGs are an abstraction layer between the objects (application layer)
 and the OSDs (physical layer). In case of failure, the PG will be remapped to a different physical devices (OSD) and eventually see its content resynchronized
 to match the protection rules  selected by the storage administrator.
 
-.Ceph Data Placement
-image::imgs/ceph101-crushfromobjecttoosd.png[From Object to OSD,align="center"]
+[.lead]
+*Cluster Partitioning*
 
-=== Cluster Partitioning
 The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
 The cluster will be separated into logical partitions, knwown as a pool. Each pool has the following properties that can be adjusted:
 
@@ -1832,22 +1836,41 @@ The cluster will be separated into logical partitions, knwown as a pool. Each po
 <5> The parameters associated with the type of protection
 <6> Various flags to influence the behaviour of the cluster
 
-=== Pools and PGs
+[.lead]
+*Pools and PGs*
+
+.Pools and PGs
 image::imgs/ceph101-thefullpicture.png[From Object to OSD,align="center"]
 
-=== Data Protection
+The diagram above shows the relationship end to end between the object at the access method level down to the OSDs at the physical layer.
+
+[.lead]
+*Data Protection*
+
 Ceph supports two types of data protection presented in the diagram below.
 
 .Ceph Data Protection
 image::imgs/ceph101-dataprotection.png[Replicated Pools vs Erasure Coded Pools,align="center"]
 
-=== Data Distribution
+Replicated pools provide better performance in almost all cases at the cost of a lower usable to raw storage ratio (1 usable byte is stored using 3 bytes of raw storage)
+while Erasure Coding provide a cost efficient way to store data. We support the following Erasure Coding profiles with the Ceph cluster:
+
+* 4+2
+* 8+3
+* 8+4
+
+Another advantage of Erasure Coding is its ability to offer extreme resilience and durability as we can configure the number of parities being used.
+EC can be used for the RADOS Gateway access method and for the RBD access method (performance impact).
+
+[.lead]
+*Data Distribution*
+
 To leverage the Ceph architecture at its best, all access methods but librados, will access the data in the cluster through a collection of objects. Hence a 1GB
 block device will be a collection of objects, each supporting a set of device sectors, a 1GB file stored in a CephFS directory will be split in multiple objects,
 a 5GB S3 object stored through the RADOS Gateway via the MultiCloud Gateway will be divided in multiple objects.
 
-Out of the box, each access method uses an object size of 4MB. As an example, the following schematic shows how a 32MB RBD (Block Device) supporting a RWO PVC will
-actually be scattered throughout the cluster.
-
 .Data Distribution
 image::imgs/ceph101-rbdlayout.png[RADOS Block Device Layout,align="center"]
+
+Out of the box, each access method uses an object size of 4MB. The above diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will
+actually be scattered throughout the cluster.
