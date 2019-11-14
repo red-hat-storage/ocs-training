@@ -1686,7 +1686,7 @@ The Ceph project has a long history as you can see in the timeline below.
 image::imgs/ceph101-timeline.png[Ceph Project Timeline]
 
 [.lead]
-It is a battle-tested software defined storage (SDS) solution that has been available as a storage backend fpr OpenStack and Kubernetes for quite some time.
+It is a battle-tested software defined storage (SDS) solution that has been available as a storage backend for OpenStack and Kubernetes for quite some time.
 
 [.lead]
 *Architecture*
@@ -1755,7 +1755,7 @@ Ceph was designed to provides the IT environment with all the necessary access m
 .Different Storage Types Supported
 image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes]
 
-Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage trhough the Ceph Filesystem (aka CephFS) access method and
+Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage through the Ceph Filesystem (aka CephFS) access method and
 object storage through its native `librados` API or through the RADOS Gateway (aka RADOSGW or RGW) for compatibility with the S3 and Swift protocols.
 
 [.lead]
