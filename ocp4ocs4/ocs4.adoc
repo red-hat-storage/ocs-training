@@ -1824,14 +1824,14 @@ image::imgs/ceph101-crushfromobjecttoosd.png[From Object to OSD]
 
 CRUSH is the central point of configuration for the topology of the cluster. It offers a pseudo-random placement algorithm to distribute the objects across
 the PGs and uses rules to determine the mapping of the PGs to the OSDs. In essence, the PGs are an abstraction layer between the objects (application layer)
-and the OSDs (physical layer). In case of failure, the PG will be remapped to a different physical devices (OSD) and eventually see its content resynchronized
+and the OSDs (physical layer). In case of failure, the PGs will be remapped to different physical devices (OSDs) and eventually see their content resynchronized
 to match the protection rules  selected by the storage administrator.
 
 [.lead]
 *Cluster Partitioning*
 
 The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
-The cluster will be separated into logical partitions, known as a pool. Each pool has the following properties that can be adjusted:
+The cluster will be separated into logical partitions, known as pools. Each pool has the following properties that can be adjusted:
 
 * An ID (immutable)
 * A name
@@ -1853,7 +1853,7 @@ The diagram above shows the relationship end to end between the object at the ac
 
 [NOTE]
 ====
-A Ceph pool has no size and is able to consume the space available any OSDs where its PGs are created. A Placement Group or PG belongs to only one pool.
+A Ceph pool has no size and is able to consume the space available any OSD where its PGs are created. A Placement Group or PG belongs to only one pool.
 ====
 
 [.lead]
