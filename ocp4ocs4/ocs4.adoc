@@ -224,14 +224,14 @@ image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
 CAUTION: *Make sure to select three workers in different availability zones using instructions below*
 
-To select the OCP 4 nodes that you created earlier in the lab specifically for OCS, you can find them by searching for `role=storage-node`.
+To select the appropriate worker nodes of your OCP 4 cluster you can find them by searching for the node label `role=storage-node`.
 
 [source,role="execute"]
 ----
 oc get nodes --show-labels | grep storage-node |cut -d' ' -f1
 ----
 
-Select these three nodes that resulted from command above. Then click on the button `Create` below the dialog box where you selected the 3 workers with a `checkmark`.
+Select the three nodes that resulted from the command above. Then click on the button `Create` below the dialog box where you selected the 3 workers with a `checkmark`.
 
 NOTE: It would be a good practice to add a unique label to OCP nodes that are to be used for creating the `Storage Cluster` prior to this step so they are easy to find in list of OCP nodes. In this case it was done by adding this label, `role=storage-node`, in the machineset YAML files that you used earlier to create the new OCS worker nodes.
 
