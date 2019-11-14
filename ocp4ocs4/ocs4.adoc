@@ -222,16 +222,18 @@ A dialog box will come up next.
 .OCS create a new storage cluster
 image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
-To select the OCP 4 nodes that you created earlier in the lab specifically for OCS, you can find them by searching for `role=storage-node` because this label was configured in the workerocs machinesets. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` prior to this step so they are easy to find in list of OCP nodes.
+CAUTION: *Make sure to select three workers in different availability zones using instructions below*
+
+To select the appropriate worker nodes of your OCP 4 cluster you can find them by searching for the node label `role=storage-node`.
 
 [source,role="execute"]
 ----
 oc get nodes --show-labels | grep storage-node |cut -d' ' -f1
 ----
 
-In this dialog, select these three nodes that have the role `storage-node` and `worker` and click on the button `Create` below the dialog box.
+Select the three nodes that resulted from the command above. Then click on the button `Create` below the dialog box where you selected the 3 workers with a `checkmark`.
 
-CAUTION: Make sure to select three workers in different availability zones.
+NOTE: It would be a good practice to add a unique label to OCP nodes that are to be used for creating the `Storage Cluster` prior to this step so they are easy to find in list of OCP nodes. In this case it was done by adding this label, `role=storage-node`, in the machineset YAML files that you used earlier to create the new OCS worker nodes.
 
 In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
