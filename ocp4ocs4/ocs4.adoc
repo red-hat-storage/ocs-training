@@ -1149,6 +1149,121 @@ metadata:
 
 As you can see, the secret gives us the S3 access credentials, while the CM contains the S3 endpoint information for our application.
 
+=== Using an OBC inside a container
+
+In this section we will see how one can create an OBC using a YAML file and use the provided S3 configuration in an example application.
+
+To deploy the OBC and the example application we apply this YAML file:
+
+[source,yaml]
+----
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: obc-test
+spec:
+  generateBucketName: "obc-test-noobaa"
+  storageClassName: openshift-storage.noobaa.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: obc-test
+  labels:
+    app: obc-test
+spec:
+  template:
+    metadata:
+      labels:
+        app: obc-test
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - image: mesosphere/aws-cli:latest
+          command: ["sh"]
+          args: 
+            - '-c'
+            - 'set -x && s3cmd --no-check-certificate --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
+          name: obc-test
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_HOST
+            - name: BUCKET_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_PORT
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: obc-test
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: obc-test
+                  key: AWS_SECRET_ACCESS_KEY
+----
+
+The first part creates an OBC that will create a ConfigMap and a secret that have the same name as the OBC (`obc-test`). The second part of the file (after the `---`), creates a Job that deploys a container that has the s3cmd pre-installed. It will execute s3cmd with some necessary commandline flags and exit. S3cmd will in this case report the current disk usage of our S3 endpoint and exit, which will mark our *Pod* as `Completed`.
+
+Let's try this out:
+
+.Deploy the Manifest
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/obc_app_example.yaml | oc apply -f -
+----
+.Example output
+----
+objectbucketclaim.objectbucket.io/obc-test created
+job.batch/obc-test created
+----
+
+Afterwards watch the *Pod* be Created, Run and finally be marked `Completed` like below - be aware that your Pod name will differ:
+
+[source,role="execute"]
+----
+oc get po -l app=obc-test
+----
+.Example output
+----
+NAME             READY   STATUS      RESTARTS   AGE
+obc-test-wmt9q   0/1     Completed   0          10m
+----
+
+Then you can fetch the output of s3cmd via kubectl:
+
+[source,role="execute"]
+----
+kubectl logs -l app=obc-test
+----
+.Example output
+----
++ s3cmd --no-check-certificate --host 10.0.140.19:30052 --host-bucket 10.0.140.19:30052 du
+0        0 objects s3://obc-test-noobaa-784461cb-1e77-4ccf-b62d-007a6ae3ef15/
+--------
+0        Total
+----
+
+NOTE: Fetching the log via `oc` and the label flag does not work
+
+As we can see above, we can access one bucket, which is currently empty. This proves that the access credentials from the OBC work and are set up correctly inside of the container. +
+Most applications support reading out the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables natively, but you will have to figure out how to set the host and bucket name for each application. In our example we used CLI flags of s3cmd for this.
+
 == Adding storage to the Ceph Cluster
 
 Adding storage to OCS adds capacity and performance to your already present cluster.
