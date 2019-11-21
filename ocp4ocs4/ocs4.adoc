@@ -859,7 +859,7 @@ podman push docker.io/library/alpine --tls-verify=false kube-registry-kube-syste
 
 CAUTION: Make sure to replace the URL in the push command with the URL of your route
 
-Now exit the debug session on the host by either pressing kbd:[Ctrl+D] twice or executing `exit` twice. Afterwards you should be back on your workstation.
+Now exit the debug session on the host by either pressing kbd:[Ctrl+D] twice or executing `exit` twice to get back to your workstation shell.
 
 Next we use the `toolbox` *Pod* to check on our underlying CephFS volume:
 
