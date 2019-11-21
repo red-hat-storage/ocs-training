@@ -592,8 +592,8 @@ oc new-app openshift/php:7.1~https://github.com/christianh814/openshift-php-uplo
 ----
 --> Found image 665111f (6 days old) in image stream "openshift/php" under tag "7.1" for "openshift/php:7.1"
 
-    Apache 2.4 with PHP 7.1 
-    ----------------------- 
+    Apache 2.4 with PHP 7.1
+    -----------------------
     PHP 7.1 available as container is a base platform for building and running various PHP 7.1 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
 
     Tags: builder, php, php71, rh-php71
@@ -613,7 +613,7 @@ oc new-app openshift/php:7.1~https://github.com/christianh814/openshift-php-uplo
 --> Success
     Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/file-uploader' 
+     'oc expose svc/file-uploader'
     Run 'oc status' to view your app.
 ----
 
@@ -841,7 +841,7 @@ NAME            HOST/PORT                                                       
 kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
 ----
 
-To use the new registry, we will connect to one of our worker hosts via `oc debug` and use the already installed podman binary
+To use the new registry, we will connect to one of our worker hosts via `oc debug` and use the already installed `podman` binary.
 
 .Connect to one of the workers shell
 [source,role="execute"]
@@ -855,7 +855,7 @@ oc debug $(oc get nodes -l node-role.kubernetes.io/worker -o name | head -n1)
 chroot /host
 ----
 
-Now that we have access to podman, we can download the alpine container image as an example and upload it to our new registry:
+Now that we have access to `podman`, we can download the alpine container image as an example and upload it to our new registry:
 
 [source,role="execute"]
 ----
@@ -1195,7 +1195,7 @@ spec:
       containers:
         - image: mesosphere/aws-cli:latest
           command: ["sh"]
-          args: 
+          args:
             - '-c'
             - 'set -x && s3cmd --no-check-certificate --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
           name: obc-test
@@ -1423,12 +1423,11 @@ image::imgs/OCS-add-capacity.png[]
 
 In the new dialog you can set the requested additional (usable) capacity and the storage class. On AWS, the storage class should be set to `gp2`.
 
-NOTE: The effectivly provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCS uses a replica count of 3.
+NOTE: The effectively provisioned capacity will be three times as much as you put into the `Requested Capacity` field, because OCS uses a replica count of 3.
 
 Once you are done with your setting, proceed by clicking on `Add`. You will see the Status of the Storage Cluster change until it reaches `Ready` again.
 
 You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCS worker nodes:
-
 
 [source,role="execute"]
 ----
@@ -1535,7 +1534,7 @@ client: 1.2 KiB/s rd, 46 KiB/s wr, 2 op/s rd, 4 op/s wr
 
 In the Ceph status output, we can already see that:
 
-<1> We now use 6 osds in total and they are `up` and `in` (meaning the deamons are running and being used to store data)
+<1> We now use 6 osds in total and they are `up` and `in` (meaning the daemons are running and being used to store data)
 <2> The available raw capacity has increased from 3 TiB to 6 TiB
 
 Besides that, nothing has changed in the output.
@@ -1597,6 +1596,76 @@ ID  CLASS WEIGHT  TYPE NAME
 This is an effective way to scale out capacity and performance if you observe that your hosts are not exhausted, but you are running out of either capacity or IOPs.
 
 In both scale-out cases, existing data on the old OSDs will be balanced out automatically, so that the old and the new OSDs share the load.
+
+== Monitoring the OCS environment
+
+This section covers the different tools available with OPCS 4.2 when it comes to monitoring the environment. This section relies on the existing UI.
+
+Red Hatters familiar with OCP will already familiar with this section but for those not yet familiar with the technology or do not deal with it on a regular basis it will be a good bootstrap.
+
+The tools are accessible through the left menu pane of the main window by clicking on the *Monitoring* menu item. Once the *Monitoring* item is expanded you will have access to 3 choices:
+
+* Alerting
+* Metrics
+* Dashboards
+
+=== Metrics
+
+Click on the *Metrics* item to open the Prometheus integrated query window as illustrated below
+
+.OCP UI Metrics Homepage
+image::imgs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
+
+Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or Ceph related information. The queries can be simple or complex queries using the Prometheus query syntax and all its available functions.
+
+Let's start testing a simple query example and enter the following in the query field. When you are done typing, simply hit kbd:[Enter]
+
+.Simple Ceph Query
+image::imgs/metrics-simplecephquery.png[Ceph Simple Query]
+
+The window should refresh with a graph similar to the one below.
+
+.Simple Ceph Graph
+image::imgs/metrics-simplecephgraph.png[Ceph Simple Graph]
+
+Then let's try a more relevant query example and enter the following in the query field. When you are done typing, simply hit kbd:[Enter]
+
+.Complex Ceph Query
+image::imgs/metrics-complexcephquery.png[Ceph Complex Query]
+
+The window should refresh with a graph similar to the one below.
+
+.Complex Ceph Graph
+image::imgs/metrics-complexcephgraph.png[Ceph Complex Graph]
+
+All OCP metrics are also available through the integrated Metrics window. Feel free to try with any of the OCP related metrics such as `process_cpu_total_seconds` for example.
+
+.Complex OCP Graph
+image::imgs/metrics-complexocpgraph.png[OCP Complex Graph]
+
+=== Dashboards
+
+Click on the *Dashboards* item in the OCP UI left pane to open the Grafana dashboard page. Upon your first visit to the Grafana page, you will be prompted to use *OpenShift Login* credentials.
+
+.OCP Login Procedure
+image::imgs/metrics-ocplogin.png[OCP Login]
+
+Click the *Log in with OpenShift* to proceed and you will then be prompted for your OpenShift user name and password. When successfully logged, in you will be prompted to authorize access to the application using your OpenShift credentials.
+
+.OCP Authorization
+image::imgs/metrics-ocpauthorize.png[OCP Authorization]
+
+Click the `Allow selected permissions` to proceed to the Grafana home page as illustrated below.
+
+.Grafana Homepage
+image::imgs/metrics-grafanahomepage.png[Grafana Homepage]
+
+Click the *Home* menu in the top left corner to choose one of the packaged OCP dashboards.
+
+.Grafana OCP Dashboard
+image::imgs/metrics-grafanadashboard.png[Grafana Dashboard]
+
+The illustration above is a screen capture of the `Kubernetes / Compute Resources / Cluster` dashboard.
 
 == Using must-gather
 
