@@ -1218,7 +1218,7 @@ spec:
                   key: AWS_SECRET_ACCESS_KEY
 ----
 
-The first part creates an OBC that will create a ConfigMap and a secret that have the same name as the OBC (`obc-test`). The second part of the file (after the `---`), creates a Job that deploys a container that has the s3cmd pre-installed. It will execute s3cmd with some necessary commandline flags and exit. S3cmd will in this case report the current disk usage of our S3 endpoint and exit, which will mark our *Pod* as `Completed`.
+The first part creates an OBC that will create a ConfigMap and a secret that have the same name as the OBC (`obc-test`). The second part of the file (after the `---`), creates a Job that deploys a container with the s3cmd pre-installed. It will execute s3cmd with the appropriate command line arguments and exit. S3cmd will in this case report the current disk usage of our S3 endpoint and exit, which will mark our *Pod* as `Completed`.
 
 Let's try this out:
 
@@ -1238,7 +1238,7 @@ Afterwards watch the *Pod* be Created, Run and finally be marked `Completed` lik
 
 [source,role="execute"]
 ----
-oc get po -l app=obc-test
+oc get po -n obc-test -l app=obc-test
 ----
 .Example output
 ----
@@ -1248,9 +1248,11 @@ obc-test-wmt9q   0/1     Completed   0          10m
 
 Then you can fetch the output of s3cmd via kubectl:
 
+NOTE: Fetching the obc-test log via the `oc` command does not work correctly. It does work using the `kubectl` command.
+
 [source,role="execute"]
 ----
-kubectl logs -l app=obc-test
+kubectl logs -n obc-test -l app=obc-test
 ----
 .Example output
 ----
@@ -1259,8 +1261,6 @@ kubectl logs -l app=obc-test
 --------
 0        Total
 ----
-
-NOTE: Fetching the log via `oc` and the label flag does not work
 
 As we can see above, we can access one bucket, which is currently empty. This proves that the access credentials from the OBC work and are set up correctly inside of the container. +
 Most applications support reading out the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables natively, but you will have to figure out how to set the host and bucket name for each application. In our example we used CLI flags of s3cmd for this.
