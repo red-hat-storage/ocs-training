@@ -156,7 +156,7 @@ To apply this manifest, execute the following:
 
 [source,role="execute"]
 ----
-oc apply -f https://raw.githubusercontent.com/openshift/ocs-operator/release-4.2/deploy/deploy-with-olm.yaml
+oc apply -f http://pkgs.devel.redhat.com/cgit/containers/ocs-registry/plain/deploy-with-olm.yaml?h=ocs-4.2-rhel-8
 ----
 
 This will fetch the manifest from the `release-4.2` tag. After applying this, you should be able to watch your new operators being installed.
