@@ -1599,11 +1599,11 @@ In both scale-out cases, existing data on the old OSDs will be balanced out auto
 
 == Monitoring the OCS environment
 
-This section covers the different tools available with OPCS 4.2 when it comes to monitoring the environment. This section relies on the existing UI.
+This section covers the different tools available with OCS 4.2 when it comes to monitoring the environment. This section relies on the existing UI.
 
-Red Hatters familiar with OCP will already familiar with this section but for those not yet familiar with the technology or do not deal with it on a regular basis it will be a good bootstrap.
+Individuals already familiar with OCP will feel comfortable with this section but for those who are not, it will be a good bootstrap.
 
-The tools are accessible through the left menu pane of the main window by clicking on the *Monitoring* menu item. Once the *Monitoring* item is expanded you will have access to 3 choices:
+The tools are accessible through the main UI window left pane. Click the *Monitoring* menu item to expand and have access to the following 3 choices:
 
 * Alerting
 * Metrics
@@ -1611,14 +1611,14 @@ The tools are accessible through the left menu pane of the main window by clicki
 
 === Metrics
 
-Click on the *Metrics* item to open the Prometheus integrated query window as illustrated below
+Click on the *Metrics* item to open the Prometheus integrated query window as illustrated below.
 
 .OCP UI Metrics Homepage
 image::imgs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
 
-Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or Ceph related information. The queries can be simple or complex queries using the Prometheus query syntax and all its available functions.
+Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or Ceph related information. The queries can be simple or complex using the Prometheus query syntax and all its available functions.
 
-Let's start testing a simple query example and enter the following in the query field. When you are done typing, simply hit kbd:[Enter]
+Let's start testing a simple query example and enter the following text (`ceph_osd_op`) in the query field. When you are done typing, simply hit kbd:[Enter]
 
 .Simple Ceph Query
 image::imgs/metrics-simplecephquery.png[Ceph Simple Query]
@@ -1628,7 +1628,7 @@ The window should refresh with a graph similar to the one below.
 .Simple Ceph Graph
 image::imgs/metrics-simplecephgraph.png[Ceph Simple Graph]
 
-Then let's try a more relevant query example and enter the following in the query field. When you are done typing, simply hit kbd:[Enter]
+Then let's try a more relevant query example and enter the following text (`rate(ceph_osd_op[5m)`)in the query field. When you are done typing, simply hit kbd:[Enter]
 
 .Complex Ceph Query
 image::imgs/metrics-complexcephquery.png[Ceph Complex Query]
@@ -1663,7 +1663,7 @@ image::imgs/metrics-grafanahomepage.png[Grafana Homepage]
 Click the *Home* menu in the top left corner to choose one of the packaged OCP dashboards.
 
 .Grafana OCP Dashboard
-image::imgs/metrics-grafanadashboard.png[Grafana Dashboard]
+image::imgs/metrics-ocpshboard.png[Grafana Dashboard]
 
 The illustration above is a screen capture of the `Kubernetes / Compute Resources / Cluster` dashboard.
 
