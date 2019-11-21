@@ -212,7 +212,7 @@ Click on `Openshift Container Storage Operator` to get to the OCS configuration 
 .OCS configuration screen
 image::imgs/OCS-config-screen-all.png[OCS configuration screen]
 
-On the top of the OCS configuration screen, scroll over to `Storage cluster` and click on `Create Instance`.
+On the top of the OCS configuration screen, scroll over to `Storage cluster` and click on `Create OCS Cluster Service`.
 
 .OCS Create Storage Cluster
 image::imgs/OCS-config-screen-storage-cluster.png[OCS Create Storage Cluster]
@@ -222,16 +222,18 @@ A dialog box will come up next.
 .OCS create a new storage cluster
 image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
-To select the OCP 4 nodes that you created earlier in the lab specifically for OCS, you can find them by searching for `role=storage-node` because this label was configured in the workerocs machinesets. It would be a good practice to add a unique label to OCP nodes (i.e., role=storage-node) that are to be used for creating the `Storage Cluster` prior to this step so they are easy to find in list of OCP nodes.
+CAUTION: *Make sure to select three workers in different availability zones using instructions below*
+
+To select the appropriate worker nodes of your OCP 4 cluster you can find them by searching for the node label `role=storage-node`.
 
 [source,role="execute"]
 ----
 oc get nodes --show-labels | grep storage-node |cut -d' ' -f1
 ----
 
-In this dialog, select these three nodes that have the role `storage-node` and `worker` and click on the button `Create` below the dialog box.
+Select the three nodes that resulted from the command above. Then click on the button `Create` below the dialog box where you selected the 3 workers with a `checkmark`.
 
-CAUTION: Make sure to select three workers in different availability zones.
+NOTE: It would be a good practice to add a unique label to OCP nodes that are to be used for creating the `Storage Cluster` prior to this step so they are easy to find in list of OCP nodes. In this case it was done by adding this label, `role=storage-node`, in the machineset YAML files that you used earlier to create the new OCS worker nodes.
 
 In the background this will start initiating a lot of new pods in the `openshift-storage` namespace, as can be seen on the CLI:
 
@@ -418,38 +420,19 @@ sh-4.2# ceph status
 
 You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
 
-=== Change the default storage class to Ceph RBD
-
-After installing OCS, it is best practice to change the default *storage class* from AWS gp2 to our new OCS-backed storage class `ocs-storagecluster-ceph-rbd`.
-The easiest way to do this is using the *Openshift Web Console*. In the Console expand the `Storage` item on the left navigation bar and select `Storage Classes`.
-
-.OCP storage classes after OCS installation - AWS gp2 is the default storage class
-image::imgs/OCS-Storage-Classes-gp2-default.png[]
-
-Now click on the three dots next to the gp2 *storage class* and select `Edit Annotations`:
-
-image::imgs/OCS-edit-gp2-annotations.png[]
-
-Click on the stop sign on the right to delete the only entry, `storageclass.kubernetes.io/is-default-class`. Proceed by clicking on `Save`.
-
-Now click on the three dots next to the ocs-storagecluster-ceph-rbd *storage class* and select `Edit Annotations`
-In the new window enter `storageclass.kubernetes.io/is-default-class` as the Key and `true` as the value of the new annotation. Proceed by clicking on `Save`.
-
-Now the `ocs-storagecluster-ceph-rbd` *storage class* should be marked as default, as shown below:
-
-.After changing default storage class to Ceph RBD
-image::imgs/OCS-Storage-Classes-rbd-default.png[]
-
 == Create a new OCP application deployment using Ceph RBD volume
 
 In this section the `ocs-storagecluster-ceph-rbd` *storage class* will be used by an OCP application + database *deployment* to create RWO (ReadWriteOnce) persistent storage. The persistent storage will be a Ceph RBD (RADOS Block Device) volume (object) in the Ceph pool `ocs-storagecluster-cephblockpool`.
+
+To do so we have created a template file, based on the OpenShift rails-pgsql-persistent template, that includes an extra parameter STORAGE_CLASS that enables the end user to specify the storage class the PVC should use.
+Feel free to download `https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/configurable-rails-app.yaml` to check on the format of this template. Search for `STORAGE_CLASS` in the downloaded content.
 
 Make sure that you completed all previous sections so that you are ready to start the Rails + PostgreSQL deployment.
 
 [source,role="execute"]
 ----
 oc new-project my-database-app
-oc new-app rails-pgsql-persistent -p VOLUME_CAPACITY=5Gi
+curl https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
 ----
 
 After the deployment is started you can monitor with these commands.
@@ -769,11 +752,6 @@ uploaded files.
 
 In this section the `ocs-storagecluster-cephfs` *Storage Class* will be used to create a RWX (ReadWriteMany) PVC that can be used by multiple pods at the same time. As an example we will be running a highly-available container image registry. The persistent storage will be based on a CephFS volume in the Ceph pool `ocs-storagecluster-cephfilesystem-data0`.
 
-[CAUTION]
-====
-*This section requires either installing or downloading podman. The utility podman is known to not operator correctly with Mac OS.*
-====
-
 Deploy the registry like this:
 
 [source,role="execute"]
@@ -849,32 +827,39 @@ NAME            HOST/PORT                                                       
 kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
 ----
 
-To continue you will need to install Podman. Installation steps for various operating systems can be found here: https://github.com/containers/libpod/blob/master/install.md
+To use the new registry, we will connect to one of our worker hosts via `oc debug` and use the already installed podman binary
 
-For RHEL-based systems, it is as easy as:
+.Connect to one of the workers shell
+[source,role="execute"]
+----
+oc debug $(oc get nodes -l node-role.kubernetes.io/worker -o name | head -n1)
+----
+
+.Enable the host binaries
+[source,role="execute"]
+----
+chroot /host
+----
+
+Now that we have access to podman, we can download the alpine container image as an example and upload it to our new registry:
 
 [source,role="execute"]
 ----
-sudo yum -y install podman
-----
-
-Now that podman is installed we can now download the alpine container image as an example and upload it to our new registry:
-
-[source,role="execute"]
-----
-sudo podman pull docker.io/library/alpine
+podman pull docker.io/library/alpine
 ----
 
 [source,role="edit"]
 ----
-sudo podman push docker.io/library/alpine --tls-verify=false <KUBE_REGISTRY_ROUTE>/alpine
+podman push docker.io/library/alpine --tls-verify=false <KUBE_REGISTRY_ROUTE>/alpine
 ----
 .Example command:
 ----
-sudo podman push docker.io/library/alpine --tls-verify=false kube-registry-kube-system.apps.cluster-ocs-3ed9.ocs-3ed9.example.opentlc.com/alpine
+podman push docker.io/library/alpine --tls-verify=false kube-registry-kube-system.apps.cluster-ocs-3ed9.ocs-3ed9.example.opentlc.com/alpine
 ----
 
 CAUTION: Make sure to replace the URL in the push command with the URL of your route
+
+Now exit the debug session on the host by either pressing kbd:[Ctrl+D] twice or executing `exit` twice to get back to your workstation shell.
 
 Next we use the `toolbox` *Pod* to check on our underlying CephFS volume:
 
@@ -1163,6 +1148,122 @@ metadata:
 ----
 
 As you can see, the secret gives us the S3 access credentials, while the CM contains the S3 endpoint information for our application.
+
+=== Using an OBC inside a container
+
+In this section we will see how one can create an OBC using a YAML file and use the provided S3 configuration in an example application.
+
+To deploy the OBC and the example application we apply this YAML file:
+
+[source,yaml]
+----
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: obc-test
+spec:
+  generateBucketName: "obc-test-noobaa"
+  storageClassName: openshift-storage.noobaa.io
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: obc-test
+  labels:
+    app: obc-test
+spec:
+  template:
+    metadata:
+      labels:
+        app: obc-test
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - image: mesosphere/aws-cli:latest
+          command: ["sh"]
+          args: 
+            - '-c'
+            - 'set -x && s3cmd --no-check-certificate --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
+          name: obc-test
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_HOST
+            - name: BUCKET_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_PORT
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: obc-test
+                  key: BUCKET_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: obc-test
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: obc-test
+                  key: AWS_SECRET_ACCESS_KEY
+----
+
+The first part creates an OBC that will create a ConfigMap and a secret that have the same name as the OBC (`obc-test`). The second part of the file (after the `---`), creates a Job that deploys a container with the s3cmd pre-installed. It will execute s3cmd with the appropriate command line arguments and exit. S3cmd will in this case report the current disk usage of our S3 endpoint and exit, which will mark our *Pod* as `Completed`.
+
+Let's try this out:
+
+.Deploy the Manifest
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/obc_app_example.yaml | oc apply -f -
+----
+.Example output
+----
+namespace/obc-test created
+objectbucketclaim.objectbucket.io/obc-test created
+job.batch/obc-test created
+----
+
+Afterwards watch the *Pod* be Created, Run and finally be marked `Completed` like below - be aware that your Pod name will differ:
+
+[source,role="execute"]
+----
+oc get po -n obc-test -l app=obc-test
+----
+.Example output
+----
+NAME             READY   STATUS      RESTARTS   AGE
+obc-test-wmt9q   0/1     Completed   0          10m
+----
+
+Then you can fetch the output of s3cmd via kubectl:
+
+NOTE: Fetching the obc-test log via the `oc` command does not work correctly. It does work using the `kubectl` command.
+
+[source,role="execute"]
+----
+kubectl logs -n obc-test -l app=obc-test
+----
+.Example output
+----
++ s3cmd --no-check-certificate --host 10.0.140.19:30052 --host-bucket 10.0.140.19:30052 du
+0        0 objects s3://obc-test-noobaa-784461cb-1e77-4ccf-b62d-007a6ae3ef15/
+--------
+0        Total
+----
+
+As we can see above, we can access one bucket, which is currently empty. This proves that the access credentials from the OBC work and are set up correctly inside of the container. +
+Most applications support reading out the `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables natively, but you will have to figure out how to set the host and bucket name for each application. In our example we used CLI flags of s3cmd for this.
 
 == Adding storage to the Ceph Cluster
 
@@ -1664,4 +1765,226 @@ INFO[0000] operator-image: noobaa/noobaa-operator:2.0.4
 [NOTE]
 ====
 The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output.
+====
+
+[appendix]
+== Introduction to Ceph
+
+This section will go through Ceph fundamental knowledge for a better understanding of the underlying storage solution
+used by OCS 4.
+
+[NOTE]
+====
+The content in this Appendix is relevant to learning about the critical components of Ceph and how Ceph works. OCS 4 uses Ceph in a prescribed manner for providing storage to OpenShift applications. Using *Operators* and *CustomResourceDefinitions* (CRDs) for deploying and managing OCS 4 may restrict some of Ceph's advanced features when compared to general use outside of OCP 4.
+====
+
+[.lead]
+*Timeline*
+
+The Ceph project has a long history as you can see in the timeline below.
+
+.Ceph Project History
+image::imgs/ceph101-timeline.png[Ceph Project Timeline]
+
+[.lead]
+It is a battle-tested software defined storage (SDS) solution that has been available as a storage backend for OpenStack and Kubernetes for quite some time.
+
+[.lead]
+*Architecture*
+
+The Ceph cluster provides a scalable storage solution while providing multiple access methods to enable the different types of
+clients present within the IT infrastructure to get access to the data.
+
+.Ceph Architecture
+image::imgs/ceph101-overview.png[Ceph From Above]
+
+[.lead]
+The entire Ceph architecture is resilient and does not present any single point of failure (SPOF).
+
+[.lead]
+*RADOS*
+
+The heart of Ceph is an object store known as RADOS (Reliable Autonomic Distributed Object Store) bottom layer on the screen. This
+layer provides the Ceph software defined storage with the ability to store data (serve IO requests, to protect the data, to check
+the consistency and the integrity of the data through built-in mechanisms. The RADOS layer is composed of the following daemons:
+
+<1> MONs or Monitors
+<2> OSDs or Object Storage Devices
+<3> MGRs or Managers
+<4> MDSs or Meta Data Servers
+
+.*_Monitors_*
+The Monitors maintain the cluster map and state and provide distributed decision-making while configured in an odd number, 3 or 5 depending
+on the size and the topology of the cluster, to prevent split-brain situations. The Monitors are not in the data-path and do not serve IO
+requests to and from the clients.
+
+.*_OSDs_*
+One OSD is typically deployed for each local block devices and the native scalable nature of Ceph allows for thousands of OSDs to be part of the cluster.
+The OSDs are serving IO requests from the clients while guaranteeing the protection of the data (replication or erasure coding), the rebalancing of the data
+in case of an OSD or a node failure, the coherence of the data (scrubbing and deep-scrubbing of the existing data).
+
+.*_MGRs_*
+The Managers are tightly integrated with the Monitors and collect the statistics within the cluster. Additionally they provide an extensible framework for the
+cluster through a pluggable Python interface aimed at expanding the Ceph existing capabilities. The current list of modules developed around the Manager framework
+are:
+
+* Balancer module
+* Placement Group auto-scaler module
+* Dashboard module
+* RESTful module
+* Prometheus module
+* Zabbix module
+* Rook module
+
+.*_MDSs_*
+The Meta Data Servers manage the metadata for the POSIX compliant shared filesystem such as the directory hierarchy and the file metadata (ownership, timestamps, mode, ...).
+All the metadata is stored with RADOS and they do not server any data to the clients. MDSs are only deployed when a shared filesystem is configured in the Ceph cluster.
+
+If we look at the Ceph cluster foundation layer, the full picture with the different types of daemons or containers looks like this.
+
+.RADOS as it stands
+image::imgs/ceph101-rados.png[RADOS Overview]
+
+The circle represent the MONs, the 'M' represent the MGRs and the squares with the bars represent the OSDs. In the diagram above, the cluster operates with
+3 Monitors, 2 Managers and 23 OSDs.
+
+[.lead]
+*Access Methods*
+
+Ceph was designed to provides the IT environment with all the necessary access methods so that any application can use what is the best solution for its use-case.
+
+.Different Storage Types Supported
+image::imgs/ceph101-differentstoragetypes.png[Ceph Access Modes]
+
+Ceph supports block storage through the RADOS Block Device (aka RBD) access method, file storage through the Ceph Filesystem (aka CephFS) access method and
+object storage through its native `librados` API or through the RADOS Gateway (aka RADOSGW or RGW) for compatibility with the S3 and Swift protocols.
+
+[.lead]
+*Librados*
+
+Librados allows developers to code natively against the native Ceph cluster API for maximum efficiency combined with a small footprint.
+
+.Application Native Object API
+image::imgs/ceph101-librados.png[librados]
+
+The Ceph native API offers different wrappers such as C, C++, Python, Java, Ruby, Erlang, Go and Rust.
+
+[.lead]
+*RADOS Block Device (RBD)*
+
+This access method is used in Red Hat Enterprise Linux or OpenShift version 3.x or 4.x. RBDs can be accessed either through a kernel module (RHEL, OCS4)
+or through the `librbd` API (RHOSP). In the OCP world, RBDs are designed to address the need for RWO PVCs.
+
+[.lead]
+*_Kernel Module (kRBD)_*
+
+The kernel RBD driver offers superior performance compared to the userspace `librbd` method. However, kRBD is currently limited and does
+not provide the same level of functionality. e.g., no RBD Mirroring support.
+
+.kRBD Diagram
+image::imgs/ceph101-krbd.png[Kernel based RADOS Block Device]
+
+[.lead]
+*_Userspace RBD (librbd)_*
+
+This access method is used in Red Hat OpenStack Environment or OpenShift through the RBD-NBD driver when available starting in the RHEL 8.1 kernel.
+This mode allows us to leverage all existing RBD features such as RBD Mirroring.
+
+.librbd Diagram
+image::imgs/ceph101-librbd.png[Userspace RADOS Block Device]
+
+[.lead]
+*_Shared Filesystem (CephFS)_*
+
+This method allows clients to jointly access a shared POSIX compliant filesystem. The client initially contacts the Meta Data Server to obtain
+the location of the object(s) for a given inode and then communicates directly with an OSD to perform the final IO request.
+
+.File Access (Ceph Filesystem or CephFS)
+image::imgs/ceph101-cephfs.png[Kernel Based CephFS Client]
+
+CephFS is typically used for RWX claims but can also be used to support RWO claims.
+
+[.lead]
+*_Object Storage, S3 and Swift (Ceph RADOS Gateway)_*
+
+This access method offers support for the Amazon S3 and OpenStack Swift support on top of a Ceph cluster. The Openshift Container Storage Multi Cloud
+Gateway can leverage the RADOS Gateway to support Object Bucket Claims. From the Multi Cloud Gateway perspective the RADOS Gateway will be tagged
+as a compatible S3 endpoint.
+
+.Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)
+image::imgs/ceph101-rgw.png[S3 and Swift Support]
+
+[.lead]
+*CRUSH*
+
+The Ceph cluster being a distributed architecture some solution had to be designed to provide an efficient way to distribute the data across the multiple
+OSDs in the cluster. The technique used is called CRUSH or Controlled Replication Under Scalable Hashing. With CRUSH, every object is assigned to one
+and only one hash bucket known as a Placement Group (PG).
+
+image::imgs/ceph101-crushfromobjecttoosd.png[From Object to OSD]
+
+CRUSH is the central point of configuration for the topology of the cluster. It offers a pseudo-random placement algorithm to distribute the objects across
+the PGs and uses rules to determine the mapping of the PGs to the OSDs. In essence, the PGs are an abstraction layer between the objects (application layer)
+and the OSDs (physical layer). In case of failure, the PGs will be remapped to different physical devices (OSDs) and eventually see their content resynchronized
+to match the protection rules  selected by the storage administrator.
+
+[.lead]
+*Cluster Partitioning*
+
+The Ceph OSDs will be in charge of the protection of the data as well as the constant checking of the integrity of the data stored in the entire cluster.
+The cluster will be separated into logical partitions, known as pools. Each pool has the following properties that can be adjusted:
+
+* An ID (immutable)
+* A name
+* A number of PGs to distribute the objects across the OSDs
+* A CRUSH rule to determine the mapping of the PGs for this pool
+* A type of protection (Replication or Erasure Coding)
+* Parameters associated with the type of protection
+** Number of copies for replicated pools
+** K and M chunks for Erasure Coding
+* Various flags to influence the behavior of the cluster
+
+[.lead]
+*Pools and PGs*
+
+.Pools and PGs
+image::imgs/ceph101-thefullpicture.png[From Object to OSD]
+
+The diagram above shows the relationship end to end between the object at the access method level down to the OSDs at the physical layer.
+
+[NOTE]
+====
+A Ceph pool has no size and is able to consume the space available any OSD where its PGs are created. A Placement Group or PG belongs to only one pool.
+====
+
+[.lead]
+*Data Protection*
+
+Ceph supports two types of data protection presented in the diagram below.
+
+.Ceph Data Protection
+image::imgs/ceph101-dataprotection.png[Replicated Pools vs Erasure Coded Pools]
+
+Replicated pools provide better performance in almost all cases at the cost of a lower usable to raw storage ratio (1 usable byte is stored using 3 bytes of raw storage)
+while `Erasure Coding` provides a cost efficient way to store data with less performance. Red Hat supports the following `Erasure Coding` profiles with their corresponding usable to raw ratio:
+
+* 4+2 (1:2 ratio)
+* 8+3 (1:1.375 ratio)
+* 8+4 (1:2 ratio)
+
+Another advantage of `Erasure Coding` (EC) is its ability to offer extreme resilience and durability as we can configure the number of parities being used.
+EC can be used for the RADOS Gateway access method and for the RBD access method (performance impact).
+
+[.lead]
+*Data Distribution*
+
+To leverage the Ceph architecture at its best, all access methods but librados, will access the data in the cluster through a collection of objects. Hence a 1GB
+block device will be a collection of objects, each supporting a set of device sectors. Therefore, a 1GB file is stored in a CephFS directory will be split into multiple objects. Also a 5GB S3 object stored through the RADOS Gateway via the Multi Cloud Gateway will be divided in multiple objects.
+
+.Data Distribution
+image::imgs/ceph101-rbdlayout.png[RADOS Block Device Layout]
+
+[NOTE]
+====
+By default, each access method uses an object size of 4MB. The above diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will be scattered throughout the cluster.
 ====
