@@ -1229,6 +1229,7 @@ curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/oc
 ----
 .Example output
 ----
+namespace/obc-test created
 objectbucketclaim.objectbucket.io/obc-test created
 job.batch/obc-test created
 ----
