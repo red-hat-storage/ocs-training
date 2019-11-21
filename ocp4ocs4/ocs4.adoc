@@ -1628,7 +1628,7 @@ The window should refresh with a graph similar to the one below.
 .Simple Ceph Graph
 image::imgs/metrics-simplecephgraph.png[Ceph Simple Graph]
 
-Then let's try a more relevant query example and enter the following text (`rate(ceph_osd_op[5m)`)in the query field. When you are done typing, simply hit kbd:[Enter]
+Then let's try a more relevant query example and enter the following text (`rate(ceph_osd_op[5m])` or `irate(ceph_osd_op[5m])`)in the query field. When you are done typing, simply hit kbd:[Enter]
 
 .Complex Ceph Query
 image::imgs/metrics-complexcephquery.png[Ceph Complex Query]
@@ -1663,7 +1663,7 @@ image::imgs/metrics-grafanahomepage.png[Grafana Homepage]
 Click the *Home* menu in the top left corner to choose one of the packaged OCP dashboards.
 
 .Grafana OCP Dashboard
-image::imgs/metrics-ocpshboard.png[Grafana Dashboard]
+image::imgs/metrics-ocpdashboard.png[Grafana Dashboard]
 
 The illustration above is a screen capture of the `Kubernetes / Compute Resources / Cluster` dashboard.
 
