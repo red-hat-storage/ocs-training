@@ -1642,7 +1642,7 @@ As illustrated below, you can also filter alerts by name using the *Filter* area
 .OCP Alerting Name Filtering
 image::imgs/metrics-alertingnamefilter.png[OCP Alert Name Filtering]
 
-Through the 3 dot icon on the right hand side of each alert line you have access to a contextual menu to either view the alert definition or to silence the alter.
+Through the 3 dot icon on the right hand side of each alert line you have access to a contextual menu to either view the alert definition or to silence the alert.
 
 .OCP Alert Contextual Menu
 image::imgs/metrics-alertingcontextualmenu.png[OCP Alert Contextual Menu]
@@ -1688,7 +1688,7 @@ The window should refresh with a graph similar to the one below.
 .Complex Ceph Graph
 image::imgs/metrics-complexcephgraph.png[Ceph Complex Graph]
 
-All OCP metrics are also available through the integrated Metrics window. Feel free to try with any of the OCP related metrics such as `process_cpu_total_seconds` for example.
+All OCP metrics are also available through the integrated *Metrics* window. Feel free to try with any of the OCP related metrics such as `process_cpu_total_seconds` for example.
 
 .Complex OCP Graph
 image::imgs/metrics-complexocpgraph.png[OCP Complex Graph]
@@ -1705,7 +1705,7 @@ Upon your first visit to the Grafana page, you will be prompted to use *OpenShif
 .OCP Login Procedure
 image::imgs/metrics-ocplogin.png[OCP Login]
 
-Click the *Log in with OpenShift* to proceed and you will then be prompted for your OpenShift user name and password. When successfully logged, in you will be prompted to authorize access to the application using your OpenShift credentials.
+Click the *Log in with OpenShift* to proceed and you will then be prompted for your OpenShift user name and password. When successfully logged in, you will be prompted to authorize access to the application using your OpenShift credentials.
 
 .OCP Authorization
 image::imgs/metrics-ocpauthorize.png[OCP Authorization]
