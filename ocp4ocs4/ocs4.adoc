@@ -1688,10 +1688,12 @@ The window should refresh with a graph similar to the one below.
 .Complex Ceph Graph
 image::imgs/metrics-complexcephgraph.png[Ceph Complex Graph]
 
-All OCP metrics are also available through the integrated *Metrics* window. Feel free to try with any of the OCP related metrics such as `process_cpu_total_seconds` for example.
+All OCP metrics are also available through the integrated *Metrics* window. Feel free to try with any of the OCP related metrics such as `process_cpu_seconds_total` for example.
 
 .Complex OCP Graph
 image::imgs/metrics-complexocpgraph.png[OCP Complex Graph]
+
+NOTE: Have a look at the difference between `sum(irate(process_cpu_seconds_total[5m]))` and `irate(process_cpu_seconds_total[5m])` for instance.
 
 === Dashboards
 
