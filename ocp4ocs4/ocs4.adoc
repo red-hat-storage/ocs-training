@@ -1611,7 +1611,12 @@ The tools are accessible through the main UI window left pane. Click the *Monito
 
 === Alerting
 
-Click on the *Alerting* item to open the Alert window.
+Click on the *Alerting* item to open the Alert window as illustrated in the screen capture below.
+
+.OCP Monitoring Menu
+image::imgs/metrics-alertingleftpanemenu.png[OCP Monitoring Menu]
+
+This will take you to the *Alerting* homepage as illustrated below.
 
 .OCP Alerting Homepage
 image::imgs/metrics-alertinghomepage.png[OCP Alerting Homepage]
