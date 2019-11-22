@@ -1697,7 +1697,7 @@ NOTE: Have a look at the difference between `sum(irate(process_cpu_seconds_total
 
 [NOTE]
 ====
-For more information on the Prometheus query language visit link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus Query Documentation].
+For more information on the Prometheus query language visit the link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus Query Documentation].
 ====
 
 === Dashboards
