@@ -1628,7 +1628,7 @@ You can display the alerts in the main window by state. To do so you must highli
 * `Pending` - Alerts that have been triggered but not confirmed
 * `Not Firing` - Alerts that have not been triggered
 
-NOTE: An alert transitions from `Pending` to `Firing` state if it persists for more than 10 minutes.
+NOTE: An alert transitions from `Pending` to `Firing` state if it persists for more than the amount of time configured in the alert definition (e.g. 10 minutes for the `CephClusterWarningState` alert).
 
 As illustrated below, you can filter the alerts being displayed based on their state. Just click on the states to display to toggle the filter. The states highlighted in blue will be displayed.
 
@@ -1666,7 +1666,7 @@ This will take you to the *Metrics* homepage as illustrated below.
 .OCP UI Metrics Homepage
 image::imgs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
 
-Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or Ceph related information. The queries can be simple or complex using the Prometheus query syntax and all its available functions.
+Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or OCS related information. The queries can be simple or complex using the Prometheus query syntax and all its available functions.
 
 Let's start testing a simple query example and enter the following text (`ceph_osd_op`) in the query field. When you are done typing, simply hit kbd:[Enter]
 
@@ -1728,6 +1728,8 @@ Click the *Home* menu in the top left corner to choose one of the packaged OCP d
 image::imgs/metrics-ocpdashboard.png[Grafana Dashboard]
 
 The illustration above is a screen capture of the `Kubernetes / Compute Resources / Cluster` dashboard.
+
+NOTE: OCS 4.2 ships with no OCS specific dashboard.
 
 == Using must-gather
 
