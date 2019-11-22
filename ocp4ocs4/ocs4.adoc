@@ -1609,6 +1609,42 @@ The tools are accessible through the main UI window left pane. Click the *Monito
 * Metrics
 * Dashboards
 
+=== Alerting
+
+Click on the *Alerting* item to open the Alert window.
+
+.OCP Alerting Homepage
+image::imgs/metrics-alertinghomepage.png[OCP Alerting Homepage]
+
+You can display the alerts in the main window by status. To do so you must highlight the statuses you want to display. The statuses are:
+
+* `Firing` - Alert has been confirmed
+* `Silenced` - Alerts that have been silenced while they were in `Pending` or `Firing` state
+* `Pending` - Alerts that have been triggered but not confirmed
+* `Not Firing` - Alerts that have not been triggered
+
+NOTE: An alter transitions from `Pending` to `Firing` state if it persists for more than 10 minutes.
+
+.OCP Alerting Status Filtering
+image::imgs/metrics-alertingstatusfilter.png[OCP Alert Status Filtering]
+
+You can also filter alerts by name using the *Filter* area on the top right of the window to search for a particular alert or set of alerts.
+
+.OCP Alerting Name Filtering
+image::imgs/metrics-alertingnamefilter.png[OCP Alert Name Filtering]
+
+Through the 3 dot icon on the right hand side of each alert line you have access to a contextual menu to either view the alert definition or to silence the alter.
+
+.OCP Alert Contextual Menu
+image::imgs/metrics-alertingcontextualmenu.png[OCP Alert Contextual Menu]
+
+If you select `View Alerting Rule` you will get access to the details of the rule that triggered the alert. The details include the Prometheus query used by the alert to perform the detection of the condition.
+
+.OCP Alert Detail Display
+image::imgs/metrics-alertingviewrule.png[OCP Alert Detailed Display]
+
+NOTE: If desired, you can click the actual existing Prometheus query embedded in the alert. Doing so will take you to the *Metrics* page where you will be able to execute the alter and to test updates to the alert.
+
 === Metrics
 
 Click on the *Metrics* item to open the Prometheus integrated query window as illustrated below.
