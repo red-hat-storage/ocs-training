@@ -1695,6 +1695,11 @@ image::imgs/metrics-complexocpgraph.png[OCP Complex Graph]
 
 NOTE: Have a look at the difference between `sum(irate(process_cpu_seconds_total[5m]))` and `irate(process_cpu_seconds_total[5m])` for instance.
 
+[NOTE]
+====
+For more information on the Prometheus query language visit link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus Query Documentation].
+====
+
 === Dashboards
 
 Click on the *Dashboards* item as illustrated below.
