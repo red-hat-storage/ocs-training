@@ -1656,7 +1656,12 @@ NOTE: If desired, you can click the Prometheus query embedded in the alert. Doin
 
 === Metrics
 
-Click on the *Metrics* item to open the Prometheus integrated query window as illustrated below.
+Click on the *Metrics* item as illustrated below.
+
+.OCP Metrics Menu
+image::imgs/metrics-metricsleftpanemenu.png[OCP Metrics Menu]
+
+This will take you to the *Metrics* homepage as illustrated below.
 
 .OCP UI Metrics Homepage
 image::imgs/metrics-queryfield.png[OCP Monitoring Metrics Homepage]
@@ -1690,7 +1695,12 @@ image::imgs/metrics-complexocpgraph.png[OCP Complex Graph]
 
 === Dashboards
 
-Click on the *Dashboards* item in the OCP UI left pane to open the Grafana dashboard page. Upon your first visit to the Grafana page, you will be prompted to use *OpenShift Login* credentials.
+Click on the *Dashboards* item as illustrated below.
+
+.OCP Dashboards Menu
+image::imgs/metrics-dashboardsleftpanemenu.png[OCP Dashboards Menu]
+
+Upon your first visit to the Grafana page, you will be prompted to use *OpenShift Login* credentials.
 
 .OCP Login Procedure
 image::imgs/metrics-ocplogin.png[OCP Login]
