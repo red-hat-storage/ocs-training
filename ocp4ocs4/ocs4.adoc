@@ -1616,19 +1616,23 @@ Click on the *Alerting* item to open the Alert window.
 .OCP Alerting Homepage
 image::imgs/metrics-alertinghomepage.png[OCP Alerting Homepage]
 
-You can display the alerts in the main window by status. To do so you must highlight the statuses you want to display. The statuses are:
+You can display the alerts in the main window by state. To do so you must highlight the states you want to display. The states are:
 
 * `Firing` - Alert has been confirmed
 * `Silenced` - Alerts that have been silenced while they were in `Pending` or `Firing` state
 * `Pending` - Alerts that have been triggered but not confirmed
 * `Not Firing` - Alerts that have not been triggered
 
-NOTE: An alter transitions from `Pending` to `Firing` state if it persists for more than 10 minutes.
+NOTE: An alert transitions from `Pending` to `Firing` state if it persists for more than 10 minutes.
+
+As illustrated below, you can filter the alerts being displayed based on their state. Just click on the states to display to toggle the filter. The states highlighted in blue will be displayed.
+
+NOTE: You need at least one state highlighted.
 
 .OCP Alerting Status Filtering
 image::imgs/metrics-alertingstatusfilter.png[OCP Alert Status Filtering]
 
-You can also filter alerts by name using the *Filter* area on the top right of the window to search for a particular alert or set of alerts.
+As illustrated below, you can also filter alerts by name using the *Filter* area on the top right of the window to search for a particular alert or set of alerts.
 
 .OCP Alerting Name Filtering
 image::imgs/metrics-alertingnamefilter.png[OCP Alert Name Filtering]
@@ -1643,7 +1647,7 @@ If you select `View Alerting Rule` you will get access to the details of the rul
 .OCP Alert Detail Display
 image::imgs/metrics-alertingviewrule.png[OCP Alert Detailed Display]
 
-NOTE: If desired, you can click the actual existing Prometheus query embedded in the alert. Doing so will take you to the *Metrics* page where you will be able to execute the alter and to test updates to the alert.
+NOTE: If desired, you can click the Prometheus query embedded in the alert. Doing so will take you to the *Metrics* page where you will be able to execute the alert and to test updates to the alert.
 
 === Metrics
 
