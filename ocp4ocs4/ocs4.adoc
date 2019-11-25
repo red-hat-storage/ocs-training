@@ -1427,10 +1427,6 @@ NOTE: The effectivly provisioned capacity will be three times as much as you put
 
 Once you are done with your setting, proceed by clicking on `Add`. You will see the Status of the Storage Cluster change until it reaches `Ready` again.
 
-
-NOTE: Due to a bug in the current version, a new storage capacity won't be added. will be fixed soon
-
-
 You can now see that there are new OSD pods and if you previously added new ndoes that they use the new OCS worker nodes:
 
 
