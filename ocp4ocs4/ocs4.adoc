@@ -67,7 +67,7 @@ cluster-ocs-79cf-lj8wq-worker-us-east-1e   0         0                          
 cluster-ocs-79cf-lj8wq-worker-us-east-1f   0         0                             43m
 ----
 
-WARNING: *Make sure you do the next step for finding your CLUSTERID*
+WARNING: *Make sure you do the next step for finding and using your CLUSTERID*
 
 [source,role="execute"]
 ----
