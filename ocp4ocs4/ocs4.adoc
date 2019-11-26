@@ -1570,30 +1570,7 @@ ID  CLASS WEIGHT  TYPE NAME
 
 Since our Ceph cluster's CRUSH rules are set up to replicate data between the zones, this is an effective way to relax the load on the previous nodes.
 
-If you did not add more nodes and skipped the <<Add storage worker nodes>> section, then your output will be similar to this:
-
-.Example output:
-----
-ID  CLASS WEIGHT  TYPE NAME
- -1       5.99396 root default
- -5       5.99396     region us-east-1
- -4       1.99799         zone us-east-1a
- -3       0.99899             host ocs-deviceset-2-0-cx2vg
-  0   ssd 0.99899                 osd.0
-  5   ssd 0.99899                 osd.5 <1>
--10       1.99799         zone us-east-1b
- -9       0.99899             host ocs-deviceset-1-0-s87kw
-  1   ssd 0.99899                 osd.1
-  4   ssd 0.99899                 osd.4 <1>
--14       1.99799         zone us-east-1c
--13       0.99899             host ocs-deviceset-0-0-chvdn
-  2   ssd 0.99899                 osd.2
-  3   ssd 0.99899                 osd.3 <1>
-----
-
-<1> These are the new OSDs that we added to the existing hosts
-
-This is an effective way to scale out capacity and performance if you observe that your hosts are not exhausted, but you are running out of either capacity or IOPs.
+If you did not add more nodes and skipped the <<Add storage worker nodes>> section, then your output will be similar to as shown above. This is an effective way to scale out capacity and performance, using existing nodes, if you observe that your hosts are not exhausted and/or you are running out of either capacity or IOPs.
 
 In both scale-out cases, existing data on the old OSDs will be balanced out automatically, so that the old and the new OSDs share the load.
 
