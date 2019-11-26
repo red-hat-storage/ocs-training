@@ -223,7 +223,7 @@ storage:
       regionEndpoint: ""
 ----
 
-Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER]
 
 == Moving the registry storage to OCS
 In this section we will change the registry storage to OCS, where it will consume CephFS RWX storage, as multiple pods will need to access the storage concurrently.
@@ -327,7 +327,7 @@ oc edit configs.imageregistry.operator.openshift.io
      claim: ocs4registry
 ----
 
-Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[q]kbd:[!] and kbd:[ENTER] or simply use kbd:[Shift + ZZ]
+Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[wq!] and kbd:[ENTER]
 
 Then check the `/registry` mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS `pvc` instead of the `s3` resources on AWS. Here is how to do this:
 
