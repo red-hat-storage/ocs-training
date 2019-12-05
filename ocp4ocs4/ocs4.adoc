@@ -145,7 +145,7 @@ In this section you will be using three of the worker OCP nodes to deploy OCS 4.
 
 - The `openshift-storage` namespace
 - The `local-storage` namespace
-- Operator groups and sources for the OCS and local-storage operators
+- Groups and sources for the OCS operators
 - An OCS subscription
 
 To apply this manifest, execute the following:
