@@ -163,9 +163,8 @@ watch oc -n openshift-storage get csv
 ----
 .Example output:
 ----
-NAME                            DISPLAY                                VERSION   REPLACES   PHASE
-local-storage-operator.v4.2.0   Local Storage                          4.2.0                Installing
-ocs-operator.v0.0.1             Openshift Container Storage Operator   0.0.1                InstallReady
+NAME                  DISPLAY                                VERSION   REPLACES   PHASE
+ocs-operator.v0.0.1   Openshift Container Storage Operator   0.0.1                Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C]
@@ -173,7 +172,7 @@ You can exit by pressing kbd:[Ctrl+C]
 The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`.
 
 .Please wait until the operator `PHASE` changes to `Succeeded`
-CAUTION: This will mark that the installation of your operators was successful. Reaching this state can take several minutes.
+CAUTION: This will mark that the installation of your operator was successful. Reaching this state can take several minutes.
 
 You will now also see some new operator pods in the new `openshift-storage` namespace:
 
@@ -184,7 +183,6 @@ oc -n openshift-storage get pods
 .Example output:
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
-local-storage-operator-bcfd5765f-7bd86   1/1     Running   0          3m33s
 noobaa-operator-7c55776bf9-kbcjp         1/1     Running   0          3m16s
 ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
 rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
@@ -252,7 +250,6 @@ csi-rbdplugin-provisioner-54985c744b-66fvc      5/5     Running                 
 csi-rbdplugin-provisioner-54985c744b-pqwqp      5/5     Running                 0          58s
 csi-rbdplugin-sdb56                             3/3     Running                 0          58s
 csi-rbdplugin-t876t                             3/3     Running                 0          58s
-local-storage-operator-bcfd5765f-7bd86          1/1     Running                 0          91m
 noobaa-core-0                                   0/2     Pending                 0          57s
 noobaa-operator-7c55776bf9-kbcjp                1/1     Running                 0          91m
 ocs-operator-967957d84-9lc76                    0/1     Running                 0          91m
@@ -286,7 +283,6 @@ csi-rbdplugin-nqmbl                                               3/3     Runnin
 csi-rbdplugin-provisioner-54985c744b-4sxvv                        5/5     Running     0          24m
 csi-rbdplugin-provisioner-54985c744b-xtlv9                        5/5     Running     0          24m
 csi-rbdplugin-wwdkb                                               3/3     Running     0          24m
-local-storage-operator-bcfd5765f-j6x7m                            1/1     Running     0          26m
 noobaa-core-0                                                     2/2     Running     0          24m
 noobaa-operator-7c55776bf9-89cxn                                  1/1     Running     0          26m
 ocs-operator-967957d84-cmksd                                      1/1     Running     0          26m
@@ -1458,7 +1454,6 @@ csi-rbdplugin-provisioner-54985c744b-bkqj7                        Running     ip
 csi-rbdplugin-q7585                                               Running     ip-10-0-146-221.ec2.internal
 csi-rbdplugin-rfhqs                                               Running     ip-10-0-137-169.ec2.internal
 csi-rbdplugin-zpzx7                                               Running     ip-10-0-171-221.ec2.internal
-local-storage-operator-bcfd5765f-9nbjc                            Running     ip-10-0-161-77.ec2.internal
 noobaa-core-0                                                     Running     ip-10-0-137-169.ec2.internal
 noobaa-operator-7c55776bf9-h8lpx                                  Running     ip-10-0-161-77.ec2.internal
 ocs-operator-967957d84-hq5fg                                      Running     ip-10-0-161-77.ec2.internal
