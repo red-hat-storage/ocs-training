@@ -141,21 +141,68 @@ ip-10-0-164-216.ec2.internal   Ready    worker   4m35s   v1.14.6+c07e432da
 
 === Installing the OCS operator
 
-In this section you will be using three of the worker OCP nodes to deploy OCS 4. For this you will be using a manifest file, which adds multiple items to your OCP cluster as shown below. Using the manifest for deployment is temporary until OCS 4.2 is generally available (GA). At that time OCS 4 will be installed from OperatorHub in OCP 4 instead of using this manifest for installation of the following:
+In this section you will be using three of the worker OCP 4 nodes to deploy OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
 
-- The `openshift-storage` namespace
-- The `local-storage` namespace
 - Groups and sources for the OCS operators
 - An OCS subscription
+- All OCS resources (Operators, Ceph pods, Noobaa pods, StorageClasses)
+
+Start with creating the `openshift-storage` namespace. 
+
+[source,role="execute"]
+----
+oc create namespace openshift-storage
+----
+
+You must add the monitoring label to this namespace. This is required to get prometheus metrics and alerts for the OCP storage dashboards. To label the `openshift-storage` namespace use the following command:
+
+[source,role="execute"]
+----
+oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
+----
+
+You will be provided with the location of a manifest that is needed to make the OCS 4 *Operator* visible for installation in OperatorHub. Save the content of the manifest to filename deploy-with-olm.yaml. 
+
+[NOTE]
+====
+This manifest file will not be needed when OCS 4 is released. 
+====
 
 To apply this manifest, execute the following:
 
 [source,role="execute"]
 ----
-oc apply -f https://raw.githubusercontent.com/openshift/ocs-operator/release-4.2/deploy/deploy-with-olm.yaml
+oc apply -f deploy-with-olm.yaml
 ----
 
-This will fetch the manifest from the `release-4.2` tag. After applying this, you should be able to watch your new operators being installed.
+Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the `oc client` to login to the OCP 4 `console`.
+
+[source,role="execute"]
+----
+oc get -n openshift-console route console
+----
+
+Once you are logged in, navigate to the *OperatorHub* menu.
+
+.OCP OperatorHub
+image::imgs/OCS-OCP-OperatorHub.png[OCP OperatorHub]
+
+Now type `container storage` in the *Filter by _keyword..._* box.
+
+.OCP OperatorHub filter on OpenShift Container Storage Operator
+image::imgs/OCS-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+
+Select `OpenShift Container Storage Operator` and then select *Install*. 
+
+.OCP OperatorHub Install OpenShift Container Storage
+image::imgs/OCS-OCP-OperatorHub-Install.png[OCP OperatorHub Install]
+
+On the next screen make sure the settings are as shown in this figure. Make sure to change to `A specific namespace on the cluster` and chose namespace `openshift-storage`.
+
+.OCP Subscribe to OpenShift Container Storage
+image::imgs/OCS-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+
+Now you can go back to your terminal window to check the progress of the installation.
 
 [source,role="execute"]
 ----
@@ -188,14 +235,9 @@ ocs-operator-967957d84-9lc76             1/1     Running   0          3m16s
 rook-ceph-operator-8444cfdc4c-9jm8p      1/1     Running   0          3m16s
 ----
 
-Now switch over to your *Openshift Web Console* for the remainder of the installation for OCS 4. You can get your URL by issuing command below to get the OCP 4 `console` route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the `oc client` to login to the OCP 4 `console`.
+Now switch back to your *Openshift Web Console* for the remainder of the installation for OCS 4.
 
-[source,role="execute"]
-----
-oc get -n openshift-console route console
-----
-
-Once you are logged in, navigate to the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
+Navigate to the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`.
 What you see, should be similar to the following example picture:
 
 .Installed operators:  1) Make sure you are in the right project; 2) Check Operator status; 3) Click on Openshift Container Storage Operator
@@ -237,24 +279,28 @@ oc -n openshift-storage get pods
 ----
 .Example of a in process installation of the OCS storage cluster:
 ----
-NAME                                            READY   STATUS                  RESTARTS   AGE
-csi-cephfsplugin-2frxn                          3/3     Running                 0          57s
-csi-cephfsplugin-6ghk7                          3/3     Running                 0          58s
-csi-cephfsplugin-ds6zl                          3/3     Running                 0          58s
-csi-cephfsplugin-j5ddw                          3/3     Running                 0          58s
-csi-cephfsplugin-provisioner-57f65684f4-4sf4p   4/4     Running                 0          58s
-csi-cephfsplugin-provisioner-57f65684f4-rl65b   4/4     Running                 0          58s
-csi-rbdplugin-6z7qm                             3/3     Running                 0          58s
-csi-rbdplugin-kxq99                             3/3     Running                 0          58s
-csi-rbdplugin-provisioner-54985c744b-66fvc      5/5     Running                 0          58s
-csi-rbdplugin-provisioner-54985c744b-pqwqp      5/5     Running                 0          58s
-csi-rbdplugin-sdb56                             3/3     Running                 0          58s
-csi-rbdplugin-t876t                             3/3     Running                 0          58s
-noobaa-core-0                                   0/2     Pending                 0          57s
-noobaa-operator-7c55776bf9-kbcjp                1/1     Running                 0          91m
-ocs-operator-967957d84-9lc76                    0/1     Running                 0          91m
-rook-ceph-detect-version-lh6jx                  0/1     Pending                 0          52s
-rook-ceph-operator-8444cfdc4c-9jm8p             1/1     Running                 0          91m
+NAME                                            READY   STATUS              RESTARTS   AGE
+csi-cephfsplugin-72n5r                          3/3     Running             0          52s
+csi-cephfsplugin-cgc4p                          3/3     Running             0          52s
+csi-cephfsplugin-ksp9j                          3/3     Running             0          52s
+csi-cephfsplugin-provisioner-849895689c-5mcvm   4/4     Running             0          52s
+csi-cephfsplugin-provisioner-849895689c-k784q   4/4     Running             0          52s
+csi-cephfsplugin-sfwwg                          3/3     Running             0          52s
+csi-cephfsplugin-vmv77                          3/3     Running             0          52s
+csi-rbdplugin-56pwz                             3/3     Running             0          52s
+csi-rbdplugin-9cwwt                             3/3     Running             0          52s
+csi-rbdplugin-pmw5g                             3/3     Running             0          52s
+csi-rbdplugin-provisioner-58d79d7895-69vx9      4/4     Running             0          52s
+csi-rbdplugin-provisioner-58d79d7895-mkr78      4/4     Running             0          52s
+csi-rbdplugin-pvn82                             3/3     Running             0          52s
+csi-rbdplugin-zdz5c                             3/3     Running             0          52s
+noobaa-operator-7ffd9dc86-nmfwm                 1/1     Running             0          40m
+ocs-operator-9694fd887-mwmsn                    0/1     Running             0          40m
+rook-ceph-detect-version-544tg                  0/1     Terminating         0          46s
+rook-ceph-mon-a-canary-6874bdb7-rjv95           0/1     ContainerCreating   0          14s
+rook-ceph-mon-b-canary-5d5b47ccfd-wpvnp         0/1     ContainerCreating   0          8s
+rook-ceph-mon-c-canary-56969776fc-xgkvw         0/1     ContainerCreating   0          3s
+rook-ceph-operator-5dc5f9d7fb-zd7qs             1/1     Running             0          40m
 ----
 
 You can also watch the deployment using the *Openshift Web Console* by going back to the `Openshift Container Storage Operator` screen and selecting `All instances`.
@@ -271,38 +317,39 @@ oc -n openshift-storage get pods
 .Output when the cluster installation is finished
 ----
 NAME                                                              READY   STATUS      RESTARTS   AGE
-csi-cephfsplugin-6975g                                            3/3     Running     0          24m
-csi-cephfsplugin-ckpk4                                            3/3     Running     0          24m
-csi-cephfsplugin-h6j7j                                            3/3     Running     0          24m
-csi-cephfsplugin-provisioner-57f65684f4-dk5bv                     4/4     Running     0          24m
-csi-cephfsplugin-provisioner-57f65684f4-nwsws                     4/4     Running     0          24m
-csi-cephfsplugin-t9rvk                                            3/3     Running     0          24m
-csi-rbdplugin-jhj8v                                               3/3     Running     0          24m
-csi-rbdplugin-k6bs2                                               3/3     Running     0          24m
-csi-rbdplugin-nqmbl                                               3/3     Running     0          24m
-csi-rbdplugin-provisioner-54985c744b-4sxvv                        5/5     Running     0          24m
-csi-rbdplugin-provisioner-54985c744b-xtlv9                        5/5     Running     0          24m
-csi-rbdplugin-wwdkb                                               3/3     Running     0          24m
-noobaa-core-0                                                     2/2     Running     0          24m
-noobaa-operator-7c55776bf9-89cxn                                  1/1     Running     0          26m
-ocs-operator-967957d84-cmksd                                      1/1     Running     0          26m
-rook-ceph-drain-canary-ip-10-0-131-104-5b49b94554-8wwjl           1/1     Running     0          21m
-rook-ceph-drain-canary-ip-10-0-150-178-54f44b45fd-zxrhp           1/1     Running     0          21m
-rook-ceph-drain-canary-ip-10-0-175-125-7bf8fc5d79-bg8lq           1/1     Running     0          21m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-577b9f85xzlvj   1/1     Running     0          21m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-55768bc8r6wsd   1/1     Running     0          20m
-rook-ceph-mgr-a-6b9b8d4bf6-vhr9h                                  1/1     Running     0          22m
-rook-ceph-mon-a-5846c784b-jzr6l                                   1/1     Running     0          24m
-rook-ceph-mon-b-c8858957-4xcbq                                    1/1     Running     0          23m
-rook-ceph-mon-c-54979d9856-llbsk                                  1/1     Running     0          22m
-rook-ceph-operator-8444cfdc4c-nmr2q                               1/1     Running     0          26m
-rook-ceph-osd-0-77d8884557-jwslr                                  1/1     Running     0          21m
-rook-ceph-osd-1-54d6d78694-47ghl                                  1/1     Running     0          21m
-rook-ceph-osd-2-796d848bd7-jb825                                  1/1     Running     0          21m
-rook-ceph-osd-prepare-ocs-deviceset-0-0-8fls2-p7pd5               0/1     Completed   0          22m
-rook-ceph-osd-prepare-ocs-deviceset-1-0-lbrls-ztgfs               0/1     Completed   0          22m
-rook-ceph-osd-prepare-ocs-deviceset-2-0-4ktq4-zhgcr               0/1     Completed   0          22m
-rook-ceph-rgw-ocs-storagecluster-cephobjectstore-a-66499c5gt8q4   1/1     Running     0          4m23s
+csi-cephfsplugin-72n5r                                            3/3     Running     0          10m
+csi-cephfsplugin-cgc4p                                            3/3     Running     0          10m
+csi-cephfsplugin-ksp9j                                            3/3     Running     0          10m
+csi-cephfsplugin-provisioner-849895689c-5mcvm                     4/4     Running     0          10m
+csi-cephfsplugin-provisioner-849895689c-k784q                     4/4     Running     0          10m
+csi-cephfsplugin-sfwwg                                            3/3     Running     0          10m
+csi-cephfsplugin-vmv77                                            3/3     Running     0          10m
+csi-rbdplugin-56pwz                                               3/3     Running     0          10m
+csi-rbdplugin-9cwwt                                               3/3     Running     0          10m
+csi-rbdplugin-pmw5g                                               3/3     Running     0          10m
+csi-rbdplugin-provisioner-58d79d7895-69vx9                        4/4     Running     0          10m
+csi-rbdplugin-provisioner-58d79d7895-mkr78                        4/4     Running     0          10m
+csi-rbdplugin-pvn82                                               3/3     Running     0          10m
+csi-rbdplugin-zdz5c                                               3/3     Running     0          10m
+noobaa-core-0                                                     2/2     Running     0          6m3s
+noobaa-operator-7ffd9dc86-nmfwm                                   1/1     Running     0          49m
+ocs-operator-9694fd887-mwmsn                                      1/1     Running     0          49m
+rook-ceph-drain-canary-ip-10-0-136-247.ec2.internal-55c658klgqg   1/1     Running     0          6m10s
+rook-ceph-drain-canary-ip-10-0-157-178.ec2.internal-758658dr4jw   1/1     Running     0          6m26s
+rook-ceph-drain-canary-ip-10-0-168-170.ec2.internal-5b499cfc6xl   1/1     Running     0          6m27s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-8568c68dmzctp   1/1     Running     0          5m57s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-77b78d-6jhcw    1/1     Running     0          5m57s
+rook-ceph-mgr-a-7767f6cf56-2s6mt                                  1/1     Running     0          7m24s
+rook-ceph-mon-a-65b6ffb7f4-57gds                                  1/1     Running     0          8m50s
+rook-ceph-mon-b-6698bf6d5-zml6j                                   1/1     Running     0          8m25s
+rook-ceph-mon-c-55c8f47456-7x455                                  1/1     Running     0          7m54s
+rook-ceph-operator-5dc5f9d7fb-zd7qs                               1/1     Running     0          49m
+rook-ceph-osd-0-7fc4dd559b-kgvgb                                  1/1     Running     0          6m27s
+rook-ceph-osd-1-9d9dc8f4b-kh8qr                                   1/1     Running     0          6m27s
+rook-ceph-osd-2-559fb96fcb-zc97d                                  1/1     Running     0          6m10s
+rook-ceph-osd-prepare-ocs-deviceset-0-0-g9j2d-wvqj5               0/1     Completed   0          7m2s
+rook-ceph-osd-prepare-ocs-deviceset-1-0-h59x8-l5wjs               0/1     Completed   0          7m2s
+rook-ceph-osd-prepare-ocs-deviceset-2-0-74spm-tdlb6               0/1     Completed   0          7m1s
 ----
 
 ### Getting to know the Storage Dashboards
@@ -336,13 +383,13 @@ image::imgs/OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard a
 
 // On the left side of this *Dashboard* you see a blue link labelled `noobaa`, which will get you to the NooBaa Management Console. We will discuss this Management Console later in more detail.
 
-Once this is all healthy, you will be able to use the three new `StorageClasses` created during the OCS 4 Install:
+Once this is all healthy, you will be able to use the three new *StorageClasses* created during the OCS 4 Install:
 
 - ocs-storagecluster-ceph-rbd
 - ocs-storagecluster-cephfs
 - openshift-storage.noobaa.io
 
-You can see these three `StorageClasses` from the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. You can also run the command below:
+You can see these three *StorageClasses* from the Openshift Web Console by expanding the `Storage` menu in the left navigation bar and selecting `Storage Classes`. You can also run the command below:
 
 [source,role="execute"]
 ----
@@ -921,95 +968,96 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.0.3
-INFO[0000] noobaa-image: noobaa/noobaa-core:5
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.3
-INFO[0000] Namespace: openshift-storage
-INFO[0000]
-INFO[0000] CRD Status:
-INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
-INFO[0001]
-INFO[0001] Operator Status:
-INFO[0001] ✅ Exists: Namespace "openshift-storage"
-INFO[0001] ✅ Exists: ServiceAccount "noobaa"
-INFO[0002] ❌ Not Found: Role "noobaa"
-INFO[0002] ❌ Not Found: RoleBinding "noobaa"
-INFO[0002] ❌ Not Found: ClusterRole "openshift-storage.noobaa.io"
-INFO[0002] ❌ Not Found: ClusterRoleBinding "openshift-storage.noobaa.io"
-INFO[0002] ✅ Exists: Deployment "noobaa-operator"
-INFO[0002]
-INFO[0002] System Status:
-INFO[0002] ✅ Exists: NooBaa "noobaa"
-INFO[0002] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0002] ✅ Exists: Service "noobaa-mgmt"
-INFO[0002] ✅ Exists: Service "s3"
-INFO[0003] ✅ Exists: Secret "noobaa-server"
-INFO[0003] ✅ Exists: Secret "noobaa-operator"
-INFO[0003] ✅ Exists: Secret "noobaa-admin"
-INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
-INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class"
-INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
-INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds"
-INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
-INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
-INFO[0004] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0"
-INFO[0004] ✅ System Phase is "Ready"
-INFO[0004] ✅ Exists: Secret "noobaa-admin"
+INFO[0000] CLI version: 2.0.9                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11      
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9 
+INFO[0000] Namespace: openshift-storage                 
+INFO[0000]                                              
+INFO[0000] CRD Status:                                  
+INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
+INFO[0001]                                              
+INFO[0001] Operator Status:                             
+INFO[0001] ✅ Exists: Namespace "openshift-storage"      
+INFO[0001] ✅ Exists: ServiceAccount "noobaa"            
+INFO[0001] ✅ Exists: Role "ocs-operator.v0.0.273-l5jqf" 
+INFO[0001] ✅ Exists: RoleBinding "ocs-operator.v0.0.273-l5jqf-noobaa-s4vrx" 
+INFO[0002] ✅ Exists: ClusterRole "ocs-operator.v0.0.273-k4j99" 
+INFO[0002] ✅ Exists: ClusterRoleBinding "ocs-operator.v0.0.273-k4j99-noobaa-6hcbk" 
+INFO[0002] ✅ Exists: Deployment "noobaa-operator"       
+INFO[0002]                                              
+INFO[0002] System Status:                               
+INFO[0002] ✅ Exists: NooBaa "noobaa"                    
+INFO[0002] ✅ Exists: StatefulSet "noobaa-core"          
+INFO[0002] ✅ Exists: Service "noobaa-mgmt"              
+INFO[0002] ✅ Exists: Service "s3"                       
+INFO[0002] ✅ Exists: Secret "noobaa-server"             
+INFO[0002] ✅ Exists: Secret "noobaa-operator"           
+INFO[0002] ✅ Exists: Secret "noobaa-admin"              
+INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io" 
+INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
+INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store" 
+INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds" 
+INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules" 
+INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor" 
+INFO[0003] ✅ (Optional) Exists: Route "noobaa-mgmt"     
+INFO[0003] ✅ (Optional) Exists: Route "s3"              
+INFO[0003] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0" 
+INFO[0003] ✅ System Phase is "Ready"                    
+INFO[0003] ✅ Exists:  "noobaa-admin"                    
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://a2cda7307f66011e990940a5305de57b-1618762379.us-east-1.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9e6c341187a11ea8e670a863dc4c4d-1226242861.us-east-1.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.171.35:32253]
-InternalDNS : [https://noobaa-mgmt.openshift-storage:443]
-InternalIP  : [https://172.30.50.123:443]
-PodPorts    : [https://10.129.2.26:8443]
+NodePorts   : [https://10.0.157.178:31811]
+InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
+InternalIP  : [https://172.30.212.225:443]
+PodPorts    : [https://10.130.2.10:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
-system: noobaa
-email: admin@noobaa.io
-password: O9qBQf8eJZy6cN5yqaughA==
+email    : admin@noobaa.io
+password : 5Iqq3+XoZS/sPWTkD2c5Aw==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://a2cdff448f66011e990940a5305de57b-1965616628.us-east-1.elb.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9f0fa4b187a11ea8e670a863dc4c4d-390690077.us-east-1.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.171.35:31242]
-InternalDNS : [https://s3.openshift-storage:443]
-InternalIP  : [https://172.30.145.183:443]
-PodPorts    : [https://10.129.2.26:6443]
+NodePorts   : [https://10.0.157.178:31605]
+InternalDNS : [https://s3.openshift-storage.svc:443]
+InternalIP  : [https://172.30.252.169:443]
+PodPorts    : [https://10.130.2.10:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID: <NooBaa_ACCESS_KEY_ID>
-AWS_SECRET_ACCESS_KEY:<NooBaa_SECRET_ACCESS_KEY_ID>
+AWS_ACCESS_KEY_ID     : rQNcbCCIGxkApCA3U8TB
+AWS_SECRET_ACCESS_KEY : V9qxglxRrJETkmEFBo04aWYu8Jpp6IBMS9w73fQr
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE
-noobaa-default-backing-store   aws-s3   noobaa-backing-store-8a7f9c1b-2616-41fa-bd9e-dbf7334f4768   Ready   2m24s
+NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE        
+noobaa-default-backing-store   aws-s3   noobaa-backing-store-0b438b35-023f-4ce4-99e5-557f88c210b0   Ready   1h39m31s   
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   2m24s
+NAME                          PLACEMENT                                                             PHASE   AGE        
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   1h39m31s   
 
 #-----------------#
 #- Bucket Claims -#
@@ -1672,37 +1720,6 @@ NOTE: Have a look at the difference between `sum(irate(process_cpu_seconds_total
 For more information on the Prometheus query language visit the link:https://prometheus.io/docs/prometheus/latest/querying/basics/[Prometheus Query Documentation].
 ====
 
-=== Dashboards
-
-Click on the *Dashboards* item as illustrated below.
-
-.OCP Dashboards Menu
-image::imgs/metrics-dashboardsleftpanemenu.png[OCP Dashboards Menu]
-
-Upon your first visit to the Grafana page, you will be prompted to use *OpenShift Login* credentials.
-
-.OCP Login Procedure
-image::imgs/metrics-ocplogin.png[OCP Login]
-
-Click the *Log in with OpenShift* to proceed and you will then be prompted for your OpenShift user name and password. When successfully logged in, you will be prompted to authorize access to the application using your OpenShift credentials.
-
-.OCP Authorization
-image::imgs/metrics-ocpauthorize.png[OCP Authorization]
-
-Click the `Allow selected permissions` to proceed to the Grafana home page as illustrated below.
-
-.Grafana Homepage
-image::imgs/metrics-grafanahomepage.png[Grafana Homepage]
-
-Click the *Home* menu in the top left corner to choose one of the packaged OCP dashboards.
-
-.Grafana OCP Dashboard
-image::imgs/metrics-ocpdashboard.png[Grafana Dashboard]
-
-The illustration above is a screen capture of the `Kubernetes / Compute Resources / Cluster` dashboard.
-
-NOTE: OCS 4.2 ships with no OCS specific dashboard.
-
 == Using must-gather
 
 Must-gather is a tool for collecting data about the current'y running Openshift cluster. It loads a predefined set of containers that execute multiple programs and dump it on the local workstations filesystem.
@@ -1871,10 +1888,9 @@ noobaa version
 ----
 .Example output:
 ----
-noobaa version
-INFO[0000] CLI version: 2.0.4
-INFO[0000] noobaa-image: noobaa/noobaa-core:5
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.4
+INFO[0000] CLI version: 2.0.9                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11      
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9
 ----
 
 [NOTE]
