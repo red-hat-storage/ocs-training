@@ -194,7 +194,7 @@ Select `OpenShift Container Storage Operator` and then select *Install*.
 .OCP OperatorHub Install OpenShift Container Storage
 image::imgs/OCS-OCP-OperatorHub-Install.png[OCP OperatorHub Install]
 
-On the next screen make sure the settings are as shown in this figure. Make sure to change to `A specific namespace on the cluster` and chose namespace `openshift-storage`.
+On the next screen make sure the settings are as shown in this figure. Make sure to change to `A specific namespace on the cluster` and chose namespace `openshift-storage`. Click `Subscribe`.
 
 .OCP Subscribe to OpenShift Container Storage
 image::imgs/OCS-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
