@@ -147,7 +147,7 @@ In this section you will be using three of the worker OCP 4 nodes to deploy OCS 
 - An OCS subscription
 - All OCS resources (Operators, Ceph pods, Noobaa pods, StorageClasses)
 
-Start with creating the `openshift-storage` namespace. 
+Start with creating the `openshift-storage` namespace.
 
 [source,role="execute"]
 ----
@@ -161,15 +161,13 @@ You must add the monitoring label to this namespace. This is required to get pro
 oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 ----
 
-You will be provided with the location of a manifest that is needed to make the OCS 4 *Operator* visible for installation in OperatorHub. Save the content of the manifest to filename deploy-with-olm.yaml. 
-
-NOTE: This manifest file will not be needed when OCS 4 is released. 
+NOTE: The below manifest file will not be needed when OCS 4 is released.
 
 To apply this manifest, execute the following:
 
 [source,role="execute"]
 ----
-oc apply -f deploy-with-olm.yaml
+oc apply -f https://gist.githubusercontent.com/netzzer/207e00a1cbc86006652a100d28be9987/raw/20103b2128dcba15416432bba193cb042d64bf12/deploy-with-olm.yaml
 ----
 
 Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the `oc client` to login to the OCP 4 `console`.
@@ -189,7 +187,7 @@ Now type `container storage` in the *Filter by _keyword..._* box.
 .OCP OperatorHub filter on OpenShift Container Storage Operator
 image::imgs/OCS-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
-Select `OpenShift Container Storage Operator` and then select *Install*. 
+Select `OpenShift Container Storage Operator` and then select *Install*.
 
 .OCP OperatorHub Install OpenShift Container Storage
 image::imgs/OCS-OCP-OperatorHub-Install.png[OCP OperatorHub Install]
@@ -257,7 +255,7 @@ image::imgs/OCS-config-screen-new.png[OCS create a new storage cluster]
 
 CAUTION: *Make sure to select three workers in different availability zones using instructions below*
 
-To select the appropriate worker nodes of your OCP 4 cluster you can find them by searching for the node label `role=storage-node`.  
+To select the appropriate worker nodes of your OCP 4 cluster you can find them by searching for the node label `role=storage-node`.
 
 [source,role="execute"]
 ----
@@ -351,7 +349,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-0-74spm-tdlb6               0/1     Comple
 
 ### Getting to know the Storage Dashboards
 
-You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your *Openshift Web Console*. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page. 
+You can now also check the status of your storage cluster with the OCS specific *Dashboards* that are included in your *Openshift Web Console*. You can reach this by clicking on `Home` on your left navigation bar, then selecting `Dashboards` and finally clicking on `Persistent Storage` on the top navigation bar of the content page.
 
 NOTE: If you just finished your OCS 4 deployment it could take 5-10 minutes for your *Dashboards* to fully populate.
 
@@ -434,19 +432,19 @@ sh-4.2# ceph status
   cluster:
     id:     786dbab2-ae4f-4352-8d83-5e27c6a4f341
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum a,b,c (age 105m)
     mgr: a(active, since 104m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 3 osds: 3 up (since 104m), 3 in (since 104m)
- 
+
   data:
     pools:   3 pools, 24 pgs
     objects: 100 objects, 114 MiB
     usage:   3.2 GiB used, 3.0 TiB / 3.0 TiB avail
     pgs:     24 active+clean
- 
+
   io:
     client:   1.2 KiB/s rd, 39 KiB/s wr, 2 op/s rd, 3 op/s wr
 ----
@@ -595,8 +593,8 @@ rbd image 'csi-vol-4cbba393-2060-11ea-9396-0a580a800406':
 	block_name_prefix: rbd_data.95e4f3973e8
 	format: 2
 	features: layering
-	op_features: 
-	flags: 
+	op_features:
+	flags:
 	create_timestamp: Tue Dec 17 00:00:57 2019
 	access_timestamp: Tue Dec 17 00:00:57 2019
 	modify_timestamp: Tue Dec 17 00:00:57 2019
@@ -962,46 +960,46 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.0.9                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11      
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9 
-INFO[0000] Namespace: openshift-storage                 
-INFO[0000]                                              
-INFO[0000] CRD Status:                                  
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
-INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
-INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
-INFO[0001]                                              
-INFO[0001] Operator Status:                             
-INFO[0001] ✅ Exists: Namespace "openshift-storage"      
-INFO[0001] ✅ Exists: ServiceAccount "noobaa"            
-INFO[0001] ✅ Exists: Role "ocs-operator.v0.0.273-l5jqf" 
-INFO[0001] ✅ Exists: RoleBinding "ocs-operator.v0.0.273-l5jqf-noobaa-s4vrx" 
-INFO[0002] ✅ Exists: ClusterRole "ocs-operator.v0.0.273-k4j99" 
-INFO[0002] ✅ Exists: ClusterRoleBinding "ocs-operator.v0.0.273-k4j99-noobaa-6hcbk" 
-INFO[0002] ✅ Exists: Deployment "noobaa-operator"       
-INFO[0002]                                              
-INFO[0002] System Status:                               
-INFO[0002] ✅ Exists: NooBaa "noobaa"                    
-INFO[0002] ✅ Exists: StatefulSet "noobaa-core"          
-INFO[0002] ✅ Exists: Service "noobaa-mgmt"              
-INFO[0002] ✅ Exists: Service "s3"                       
-INFO[0002] ✅ Exists: Secret "noobaa-server"             
-INFO[0002] ✅ Exists: Secret "noobaa-operator"           
-INFO[0002] ✅ Exists: Secret "noobaa-admin"              
-INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io" 
-INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
-INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store" 
-INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds" 
-INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules" 
-INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor" 
-INFO[0003] ✅ (Optional) Exists: Route "noobaa-mgmt"     
-INFO[0003] ✅ (Optional) Exists: Route "s3"              
-INFO[0003] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0" 
-INFO[0003] ✅ System Phase is "Ready"                    
-INFO[0003] ✅ Exists:  "noobaa-admin"                    
+INFO[0000] CLI version: 2.0.9
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11
+INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9
+INFO[0000] Namespace: openshift-storage
+INFO[0000]
+INFO[0000] CRD Status:
+INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0001]
+INFO[0001] Operator Status:
+INFO[0001] ✅ Exists: Namespace "openshift-storage"
+INFO[0001] ✅ Exists: ServiceAccount "noobaa"
+INFO[0001] ✅ Exists: Role "ocs-operator.v0.0.273-l5jqf"
+INFO[0001] ✅ Exists: RoleBinding "ocs-operator.v0.0.273-l5jqf-noobaa-s4vrx"
+INFO[0002] ✅ Exists: ClusterRole "ocs-operator.v0.0.273-k4j99"
+INFO[0002] ✅ Exists: ClusterRoleBinding "ocs-operator.v0.0.273-k4j99-noobaa-6hcbk"
+INFO[0002] ✅ Exists: Deployment "noobaa-operator"
+INFO[0002]
+INFO[0002] System Status:
+INFO[0002] ✅ Exists: NooBaa "noobaa"
+INFO[0002] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0002] ✅ Exists: Service "noobaa-mgmt"
+INFO[0002] ✅ Exists: Service "s3"
+INFO[0002] ✅ Exists: Secret "noobaa-server"
+INFO[0002] ✅ Exists: Secret "noobaa-operator"
+INFO[0002] ✅ Exists: Secret "noobaa-admin"
+INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
+INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds"
+INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
+INFO[0003] ✅ (Optional) Exists: Route "noobaa-mgmt"
+INFO[0003] ✅ (Optional) Exists: Route "s3"
+INFO[0003] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0"
+INFO[0003] ✅ System Phase is "Ready"
+INFO[0003] ✅ Exists:  "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
@@ -1043,15 +1041,15 @@ AWS_SECRET_ACCESS_KEY : V9qxglxRrJETkmEFBo04aWYu8Jpp6IBMS9w73fQr
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE        
-noobaa-default-backing-store   aws-s3   noobaa-backing-store-0b438b35-023f-4ce4-99e5-557f88c210b0   Ready   1h39m31s   
+NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE
+noobaa-default-backing-store   aws-s3   noobaa-backing-store-0b438b35-023f-4ce4-99e5-557f88c210b0   Ready   1h39m31s
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE        
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   1h39m31s   
+NAME                          PLACEMENT                                                             PHASE   AGE
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   1h39m31s
 
 #-----------------#
 #- Bucket Claims -#
@@ -1552,19 +1550,19 @@ sh-4.2# ceph status
   cluster:
     id:     786dbab2-ae4f-4352-8d83-5e27c6a4f341
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum a,b,c (age 6h)
     mgr: a(active, since 6h)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 6 osds: 6 up (since 6m), 6 in (since 6m)
- 
+
   data:
     pools:   3 pools, 24 pgs
     objects: 182 objects, 311 MiB
     usage:   6.7 GiB used, 6.0 TiB / 6.0 TiB avail
     pgs:     24 active+clean
- 
+
   io:
     client:   853 B/s rd, 43 KiB/s wr, 1 op/s rd, 3 op/s wr
 ----
@@ -1882,8 +1880,8 @@ noobaa version
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.0.9                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11      
+INFO[0000] CLI version: 2.0.9
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11
 INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9
 ----
 
