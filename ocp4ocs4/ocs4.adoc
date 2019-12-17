@@ -1548,25 +1548,25 @@ ceph status
 ----
 .Example output:
 ----
-cluster:
-id: aa6f29a9-8de3-4e41-963a-8adb0c5d8bee
-health: HEALTH_OK
-
-services:
-mon: 3 daemons, quorum a,b,c (age 2h)
-mgr: a(active, since 2h)
-mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-osd: 6 osds: 6 up (since 73s), 6 in (since 73s) <1>
-rgw: 1 daemon active (ocs.storagecluster.cephobjectstore.a)
-
-data:
-pools: 10 pools, 80 pgs
-objects: 392 objects, 388 MiB
-usage: 6.9 GiB used, 6.0 TiB / 6.0 TiB avail <2>
-pgs: 80 active+clean
-
-io:
-client: 1.2 KiB/s rd, 46 KiB/s wr, 2 op/s rd, 4 op/s wr
+sh-4.2# ceph status
+  cluster:
+    id:     786dbab2-ae4f-4352-8d83-5e27c6a4f341
+    health: HEALTH_OK
+ 
+  services:
+    mon: 3 daemons, quorum a,b,c (age 6h)
+    mgr: a(active, since 6h)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 6 osds: 6 up (since 6m), 6 in (since 6m)
+ 
+  data:
+    pools:   3 pools, 24 pgs
+    objects: 182 objects, 311 MiB
+    usage:   6.7 GiB used, 6.0 TiB / 6.0 TiB avail
+    pgs:     24 active+clean
+ 
+  io:
+    client:   853 B/s rd, 43 KiB/s wr, 1 op/s rd, 3 op/s wr
 ----
 
 In the Ceph status output, we can already see that:
