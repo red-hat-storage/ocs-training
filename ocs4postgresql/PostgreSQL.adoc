@@ -26,7 +26,7 @@ PostgreSQL also features built-in replication via shipping WAL (Write Ahead Log)
 * Make sure you have a running OCP cluster based on the RHPDS `OpenShift 4.2 Workshop`
 * a copy of this git repo
 * *NOTE*: The scripts in this lab will work on Linux (various distributions) and MacOS. They are not tested on any Windows OS.
-* Please git clone our repository, you'll find all the scripts needed in the ocs4jenkins directory: 
+* Please git clone our repository, you'll find all the scripts needed in the ocs4postgresql directory: 
 [source,role="execute"]
 ----
 git clone https://github.com/red-hat-storage/ocs-training.git
@@ -58,20 +58,20 @@ We are going to create a new template based on the postgresql-persistent templat
 The script parameters (CSI_DRIVER, PV_SIZE and NEW_TEMPLATE_NAME) are self explanatory, you can edit the script and change them but remember that going forward, some sections might reference the default value of NEW_TEMPLATE_NAME. The script will perform the following tasks:
 
 1. Change the name of the template (so it can co-exists with the one we copied from).
-2. Add the storage class (sc) we want to use in the template (the jenkins-persistent template just uses the default storage class in OCP).
+2. Add the storage class (sc) we want to use in the template (the postgresql-persistent template just uses the default storage class in OCP).
 3. Add/change the size of the PV we want for the PostgreSQL database.
 4. Run the "oc create" command and the create the new template
 
-Run the create_ocs_jenkins_template script:
+Run the create_ocs_postgresql_template script:
 [source,role="execute"]
 ----
 $ bash create_ocs_postgresql_template
 ----
 
-After running the script, you should see another jenkins template:
+After running the script, you should see another postgresql template:
 [source,role="execute"]
 ----
-oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i ^jenkins
+oc get templates -n openshift -o custom-columns=NAME:.metadata.name|grep -i ^postgresql
 ----
 .Example output:
 ----
@@ -80,7 +80,7 @@ postgresql-persistent
 postgresql-persistent-ocs
 ----
 
-The last jenkins template *postgresql-persistent-ocs* is the one that we are going to use.
+The last postgresql template *postgresql-persistent-ocs* is the one that we are going to use.
 
 === Creating our project
 
