@@ -1290,7 +1290,7 @@ Afterwards watch the *Pod* be Created, Run and finally be marked `Completed` lik
 
 [source,role="execute"]
 ----
-oc get po -n obc-test -l app=obc-test
+oc get pods -n obc-test -l app=obc-test
 ----
 .Example output
 ----
