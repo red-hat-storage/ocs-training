@@ -549,15 +549,15 @@ oc get pv -o 'custom-columns=NAME:.spec.claimRef.name,PVNAME:.metadata.name,STOR
 .Example output:
 ----
 NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
-ocs-deviceset-0-0-z2xzg   pvc-1b636a3f-f978-11e9-9bdd-005056818b15   thin                          <none>
-ocs-deviceset-1-0-wcrql   pvc-1b64c8e5-f978-11e9-9bdd-005056818b15   thin                          <none>
-ocs-deviceset-2-0-b82nr   pvc-1b6618fa-f978-11e9-9bdd-005056818b15   thin                          <none>
-postgresql                pvc-3967abba-fbcd-11e9-9bdd-005056818b15   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-39787034-fbcd-11e9-8be1-0a580a810213
-my-shared-storage         pvc-ab06ddc4-fbc0-11e9-9d0a-00505681bc30   ocs-storagecluster-cephfs     0001-0011-openshift-storage-0000000000000001-ab869bbf-fbc0-11e9-92f8-0a580a800411
-db-noobaa-core-0          pvc-b8490616-f977-11e9-9bdd-005056818b15   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-5c29f1e6-f978-11e9-8be1-0a580a810213
-rook-ceph-mon-a           pvc-c434ab90-f977-11e9-9bdd-005056818b15   thin                          <none>
-rook-ceph-mon-b           pvc-c74f9f10-f977-11e9-9bdd-005056818b15   thin                          <none>
-rook-ceph-mon-c           pvc-ca4eea2e-f977-11e9-9bdd-005056818b15   thin                          <none>
+ocs-deviceset-0-0-gzxjb   pvc-1cf104d2-2033-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+ocs-deviceset-1-0-s87xm   pvc-1cf33c42-2033-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+ocs-deviceset-2-0-zcjk4   pvc-1cf4f825-2033-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+db-noobaa-core-0          pvc-3008e684-2033-11ea-a83b-065b3ec3da7c   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-3c0bb177-2033-11ea-9396-0a580a800406
+postgresql                pvc-4ca89d3d-2060-11ea-9a42-02dfa51cba90   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-4cbba393-2060-11ea-9396-0a580a800406
+rook-ceph-mon-a           pvc-cac661b6-2032-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+rook-ceph-mon-b           pvc-cde2d8b3-2032-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+rook-ceph-mon-c           pvc-d0efbd9d-2032-11ea-ac56-0a9ccb4b29e2   gp2                           <none>
+lab-ossm-hub-data         pvc-dc1d4bdc-2028-11ea-ad6c-0a9ccb4b29e2   gp2                           <none>
 ----
 
 The second half of the `VOLUMEHANDLE` column mostly matches what your RBD is named inside of Ceph. All you have to do is append `csi-vol-` to the front like this:
@@ -565,46 +565,46 @@ The second half of the `VOLUMEHANDLE` column mostly matches what your RBD is nam
 .Get the full RBD name of our postgreSQL PV in one command
 [source,role="execute"]
 ----
-oc get pv pvc-3967abba-fbcd-11e9-9bdd-005056818b15 -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}'
-----
-.Example output:
-----
-csi-vol-39787034-fbcd-11e9-8be1-0a580a810213
+oc get pv pvc-4ca89d3d-2060-11ea-9a42-02dfa51cba90 -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}'
 ----
 
 [NOTE]
 ====
-It is important to use the `PVNAME` in the above command
+You will need to adjust the above command to use your `PVNAME` name
 ====
+
+.Example output:
+----
+csi-vol-4cbba393-2060-11ea-9396-0a580a800406
+----
 
 Now we can check on the details of our RBD from inside of the tools pod:
 
 [source,role="execute"]
 ----
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-
-oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool info csi-vol-39787034-fbcd-11e9-8be1-0a580a810213
+oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool info csi-vol-4cbba393-2060-11ea-9396-0a580a800406
 ----
 .Example output:
 ----
-rbd image 'csi-vol-39787034-fbcd-11e9-8be1-0a580a810213':
-        size 5 GiB in 1280 objects
-        order 22 (4 MiB objects)
-        snapshot_count: 0
-        id: 75a68ab19dfcb
-        block_name_prefix: rbd_data.75a68ab19dfcb
-        format: 2
-        features: layering
-        op_features:
-        flags:
-        create_timestamp: Thu Oct 31 10:57:27 2019
-        access_timestamp: Thu Oct 31 10:57:27 2019
-        modify_timestamp: Thu Oct 31 10:57:27 2019
+rbd image 'csi-vol-4cbba393-2060-11ea-9396-0a580a800406':
+	size 5 GiB in 1280 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 0
+	id: 95e4f3973e8
+	block_name_prefix: rbd_data.95e4f3973e8
+	format: 2
+	features: layering
+	op_features: 
+	flags: 
+	create_timestamp: Tue Dec 17 00:00:57 2019
+	access_timestamp: Tue Dec 17 00:00:57 2019
+	modify_timestamp: Tue Dec 17 00:00:57 2019
 ----
 
 [NOTE]
 ====
-You will need to adjust the command to fit to your RBD name
+You will need to adjust the above command to use your `RBD` name
 ====
 
 == Create a new OCP application deployment using CephFS volume
