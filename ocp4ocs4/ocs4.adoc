@@ -167,7 +167,7 @@ To apply this manifest, execute the following:
 
 [source,role="execute"]
 ----
-oc apply -f https://gist.githubusercontent.com/netzzer/207e00a1cbc86006652a100d28be9987/raw/20103b2128dcba15416432bba193cb042d64bf12/deploy-with-olm.yaml
+oc apply -f https://gist.githubusercontent.com/netzzer/207e00a1cbc86006652a100d28be9987/raw/13b4282619a5408bb9f642b13ef038a2cb2206c1/deploy-with-olm.yaml
 ----
 
 Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the `oc client` to login to the OCP 4 `console`.
