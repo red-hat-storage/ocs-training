@@ -6,14 +6,14 @@ metadata:
     machine.openshift.io/cluster-api-cluster: CLUSTERID
     machine.openshift.io/cluster-api-machine-role: workerocs
     machine.openshift.io/cluster-api-machine-type: workerocs
-  name: CLUSTERID-workerocs-us-east-2a
+  name: CLUSTERID-workerocs-us-east-1a
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: CLUSTERID
-      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2a
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1a
   template:
     metadata:
       creationTimestamp: null
@@ -21,7 +21,7 @@ spec:
         machine.openshift.io/cluster-api-cluster: CLUSTERID
         machine.openshift.io/cluster-api-machine-role: workerocs
         machine.openshift.io/cluster-api-machine-type: workerocs
-        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2a
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1a
     spec:
       metadata:
         creationTimestamp: null
@@ -31,7 +31,7 @@ spec:
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-01e7fdcb66157b224
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -43,13 +43,13 @@ spec:
           deviceIndex: 0
           iamInstanceProfile:
             id: CLUSTERID-worker-profile
-          instanceType: m5.4xlarge
+          instanceType: m4.4xlarge
           kind: AWSMachineProviderConfig
           metadata:
             creationTimestamp: null
           placement:
-            availabilityZone: us-east-2a
-            region: us-east-2
+            availabilityZone: us-east-1a
+            region: us-east-1
           publicIp: null
           securityGroups:
           - filters:
@@ -60,7 +60,7 @@ spec:
             filters:
             - name: tag:Name
               values:
-              - CLUSTERID-private-us-east-2a
+              - CLUSTERID-private-us-east-1a
           tags:
           - name: kubernetes.io/cluster/CLUSTERID
             value: owned
@@ -76,14 +76,14 @@ metadata:
     machine.openshift.io/cluster-api-cluster: CLUSTERID
     machine.openshift.io/cluster-api-machine-role: workerocs
     machine.openshift.io/cluster-api-machine-type: workerocs
-  name: CLUSTERID-workerocs-us-east-2b
+  name: CLUSTERID-workerocs-us-east-1b
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: CLUSTERID
-      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2b
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1b
   template:
     metadata:
       creationTimestamp: null
@@ -91,7 +91,7 @@ spec:
         machine.openshift.io/cluster-api-cluster: CLUSTERID
         machine.openshift.io/cluster-api-machine-role: workerocs
         machine.openshift.io/cluster-api-machine-type: workerocs
-        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2b
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1b
     spec:
       metadata:
         creationTimestamp: null
@@ -101,7 +101,7 @@ spec:
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-01e7fdcb66157b224
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -113,13 +113,13 @@ spec:
           deviceIndex: 0
           iamInstanceProfile:
             id: CLUSTERID-worker-profile
-          instanceType: m5.4xlarge
+          instanceType: m4.4xlarge
           kind: AWSMachineProviderConfig
           metadata:
             creationTimestamp: null
           placement:
-            availabilityZone: us-east-2b
-            region: us-east-2
+            availabilityZone: us-east-1b
+            region: us-east-1
           publicIp: null
           securityGroups:
           - filters:
@@ -130,7 +130,7 @@ spec:
             filters:
             - name: tag:Name
               values:
-              - CLUSTERID-private-us-east-2b
+              - CLUSTERID-private-us-east-1b
           tags:
           - name: kubernetes.io/cluster/CLUSTERID
             value: owned
@@ -146,14 +146,14 @@ metadata:
     machine.openshift.io/cluster-api-cluster: CLUSTERID
     machine.openshift.io/cluster-api-machine-role: workerocs
     machine.openshift.io/cluster-api-machine-type: workerocs
-  name: CLUSTERID-workerocs-us-east-2c
+  name: CLUSTERID-workerocs-us-east-1c
   namespace: openshift-machine-api
 spec:
   replicas: 1
   selector:
     matchLabels:
       machine.openshift.io/cluster-api-cluster: CLUSTERID
-      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2c
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1c
   template:
     metadata:
       creationTimestamp: null
@@ -161,7 +161,7 @@ spec:
         machine.openshift.io/cluster-api-cluster: CLUSTERID
         machine.openshift.io/cluster-api-machine-role: workerocs
         machine.openshift.io/cluster-api-machine-type: workerocs
-        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-2c
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1c
     spec:
       metadata:
         creationTimestamp: null
@@ -171,7 +171,7 @@ spec:
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-01e7fdcb66157b224
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -183,13 +183,13 @@ spec:
           deviceIndex: 0
           iamInstanceProfile:
             id: CLUSTERID-worker-profile
-          instanceType: m5.4xlarge
+          instanceType: m4.4xlarge
           kind: AWSMachineProviderConfig
           metadata:
             creationTimestamp: null
           placement:
-            availabilityZone: us-east-2c
-            region: us-east-2
+            availabilityZone: us-east-1c
+            region: us-east-1
           publicIp: null
           securityGroups:
           - filters:
@@ -200,7 +200,7 @@ spec:
             filters:
             - name: tag:Name
               values:
-              - CLUSTERID-private-us-east-2c
+              - CLUSTERID-private-us-east-1c
           tags:
           - name: kubernetes.io/cluster/CLUSTERID
             value: owned
