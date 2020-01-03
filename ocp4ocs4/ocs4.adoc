@@ -799,149 +799,139 @@ image::imgs/uploader_screen_upload.png[]
 Once done click *_List uploaded files_* to see the list of all currently
 uploaded files.
 
-== Create a new OCP registry using CephFS (Optional)
+== Using OCS for Prometheus Metrics
 
-In this section the `ocs-storagecluster-cephfs` *Storage Class* will be used to create a RWX (ReadWriteMany) PVC that can be used by multiple pods at the same time. As an example we will be running a highly-available container image registry. The persistent storage will be based on a CephFS volume in the Ceph pool `ocs-storagecluster-cephfilesystem-data0`.
+OpenShift ships with a pre-configured and self-updating monitoring stack that is based on the Prometheus open source project and its wider eco-system. It provides monitoring of cluster components and ships with a set of alerts to immediately notify the cluster administrator about any occurring problems.
 
-Deploy the registry like this:
+Running cluster monitoring with persistent storage means that your metrics are stored to a persistent volume and can survive a pod being restarted or recreated. This is ideal if you require your metrics or alerting data to be guarded from data loss. For production environments, it is highly recommended to configure persistent storage using block storage technology. OCS 4 provide block storage using CephRBD volumes. The following instructions will detail how to migrate Prometheus and Alertmanager storage to CephRBD volumes for persistence.
 
-[source,role="execute"]
-----
-curl -s https://raw.githubusercontent.com/rook/rook/master/cluster/examples/kubernetes/ceph/csi/cephfs/kube-registry.yaml | sed 's/storageClassName: csi-cephfs/storageClassName: ocs-storagecluster-cephfs/g'| oc apply -f -
-----
-
-This will create a PVC in the `kube-system` namespace:
+Let's discover what *Pods* and *PVCs* are installed in the `openshift-monitoring` namespace.
 
 [source,role="execute"]
 ----
-oc get -n kube-system pvc
+oc get pods,pvc -n openshift-monitoring
 ----
 .Example output:
 ----
-NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-cephfs-pvc   Bound    pvc-a7015af1-f0dd-11e9-8812-06aa2fd1035a   1Gi        RWX            ocs-storagecluster-cephfs   55s
+NAME                                               READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                            3/3     Running   0          6d23h
+pod/alertmanager-main-1                            3/3     Running   0          6d23h
+pod/alertmanager-main-2                            3/3     Running   0          6d23h
+pod/cluster-monitoring-operator-84cd9df668-74wnk   1/1     Running   0          6d23h
+pod/grafana-5db6fd97f8-fqj5g                       2/2     Running   0          6d23h
+pod/kube-state-metrics-895899678-pm8h7             3/3     Running   0          6d23h
+pod/node-exporter-69hqs                            2/2     Running   0          6d23h
+pod/node-exporter-mw7lf                            2/2     Running   0          6d23h
+pod/node-exporter-npngl                            2/2     Running   0          6d23h
+pod/node-exporter-p8nv7                            2/2     Running   0          6d23h
+pod/node-exporter-pgppl                            2/2     Running   0          6d23h
+pod/node-exporter-pnnhb                            2/2     Running   0          6d23h
+pod/node-exporter-rb4wv                            2/2     Running   0          6d23h
+pod/node-exporter-rwpwj                            2/2     Running   0          6d23h
+pod/node-exporter-xpvv7                            2/2     Running   0          6d23h
+pod/openshift-state-metrics-77d5f699d8-km8dn       3/3     Running   0          6d23h
+pod/prometheus-adapter-7cd7578f49-2wr84            1/1     Running   0          5d23h
+pod/prometheus-adapter-7cd7578f49-hbwgg            1/1     Running   0          5d23h
+pod/prometheus-k8s-0                               6/6     Running   1          6d23h
+pod/prometheus-k8s-1                               6/6     Running   1          6d23h
+pod/prometheus-operator-cbfd89f9-95bgj             1/1     Running   0          156m
+pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          6d23h
 ----
 
-As well as a deployment for our registry:
+At this point there are no *PVC* resources because Prometheus and Alertmanager are both using ephemeral (EmptyDir) storage. This is the way OpenShift is initially installed. The Prometheus stack consists of the Prometheus database and the alertmanager data. Persisting both is best-practice since data loss on either of these will cause you to lose your collected metrics and alerting data.
+
+### Modifying your Prometheus environment
+
+For Prometheus every supported configuration change is controlled through a central *ConfigMap*, which needs to be created before we can make changes. When you start off with a clean installation of Openshift, the ConfigMap to configure the Prometheus environment may not be present. To check if your ConfigMap is present, execute this:
 
 [source,role="execute"]
 ----
-oc get -n kube-system deployment
+oc -n openshift-monitoring get configmap cluster-monitoring-config
+----
+.Output if the ConfigMap is not yet created:
+----
+Error from server (NotFound): configmaps "cluster-monitoring-config" not found
+----
+
+If you are missing the ConfigMap, create it using this command:
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-monitoring-config.yaml | oc apply -f -
+----
+.Sample output:
+----
+configmap/cluster-monitoring-config created
+----
+
+You can view the new *ConfigMap* with the following command:
+
+NOTE: The size of the CephRBD volumes, `40Gi`, can be modified to be larger or smaller depending on requirements. 
+
+[source,role="execute"]
+----
+oc -n openshift-monitoring get configmap cluster-monitoring-config -o yaml
+---- 
+
+.ConfigMap sample output:
+[source,yaml]
+----
+apiVersion: v1
+data:
+  config.yaml: |
+    prometheusK8s:
+      volumeClaimTemplate:
+        metadata:
+          name: prometheusdb
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+    alertmanagerMain:
+      volumeClaimTemplate:
+        metadata:
+          name: alertmanager
+        spec:
+          storageClassName: ocs-storagecluster-ceph-rbd
+          resources:
+            requests:
+              storage: 40Gi
+kind: ConfigMap
+metadata:
+  creationTimestamp: "2020-01-03T21:46:39Z"
+  name: cluster-monitoring-config
+  namespace: openshift-monitoring
+  resourceVersion: "666460"
+  selfLink: /api/v1/namespaces/openshift-monitoring/configmaps/cluster-monitoring-config
+  uid: 230c7b55-a099-4ba8-8a69-4d0a428d80aa
+----
+
+Once you create this new *ConfigMap* `cluster-monitoring-config`, the affected *Pods* will automatically be restarted and the new storage will be mounted in the Pods.
+
+[NOTE]
+====
+It is not possible to retain data that was written on the default EmptyDir-based or ephemeral installation. Thus you will start with an empty DB after changing the backend storage thereby starting over with metric collection and reporting.
+====
+
+After a couple of minutes, the Alertmanager and Prometheus *Pods* will have restarted and you will see new *PVCs* in the `openshift-monitoring` namespace that they are now providing persistent storage:
+
+[source,role="execute"]
+----
+oc get -n openshift-monitoring pvc
 ----
 .Example output:
+[source,yaml]
 ----
-NAME            READY   UP-TO-DATE   AVAILABLE   AGE
-kube-registry   3/3     3            3           100s
-----
-
-.The `kube-registry` *deployment* consists of more than one replica
-NOTE: Since our deployment consists of three containers, we need a RWX PVC, so that all replicas can access the persistent volume in parallel.
-
-There are also 3 *Pods* sharing the same Ceph FS PVC for read/write operations.
-
-[source,role="execute"]
-----
-oc get -n kube-system pods
-----
-.Example output:
-----
-$ oc get pods -n kube-system
-NAME                             READY   STATUS    RESTARTS   AGE
-kube-registry-5b9c9854c5-45w9m   1/1     Running   0          9m47s
-kube-registry-5b9c9854c5-cjtqc   1/1     Running   0          9m47s
-kube-registry-5b9c9854c5-jfpkl   1/1     Running   0          9m47s
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+alertmanager-alertmanager-main-0   Bound    pvc-733be285-aaf9-4334-9662-44b63bb4efdf   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+alertmanager-alertmanager-main-1   Bound    pvc-e07ebe61-de5d-404c-9a25-bb3a677281c5   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+alertmanager-alertmanager-main-2   Bound    pvc-9de2edf2-9f5e-4f62-8aa7-ecfd01957748   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
+prometheusdb-prometheus-k8s-0      Bound    pvc-5b845908-d929-4326-976e-0659901468e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
+prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
 ----
 
-Let's make our *deployment* accessible. First we create a service with an internal Cluster IP:
-
-[source,role="execute"]
-----
-oc expose -n kube-system deployment kube-registry
-----
-
-Then we create a route with a edge termination so that it serves our registry with tls:
-
-[source,role="execute"]
-----
-oc create route edge -n kube-system --service=kube-registry
-----
-
-There is now a route to get the URL for our new registry:
-
-[source,role="execute"]
-----
-oc get -n kube-system route
-----
-.Example output:
-----
-NAME            HOST/PORT                                                                            PATH   SERVICES        PORT    TERMINATION   WILDCARD
-kube-registry   kube-registry-kube-system.apps.cluster-berlin-fc41.berlin-fc41.example.opentlc.com          kube-registry   <all>   edge          None
-----
-
-To use the new registry, we will connect to one of our worker hosts via `oc debug` and use the already installed `podman` binary.
-
-.Connect to one of the workers shell
-[source,role="execute"]
-----
-oc debug $(oc get nodes -l node-role.kubernetes.io/worker -o name | head -n1)
-----
-
-.Enable the host binaries
-[source,role="execute"]
-----
-chroot /host
-----
-
-Now that we have access to `podman`, we can download the alpine container image as an example and upload it to our new registry:
-
-[source,role="execute"]
-----
-podman pull docker.io/library/alpine
-----
-
-[source,role="edit"]
-----
-podman push docker.io/library/alpine --tls-verify=false <KUBE_REGISTRY_ROUTE>/alpine
-----
-.Example command:
-----
-podman push docker.io/library/alpine --tls-verify=false kube-registry-kube-system.apps.cluster-ocs-3ed9.ocs-3ed9.example.opentlc.com/alpine
-----
-
-CAUTION: Make sure to replace the URL in the push command with the URL of your route
-
-Now exit the debug session on the host by either pressing kbd:[Ctrl+D] twice or executing `exit` twice to get back to your workstation shell.
-
-Next we use the `toolbox` *Pod* to check on our underlying CephFS volume:
-
-[source,role="execute"]
-----
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD
-----
-
-These steps should be done in the `toolbox` pod.
-
-----
-# Create the directory
-mkdir /tmp/registry
-
-# Detect the mon endpoints and the user secret for the connection
-mon_endpoints=$(grep mon_host /etc/ceph/ceph.conf | awk '{print $3}')
-my_secret=$(grep key /etc/ceph/keyring | awk '{print $3}')
-
-# Mount the file system
-mount -t ceph -o mds_namespace=ocs-storagecluster-cephfilesystem,name=admin,secret=$my_secret $mon_endpoints:/ /tmp/registry
-
-# See your mounted file system
-df -h /tmp/registry
-
-# Find our uploaded container image
-ls /tmp/registry/volumes/csi/csi-vol-*/docker/registry/v2/repositories/alpine/
-----
-
-Once you finished these steps, you can see that we successfully mounted the *RWX PVC* inside of our toolbox *Pod*, while it is also still mounted on the registry *Pods*. The `ls` shows the content of the alpine folder, which should now show our uploaded alpine container image.
-Changes to this filesystem is immediately affecting the registry *Pods* and this procedure is great to debug issues that your *Pods* have with persistent files.
+You can validate that Prometheus and Alertmanager are working correctly after moving to persistent storage <<Monitoring the OCS environment,in a later section>> of this lab guide.
 
 == Using the Multi-Cloud-Gateway
 
@@ -950,7 +940,7 @@ Currently the best way to configure the MCG is to use the CLI.
 
 To install the CLI follow the <<Install the NooBaa CLI client>> section.
 
-NOTE: While the NooBaa Web Management Console is accessible, it should not be used to create any resources, since they are currently not syncronised back to the Openshift cluster.
+NOTE: While the NooBaa Web Management Console is accessible, it should not be used to create any resources, since they are currently not synchronized back to the Openshift cluster.
 
 === Checking on the MCG status
 
