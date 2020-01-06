@@ -803,7 +803,7 @@ uploaded files.
 
 OpenShift ships with a pre-configured and self-updating monitoring stack that is based on the Prometheus open source project and its wider eco-system. It provides monitoring of cluster components and ships with a set of alerts to immediately notify the cluster administrator about any occurring problems.
 
-Running cluster monitoring with persistent storage means that your metrics are stored to a persistent volume and can survive a pod being restarted or recreated. This is ideal if you require your metrics or alerting data to be guarded from data loss. For production environments, it is highly recommended to configure persistent storage using block storage technology. OCS 4 provide block storage using CephRBD volumes. The following instructions will detail how to migrate Prometheus and Alertmanager storage to CephRBD volumes for persistence.
+Running cluster monitoring with persistent storage means that your metrics are stored to a persistent volume and can survive a pod being restarted or recreated. This is ideal if you require your metrics or alerting data to be guarded from data loss. For production environments, it is highly recommended to configure persistent storage using block storage technology. OCS 4 provide block storage using Ceph RBD volumes. The following instructions will detail how to migrate Prometheus and Alertmanager storage to Ceph RBD volumes for persistence.
 
 Let's discover what *Pods* and *PVCs* are installed in the `openshift-monitoring` namespace.
 
@@ -866,7 +866,7 @@ configmap/cluster-monitoring-config created
 
 You can view the new *ConfigMap* with the following command:
 
-NOTE: The size of the CephRBD volumes, `40Gi`, can be modified to be larger or smaller depending on requirements. 
+NOTE: The size of the Ceph RBD volumes, `40Gi`, can be modified to be larger or smaller depending on requirements. 
 
 [source,role="execute"]
 ----
