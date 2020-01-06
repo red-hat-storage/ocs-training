@@ -857,7 +857,7 @@ If you are missing the ConfigMap, create it using this command:
 
 [source,role="execute"]
 ----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-monitoring-config.yaml | oc apply -f -
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-monitoring-config.yaml
 ----
 .Sample output:
 ----
