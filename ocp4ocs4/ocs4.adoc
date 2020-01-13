@@ -1720,7 +1720,7 @@ oc adm must-gather
 Or like this for OCS specific insights:
 
 ----
-oc adm must-gather --image=quay.io/ocs-dev/ocs-must-gather
+oc adm must-gather --image=quay.io/rhceph-dev/ocs-must-gather
 ----
 
 The output will then be saved in the current directory inside of a new folder called `must-gather.local.(random)`
