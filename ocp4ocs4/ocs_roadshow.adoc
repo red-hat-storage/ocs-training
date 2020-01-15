@@ -11,9 +11,9 @@
 :experimental:
 
 // Build content for the training
-:training:
+// :training:
 
 // Build content for the roadshow
-// :roadshow:
+:roadshow:
 
 include::ocs_content.adoc[]
