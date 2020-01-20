@@ -8,8 +8,6 @@ These repository contains hands-on workshops for both system administrators and 
 
 In [ocp4ocs4](https://red-hat-storage.github.io/ocs-training/ocs.html) you will find the new workshop that leverages the OCS 4 operator.
 
-In [ocp4rook](ocp4rook/ocs4.adoc) you will find the prior workshop which uses upstream Rook v1.0 to provision a Ceph-based storage backend. (Deprecated)
-
 ## Workloads
 
 These folders contain OCP Workloads that explain how to leverage OCS 4 with common applications. It is expected that the Core [ocp4ocs4](ocp4ocs4/ocs4.adoc) training has been finished before any of the below labs are started. The first 3 Workloads are important for using OCS 4 to back OCP 4 infrastructure Registry, Metrics, and Logging.
