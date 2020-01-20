@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :source-language: shell
 :numbered:
-:imagesdir: imgs/
+:imagesdir: images/ocs/
 :github-raw-url: https://raw.githubusercontent.com/red-hat-storage/ocs-training/master
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
