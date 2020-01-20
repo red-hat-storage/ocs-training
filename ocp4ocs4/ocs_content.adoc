@@ -1693,7 +1693,7 @@ image::metrics-queryfield.png[OCP Monitoring Metrics Homepage]
 
 Use the query field to either enter the formula of your choice or to search for metrics by name. The metrics available will let you query both OCP related information or OCS related information. The queries can be simple or complex using the Prometheus query syntax and all its available functions.
 
-Let's start testing a simple query example and enter the following text (`ceph_osd_op`) in the query field. When you are done typing, simply hit kbd:[Enter]
+Let's start testing a simple query example and enter the following text `ceph_osd_op` in the query field. When you are done typing, simply hit kbd:[Enter]
 
 .Simple Ceph Query
 image::metrics-simplecephquery.png[Ceph Simple Query]
@@ -1703,7 +1703,7 @@ The window should refresh with a graph similar to the one below.
 .Simple Ceph Graph
 image::metrics-simplecephgraph.png[Ceph Simple Graph]
 
-Then let's try a more relevant query example and enter the following text (`rate(ceph_osd_op[5m])` or `irate(ceph_osd_op[5m])`)in the query field. When you are done typing, simply hit kbd:[Enter]
+Then let's try a more relevant query example and enter the following text `rate(ceph_osd_op[5m])` or `irate(ceph_osd_op[5m])` in the query field. When you are done typing, simply hit kbd:[Enter]
 
 .Complex Ceph Query
 image::metrics-complexcephquery.png[Ceph Complex Query]
