@@ -38,11 +38,12 @@ In this section, you will first validate the OCP environment has 3 master and 3 
 oc get nodes -l node-role.kubernetes.io/worker
 ----
 .Example output:
+[subs=attributes+]
 ----
 NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.14.6+9fb2d5cf9
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
+ip-10-0-138-9.{aws-region}.compute.internal     Ready    worker   77m   v1.14.6+9fb2d5cf9
+ip-10-0-150-39.{aws-region}.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
+ip-10-0-170-49.{aws-region}.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
 ----
 
 Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*.
@@ -54,11 +55,12 @@ oc get machinesets -n openshift-machine-api | grep -v infra
 
 This will show you the existing *machinesets* used to create the 3 worker nodes in the cluster already. There is a *machineset* for each AWS AZ (us-east-1a, us-east-1b, us-east-1c). Your *machinesets* `NAME` will be different than below.
 
+[subs=attributes+]
 ----
 NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}a   1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}b   1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}c   1         1         1       1           86m
 ----
 
 WARNING: *Make sure you do the next step for finding and using your CLUSTERID*
@@ -81,7 +83,7 @@ cat ~/content/support/ocslab_cluster-workerocs.yaml | sed "s/CLUSTERID/$CLUSTERI
 endif::[]
 
 ifdef::training[]
-[source,role="execute"]
+[source,role="execute",subs=attributes+]
 ----
 CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
 echo $CLUSTERID
@@ -98,14 +100,15 @@ oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
 
 They may be in `pending` for sometime so repeat command above until they are in a `running` STATE. The `NAME` of your machines will be different than shown below.
 
+[subs=attributes+]
 ----
 NAME                                                STATE     TYPE         REGION      ZONE         AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   running   m5.4xlarge   us-east-2   us-east-2a   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   running   m5.4xlarge   us-east-2   us-east-2b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   running   m5.4xlarge   us-east-2   us-east-2c   70s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a-cqvwj   running   {instance-type}   {aws-region}   {aws-region}a   70s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b-g5p5v   running   {instance-type}   {aws-region}   {aws-region}b   70s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c-rx4v8   running   {instance-type}   {aws-region}   {aws-region}c   70s
 ----
 
-You can see that the workerocs *machines* are using are also using the AWS EC2 instance type `m4.4xlarge`. The `m4.4xlarge` instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.
+You can see that the workerocs *machines* are using are also using the AWS EC2 instance type `{instance-type}`. The `{instance-type}` instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.
 
 Now you want to see if our new *machines* are added to the OCP cluster.
 
@@ -116,11 +119,12 @@ watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'"
 
 This step could take more than 5 minutes. The result of this command needs to look like below before you proceed. All new workerocs *machinesets* should have an integer, in this case `1`, filled out for all rows and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets* will be different than shown below.
 
+[subs=attributes+]
 ----
 NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           8m25s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a   1         1         1       1           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b   1         1         1       1           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c   1         1         1       1           8m25s
 ----
 
 You can exit by pressing kbd:[Ctrl+C]
@@ -132,14 +136,15 @@ Now check to see that you have 3 new OCP worker nodes. The `NAME` of your OCP no
 oc get nodes -l node-role.kubernetes.io/worker
 ----
 .Example output:
+[subs=attributes+]
 ----
 NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.14.6+9fb2d5cf9
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.14.6+9fb2d5cf9
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.14.6+9fb2d5cf9
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
+ip-10-0-131-209.{aws-region}.compute.internal   Ready    worker   2m21s   v1.14.6+9fb2d5cf9
+ip-10-0-138-9.{aws-region}.compute.internal     Ready    worker   128m    v1.14.6+9fb2d5cf9
+ip-10-0-150-39.{aws-region}.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
+ip-10-0-155-12.{aws-region}.compute.internal    Ready    worker   2m22s   v1.14.6+9fb2d5cf9
+ip-10-0-162-215.{aws-region}.compute.internal   Ready    worker   2m14s   v1.14.6+9fb2d5cf9
+ip-10-0-170-49.{aws-region}.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
 ----
 
 === Installing the OCS operator
@@ -164,18 +169,18 @@ You must add the monitoring label to this namespace. This is required to get pro
 oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 ----
 
-NOTE: The below manifest file will not be needed when OCS 4 is released.
+// NOTE: The below manifest file will not be needed when OCS 4 is released.
 
-To apply this manifest, execute the following:
-[source,role="execute"]
-----
-ifdef::roadshow[]
-oc apply {{ HOME_PATH }}/support/ocslab_deploy-with-olm.yaml
-endif::[]
-ifdef::training[]
-oc apply -f http://bit.ly/ocs-olm-training
-endif::[]
-----
+// To apply this manifest, execute the following:
+// [source,role="execute"]
+// ----
+// ifdef::roadshow[]
+// oc apply {{ HOME_PATH }}/support/ocslab_deploy-with-olm.yaml
+// endif::[]
+// ifdef::training[]
+// oc apply -f http://bit.ly/ocs-olm-training
+// endif::[]
+// ----
 
 Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the `oc client` to login to the OCP 4 `console`.
 
@@ -212,8 +217,8 @@ watch oc -n openshift-storage get csv
 ----
 .Example output:
 ----
-NAME                    DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v0.0.284   OpenShift Container Storage   0.0.284              Succeeded
+NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.2.0   OpenShift Container Storage   4.2.0                Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C]
@@ -250,7 +255,7 @@ Click on `Openshift Container Storage Operator` to get to the OCS configuration 
 .OCS configuration screen
 image::OCS-config-screen-all.png[OCS configuration screen]
 
-On the top of the OCS configuration screen, scroll over to `Storage cluster` and click on `Create OCS Cluster Service`. If you do not see `Create OCS Cluster Service` refresh your browser window.
+On the top of the OCS configuration screen, scroll over to the right and click on `Storage cluster` and then click on `Create OCS Cluster Service`. If you do not see `Create OCS Cluster Service` refresh your browser window.
 
 .OCS Create Storage Cluster
 image::OCS-config-screen-storage-cluster.png[OCS Create Storage Cluster]
@@ -481,7 +486,12 @@ sh-4.2# ceph status
     client:   1.2 KiB/s rd, 39 KiB/s wr, 2 op/s rd, 3 op/s wr
 ----
 
-You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing `exit`.
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing 
+
+[source,role="execute"]
+----
+exit
+----
 
 == Create a new OCP application deployment using Ceph RBD volume
 
@@ -492,7 +502,7 @@ Feel free to download `{github-raw-url}/ocp4ocs4/configurable-rails-app.yaml` to
 
 Make sure that you completed all previous sections so that you are ready to start the Rails + PostgreSQL deployment.
 
-[source,role="execute"]
+[source,role="execute",subs=attributes+]
 ----
 oc new-project my-database-app
 ifdef::roadshow[]
@@ -912,7 +922,7 @@ cluster-monitoring-config   1      116m
 
 If you are missing the *ConfigMap*, create it using this command:
 
-[source,role="execute"]
+[source,role="execute",subs=attributes+]
 ----
 ifdef::roadshow[]
 oc apply {{ HOME_PATH }}/support/ocslab_cluster-monitoring-noinfra.yaml
@@ -1334,7 +1344,7 @@ The first part creates an OBC that will create a ConfigMap and a secret that hav
 Let's try this out:
 
 .Deploy the Manifest:
-[source,role="execute"]
+[source,role="execute",subs=attributes+]
 ----
 ifdef::roadshow[]
 oc apply {{ HOME_PATH }}/support/ocslab_obc-app-example.yaml
@@ -1402,11 +1412,12 @@ To add more nodes, we could either add more machinesets like we did before, or s
 oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
 Example output:
+[subs=attributes+]
 ----
 NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a   1         1         1       1           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b   1         1         1       1           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c   1         1         1       1           3h50m
 ----
 
 Let's scale the workerocs machinesets up with this command:
@@ -1416,13 +1427,14 @@ Let's scale the workerocs machinesets up with this command:
 oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1 -t oc scale -n openshift-machine-api --replicas=2
 ----
 .Example output:
+[subs=attributes+]
 ----
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c scaled
 ----
 
 Wait until the new workers are available. This could take 5 minutes or more so be patient.
@@ -1437,13 +1449,14 @@ Once they are available, we can check on which worker nodes do not have OCS labe
 
 [source,role="execute"]
 ----
-oc get nodes -l 'node-role.kubernetes.io/worker','!node-role.kubernetes.io/infra' --show-labels | grep -v NAME | grep -v storage-node | cut -d' ' -f1
+oc get node --show-labels | grep storage-node | grep -v openshift-storage | cut -d' ' -f1
 ----
 .Example output:
+[subs=attributes+]
 ----
-ip-10-0-133-99.us-east-2.compute.internal
-ip-10-0-158-153.us-east-2.compute.internal
-ip-10-0-160-200.us-east-2.compute.internal
+ip-10-0-133-99.{aws-region}.compute.internal
+ip-10-0-158-153.{aws-region}.compute.internal
+ip-10-0-160-200.{aws-region}.compute.internal
 ----
 
 We can see that there are three new nodes, which do not yet have the `cluster.ocs.openshift.io/openshift-storage` label applied yet. We will apply this now:
@@ -1453,18 +1466,19 @@ We can see that there are three new nodes, which do not yet have the `cluster.oc
 oc get nodes -o json | jq '.items[] | select(.metadata.labels.role == "storage-node") | .metadata.name' | xargs -n1 -t -I {} oc label nodes {} cluster.ocs.openshift.io/openshift-storage=""
 ----
 .Example output:
+[subs=attributes+]
 ----
-oc label nodes ip-10-0-131-209.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-131-209.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-133-99.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-133-99.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-155-12.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-133-99.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-133-99.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-155-12.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-158-153.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-158-153.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-160-200.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-160-200.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-162-215.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-158-153.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-158-153.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-160-200.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-160-200.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-162-215.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
 ----
 
@@ -1503,20 +1517,21 @@ You can now see that there are new OSD pods:
 oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName -n openshift-storage | grep osd
 ----
 .Example output:
+[subs=attributes+]
 ----
 NAME                                                              STATUS      NODE
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal
+rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.{aws-region}.compute.internal
+rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.{aws-region}.compute.internal
+rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.{aws-region}.compute.internal
+rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.{aws-region}.compute.internal
+rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.{aws-region}.compute.internal
+rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.{aws-region}.compute.internal
 ----
 
 This is everything that you need to do to extend the OCS storage.
@@ -1599,6 +1614,13 @@ ID  CLASS WEIGHT  TYPE NAME
 Since our Ceph cluster's CRUSH rules are set up to replicate data between the zones, this is an effective way to relax the load on the previous nodes.
 
 Existing data on the original OSDs will be balanced out automatically, so that the old and the new OSDs share the load.
+
+Disconnect from the Ceph toolbox pod.
+
+[source,role="execute"]
+----
+exit
+----
 
 == Monitoring the OCS environment
 
@@ -1712,12 +1734,14 @@ The OCS team has released its own image for the must-gather tool that runs stora
 
 You can run this diagnostic tool like this for generic Openshift debugging:
 
+[source,role="execute"]
 ----
 oc adm must-gather
 ----
 
 Or like this for OCS specific insights:
 
+[source,role="execute"]
 ----
 oc adm must-gather --image=quay.io/rhceph-dev/ocs-must-gather
 ----
@@ -1726,6 +1750,7 @@ The output will then be saved in the current directory inside of a new folder ca
 
 More runtime options can be displayed with this command:
 
+[source,role="execute"]
 ----
 oc adm must-gather -h
 ----

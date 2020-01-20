@@ -716,7 +716,7 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   running   m5.4xlarge   us-ea
 </div>
 </div>
 <div class="paragraph">
-<p>You can see that the workerocs <strong>machines</strong> are using are also using the AWS EC2 instance type <code>m4.4xlarge</code>. The <code>m4.4xlarge</code> instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.</p>
+<p>You can see that the workerocs <strong>machines</strong> are using are also using the AWS EC2 instance type <code>m5.4xlarge</code>. The <code>m5.4xlarge</code> instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.</p>
 </div>
 <div class="paragraph">
 <p>Now you want to see if our new <strong>machines</strong> are added to the OCP cluster.</p>
@@ -795,26 +795,6 @@ ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9
 <pre class="pygments highlight"><code data-lang="shell"><span></span>oc label namespace openshift-storage <span class="tok-s2">&quot;openshift.io/cluster-monitoring=true&quot;</span></code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The below manifest file will not be needed when OCS 4 is released.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>To apply this manifest, execute the following:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="pygments highlight"><code data-lang="shell"><span></span>oc apply <span class="tok-o">{{</span> HOME_PATH <span class="tok-o">}}</span>/support/ocslab_deploy-with-olm.yaml</code></pre>
-</div>
-</div>
 <div class="paragraph">
 <p>Now switch over to your <strong>Openshift Web Console</strong>. You can get your URL by issuing command below to get the OCP 4 <code>console</code> route. Put this URL in a browser tab. You will use the same Admin username and password you used to login and use the <code>oc client</code> to login to the OCP 4 <code>console</code>.</p>
 </div>
@@ -870,8 +850,8 @@ The below manifest file will not be needed when OCS 4 is released.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                    DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v0.0.284   OpenShift Container Storage   0.0.284              Succeeded</pre>
+<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.2.0   OpenShift Container Storage   4.2.0                Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -933,7 +913,7 @@ What you see, should be similar to the following example picture:</p>
 <div class="title">Figure 7. OCS configuration screen</div>
 </div>
 <div class="paragraph">
-<p>On the top of the OCS configuration screen, scroll over to <code>Storage cluster</code> and click on <code>Create OCS Cluster Service</code>. If you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
+<p>On the top of the OCS configuration screen, scroll over to the right and click on <code>Storage cluster</code> and then click on <code>Create OCS Cluster Service</code>. If you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1296,7 +1276,12 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can exit the toolbox by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing <code>exit</code>.</p>
+<p>You can exit the toolbox by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell"><span></span><span class="tok-nb">exit</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2499,7 +2484,7 @@ machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scal
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell"><span></span>oc get nodes -l <span class="tok-s1">&#39;node-role.kubernetes.io/worker&#39;</span>,<span class="tok-s1">&#39;!node-role.kubernetes.io/infra&#39;</span> --show-labels <span class="tok-p">|</span> grep -v NAME <span class="tok-p">|</span> grep -v storage-node <span class="tok-p">|</span> cut -d<span class="tok-s1">&#39; &#39;</span> -f1</code></pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc get node --show-labels <span class="tok-p">|</span> grep storage-node <span class="tok-p">|</span> grep -v openshift-storage <span class="tok-p">|</span> cut -d<span class="tok-s1">&#39; &#39;</span> -f1</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2735,6 +2720,14 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span></code></pre>
 </div>
 <div class="paragraph">
 <p>Existing data on the original OSDs will be balanced out automatically, so that the old and the new OSDs share the load.</p>
+</div>
+<div class="paragraph">
+<p>Disconnect from the Ceph toolbox pod.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell"><span></span><span class="tok-nb">exit</span></code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2986,17 +2979,17 @@ The local files can then be used by a remote support engineer to debug a problem
 <div class="paragraph">
 <p>You can run this diagnostic tool like this for generic Openshift debugging:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc adm must-gather</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Or like this for OCS specific insights:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather --image=quay.io/rhceph-dev/ocs-must-gather</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc adm must-gather --image<span class="tok-o">=</span>quay.io/rhceph-dev/ocs-must-gather</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3005,9 +2998,9 @@ The local files can then be used by a remote support engineer to debug a problem
 <div class="paragraph">
 <p>More runtime options can be displayed with this command:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather -h</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc adm must-gather -h</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -3435,7 +3428,7 @@ block device will be a collection of objects, each supporting a set of device se
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-01-20 12:19:04 CET
+Last updated 2020-01-20 12:51:15 CET
 </div>
 </div>
 </body>

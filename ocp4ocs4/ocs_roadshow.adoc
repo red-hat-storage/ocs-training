@@ -7,6 +7,8 @@
 :numbered:
 :imagesdir: images/ocs/
 :github-raw-url: https://raw.githubusercontent.com/red-hat-storage/ocs-training/master
+:instance-type: m5.4xlarge
+:aws-region: us-east-2
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 

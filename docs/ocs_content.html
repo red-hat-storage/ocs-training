@@ -507,9 +507,9 @@ If deploying OpenShift 4 on VMware infrastructure or other User-Provisioned Infr
 <div class="title">Example output:</div>
 <div class="content">
 <pre>NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.14.6+9fb2d5cf9
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9</pre>
+ip-10-0-138-9.{aws-region}.compute.internal     Ready    worker   77m   v1.14.6+9fb2d5cf9
+ip-10-0-150-39.{aws-region}.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
+ip-10-0-170-49.{aws-region}.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -526,9 +526,9 @@ ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.14.6+9fb
 <div class="listingblock">
 <div class="content">
 <pre>NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1           86m</pre>
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}a   1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}b   1         1         1       1           86m
+cluster-ocs-0ec4-dgwqc-worker-{aws-region}c   1         1         1       1           86m</pre>
 </div>
 </div>
 <div class="admonitionblock warning">
@@ -557,13 +557,13 @@ cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1        
 <div class="listingblock">
 <div class="content">
 <pre>NAME                                                STATE     TYPE         REGION      ZONE         AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   running   m5.4xlarge   us-east-2   us-east-2a   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   running   m5.4xlarge   us-east-2   us-east-2b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   running   m5.4xlarge   us-east-2   us-east-2c   70s</pre>
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a-cqvwj   running   {instance-type}   {aws-region}   {aws-region}a   70s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b-g5p5v   running   {instance-type}   {aws-region}   {aws-region}b   70s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c-rx4v8   running   {instance-type}   {aws-region}   {aws-region}c   70s</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can see that the workerocs <strong>machines</strong> are using are also using the AWS EC2 instance type <code>m4.4xlarge</code>. The <code>m4.4xlarge</code> instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.</p>
+<p>You can see that the workerocs <strong>machines</strong> are using are also using the AWS EC2 instance type <code>{instance-type}</code>. The <code>{instance-type}</code> instance type follows our recommended instance sizing for OCS, 16 cpu and 64 GB mem.</p>
 </div>
 <div class="paragraph">
 <p>Now you want to see if our new <strong>machines</strong> are added to the OCP cluster.</p>
@@ -579,9 +579,9 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   running   m5.4xlarge   us-ea
 <div class="listingblock">
 <div class="content">
 <pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           8m25s</pre>
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a   1         1         1       1           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b   1         1         1       1           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c   1         1         1       1           8m25s</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -599,12 +599,12 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1     
 <div class="title">Example output:</div>
 <div class="content">
 <pre>NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.14.6+9fb2d5cf9
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.14.6+9fb2d5cf9
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.14.6+9fb2d5cf9
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9</pre>
+ip-10-0-131-209.{aws-region}.compute.internal   Ready    worker   2m21s   v1.14.6+9fb2d5cf9
+ip-10-0-138-9.{aws-region}.compute.internal     Ready    worker   128m    v1.14.6+9fb2d5cf9
+ip-10-0-150-39.{aws-region}.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
+ip-10-0-155-12.{aws-region}.compute.internal    Ready    worker   2m22s   v1.14.6+9fb2d5cf9
+ip-10-0-162-215.{aws-region}.compute.internal   Ready    worker   2m14s   v1.14.6+9fb2d5cf9
+ip-10-0-170-49.{aws-region}.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9</pre>
 </div>
 </div>
 </div>
@@ -640,26 +640,6 @@ ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.14.6+9
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlight"><code>oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<div class="title">Note</div>
-</td>
-<td class="content">
-The below manifest file will not be needed when OCS 4 is released.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>To apply this manifest, execute the following:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -717,8 +697,8 @@ The below manifest file will not be needed when OCS 4 is released.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                    DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v0.0.284   OpenShift Container Storage   0.0.284              Succeeded</pre>
+<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.2.0   OpenShift Container Storage   4.2.0                Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -780,7 +760,7 @@ What you see, should be similar to the following example picture:</p>
 <div class="title">Figure 7. OCS configuration screen</div>
 </div>
 <div class="paragraph">
-<p>On the top of the OCS configuration screen, scroll over to <code>Storage cluster</code> and click on <code>Create OCS Cluster Service</code>. If you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
+<p>On the top of the OCS configuration screen, scroll over to the right and click on <code>Storage cluster</code> and then click on <code>Create OCS Cluster Service</code>. If you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1143,7 +1123,12 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing <code>exit</code>.</p>
+<p>You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlight"><code>exit</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2254,9 +2239,9 @@ Most applications support reading out the <code>AWS_ACCESS_KEY_ID</code> and <co
 <div class="listingblock">
 <div class="content">
 <pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           3h50m</pre>
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a   1         1         1       1           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b   1         1         1       1           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c   1         1         1       1           3h50m</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2270,12 +2255,12 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1     
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scaled</pre>
+<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-{aws-region}c scaled</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2294,15 +2279,15 @@ machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scal
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlight"><code>oc get nodes -l 'node-role.kubernetes.io/worker','!node-role.kubernetes.io/infra' --show-labels | grep -v NAME | grep -v storage-node | cut -d' ' -f1</code></pre>
+<pre class="highlight"><code>oc get node --show-labels | grep storage-node | grep -v openshift-storage | cut -d' ' -f1</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ip-10-0-133-99.us-east-2.compute.internal
-ip-10-0-158-153.us-east-2.compute.internal
-ip-10-0-160-200.us-east-2.compute.internal</pre>
+<pre>ip-10-0-133-99.{aws-region}.compute.internal
+ip-10-0-158-153.{aws-region}.compute.internal
+ip-10-0-160-200.{aws-region}.compute.internal</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2316,17 +2301,17 @@ ip-10-0-160-200.us-east-2.compute.internal</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc label nodes ip-10-0-131-209.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+<pre>oc label nodes ip-10-0-131-209.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-133-99.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-133-99.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-155-12.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-133-99.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-133-99.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-155-12.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-158-153.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-158-153.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-160-200.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
-node/ip-10-0-160-200.us-east-2.compute.internal labeled
-oc label nodes ip-10-0-162-215.us-east-2.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-158-153.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-158-153.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-160-200.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
+node/ip-10-0-160-200.{aws-region}.compute.internal labeled
+oc label nodes ip-10-0-162-215.{aws-region}.compute.internal cluster.ocs.openshift.io/openshift-storage=
 error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false</pre>
 </div>
 </div>
@@ -2410,18 +2395,18 @@ The effectively provisioned capacity will be three times as much as you put into
 <div class="title">Example output:</div>
 <div class="content">
 <pre>NAME                                                              STATUS      NODE
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal</pre>
+rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.{aws-region}.compute.internal
+rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.{aws-region}.compute.internal
+rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.{aws-region}.compute.internal
+rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.{aws-region}.compute.internal
+rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.{aws-region}.compute.internal
+rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.{aws-region}.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.{aws-region}.compute.internal</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2527,6 +2512,14 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 </div>
 <div class="paragraph">
 <p>Existing data on the original OSDs will be balanced out automatically, so that the old and the new OSDs share the load.</p>
+</div>
+<div class="paragraph">
+<p>Disconnect from the Ceph toolbox pod.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlight"><code>exit</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -2778,17 +2771,17 @@ The local files can then be used by a remote support engineer to debug a problem
 <div class="paragraph">
 <p>You can run this diagnostic tool like this for generic Openshift debugging:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather</pre>
+<pre class="highlight"><code>oc adm must-gather</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Or like this for OCS specific insights:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather --image=quay.io/rhceph-dev/ocs-must-gather</pre>
+<pre class="highlight"><code>oc adm must-gather --image=quay.io/rhceph-dev/ocs-must-gather</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2797,9 +2790,9 @@ The local files can then be used by a remote support engineer to debug a problem
 <div class="paragraph">
 <p>More runtime options can be displayed with this command:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc adm must-gather -h</pre>
+<pre class="highlight"><code>oc adm must-gather -h</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -3227,7 +3220,7 @@ block device will be a collection of objects, each supporting a set of device se
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-01-20 12:17:43 CET
+Last updated 2020-01-20 12:53:00 CET
 </div>
 </div>
 </body>
