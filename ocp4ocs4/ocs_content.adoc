@@ -29,18 +29,6 @@ endif::[]
 
 == Deploy your storage backend using the OCS operator
 
-ifdef::roadshow[]
-[NOTE]
-====
-If you haven not done so yet, make sure you download the appropriate support file for this lab using the following command:
-
-[source,bash,role="execute"]
-----
-cd ~
-git clone https://github.com/openshift/openshift-cns-testdrive.git -b ocp4-dev content
-----
-====
-endif::[]
 === Scale OCP cluster and add 3 new nodes
 
 In this section, you will first validate the OCP environment has 3 master and 3 worker nodes before increasing the cluster size by additional 3 worker nodes for OCS resources. The `NAME` of your OCP nodes will be different than shown below.
@@ -182,7 +170,7 @@ To apply this manifest, execute the following:
 [source,role="execute"]
 ----
 ifdef::roadshow[]
-oc apply -f ~/content/support/ocslab_deploy-with-olm.yaml
+oc apply {{ HOME_PATH }}/support/ocslab_deploy-with-olm.yaml
 endif::[]
 ifdef::training[]
 oc apply -f http://bit.ly/ocs-olm-training
@@ -422,7 +410,7 @@ Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manu
 [source,role="execute"]
 ----
 ifdef::roadshow[]
-oc apply -f ~/content/support/ocslab_toolbox.yaml
+oc apply {{ HOME_PATH }}/support/ocslab_toolbox.yaml
 endif::[]
 ifdef::training[]
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml | sed 's/namespace: rook-ceph/namespace: openshift-storage/g'| oc apply -f -
@@ -508,7 +496,7 @@ Make sure that you completed all previous sections so that you are ready to star
 ----
 oc new-project my-database-app
 ifdef::roadshow[]
-oc new-app -f ~/content/support/ocslab_rails-app.yaml -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi
+oc new-app {{ HOME_PATH }}/support/ocslab_rails-app.yaml -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi
 endif::[]
 ifdef::training[]
 curl {github-raw-url}/ocp4ocs4/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
@@ -927,7 +915,7 @@ If you are missing the *ConfigMap*, create it using this command:
 [source,role="execute"]
 ----
 ifdef::roadshow[]
-oc apply -f ~/content/support/ocslab_cluster-monitoring-noinfra.yaml
+oc apply {{ HOME_PATH }}/support/ocslab_cluster-monitoring-noinfra.yaml
 endif::[]
 ifdef::training[]
 oc apply -f {github-raw-url}/ocp4ocs4/cluster-monitoring-config.yaml
@@ -944,7 +932,7 @@ ifdef::roadshow[]
 If the *ConfigMap* already exists because of completing prior module `OpenShift Infrastructure Nodes`, you will apply changes to the existing *ConfigMap*.
 [source,role="execute"]
 ----
-oc apply -f ~/content/support/ocslab_cluster-monitoring-withinfra.yaml
+oc apply {{ HOME_PATH }}/support/ocslab_cluster-monitoring-withinfra.yaml
 ----
 .Sample output:
 ----
@@ -1349,7 +1337,7 @@ Let's try this out:
 [source,role="execute"]
 ----
 ifdef::roadshow[]
-oc apply -f ~/content/support/ocslab_obc-app-example.yaml
+oc apply {{ HOME_PATH }}/support/ocslab_obc-app-example.yaml
 endif::[]
 ifdef::training[]
 curl -s {github-raw-url}/ocp4ocs4/obc_app_example.yaml | oc apply -f -
