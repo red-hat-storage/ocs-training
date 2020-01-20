@@ -11,4 +11,4 @@ ROOTDIR=$(git rev-parse --show-toplevel)
 find "$ROOTDIR" -name '*.adoc' | grep -i -v Readme | xargs -n1 -I {} asciidoctor -D "$ROOTDIR/docs" {}
 
 # Render the OCS4 doc
-asciidoctor -o "$ROOTDIR/docs/ocs.html" "$ROOTDIR/ocp4ocs4/Readme.adoc"
+asciidoctor -o "$ROOTDIR/docs/ocs.html" "$ROOTDIR/ocp4ocs4/ocs.adoc"
