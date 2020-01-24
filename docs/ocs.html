@@ -2,22 +2,20 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<!--[if IE]><meta http-equiv="X-UA-Compatible" content="IE=edge"><![endif]-->
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="generator" content="Asciidoctor 1.5.6.1">
+<meta name="generator" content="Asciidoctor 2.0.10">
 <title>Deploying and Managing OpenShift Container Storage</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
-/* Asciidoctor default stylesheet | MIT License | http://asciidoctor.org */
-/* Remove comment around @import statement below when using as a custom stylesheet */
+/* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+/* Uncomment @import statement to use as custom stylesheet */
 /*@import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700";*/
-article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section,summary{display:block}
-audio,canvas,video{display:inline-block}
+article,aside,details,figcaption,figure,footer,header,hgroup,main,nav,section{display:block}
+audio,video{display:inline-block}
 audio:not([controls]){display:none;height:0}
-[hidden],template{display:none}
-script{display:none!important}
 html{font-family:sans-serif;-ms-text-size-adjust:100%;-webkit-text-size-adjust:100%}
-a{background:transparent}
+a{background:none}
 a:focus{outline:thin dotted}
 a:active,a:hover{outline:0}
 h1{font-size:2em;margin:.67em 0}
@@ -44,12 +42,10 @@ button,select{text-transform:none}
 button,html input[type="button"],input[type="reset"],input[type="submit"]{-webkit-appearance:button;cursor:pointer}
 button[disabled],html input[disabled]{cursor:default}
 input[type="checkbox"],input[type="radio"]{box-sizing:border-box;padding:0}
-input[type="search"]{-webkit-appearance:textfield;-moz-box-sizing:content-box;-webkit-box-sizing:content-box;box-sizing:content-box}
-input[type="search"]::-webkit-search-cancel-button,input[type="search"]::-webkit-search-decoration{-webkit-appearance:none}
 button::-moz-focus-inner,input::-moz-focus-inner{border:0;padding:0}
 textarea{overflow:auto;vertical-align:top}
 table{border-collapse:collapse;border-spacing:0}
-*,*:before,*:after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
+*,*::before,*::after{-moz-box-sizing:border-box;-webkit-box-sizing:border-box;box-sizing:border-box}
 html,body{font-size:100%}
 body{background:#fff;color:rgba(0,0,0,.8);padding:0;margin:0;font-family:"Noto Serif","DejaVu Serif",serif;font-weight:400;font-style:normal;line-height:1;position:relative;cursor:auto;tab-size:4;-moz-osx-font-smoothing:grayscale;-webkit-font-smoothing:antialiased}
 a:hover{cursor:pointer}
@@ -67,13 +63,12 @@ img,object,svg{display:inline-block;vertical-align:middle}
 textarea{height:auto;min-height:50px}
 select{width:100%}
 .center{margin-left:auto;margin-right:auto}
-.spread{width:100%}
-p.lead,.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{font-size:1.21875em;line-height:1.6}
+.stretch{width:100%}
 .subheader,.admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{line-height:1.45;color:#7a2518;font-weight:400;margin-top:0;margin-bottom:.25em}
 div,dl,dt,dd,ul,ol,li,h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6,pre,form,p,blockquote,th,td{margin:0;padding:0;direction:ltr}
 a{color:#2156a5;text-decoration:underline;line-height:inherit}
 a:hover,a:focus{color:#1d4b8f}
-a img{border:none}
+a img{border:0}
 p{font-family:inherit;font-weight:400;font-size:1em;line-height:1.6;margin-bottom:1.25em;text-rendering:optimizeLegibility}
 p aside{font-size:.875em;line-height:1.35;font-style:italic}
 h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{font-family:"Open Sans","DejaVu Sans",sans-serif;font-weight:300;font-style:normal;color:#ba3925;text-rendering:optimizeLegibility;margin-top:1em;margin-bottom:.5em;line-height:1.0125em}
@@ -83,7 +78,7 @@ h2{font-size:1.6875em}
 h3,#toctitle,.sidebarblock>.content>.title{font-size:1.375em}
 h4,h5{font-size:1.125em}
 h6{font-size:1em}
-hr{border:solid #ddddd8;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
+hr{border:solid #dddddf;border-width:1px 0 0;clear:both;margin:1.25em 0 1.1875em;height:0}
 em,i{font-style:italic;line-height:inherit}
 strong,b{font-weight:bold;line-height:inherit}
 small{font-size:60%;line-height:inherit}
@@ -102,32 +97,35 @@ abbr,acronym{text-transform:uppercase;font-size:90%;color:rgba(0,0,0,.8);border-
 abbr{text-transform:none}
 blockquote{margin:0 0 1.25em;padding:.5625em 1.25em 0 1.1875em;border-left:1px solid #ddd}
 blockquote cite{display:block;font-size:.9375em;color:rgba(0,0,0,.6)}
-blockquote cite:before{content:"\2014 \0020"}
+blockquote cite::before{content:"\2014 \0020"}
 blockquote cite a,blockquote cite a:visited{color:rgba(0,0,0,.6)}
 blockquote,blockquote p{line-height:1.6;color:rgba(0,0,0,.85)}
-@media only screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
+@media screen and (min-width:768px){h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2}
 h1{font-size:2.75em}
 h2{font-size:2.3125em}
 h3,#toctitle,.sidebarblock>.content>.title{font-size:1.6875em}
 h4{font-size:1.4375em}}
 table{background:#fff;margin-bottom:1.25em;border:solid 1px #dedede}
-table thead,table tfoot{background:#f7f8f7;font-weight:bold}
+table thead,table tfoot{background:#f7f8f7}
 table thead tr th,table thead tr td,table tfoot tr th,table tfoot tr td{padding:.5em .625em .625em;font-size:inherit;color:rgba(0,0,0,.8);text-align:left}
 table tr th,table tr td{padding:.5625em .625em;font-size:inherit;color:rgba(0,0,0,.8)}
-table tr.even,table tr.alt,table tr:nth-of-type(even){background:#f8f8f7}
+table tr.even,table tr.alt{background:#f8f8f7}
 table thead tr th,table tfoot tr th,table tbody tr td,table tr td,table tfoot tr td{display:table-cell;line-height:1.6}
 h1,h2,h3,#toctitle,.sidebarblock>.content>.title,h4,h5,h6{line-height:1.2;word-spacing:-.05em}
 h1 strong,h2 strong,h3 strong,#toctitle strong,.sidebarblock>.content>.title strong,h4 strong,h5 strong,h6 strong{font-weight:400}
-.clearfix:before,.clearfix:after,.float-group:before,.float-group:after{content:" ";display:table}
-.clearfix:after,.float-group:after{clear:both}
-*:not(pre)>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background-color:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
-*:not(pre)>code.nobreak{word-wrap:normal}
-*:not(pre)>code.nowrap{white-space:nowrap}
-pre,pre>code{line-height:1.45;color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;font-weight:400;text-rendering:optimizeSpeed}
+.clearfix::before,.clearfix::after,.float-group::before,.float-group::after{content:" ";display:table}
+.clearfix::after,.float-group::after{clear:both}
+:not(pre):not([class^=L])>code{font-size:.9375em;font-style:normal!important;letter-spacing:0;padding:.1em .5ex;word-spacing:-.15em;background:#f7f7f8;-webkit-border-radius:4px;border-radius:4px;line-height:1.45;text-rendering:optimizeSpeed;word-wrap:break-word}
+:not(pre)>code.nobreak{word-wrap:normal}
+:not(pre)>code.nowrap{white-space:nowrap}
+pre{color:rgba(0,0,0,.9);font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;line-height:1.45;text-rendering:optimizeSpeed}
+pre code,pre pre{color:inherit;font-size:inherit;line-height:inherit}
+pre>code{display:block}
+pre.nowrap,pre.nowrap pre{white-space:pre;word-wrap:normal}
 em em{font-style:normal}
 strong strong{font-weight:400}
 .keyseq{color:rgba(51,51,51,.8)}
-kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background-color:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
+kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-block;color:rgba(0,0,0,.8);font-size:.65em;line-height:1.45;background:#f7f7f7;border:1px solid #ccc;-webkit-border-radius:3px;border-radius:3px;-webkit-box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em white inset;box-shadow:0 1px 0 rgba(0,0,0,.2),0 0 0 .1em #fff inset;margin:0 .15em;padding:.2em .5em;vertical-align:middle;position:relative;top:-.1em;white-space:nowrap}
 .keyseq kbd:first-child{margin-left:0}
 .keyseq kbd:last-child{margin-right:0}
 .menuseq,.menuref{color:#000}
@@ -135,29 +133,29 @@ kbd{font-family:"Droid Sans Mono","DejaVu Sans Mono",monospace;display:inline-bl
 .menuseq{word-spacing:-.02em}
 .menuseq b.caret{font-size:1.25em;line-height:.8}
 .menuseq i.caret{font-weight:bold;text-align:center;width:.45em}
-b.button:before,b.button:after{position:relative;top:-1px;font-weight:400}
-b.button:before{content:"[";padding:0 3px 0 2px}
-b.button:after{content:"]";padding:0 2px 0 3px}
+b.button::before,b.button::after{position:relative;top:-1px;font-weight:400}
+b.button::before{content:"[";padding:0 3px 0 2px}
+b.button::after{content:"]";padding:0 2px 0 3px}
 p a>code:hover{color:rgba(0,0,0,.9)}
 #header,#content,#footnotes,#footer{width:100%;margin-left:auto;margin-right:auto;margin-top:0;margin-bottom:0;max-width:62.5em;*zoom:1;position:relative;padding-left:.9375em;padding-right:.9375em}
-#header:before,#header:after,#content:before,#content:after,#footnotes:before,#footnotes:after,#footer:before,#footer:after{content:" ";display:table}
-#header:after,#content:after,#footnotes:after,#footer:after{clear:both}
+#header::before,#header::after,#content::before,#content::after,#footnotes::before,#footnotes::after,#footer::before,#footer::after{content:" ";display:table}
+#header::after,#content::after,#footnotes::after,#footer::after{clear:both}
 #content{margin-top:1.25em}
-#content:before{content:none}
+#content::before{content:none}
 #header>h1:first-child{color:rgba(0,0,0,.85);margin-top:2.25rem;margin-bottom:0}
-#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #ddddd8}
-#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #ddddd8;padding-bottom:8px}
-#header .details{border-bottom:1px solid #ddddd8;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
+#header>h1:first-child+#toc{margin-top:8px;border-top:1px solid #dddddf}
+#header>h1:only-child,body.toc2 #header>h1:nth-last-child(2){border-bottom:1px solid #dddddf;padding-bottom:8px}
+#header .details{border-bottom:1px solid #dddddf;line-height:1.45;padding-top:.25em;padding-bottom:.25em;padding-left:.25em;color:rgba(0,0,0,.6);display:-ms-flexbox;display:-webkit-flex;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap}
 #header .details span:first-child{margin-left:-.125em}
 #header .details span.email a{color:rgba(0,0,0,.85)}
 #header .details br{display:none}
-#header .details br+span:before{content:"\00a0\2013\00a0"}
-#header .details br+span.author:before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
-#header .details br+span#revremark:before{content:"\00a0|\00a0"}
+#header .details br+span::before{content:"\00a0\2013\00a0"}
+#header .details br+span.author::before{content:"\00a0\22c5\00a0";color:rgba(0,0,0,.85)}
+#header .details br+span#revremark::before{content:"\00a0|\00a0"}
 #header #revnumber{text-transform:capitalize}
-#header #revnumber:after{content:"\00a0"}
-#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #ddddd8;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
-#toc{border-bottom:1px solid #efefed;padding-bottom:.5em}
+#header #revnumber::after{content:"\00a0"}
+#content>h1:first-child:not([class]){color:rgba(0,0,0,.85);border-bottom:1px solid #dddddf;padding-bottom:8px;margin-top:0;padding-top:1rem;margin-bottom:1.25rem}
+#toc{border-bottom:1px solid #e7e7e9;padding-bottom:.5em}
 #toc>ul{margin-left:.125em}
 #toc ul.sectlevel0>li>a{font-style:italic}
 #toc ul.sectlevel0 ul.sectlevel1{margin:.5em 0}
@@ -166,16 +164,16 @@ p a>code:hover{color:rgba(0,0,0,.9)}
 #toc a{text-decoration:none}
 #toc a:active{text-decoration:underline}
 #toctitle{color:#7a2518;font-size:1.2em}
-@media only screen and (min-width:768px){#toctitle{font-size:1.375em}
+@media screen and (min-width:768px){#toctitle{font-size:1.375em}
 body.toc2{padding-left:15em;padding-right:0}
-#toc.toc2{margin-top:0!important;background-color:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #efefed;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
+#toc.toc2{margin-top:0!important;background:#f8f8f7;position:fixed;width:15em;left:0;top:0;border-right:1px solid #e7e7e9;border-top-width:0!important;border-bottom-width:0!important;z-index:1000;padding:1.25em 1em;height:100%;overflow:auto}
 #toc.toc2 #toctitle{margin-top:0;margin-bottom:.8rem;font-size:1.2em}
 #toc.toc2>ul{font-size:.9em;margin-bottom:0}
 #toc.toc2 ul ul{margin-left:0;padding-left:1em}
 #toc.toc2 ul.sectlevel0 ul.sectlevel1{padding-left:0;margin-top:.5em;margin-bottom:.5em}
 body.toc2.toc-right{padding-left:0;padding-right:15em}
-body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #efefed;left:auto;right:0}}
-@media only screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
+body.toc2.toc-right #toc.toc2{border-right-width:0;border-left:1px solid #e7e7e9;left:auto;right:0}}
+@media screen and (min-width:1280px){body.toc2{padding-left:20em;padding-right:0}
 #toc.toc2{width:20em}
 #toc.toc2 #toctitle{font-size:1.375em}
 #toc.toc2>ul{font-size:.95em}
@@ -184,89 +182,101 @@ body.toc2.toc-right{padding-left:0;padding-right:20em}}
 #content #toc{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
 #content #toc>:first-child{margin-top:0}
 #content #toc>:last-child{margin-bottom:0}
-#footer{max-width:100%;background-color:rgba(0,0,0,.8);padding:1.25em}
+#footer{max-width:100%;background:rgba(0,0,0,.8);padding:1.25em}
 #footer-text{color:rgba(255,255,255,.8);line-height:1.44}
+#content{margin-bottom:.625em}
 .sect1{padding-bottom:.625em}
-@media only screen and (min-width:768px){.sect1{padding-bottom:1.25em}}
-.sect1+.sect1{border-top:1px solid #efefed}
+@media screen and (min-width:768px){#content{margin-bottom:1.25em}
+.sect1{padding-bottom:1.25em}}
+.sect1:last-child{padding-bottom:0}
+.sect1+.sect1{border-top:1px solid #e7e7e9}
 #content h1>a.anchor,h2>a.anchor,h3>a.anchor,#toctitle>a.anchor,.sidebarblock>.content>.title>a.anchor,h4>a.anchor,h5>a.anchor,h6>a.anchor{position:absolute;z-index:1001;width:1.5ex;margin-left:-1.5ex;display:block;text-decoration:none!important;visibility:hidden;text-align:center;font-weight:400}
-#content h1>a.anchor:before,h2>a.anchor:before,h3>a.anchor:before,#toctitle>a.anchor:before,.sidebarblock>.content>.title>a.anchor:before,h4>a.anchor:before,h5>a.anchor:before,h6>a.anchor:before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
+#content h1>a.anchor::before,h2>a.anchor::before,h3>a.anchor::before,#toctitle>a.anchor::before,.sidebarblock>.content>.title>a.anchor::before,h4>a.anchor::before,h5>a.anchor::before,h6>a.anchor::before{content:"\00A7";font-size:.85em;display:block;padding-top:.1em}
 #content h1:hover>a.anchor,#content h1>a.anchor:hover,h2:hover>a.anchor,h2>a.anchor:hover,h3:hover>a.anchor,#toctitle:hover>a.anchor,.sidebarblock>.content>.title:hover>a.anchor,h3>a.anchor:hover,#toctitle>a.anchor:hover,.sidebarblock>.content>.title>a.anchor:hover,h4:hover>a.anchor,h4>a.anchor:hover,h5:hover>a.anchor,h5>a.anchor:hover,h6:hover>a.anchor,h6>a.anchor:hover{visibility:visible}
 #content h1>a.link,h2>a.link,h3>a.link,#toctitle>a.link,.sidebarblock>.content>.title>a.link,h4>a.link,h5>a.link,h6>a.link{color:#ba3925;text-decoration:none}
 #content h1>a.link:hover,h2>a.link:hover,h3>a.link:hover,#toctitle>a.link:hover,.sidebarblock>.content>.title>a.link:hover,h4>a.link:hover,h5>a.link:hover,h6>a.link:hover{color:#a53221}
-.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details,.audioblock,.imageblock,.literalblock,.listingblock,.stemblock,.videoblock{margin-bottom:1.25em}
+details>summary:first-of-type{cursor:pointer;display:list-item;outline:none;margin-bottom:.75em}
 .admonitionblock td.content>.title,.audioblock>.title,.exampleblock>.title,.imageblock>.title,.listingblock>.title,.literalblock>.title,.stemblock>.title,.openblock>.title,.paragraph>.title,.quoteblock>.title,table.tableblock>.title,.verseblock>.title,.videoblock>.title,.dlist>.title,.olist>.title,.ulist>.title,.qlist>.title,.hdlist>.title{text-rendering:optimizeLegibility;text-align:left;font-family:"Noto Serif","DejaVu Serif",serif;font-size:1rem;font-style:italic}
-table.tableblock>caption.title{white-space:nowrap;overflow:visible;max-width:0}
-.paragraph.lead>p,#preamble>.sectionbody>.paragraph:first-of-type p{color:rgba(0,0,0,.85)}
-table.tableblock #preamble>.sectionbody>.paragraph:first-of-type p{font-size:inherit}
+table.tableblock.fit-content>caption.title{white-space:nowrap;width:0}
+.paragraph.lead>p,#preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:1.21875em;line-height:1.6;color:rgba(0,0,0,.85)}
+table.tableblock #preamble>.sectionbody>[class="paragraph"]:first-of-type p{font-size:inherit}
 .admonitionblock>table{border-collapse:separate;border:0;background:none;width:100%}
 .admonitionblock>table td.icon{text-align:center;width:80px}
-.admonitionblock>table td.icon img{max-width:initial}
+.admonitionblock>table td.icon img{max-width:none}
 .admonitionblock>table td.icon .title{font-weight:bold;font-family:"Open Sans","DejaVu Sans",sans-serif;text-transform:uppercase}
-.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #ddddd8;color:rgba(0,0,0,.6)}
+.admonitionblock>table td.content{padding-left:1.125em;padding-right:1.25em;border-left:1px solid #dddddf;color:rgba(0,0,0,.6)}
 .admonitionblock>table td.content>:last-child>:last-child{margin-bottom:0}
 .exampleblock>.content{border-style:solid;border-width:1px;border-color:#e6e6e6;margin-bottom:1.25em;padding:1.25em;background:#fff;-webkit-border-radius:4px;border-radius:4px}
 .exampleblock>.content>:first-child{margin-top:0}
 .exampleblock>.content>:last-child{margin-bottom:0}
-.sidebarblock{border-style:solid;border-width:1px;border-color:#e0e0dc;margin-bottom:1.25em;padding:1.25em;background:#f8f8f7;-webkit-border-radius:4px;border-radius:4px}
+.sidebarblock{border-style:solid;border-width:1px;border-color:#dbdbd6;margin-bottom:1.25em;padding:1.25em;background:#f3f3f2;-webkit-border-radius:4px;border-radius:4px}
 .sidebarblock>:first-child{margin-top:0}
 .sidebarblock>:last-child{margin-bottom:0}
 .sidebarblock>.content>.title{color:#7a2518;margin-top:0;text-align:center}
 .exampleblock>.content>:last-child>:last-child,.exampleblock>.content .olist>ol>li:last-child>:last-child,.exampleblock>.content .ulist>ul>li:last-child>:last-child,.exampleblock>.content .qlist>ol>li:last-child>:last-child,.sidebarblock>.content>:last-child>:last-child,.sidebarblock>.content .olist>ol>li:last-child>:last-child,.sidebarblock>.content .ulist>ul>li:last-child>:last-child,.sidebarblock>.content .qlist>ol>li:last-child>:last-child{margin-bottom:0}
-.literalblock pre,.listingblock pre:not(.highlight),.listingblock pre[class="highlight"],.listingblock pre[class^="highlight "],.listingblock pre.CodeRay,.listingblock pre.prettyprint{background:#f7f7f8}
-.sidebarblock .literalblock pre,.sidebarblock .listingblock pre:not(.highlight),.sidebarblock .listingblock pre[class="highlight"],.sidebarblock .listingblock pre[class^="highlight "],.sidebarblock .listingblock pre.CodeRay,.sidebarblock .listingblock pre.prettyprint{background:#f2f1f1}
-.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;padding:1em;font-size:.8125em}
-.literalblock pre.nowrap,.literalblock pre[class].nowrap,.listingblock pre.nowrap,.listingblock pre[class].nowrap{overflow-x:auto;white-space:pre;word-wrap:normal}
-@media only screen and (min-width:768px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:.90625em}}
-@media only screen and (min-width:1280px){.literalblock pre,.literalblock pre[class],.listingblock pre,.listingblock pre[class]{font-size:1em}}
-.literalblock.output pre{color:#f7f7f8;background-color:rgba(0,0,0,.9)}
+.literalblock pre,.listingblock>.content>pre{-webkit-border-radius:4px;border-radius:4px;word-wrap:break-word;overflow-x:auto;padding:1em;font-size:.8125em}
+@media screen and (min-width:768px){.literalblock pre,.listingblock>.content>pre{font-size:.90625em}}
+@media screen and (min-width:1280px){.literalblock pre,.listingblock>.content>pre{font-size:1em}}
+.literalblock pre,.listingblock>.content>pre:not(.highlight),.listingblock>.content>pre[class="highlight"],.listingblock>.content>pre[class^="highlight "]{background:#f7f7f8}
+.literalblock.output pre{color:#f7f7f8;background:rgba(0,0,0,.9)}
+.listingblock>.content{position:relative}
+.listingblock code[data-lang]::before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:inherit;opacity:.5}
+.listingblock:hover code[data-lang]::before{display:block}
+.listingblock.terminal pre .command::before{content:attr(data-prompt);padding-right:.5em;color:inherit;opacity:.5}
+.listingblock.terminal pre .command:not([data-prompt])::before{content:"$"}
 .listingblock pre.highlightjs{padding:0}
 .listingblock pre.highlightjs>code{padding:1em;-webkit-border-radius:4px;border-radius:4px}
 .listingblock pre.prettyprint{border-width:0}
-.listingblock>.content{position:relative}
-.listingblock code[data-lang]:before{display:none;content:attr(data-lang);position:absolute;font-size:.75em;top:.425rem;right:.5rem;line-height:1;text-transform:uppercase;color:#999}
-.listingblock:hover code[data-lang]:before{display:block}
-.listingblock.terminal pre .command:before{content:attr(data-prompt);padding-right:.5em;color:#999}
-.listingblock.terminal pre .command:not([data-prompt]):before{content:"$"}
-table.pyhltable{border-collapse:separate;border:0;margin-bottom:0;background:none}
-table.pyhltable td{vertical-align:top;padding-top:0;padding-bottom:0;line-height:1.45}
-table.pyhltable td.code{padding-left:.75em;padding-right:0}
-pre.pygments .lineno,table.pyhltable td:not(.code){color:#999;padding-left:0;padding-right:.5em;border-right:1px solid #ddddd8}
-pre.pygments .lineno{display:inline-block;margin-right:.25em}
-table.pyhltable .linenodiv{background:none!important;padding-right:0!important}
+.prettyprint{background:#f7f7f8}
+pre.prettyprint .linenums{line-height:1.45;margin-left:2em}
+pre.prettyprint li{background:none;list-style-type:inherit;padding-left:0}
+pre.prettyprint li code[data-lang]::before{opacity:1}
+pre.prettyprint li:not(:first-child) code[data-lang]::before{display:none}
+table.linenotable{border-collapse:separate;border:0;margin-bottom:0;background:none}
+table.linenotable td[class]{color:inherit;vertical-align:top;padding:0;line-height:inherit;white-space:normal}
+table.linenotable td.code{padding-left:.75em}
+table.linenotable td.linenos{border-right:1px solid currentColor;opacity:.35;padding-right:.5em}
+pre.pygments .lineno{border-right:1px solid currentColor;opacity:.35;display:inline-block;margin-right:.75em}
+pre.pygments .lineno::before{content:"";margin-right:-.125em}
 .quoteblock{margin:0 1em 1.25em 1.5em;display:table}
-.quoteblock>.title{margin-left:-1.5em;margin-bottom:.75em}
-.quoteblock blockquote,.quoteblock blockquote p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
+.quoteblock:not(.excerpt)>.title{margin-left:-1.5em;margin-bottom:.75em}
+.quoteblock blockquote,.quoteblock p{color:rgba(0,0,0,.85);font-size:1.15rem;line-height:1.75;word-spacing:.1em;letter-spacing:0;font-style:italic;text-align:justify}
 .quoteblock blockquote{margin:0;padding:0;border:0}
-.quoteblock blockquote:before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
+.quoteblock blockquote::before{content:"\201c";float:left;font-size:2.75em;font-weight:bold;line-height:.6em;margin-left:-.6em;color:#7a2518;text-shadow:0 1px 2px rgba(0,0,0,.1)}
 .quoteblock blockquote>.paragraph:last-child p{margin-bottom:0}
-.quoteblock .attribution{margin-top:.5em;margin-right:.5ex;text-align:right}
-.quoteblock .quoteblock{margin-left:0;margin-right:0;padding:.5em 0;border-left:3px solid rgba(0,0,0,.6)}
-.quoteblock .quoteblock blockquote{padding:0 0 0 .75em}
-.quoteblock .quoteblock blockquote:before{display:none}
-.verseblock{margin:0 1em 1.25em 1em}
+.quoteblock .attribution{margin-top:.75em;margin-right:.5ex;text-align:right}
+.verseblock{margin:0 1em 1.25em}
 .verseblock pre{font-family:"Open Sans","DejaVu Sans",sans;font-size:1.15rem;color:rgba(0,0,0,.85);font-weight:300;text-rendering:optimizeLegibility}
 .verseblock pre strong{font-weight:400}
 .verseblock .attribution{margin-top:1.25rem;margin-left:.5ex}
 .quoteblock .attribution,.verseblock .attribution{font-size:.9375em;line-height:1.45;font-style:italic}
 .quoteblock .attribution br,.verseblock .attribution br{display:none}
 .quoteblock .attribution cite,.verseblock .attribution cite{display:block;letter-spacing:-.025em;color:rgba(0,0,0,.6)}
-.quoteblock.abstract{margin:0 0 1.25em 0;display:block}
-.quoteblock.abstract blockquote,.quoteblock.abstract blockquote p{text-align:left;word-spacing:0}
-.quoteblock.abstract blockquote:before,.quoteblock.abstract blockquote p:first-of-type:before{display:none}
+.quoteblock.abstract blockquote::before,.quoteblock.excerpt blockquote::before,.quoteblock .quoteblock blockquote::before{display:none}
+.quoteblock.abstract blockquote,.quoteblock.abstract p,.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{line-height:1.6;word-spacing:0}
+.quoteblock.abstract{margin:0 1em 1.25em;display:block}
+.quoteblock.abstract>.title{margin:0 0 .375em;font-size:1.15em;text-align:center}
+.quoteblock.excerpt>blockquote,.quoteblock .quoteblock{padding:0 0 .25em 1em;border-left:.25em solid #dddddf}
+.quoteblock.excerpt,.quoteblock .quoteblock{margin-left:0}
+.quoteblock.excerpt blockquote,.quoteblock.excerpt p,.quoteblock .quoteblock blockquote,.quoteblock .quoteblock p{color:inherit;font-size:1.0625rem}
+.quoteblock.excerpt .attribution,.quoteblock .quoteblock .attribution{color:inherit;text-align:left;margin-right:0}
 table.tableblock{max-width:100%;border-collapse:separate}
-table.tableblock td>.paragraph:last-child p>p:last-child,table.tableblock th>p:last-child,table.tableblock td>p:last-child{margin-bottom:0}
+p.tableblock:last-child{margin-bottom:0}
+td.tableblock>.content>:last-child{margin-bottom:-1.25em}
+td.tableblock>.content>:last-child.sidebarblock{margin-bottom:0}
 table.tableblock,th.tableblock,td.tableblock{border:0 solid #dedede}
 table.grid-all>thead>tr>.tableblock,table.grid-all>tbody>tr>.tableblock{border-width:0 1px 1px 0}
 table.grid-all>tfoot>tr>.tableblock{border-width:1px 1px 0 0}
 table.grid-cols>*>tr>.tableblock{border-width:0 1px 0 0}
-table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px 0}
-table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0 0}
+table.grid-rows>thead>tr>.tableblock,table.grid-rows>tbody>tr>.tableblock{border-width:0 0 1px}
+table.grid-rows>tfoot>tr>.tableblock{border-width:1px 0 0}
 table.grid-all>*>tr>.tableblock:last-child,table.grid-cols>*>tr>.tableblock:last-child{border-right-width:0}
 table.grid-all>tbody>tr:last-child>.tableblock,table.grid-all>thead:last-child>tr>.tableblock,table.grid-rows>tbody>tr:last-child>.tableblock,table.grid-rows>thead:last-child>tr>.tableblock{border-bottom-width:0}
 table.frame-all{border-width:1px}
 table.frame-sides{border-width:0 1px}
-table.frame-topbot{border-width:1px 0}
+table.frame-topbot,table.frame-ends{border-width:1px 0}
+table.stripes-all tr,table.stripes-odd tr:nth-of-type(odd),table.stripes-even tr:nth-of-type(even),table.stripes-hover tr:hover{background:#f8f8f7}
 th.halign-left,td.halign-left{text-align:left}
 th.halign-right,td.halign-right{text-align:right}
 th.halign-center,td.halign-center{text-align:center}
@@ -278,7 +288,6 @@ tbody tr th{display:table-cell;line-height:1.6;background:#f7f8f7}
 tbody tr th,tbody tr th p,tfoot tr th,tfoot tr th p{color:rgba(0,0,0,.8);font-weight:bold}
 p.tableblock>code:only-child{background:none;padding:0}
 p.tableblock{font-size:1em}
-td>div.verse{white-space:pre}
 ol{margin-left:1.75em}
 ul li ol{margin-left:1.5em}
 dl dd{margin-left:1.125em}
@@ -290,9 +299,8 @@ ul.unstyled,ol.unstyled{margin-left:0}
 ul.checklist{margin-left:.625em}
 ul.checklist li>p:first-child>.fa-square-o:first-child,ul.checklist li>p:first-child>.fa-check-square-o:first-child{width:1.25em;font-size:.8em;position:relative;bottom:.125em}
 ul.checklist li>p:first-child>input[type="checkbox"]:first-child{margin-right:.25em}
-ul.inline{margin:0 auto .625em auto;margin-left:-1.375em;margin-right:0;padding:0;list-style:none;overflow:hidden}
-ul.inline>li{list-style:none;float:left;margin-left:1.375em;display:block}
-ul.inline>li>*{display:block}
+ul.inline{display:-ms-flexbox;display:-webkit-box;display:flex;-ms-flex-flow:row wrap;-webkit-flex-flow:row wrap;flex-flow:row wrap;list-style:none;margin:0 0 .625em -1.25em}
+ul.inline>li{margin-left:1.25em}
 .unstyled dl dt{font-weight:400;font-style:normal}
 ol.arabic{list-style-type:decimal}
 ol.decimal{list-style-type:decimal-leading-zero}
@@ -306,12 +314,12 @@ ol.lowergreek{list-style-type:lower-greek}
 td.hdlist1,td.hdlist2{vertical-align:top;padding:0 .625em}
 td.hdlist1{font-weight:bold;padding-bottom:1.25em}
 .literalblock+.colist,.listingblock+.colist{margin-top:-.5em}
-.colist>table tr>td:first-of-type{padding:.4em .75em 0 .75em;line-height:1;vertical-align:top}
-.colist>table tr>td:first-of-type img{max-width:initial}
-.colist>table tr>td:last-of-type{padding:.25em 0}
+.colist td:not([class]):first-child{padding:.4em .75em 0;line-height:1;vertical-align:top}
+.colist td:not([class]):first-child img{max-width:none}
+.colist td:not([class]):last-child{padding:.25em 0}
 .thumb,.th{line-height:0;display:inline-block;border:solid 4px #fff;-webkit-box-shadow:0 0 0 1px #ddd;box-shadow:0 0 0 1px #ddd}
-.imageblock.left,.imageblock[style*="float: left"]{margin:.25em .625em 1.25em 0}
-.imageblock.right,.imageblock[style*="float: right"]{margin:.25em 0 1.25em .625em}
+.imageblock.left{margin:.25em .625em 1.25em 0}
+.imageblock.right{margin:.25em 0 1.25em .625em}
 .imageblock>.title{margin-bottom:0}
 .imageblock.thumb,.imageblock.th{border-width:6px}
 .imageblock.thumb>.title,.imageblock.th>.title{padding:0 .125em}
@@ -324,9 +332,9 @@ sup.footnote,sup.footnoteref{font-size:.875em;position:static;vertical-align:sup
 sup.footnote a,sup.footnoteref a{text-decoration:none}
 sup.footnote a:active,sup.footnoteref a:active{text-decoration:underline}
 #footnotes{padding-top:.75em;padding-bottom:.75em;margin-bottom:.625em}
-#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em 0;border-width:1px 0 0 0}
-#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;text-indent:-1.05em;margin-bottom:.2em}
-#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none}
+#footnotes hr{width:20%;min-width:6.25em;margin:-.25em 0 .75em;border-width:1px 0 0}
+#footnotes .footnote{padding:0 .375em 0 .225em;line-height:1.3334;font-size:.875em;margin-left:1.2em;margin-bottom:.2em}
+#footnotes .footnote a:first-of-type{font-weight:bold;text-decoration:none;margin-left:-1.05em}
 #footnotes .footnote:last-of-type{margin-bottom:0}
 #content #footnotes{margin-top:-.625em;margin-bottom:0;padding:.75em 0}
 .gist .file-data>table{border:0;background:#fff;width:100%;margin-bottom:0}
@@ -338,49 +346,49 @@ div.unbreakable{page-break-inside:avoid}
 .overline{text-decoration:overline}
 .line-through{text-decoration:line-through}
 .aqua{color:#00bfbf}
-.aqua-background{background-color:#00fafa}
+.aqua-background{background:#00fafa}
 .black{color:#000}
-.black-background{background-color:#000}
+.black-background{background:#000}
 .blue{color:#0000bf}
-.blue-background{background-color:#0000fa}
+.blue-background{background:#0000fa}
 .fuchsia{color:#bf00bf}
-.fuchsia-background{background-color:#fa00fa}
+.fuchsia-background{background:#fa00fa}
 .gray{color:#606060}
-.gray-background{background-color:#7d7d7d}
+.gray-background{background:#7d7d7d}
 .green{color:#006000}
-.green-background{background-color:#007d00}
+.green-background{background:#007d00}
 .lime{color:#00bf00}
-.lime-background{background-color:#00fa00}
+.lime-background{background:#00fa00}
 .maroon{color:#600000}
-.maroon-background{background-color:#7d0000}
+.maroon-background{background:#7d0000}
 .navy{color:#000060}
-.navy-background{background-color:#00007d}
+.navy-background{background:#00007d}
 .olive{color:#606000}
-.olive-background{background-color:#7d7d00}
+.olive-background{background:#7d7d00}
 .purple{color:#600060}
-.purple-background{background-color:#7d007d}
+.purple-background{background:#7d007d}
 .red{color:#bf0000}
-.red-background{background-color:#fa0000}
+.red-background{background:#fa0000}
 .silver{color:#909090}
-.silver-background{background-color:#bcbcbc}
+.silver-background{background:#bcbcbc}
 .teal{color:#006060}
-.teal-background{background-color:#007d7d}
+.teal-background{background:#007d7d}
 .white{color:#bfbfbf}
-.white-background{background-color:#fafafa}
+.white-background{background:#fafafa}
 .yellow{color:#bfbf00}
-.yellow-background{background-color:#fafa00}
+.yellow-background{background:#fafa00}
 span.icon>.fa{cursor:default}
 a span.icon>.fa{cursor:inherit}
 .admonitionblock td.icon [class^="fa icon-"]{font-size:2.5em;text-shadow:1px 1px 2px rgba(0,0,0,.5);cursor:default}
-.admonitionblock td.icon .icon-note:before{content:"\f05a";color:#19407c}
-.admonitionblock td.icon .icon-tip:before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
-.admonitionblock td.icon .icon-warning:before{content:"\f071";color:#bf6900}
-.admonitionblock td.icon .icon-caution:before{content:"\f06d";color:#bf3400}
-.admonitionblock td.icon .icon-important:before{content:"\f06a";color:#bf0000}
-.conum[data-value]{display:inline-block;color:#fff!important;background-color:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
+.admonitionblock td.icon .icon-note::before{content:"\f05a";color:#19407c}
+.admonitionblock td.icon .icon-tip::before{content:"\f0eb";text-shadow:1px 1px 2px rgba(155,155,0,.8);color:#111}
+.admonitionblock td.icon .icon-warning::before{content:"\f071";color:#bf6900}
+.admonitionblock td.icon .icon-caution::before{content:"\f06d";color:#bf3400}
+.admonitionblock td.icon .icon-important::before{content:"\f06a";color:#bf0000}
+.conum[data-value]{display:inline-block;color:#fff!important;background:rgba(0,0,0,.8);-webkit-border-radius:100px;border-radius:100px;text-align:center;font-size:.75em;width:1.67em;height:1.67em;line-height:1.67em;font-family:"Open Sans","DejaVu Sans",sans-serif;font-style:normal;font-weight:bold}
 .conum[data-value] *{color:#fff!important}
 .conum[data-value]+b{display:none}
-.conum[data-value]:after{content:attr(data-value)}
+.conum[data-value]::after{content:attr(data-value)}
 pre .conum[data-value]{position:relative;top:-.125em}
 b.conum *{color:inherit!important}
 .conum:not([data-value]):empty{display:none}
@@ -390,112 +398,44 @@ p strong,td.content strong,div.footnote strong{letter-spacing:-.005em}
 p,blockquote,dt,td.content,span.alt{font-size:1.0625rem}
 p{margin-bottom:1.25rem}
 .sidebarblock p,.sidebarblock dt,.sidebarblock td.content,p.tableblock{font-size:1em}
-.exampleblock>.content{background-color:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
+.exampleblock>.content{background:#fffef7;border-color:#e0e0dc;-webkit-box-shadow:0 1px 4px #e0e0dc;box-shadow:0 1px 4px #e0e0dc}
 .print-only{display:none!important}
-@media print{@page{margin:1.25cm .75cm}
-*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+@page{margin:1.25cm .75cm}
+@media print{*{-webkit-box-shadow:none!important;box-shadow:none!important;text-shadow:none!important}
+html{font-size:80%}
 a{color:inherit!important;text-decoration:underline!important}
 a.bare,a[href^="#"],a[href^="mailto:"]{text-decoration:none!important}
-a[href^="http:"]:not(.bare):after,a[href^="https:"]:not(.bare):after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
-abbr[title]:after{content:" (" attr(title) ")"}
+a[href^="http:"]:not(.bare)::after,a[href^="https:"]:not(.bare)::after{content:"(" attr(href) ")";display:inline-block;font-size:.875em;padding-left:.25em}
+abbr[title]::after{content:" (" attr(title) ")"}
 pre,blockquote,tr,img,object,svg{page-break-inside:avoid}
 thead{display:table-header-group}
 svg{max-width:100%}
 p,blockquote,dt,td.content{font-size:1em;orphans:3;widows:3}
 h2,h3,#toctitle,.sidebarblock>.content>.title{page-break-after:avoid}
 #toc,.sidebarblock,.exampleblock>.content{background:none!important}
-#toc{border-bottom:1px solid #ddddd8!important;padding-bottom:0!important}
-.sect1{padding-bottom:0!important}
-.sect1+.sect1{border:0!important}
-#header>h1:first-child{margin-top:1.25rem}
+#toc{border-bottom:1px solid #dddddf!important;padding-bottom:0!important}
 body.book #header{text-align:center}
-body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em 0}
+body.book #header>h1:first-child{border:0!important;margin:2.5em 0 1em}
 body.book #header .details{border:0!important;display:block;padding:0!important}
 body.book #header .details span:first-child{margin-left:0!important}
 body.book #header .details br{display:block}
-body.book #header .details br+span:before{content:none!important}
+body.book #header .details br+span::before{content:none!important}
 body.book #toc{border:0!important;text-align:left!important;padding:0!important;margin:0!important}
 body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-break-before:always}
-.listingblock code[data-lang]:before{display:block}
-#footer{background:none!important;padding:0 .9375em}
-#footer-text{color:rgba(0,0,0,.6)!important;font-size:.9em}
+.listingblock code[data-lang]::before{display:block}
+#footer{padding:0 .9375em}
 .hide-on-print{display:none!important}
 .print-only{display:block!important}
 .hide-for-print{display:none!important}
 .show-for-print{display:inherit!important}}
+@media print,amzn-kf8{#header>h1:first-child{margin-top:1.25rem}
+.sect1{padding:0!important}
+.sect1+.sect1{border:0}
+#footer{background:none}
+#footer-text{color:rgba(0,0,0,.6);font-size:.9em}}
+@media amzn-kf8{#header,#content,#footnotes,#footer{padding:0}}
 </style>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.6.3/css/font-awesome.min.css">
-<style>
-.listingblock .pygments .hll { background-color: #ffffcc }
-.listingblock .pygments, .listingblock .pygments code { background: #f8f8f8; }
-.listingblock .pygments .tok-c { color: #408080; font-style: italic } /* Comment */
-.listingblock .pygments .tok-err { border: 1px solid #FF0000 } /* Error */
-.listingblock .pygments .tok-k { color: #008000; font-weight: bold } /* Keyword */
-.listingblock .pygments .tok-o { color: #666666 } /* Operator */
-.listingblock .pygments .tok-ch { color: #408080; font-style: italic } /* Comment.Hashbang */
-.listingblock .pygments .tok-cm { color: #408080; font-style: italic } /* Comment.Multiline */
-.listingblock .pygments .tok-cp { color: #BC7A00 } /* Comment.Preproc */
-.listingblock .pygments .tok-cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
-.listingblock .pygments .tok-c1 { color: #408080; font-style: italic } /* Comment.Single */
-.listingblock .pygments .tok-cs { color: #408080; font-style: italic } /* Comment.Special */
-.listingblock .pygments .tok-gd { color: #A00000 } /* Generic.Deleted */
-.listingblock .pygments .tok-ge { font-style: italic } /* Generic.Emph */
-.listingblock .pygments .tok-gr { color: #FF0000 } /* Generic.Error */
-.listingblock .pygments .tok-gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.listingblock .pygments .tok-gi { color: #00A000 } /* Generic.Inserted */
-.listingblock .pygments .tok-go { color: #888888 } /* Generic.Output */
-.listingblock .pygments .tok-gp { color: #000080; font-weight: bold } /* Generic.Prompt */
-.listingblock .pygments .tok-gs { font-weight: bold } /* Generic.Strong */
-.listingblock .pygments .tok-gu { color: #800080; font-weight: bold } /* Generic.Subheading */
-.listingblock .pygments .tok-gt { color: #0044DD } /* Generic.Traceback */
-.listingblock .pygments .tok-kc { color: #008000; font-weight: bold } /* Keyword.Constant */
-.listingblock .pygments .tok-kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
-.listingblock .pygments .tok-kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
-.listingblock .pygments .tok-kp { color: #008000 } /* Keyword.Pseudo */
-.listingblock .pygments .tok-kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
-.listingblock .pygments .tok-kt { color: #B00040 } /* Keyword.Type */
-.listingblock .pygments .tok-m { color: #666666 } /* Literal.Number */
-.listingblock .pygments .tok-s { color: #BA2121 } /* Literal.String */
-.listingblock .pygments .tok-na { color: #7D9029 } /* Name.Attribute */
-.listingblock .pygments .tok-nb { color: #008000 } /* Name.Builtin */
-.listingblock .pygments .tok-nc { color: #0000FF; font-weight: bold } /* Name.Class */
-.listingblock .pygments .tok-no { color: #880000 } /* Name.Constant */
-.listingblock .pygments .tok-nd { color: #AA22FF } /* Name.Decorator */
-.listingblock .pygments .tok-ni { color: #999999; font-weight: bold } /* Name.Entity */
-.listingblock .pygments .tok-ne { color: #D2413A; font-weight: bold } /* Name.Exception */
-.listingblock .pygments .tok-nf { color: #0000FF } /* Name.Function */
-.listingblock .pygments .tok-nl { color: #A0A000 } /* Name.Label */
-.listingblock .pygments .tok-nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
-.listingblock .pygments .tok-nt { color: #008000; font-weight: bold } /* Name.Tag */
-.listingblock .pygments .tok-nv { color: #19177C } /* Name.Variable */
-.listingblock .pygments .tok-ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
-.listingblock .pygments .tok-w { color: #bbbbbb } /* Text.Whitespace */
-.listingblock .pygments .tok-mb { color: #666666 } /* Literal.Number.Bin */
-.listingblock .pygments .tok-mf { color: #666666 } /* Literal.Number.Float */
-.listingblock .pygments .tok-mh { color: #666666 } /* Literal.Number.Hex */
-.listingblock .pygments .tok-mi { color: #666666 } /* Literal.Number.Integer */
-.listingblock .pygments .tok-mo { color: #666666 } /* Literal.Number.Oct */
-.listingblock .pygments .tok-sa { color: #BA2121 } /* Literal.String.Affix */
-.listingblock .pygments .tok-sb { color: #BA2121 } /* Literal.String.Backtick */
-.listingblock .pygments .tok-sc { color: #BA2121 } /* Literal.String.Char */
-.listingblock .pygments .tok-dl { color: #BA2121 } /* Literal.String.Delimiter */
-.listingblock .pygments .tok-sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
-.listingblock .pygments .tok-s2 { color: #BA2121 } /* Literal.String.Double */
-.listingblock .pygments .tok-se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
-.listingblock .pygments .tok-sh { color: #BA2121 } /* Literal.String.Heredoc */
-.listingblock .pygments .tok-si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
-.listingblock .pygments .tok-sx { color: #008000 } /* Literal.String.Other */
-.listingblock .pygments .tok-sr { color: #BB6688 } /* Literal.String.Regex */
-.listingblock .pygments .tok-s1 { color: #BA2121 } /* Literal.String.Single */
-.listingblock .pygments .tok-ss { color: #19177C } /* Literal.String.Symbol */
-.listingblock .pygments .tok-bp { color: #008000 } /* Name.Builtin.Pseudo */
-.listingblock .pygments .tok-fm { color: #0000FF } /* Name.Function.Magic */
-.listingblock .pygments .tok-vc { color: #19177C } /* Name.Variable.Class */
-.listingblock .pygments .tok-vg { color: #19177C } /* Name.Variable.Global */
-.listingblock .pygments .tok-vi { color: #19177C } /* Name.Variable.Instance */
-.listingblock .pygments .tok-vm { color: #19177C } /* Name.Variable.Magic */
-.listingblock .pygments .tok-il { color: #666666 } /* Literal.Number.Integer.Long */
-</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body class="article toc2 toc-right">
 <div id="header">
@@ -632,10 +572,10 @@ If deploying OpenShift 4 on VMware infrastructure or other User-Provisioned Infr
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE   VERSION
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                         STATUS   ROLES    AGE   VERSION
 ip-10-0-138-9.us-east-1.compute.internal     Ready    worker   77m   v1.14.6+9fb2d5cf9
 ip-10-0-150-39.us-east-1.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9</pre>
+ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   77m   v1.14.6+9fb2d5cf9</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -651,10 +591,10 @@ ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   77m   v1.14.6+9fb
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-1a   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-1b   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-1c   1         1         1       1           86m</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-0ec4-dgwqc-worker-us-east-1a   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           86m
+cluster-ocs-0ec4-dgwqc-worker-us-east-1b   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           86m
+cluster-ocs-0ec4-dgwqc-worker-us-east-1c   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           86m</code></pre>
 </div>
 </div>
 <div class="admonitionblock warning">
@@ -673,7 +613,7 @@ cluster-ocs-0ec4-dgwqc-worker-us-east-1c   1         1         1       1        
 <div class="content">
 <pre class="pygments highlight"><code data-lang="shell"><span></span><span class="tok-nv">CLUSTERID</span><span class="tok-o">=</span><span class="tok-k">$(</span>oc get machineset -n openshift-machine-api -o <span class="tok-nv">jsonpath</span><span class="tok-o">=</span><span class="tok-s1">&#39;{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}&#39;</span><span class="tok-k">)</span>
 <span class="tok-nb">echo</span> <span class="tok-nv">$CLUSTERID</span>
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/cluster-workerocs.yaml <span class="tok-p">|</span> sed <span class="tok-s2">&quot;s/CLUSTERID/</span><span class="tok-nv">$CLUSTERID</span><span class="tok-s2">/g&quot;</span> <span class="tok-p">|</span> oc apply -f -</code></pre>
+curl -s https://lfbf6bao0k.execute-api.eu-central-1.amazonaws.com/machineset-lambda?clusterID<span class="tok-o">=</span><span class="tok-nv">$CLUSTERID</span> <span class="tok-p">|</span> oc apply -f -</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -689,10 +629,10 @@ curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/oc
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                                STATE     TYPE         REGION      ZONE         AGE
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                                STATE     TYPE         REGION      ZONE         AGE
 cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a-cqvwj   running   m4.4xlarge   us-east-1   us-east-1a   70s
 cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b-g5p5v   running   m4.4xlarge   us-east-1   us-east-1b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c-rx4v8   running   m4.4xlarge   us-east-1   us-east-1c   70s</pre>
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c-rx4v8   running   m4.4xlarge   us-east-1   us-east-1c   70s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -711,10 +651,10 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c-rx4v8   running   m4.4xlarge   us-ea
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   1         1         1       1           8m25s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           8m26s
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           8m25s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -731,13 +671,13 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   1         1         1       1     
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-131-209.us-east-1.compute.internal   Ready    worker   2m21s   v1.14.6+9fb2d5cf9
 ip-10-0-138-9.us-east-1.compute.internal     Ready    worker   128m    v1.14.6+9fb2d5cf9
 ip-10-0-150-39.us-east-1.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9
 ip-10-0-155-12.us-east-1.compute.internal    Ready    worker   2m22s   v1.14.6+9fb2d5cf9
 ip-10-0-162-215.us-east-1.compute.internal   Ready    worker   2m14s   v1.14.6+9fb2d5cf9
-ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9</pre>
+ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   128m    v1.14.6+9fb2d5cf9</code></pre>
 </div>
 </div>
 </div>
@@ -830,8 +770,8 @@ ip-10-0-170-49.us-east-1.compute.internal    Ready    worker   128m    v1.14.6+9
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.2.0   OpenShift Container Storage   4.2.0                Succeeded</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.2.0   OpenShift Container Storage   <span class="tok-m">4</span>.2.0                Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -864,10 +804,10 @@ This will mark that the installation of your operator was successful. Reaching t
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                 READY   STATUS    RESTARTS   AGE
-noobaa-operator-6d59cd7855-lhwg8     1/1     Running   0          79s
-ocs-operator-dc48d685-8qtqn          1/1     Running   0          79s
-rook-ceph-operator-d857c476f-4npzl   1/1     Running   0          79s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                 READY   STATUS    RESTARTS   AGE
+noobaa-operator-6d59cd7855-lhwg8     <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          79s
+ocs-operator-dc48d685-8qtqn          <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          79s
+rook-ceph-operator-d857c476f-4npzl   <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          79s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -944,27 +884,27 @@ What you see, should be similar to the following example picture:</p>
 <div class="listingblock">
 <div class="title">Example of a in process installation of the OCS storage cluster:</div>
 <div class="content">
-<pre>NAME                                          READY   STATUS              RESTARTS   AGE
-csi-cephfsplugin-6t5cc                        0/3     ContainerCreating   0          21s
-csi-cephfsplugin-7slmp                        0/3     ContainerCreating   0          21s
-csi-cephfsplugin-865k6                        0/3     ContainerCreating   0          21s
-csi-cephfsplugin-8zn2w                        0/3     ContainerCreating   0          21s
-csi-cephfsplugin-9mmkp                        0/3     ContainerCreating   0          21s
-csi-cephfsplugin-provisioner-57f9567c-g44d6   0/4     ContainerCreating   0          21s
-csi-cephfsplugin-provisioner-57f9567c-tlnjz   0/4     ContainerCreating   0          21s
-csi-cephfsplugin-q86tr                        0/3     ContainerCreating   0          21s
-csi-rbdplugin-24t87                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-4zp5v                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-5s5dc                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-fjl6s                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-mrkr5                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-pr9hn                           0/3     ContainerCreating   0          21s
-csi-rbdplugin-provisioner-69bb78d655-4hrzx    0/4     ContainerCreating   0          21s
-csi-rbdplugin-provisioner-69bb78d655-clzk5    0/4     ContainerCreating   0          21s
-noobaa-operator-6d59cd7855-lhwg8              1/1     Running             0          2m59s
-ocs-operator-dc48d685-8qtqn                   0/1     Running             0          2m59s
-rook-ceph-detect-version-znh2f                0/1     Init:0/1            0          15s
-rook-ceph-operator-d857c476f-4npzl            1/1     Running             0          2m59s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                          READY   STATUS              RESTARTS   AGE
+csi-cephfsplugin-6t5cc                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-7slmp                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-865k6                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-8zn2w                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-9mmkp                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-provisioner-57f9567c-g44d6   <span class="tok-m">0</span>/4     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-provisioner-57f9567c-tlnjz   <span class="tok-m">0</span>/4     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-cephfsplugin-q86tr                        <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-24t87                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-4zp5v                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-5s5dc                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-fjl6s                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-mrkr5                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-pr9hn                           <span class="tok-m">0</span>/3     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-provisioner-69bb78d655-4hrzx    <span class="tok-m">0</span>/4     ContainerCreating   <span class="tok-m">0</span>          21s
+csi-rbdplugin-provisioner-69bb78d655-clzk5    <span class="tok-m">0</span>/4     ContainerCreating   <span class="tok-m">0</span>          21s
+noobaa-operator-6d59cd7855-lhwg8              <span class="tok-m">1</span>/1     Running             <span class="tok-m">0</span>          2m59s
+ocs-operator-dc48d685-8qtqn                   <span class="tok-m">0</span>/1     Running             <span class="tok-m">0</span>          2m59s
+rook-ceph-detect-version-znh2f                <span class="tok-m">0</span>/1     Init:0/1            <span class="tok-m">0</span>          15s
+rook-ceph-operator-d857c476f-4npzl            <span class="tok-m">1</span>/1     Running             <span class="tok-m">0</span>          2m59s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -987,42 +927,42 @@ rook-ceph-operator-d857c476f-4npzl            1/1     Running             0     
 <div class="listingblock">
 <div class="title">Output when the cluster installation is finished</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
-csi-cephfsplugin-6t5cc                                            3/3     Running     0          9m30s
-csi-cephfsplugin-7slmp                                            3/3     Running     0          9m30s
-csi-cephfsplugin-865k6                                            3/3     Running     0          9m30s
-csi-cephfsplugin-8zn2w                                            3/3     Running     0          9m30s
-csi-cephfsplugin-9mmkp                                            3/3     Running     0          9m30s
-csi-cephfsplugin-provisioner-57f9567c-g44d6                       4/4     Running     0          9m30s
-csi-cephfsplugin-provisioner-57f9567c-tlnjz                       4/4     Running     0          9m30s
-csi-cephfsplugin-q86tr                                            3/3     Running     0          9m30s
-csi-rbdplugin-24t87                                               3/3     Running     0          9m30s
-csi-rbdplugin-4zp5v                                               3/3     Running     0          9m30s
-csi-rbdplugin-5s5dc                                               3/3     Running     0          9m30s
-csi-rbdplugin-fjl6s                                               3/3     Running     0          9m30s
-csi-rbdplugin-mrkr5                                               3/3     Running     0          9m30s
-csi-rbdplugin-pr9hn                                               3/3     Running     0          9m30s
-csi-rbdplugin-provisioner-69bb78d655-4hrzx                        4/4     Running     0          9m30s
-csi-rbdplugin-provisioner-69bb78d655-clzk5                        4/4     Running     0          9m30s
-noobaa-core-0                                                     2/2     Running     0          5m38s
-noobaa-operator-6d59cd7855-lhwg8                                  1/1     Running     0          12m
-ocs-operator-dc48d685-8qtqn                                       1/1     Running     0          12m
-rook-ceph-drain-canary-731c9dd8472082ee17090f034387aa3b-78k55k9   1/1     Running     0          5m48s
-rook-ceph-drain-canary-93e6590ed0bb3c88b985beb159ef084a-7c8kpsg   1/1     Running     0          5m55s
-rook-ceph-drain-canary-d0eaaceda4b757fe363def0873a5f86f-98s5k27   1/1     Running     0          5m45s
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-7c865846g6k27   1/1     Running     0          5m33s
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-69f846986g4n7   1/1     Running     0          5m32s
-rook-ceph-mgr-a-5486fc7cf5-l9h6z                                  1/1     Running     0          6m44s
-rook-ceph-mon-a-58c7cd4f9b-g4z2m                                  1/1     Running     0          8m17s
-rook-ceph-mon-b-684f66b8df-992wc                                  1/1     Running     0          7m43s
-rook-ceph-mon-c-6f7657b8b6-2sxl5                                  1/1     Running     0          7m13s
-rook-ceph-operator-d857c476f-4npzl                                1/1     Running     0          12m
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   1/1     Running     0          5m55s
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  1/1     Running     0          5m48s
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  1/1     Running     0          5m45s
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               0/1     Completed   0          6m22s
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               0/1     Completed   0          6m22s
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               0/1     Completed   0          6m21s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-6t5cc                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-7slmp                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-865k6                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-8zn2w                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-9mmkp                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-provisioner-57f9567c-g44d6                       <span class="tok-m">4</span>/4     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-provisioner-57f9567c-tlnjz                       <span class="tok-m">4</span>/4     Running     <span class="tok-m">0</span>          9m30s
+csi-cephfsplugin-q86tr                                            <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-24t87                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-4zp5v                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-5s5dc                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-fjl6s                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-mrkr5                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-pr9hn                                               <span class="tok-m">3</span>/3     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-provisioner-69bb78d655-4hrzx                        <span class="tok-m">4</span>/4     Running     <span class="tok-m">0</span>          9m30s
+csi-rbdplugin-provisioner-69bb78d655-clzk5                        <span class="tok-m">4</span>/4     Running     <span class="tok-m">0</span>          9m30s
+noobaa-core-0                                                     <span class="tok-m">2</span>/2     Running     <span class="tok-m">0</span>          5m38s
+noobaa-operator-6d59cd7855-lhwg8                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          12m
+ocs-operator-dc48d685-8qtqn                                       <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          12m
+rook-ceph-drain-canary-731c9dd8472082ee17090f034387aa3b-78k55k9   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m48s
+rook-ceph-drain-canary-93e6590ed0bb3c88b985beb159ef084a-7c8kpsg   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m55s
+rook-ceph-drain-canary-d0eaaceda4b757fe363def0873a5f86f-98s5k27   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m45s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-7c865846g6k27   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m33s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-69f846986g4n7   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m32s
+rook-ceph-mgr-a-5486fc7cf5-l9h6z                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          6m44s
+rook-ceph-mon-a-58c7cd4f9b-g4z2m                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          8m17s
+rook-ceph-mon-b-684f66b8df-992wc                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          7m43s
+rook-ceph-mon-c-6f7657b8b6-2sxl5                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          7m13s
+rook-ceph-operator-d857c476f-4npzl                                <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          12m
+rook-ceph-osd-0-8675cf4f4-7gpbv                                   <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m55s
+rook-ceph-osd-1-58b9d954cf-9s6bw                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m48s
+rook-ceph-osd-2-6994dd5f44-hsqrv                                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m45s
+rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          6m22s
+rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          6m22s
+rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          6m21s</code></pre>
 </div>
 </div>
 </div>
@@ -1049,7 +989,7 @@ If you just finished your OCS 4 deployment it could take 5-10 minutes for your <
 </div>
 <div class="title">Figure 11. OCS Dashboard after successful backing storage installation</div>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 0%;">
 <col style="width: 9.0909%;">
@@ -1059,35 +999,35 @@ If you just finished your OCS 4 deployment it could take 5-10 minutes for your <
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;1&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Health</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Quick overview of the general health of the storage cluster</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;2&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Details</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Overview of the deployed storage cluster version and backend provider</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;3&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Inventory</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>List of all the resources that are used and offered by the storage system</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;4&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Events</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Live overview of all the changes that are being done affecting the storage cluster</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;5&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Utilization</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Overview of the storage cluster usage and performance</p>
 </div></div></td>
 </tr>
@@ -1102,7 +1042,7 @@ If you just finished your OCS 4 deployment it could take 5-10 minutes for your <
 </div>
 <div class="title">Figure 12. OCS Multi-Cloud-Gateway Dashboard after successful installation</div>
 </div>
-<table class="tableblock frame-all grid-all spread">
+<table class="tableblock frame-all grid-all stretch">
 <colgroup>
 <col style="width: 0%;">
 <col style="width: 9.0909%;">
@@ -1112,28 +1052,28 @@ If you just finished your OCS 4 deployment it could take 5-10 minutes for your <
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;1&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Health</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Quick overview of the general health of the Multi-Cloud-Gateway</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;2&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Details</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Overview of the deployed MCG version and backend provider including a link to the MCG Dashboard</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;3&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Buckets</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>List of all the ObjectBucket with are offered and ObjectBucketClaims which are connected to them</p>
 </div></div></td>
 </tr>
 <tr>
 <td class="tableblock halign-left valign-top"><p class="tableblock">&lt;4&gt;</p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Resource Providers</p></td>
-<td class="tableblock halign-left valign-top"><div><div class="paragraph">
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Shows the list of configured Resource Providers that are available as backing storage in the MCG</p>
 </div></div></td>
 </tr>
@@ -1312,13 +1252,13 @@ curl https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4o
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                READY   STATUS      RESTARTS   AGE
-postgresql-1-deploy                 0/1     Completed   0          5m48s
-postgresql-1-lf7qt                  1/1     Running     0          5m40s
-rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
-rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
-rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
-rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                READY   STATUS      RESTARTS   AGE
+postgresql-1-deploy                 <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          5m48s
+postgresql-1-lf7qt                  <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          5m40s
+rails-pgsql-persistent-1-build      <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          5m49s
+rails-pgsql-persistent-1-deploy     <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          3m36s
+rails-pgsql-persistent-1-hook-pre   <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          3m28s
+rails-pgsql-persistent-1-pjh6q      <span class="tok-m">1</span>/1     Running     <span class="tok-m">0</span>          3m14s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1335,8 +1275,8 @@ rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                     HOST/PORT                                                                         PATH   SERVICES                 PORT    TERMINATION   WILDCARD
-rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com          rails-pgsql-persistent</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                     HOST/PORT                                                                         PATH   SERVICES                 PORT    TERMINATION   WILDCARD
+rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com          rails-pgsql-persistent</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1389,16 +1329,16 @@ rbd -p ocs-storagecluster-cephblockpool ls <span class="tok-p">|</span> grep vol
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
 ocs-deviceset-0-0-gzxjb   pvc-1cf104d2-2033-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
 ocs-deviceset-1-0-s87xm   pvc-1cf33c42-2033-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
 ocs-deviceset-2-0-zcjk4   pvc-1cf4f825-2033-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
-db-noobaa-core-0          pvc-3008e684-2033-11ea-a83b-065b3ec3da7c   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-3c0bb177-2033-11ea-9396-0a580a800406
-postgresql                pvc-4ca89d3d-2060-11ea-9a42-02dfa51cba90   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-4cbba393-2060-11ea-9396-0a580a800406
+db-noobaa-core-0          pvc-3008e684-2033-11ea-a83b-065b3ec3da7c   ocs-storagecluster-ceph-rbd   <span class="tok-m">0001</span>-0011-openshift-storage-0000000000000001-3c0bb177-2033-11ea-9396-0a580a800406
+postgresql                pvc-4ca89d3d-2060-11ea-9a42-02dfa51cba90   ocs-storagecluster-ceph-rbd   <span class="tok-m">0001</span>-0011-openshift-storage-0000000000000001-4cbba393-2060-11ea-9396-0a580a800406
 rook-ceph-mon-a           pvc-cac661b6-2032-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
 rook-ceph-mon-b           pvc-cde2d8b3-2032-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
 rook-ceph-mon-c           pvc-d0efbd9d-2032-11ea-ac56-0a9ccb4b29e2   gp2                           &lt;none&gt;
-lab-ossm-hub-data         pvc-dc1d4bdc-2028-11ea-ad6c-0a9ccb4b29e2   gp2                           &lt;none&gt;</pre>
+lab-ossm-hub-data         pvc-dc1d4bdc-2028-11ea-ad6c-0a9ccb4b29e2   gp2                           &lt;none&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1427,7 +1367,7 @@ lab-ossm-hub-data         pvc-dc1d4bdc-2028-11ea-ad6c-0a9ccb4b29e2   gp2        
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-vol-4cbba393-2060-11ea-9396-0a580a800406</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>csi-vol-4cbba393-2060-11ea-9396-0a580a800406</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1442,19 +1382,19 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span> rbd -p ocs-st
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>rbd image 'csi-vol-4cbba393-2060-11ea-9396-0a580a800406':
-	size 5 GiB in 1280 objects
-	order 22 (4 MiB objects)
-	snapshot_count: 0
+<pre class="pygments highlight"><code data-lang="shell"><span></span>rbd image <span class="tok-s1">&#39;csi-vol-4cbba393-2060-11ea-9396-0a580a800406&#39;</span>:
+	size <span class="tok-m">5</span> GiB in <span class="tok-m">1280</span> objects
+	order <span class="tok-m">22</span> <span class="tok-o">(</span><span class="tok-m">4</span> MiB objects<span class="tok-o">)</span>
+	snapshot_count: <span class="tok-m">0</span>
 	id: 95e4f3973e8
 	block_name_prefix: rbd_data.95e4f3973e8
-	format: 2
+	format: <span class="tok-m">2</span>
 	features: layering
 	op_features:
 	flags:
-	create_timestamp: Tue Dec 17 00:00:57 2019
-	access_timestamp: Tue Dec 17 00:00:57 2019
-	modify_timestamp: Tue Dec 17 00:00:57 2019</pre>
+	create_timestamp: Tue Dec <span class="tok-m">17</span> <span class="tok-m">00</span>:00:57 <span class="tok-m">2019</span>
+	access_timestamp: Tue Dec <span class="tok-m">17</span> <span class="tok-m">00</span>:00:57 <span class="tok-m">2019</span>
+	modify_timestamp: Tue Dec <span class="tok-m">17</span> <span class="tok-m">00</span>:00:57 <span class="tok-m">2019</span></code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1499,31 +1439,31 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span> rbd -p ocs-st
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>--&gt; Found image 665111f (6 days old) in image stream "openshift/php" under tag "7.1" for "openshift/php:7.1"
+<pre class="pygments highlight"><code data-lang="shell"><span></span>--&gt; Found image 665111f <span class="tok-o">(</span><span class="tok-m">6</span> days old<span class="tok-o">)</span> in image stream <span class="tok-s2">&quot;openshift/php&quot;</span> under tag <span class="tok-s2">&quot;7.1&quot;</span> <span class="tok-k">for</span> <span class="tok-s2">&quot;openshift/php:7.1&quot;</span>
 
-    Apache 2.4 with PHP 7.1
+    Apache <span class="tok-m">2</span>.4 with PHP <span class="tok-m">7</span>.1
     -----------------------
-    PHP 7.1 available as container is a base platform for building and running various PHP 7.1 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
+    PHP <span class="tok-m">7</span>.1 available as container is a base platform <span class="tok-k">for</span> building and running various PHP <span class="tok-m">7</span>.1 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy <span class="tok-k">for</span> developers to write dynamically generated web pages. PHP also offers built-in database integration <span class="tok-k">for</span> several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement <span class="tok-k">for</span> CGI scripts.
 
     Tags: builder, php, php71, rh-php71
 
-    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
-      * The resulting image will be pushed to image stream tag "file-uploader:latest"
-      * Use 'oc start-build' to trigger a new build
-    * This image will be deployed in deployment config "file-uploader"
-    * Ports 8080/tcp, 8443/tcp will be load balanced by service "file-uploader"
-      * Other containers can access this service through the hostname "file-uploader"
+    * A <span class="tok-nb">source</span> build using <span class="tok-nb">source</span> code from https://github.com/christianh814/openshift-php-upload-demo will be created
+      * The resulting image will be pushed to image stream tag <span class="tok-s2">&quot;file-uploader:latest&quot;</span>
+      * Use <span class="tok-s1">&#39;oc start-build&#39;</span> to trigger a new build
+    * This image will be deployed in deployment config <span class="tok-s2">&quot;file-uploader&quot;</span>
+    * Ports <span class="tok-m">8080</span>/tcp, <span class="tok-m">8443</span>/tcp will be load balanced by service <span class="tok-s2">&quot;file-uploader&quot;</span>
+      * Other containers can access this service through the hostname <span class="tok-s2">&quot;file-uploader&quot;</span>
 
 --&gt; Creating resources ...
-    imagestream.image.openshift.io "file-uploader" created
-    buildconfig.build.openshift.io "file-uploader" created
-    deploymentconfig.apps.openshift.io "file-uploader" created
-    service "file-uploader" created
+    imagestream.image.openshift.io <span class="tok-s2">&quot;file-uploader&quot;</span> created
+    buildconfig.build.openshift.io <span class="tok-s2">&quot;file-uploader&quot;</span> created
+    deploymentconfig.apps.openshift.io <span class="tok-s2">&quot;file-uploader&quot;</span> created
+    service <span class="tok-s2">&quot;file-uploader&quot;</span> created
 --&gt; Success
-    Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
+    Build scheduled, use <span class="tok-s1">&#39;oc logs -f bc/file-uploader&#39;</span> to track its progress.
     Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/file-uploader'
-    Run 'oc status' to view your app.</pre>
+     <span class="tok-s1">&#39;oc expose svc/file-uploader&#39;</span>
+    Run <span class="tok-s1">&#39;oc status&#39;</span> to view your app.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1537,39 +1477,39 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span> rbd -p ocs-st
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
+<pre class="pygments highlight"><code data-lang="shell"><span></span>Cloning <span class="tok-s2">&quot;https://github.com/christianh814/openshift-php-upload-demo&quot;</span> ...
 
-[...]
+<span class="tok-o">[</span>...<span class="tok-o">]</span>
 
 Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5
-STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5
-STEP 2: LABEL "io.openshift.build.source-location"="https://github.com/christianh814/openshift-php-upload-demo" "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5" "io.openshift.build.commit.author"="Christian Hernandez &lt;christian.hernandez@yahoo.com&gt;" "io.openshift.build.commit.date"="Sun Oct 1 17:15:09 2017 -0700" "io.openshift.build.commit.id"="288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2" "io.openshift.build.commit.ref"="master" "io.openshift.build.commit.message"="trying to modularize"
-STEP 3: ENV OPENSHIFT_BUILD_NAME="file-uploader-1" OPENSHIFT_BUILD_NAMESPACE="my-shared-storage" OPENSHIFT_BUILD_SOURCE="https://github.com/christianh814/openshift-php-upload-demo" OPENSHIFT_BUILD_COMMIT="288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2"
-STEP 4: USER root
-STEP 5: COPY upload/src /tmp/src
-STEP 6: RUN chown -R 1001:0 /tmp/src
-time="2019-11-20T18:53:16Z" level=warning msg="pkg/chroot: error unmounting \"/tmp/buildah873160532/mnt/rootfs\": error checking if \"/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-time="2019-11-20T18:53:16Z" level=warning msg="pkg/bind: error unmounting \"/tmp/buildah873160532/mnt/rootfs\": error checking if \"/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-STEP 7: USER 1001
-STEP 8: RUN /usr/libexec/s2i/assemble
+STEP <span class="tok-m">1</span>: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5
+STEP <span class="tok-m">2</span>: LABEL <span class="tok-s2">&quot;io.openshift.build.source-location&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;https://github.com/christianh814/openshift-php-upload-demo&quot;</span> <span class="tok-s2">&quot;io.openshift.build.image&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5&quot;</span> <span class="tok-s2">&quot;io.openshift.build.commit.author&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;Christian Hernandez &lt;christian.hernandez@yahoo.com&gt;&quot;</span> <span class="tok-s2">&quot;io.openshift.build.commit.date&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;Sun Oct 1 17:15:09 2017 -0700&quot;</span> <span class="tok-s2">&quot;io.openshift.build.commit.id&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2&quot;</span> <span class="tok-s2">&quot;io.openshift.build.commit.ref&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;master&quot;</span> <span class="tok-s2">&quot;io.openshift.build.commit.message&quot;</span><span class="tok-o">=</span><span class="tok-s2">&quot;trying to modularize&quot;</span>
+STEP <span class="tok-m">3</span>: ENV <span class="tok-nv">OPENSHIFT_BUILD_NAME</span><span class="tok-o">=</span><span class="tok-s2">&quot;file-uploader-1&quot;</span> <span class="tok-nv">OPENSHIFT_BUILD_NAMESPACE</span><span class="tok-o">=</span><span class="tok-s2">&quot;my-shared-storage&quot;</span> <span class="tok-nv">OPENSHIFT_BUILD_SOURCE</span><span class="tok-o">=</span><span class="tok-s2">&quot;https://github.com/christianh814/openshift-php-upload-demo&quot;</span> <span class="tok-nv">OPENSHIFT_BUILD_COMMIT</span><span class="tok-o">=</span><span class="tok-s2">&quot;288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2&quot;</span>
+STEP <span class="tok-m">4</span>: USER root
+STEP <span class="tok-m">5</span>: COPY upload/src /tmp/src
+STEP <span class="tok-m">6</span>: RUN chown -R <span class="tok-m">1001</span>:0 /tmp/src
+<span class="tok-nv">time</span><span class="tok-o">=</span><span class="tok-s2">&quot;2019-11-20T18:53:16Z&quot;</span> <span class="tok-nv">level</span><span class="tok-o">=</span>warning <span class="tok-nv">msg</span><span class="tok-o">=</span><span class="tok-s2">&quot;pkg/chroot: error unmounting \&quot;/tmp/buildah873160532/mnt/rootfs\&quot;: error checking if \&quot;/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\&quot; is mounted: no such file or directory&quot;</span>
+<span class="tok-nv">time</span><span class="tok-o">=</span><span class="tok-s2">&quot;2019-11-20T18:53:16Z&quot;</span> <span class="tok-nv">level</span><span class="tok-o">=</span>warning <span class="tok-nv">msg</span><span class="tok-o">=</span><span class="tok-s2">&quot;pkg/bind: error unmounting \&quot;/tmp/buildah873160532/mnt/rootfs\&quot;: error checking if \&quot;/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\&quot; is mounted: no such file or directory&quot;</span>
+STEP <span class="tok-m">7</span>: USER <span class="tok-m">1001</span>
+STEP <span class="tok-m">8</span>: RUN /usr/libexec/s2i/assemble
 ---&gt; Installing application source...
-=&gt; sourcing 20-copy-config.sh ...
----&gt; 18:53:16     Processing additional arbitrary httpd configuration provided by s2i ...
-=&gt; sourcing 00-documentroot.conf ...
-=&gt; sourcing 50-mpm-tuning.conf ...
-=&gt; sourcing 40-ssl-certs.sh ...
-time="2019-11-20T18:53:17Z" level=warning msg="pkg/chroot: error unmounting \"/tmp/buildah357283409/mnt/rootfs\": error checking if \"/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-time="2019-11-20T18:53:17Z" level=warning msg="pkg/bind: error unmounting \"/tmp/buildah357283409/mnt/rootfs\": error checking if \"/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-STEP 9: CMD /usr/libexec/s2i/run
-STEP 10: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:562d8fb3
-Getting image source signatures
+<span class="tok-o">=</span>&gt; sourcing <span class="tok-m">20</span>-copy-config.sh ...
+---&gt; <span class="tok-m">18</span>:53:16     Processing additional arbitrary httpd configuration provided by s2i ...
+<span class="tok-o">=</span>&gt; sourcing <span class="tok-m">00</span>-documentroot.conf ...
+<span class="tok-o">=</span>&gt; sourcing <span class="tok-m">50</span>-mpm-tuning.conf ...
+<span class="tok-o">=</span>&gt; sourcing <span class="tok-m">40</span>-ssl-certs.sh ...
+<span class="tok-nv">time</span><span class="tok-o">=</span><span class="tok-s2">&quot;2019-11-20T18:53:17Z&quot;</span> <span class="tok-nv">level</span><span class="tok-o">=</span>warning <span class="tok-nv">msg</span><span class="tok-o">=</span><span class="tok-s2">&quot;pkg/chroot: error unmounting \&quot;/tmp/buildah357283409/mnt/rootfs\&quot;: error checking if \&quot;/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\&quot; is mounted: no such file or directory&quot;</span>
+<span class="tok-nv">time</span><span class="tok-o">=</span><span class="tok-s2">&quot;2019-11-20T18:53:17Z&quot;</span> <span class="tok-nv">level</span><span class="tok-o">=</span>warning <span class="tok-nv">msg</span><span class="tok-o">=</span><span class="tok-s2">&quot;pkg/bind: error unmounting \&quot;/tmp/buildah357283409/mnt/rootfs\&quot;: error checking if \&quot;/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\&quot; is mounted: no such file or directory&quot;</span>
+STEP <span class="tok-m">9</span>: CMD /usr/libexec/s2i/run
+STEP <span class="tok-m">10</span>: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:562d8fb3
+Getting image <span class="tok-nb">source</span> signatures
 
-[...]
+<span class="tok-o">[</span>...<span class="tok-o">]</span>
 
 Writing manifest to image destination
 Storing signatures
 Successfully pushed image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:74029bb63e4b7cb33602eb037d45d3d27245ffbfc105fd2a4587037c6b063183
-Push successful</pre>
+Push successful</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1678,8 +1618,8 @@ with <code>oc set volume -h</code>. Now, let&#8217;s look at the result of addin
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-my-shared-storage   Bound    pvc-371c2184-fb73-11e9-b901-0aad1a53052d   1Gi        RWX            ocs-storagecluster-cephfs   47s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+my-shared-storage   Bound    pvc-371c2184-fb73-11e9-b901-0aad1a53052d   1Gi        RWX            ocs-storagecluster-cephfs   47s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1708,7 +1648,7 @@ new files.</p>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1753,29 +1693,29 @@ uploaded files.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                               READY   STATUS    RESTARTS   AGE
-pod/alertmanager-main-0                            3/3     Running   0          6d23h
-pod/alertmanager-main-1                            3/3     Running   0          6d23h
-pod/alertmanager-main-2                            3/3     Running   0          6d23h
-pod/cluster-monitoring-operator-84cd9df668-74wnk   1/1     Running   0          6d23h
-pod/grafana-5db6fd97f8-fqj5g                       2/2     Running   0          6d23h
-pod/kube-state-metrics-895899678-pm8h7             3/3     Running   0          6d23h
-pod/node-exporter-69hqs                            2/2     Running   0          6d23h
-pod/node-exporter-mw7lf                            2/2     Running   0          6d23h
-pod/node-exporter-npngl                            2/2     Running   0          6d23h
-pod/node-exporter-p8nv7                            2/2     Running   0          6d23h
-pod/node-exporter-pgppl                            2/2     Running   0          6d23h
-pod/node-exporter-pnnhb                            2/2     Running   0          6d23h
-pod/node-exporter-rb4wv                            2/2     Running   0          6d23h
-pod/node-exporter-rwpwj                            2/2     Running   0          6d23h
-pod/node-exporter-xpvv7                            2/2     Running   0          6d23h
-pod/openshift-state-metrics-77d5f699d8-km8dn       3/3     Running   0          6d23h
-pod/prometheus-adapter-7cd7578f49-2wr84            1/1     Running   0          5d23h
-pod/prometheus-adapter-7cd7578f49-hbwgg            1/1     Running   0          5d23h
-pod/prometheus-k8s-0                               6/6     Running   1          6d23h
-pod/prometheus-k8s-1                               6/6     Running   1          6d23h
-pod/prometheus-operator-cbfd89f9-95bgj             1/1     Running   0          156m
-pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          6d23h</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                               READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                            <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h
+pod/alertmanager-main-1                            <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h
+pod/alertmanager-main-2                            <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h
+pod/cluster-monitoring-operator-84cd9df668-74wnk   <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          6d23h
+pod/grafana-5db6fd97f8-fqj5g                       <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/kube-state-metrics-895899678-pm8h7             <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-69hqs                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-mw7lf                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-npngl                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-p8nv7                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-pgppl                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-pnnhb                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-rb4wv                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-rwpwj                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/node-exporter-xpvv7                            <span class="tok-m">2</span>/2     Running   <span class="tok-m">0</span>          6d23h
+pod/openshift-state-metrics-77d5f699d8-km8dn       <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h
+pod/prometheus-adapter-7cd7578f49-2wr84            <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          5d23h
+pod/prometheus-adapter-7cd7578f49-hbwgg            <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          5d23h
+pod/prometheus-k8s-0                               <span class="tok-m">6</span>/6     Running   <span class="tok-m">1</span>          6d23h
+pod/prometheus-k8s-1                               <span class="tok-m">6</span>/6     Running   <span class="tok-m">1</span>          6d23h
+pod/prometheus-operator-cbfd89f9-95bgj             <span class="tok-m">1</span>/1     Running   <span class="tok-m">0</span>          156m
+pod/telemeter-client-7c65855db4-vd5jl              <span class="tok-m">3</span>/3     Running   <span class="tok-m">0</span>          6d23h</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1794,14 +1734,14 @@ pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          
 <div class="listingblock">
 <div class="title">Output if the ConfigMap is not yet created:</div>
 <div class="content">
-<pre>Error from server (NotFound): configmaps "cluster-monitoring-config" not found</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>Error from server <span class="tok-o">(</span>NotFound<span class="tok-o">)</span>: configmaps <span class="tok-s2">&quot;cluster-monitoring-config&quot;</span> not found</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Output if the ConfigMap is created:</div>
 <div class="content">
-<pre>NAME                        DATA   AGE
-cluster-monitoring-config   1      116m</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                        DATA   AGE
+cluster-monitoring-config   <span class="tok-m">1</span>      116m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1815,7 +1755,7 @@ cluster-monitoring-config   1      116m</pre>
 <div class="listingblock">
 <div class="title">Sample output:</div>
 <div class="content">
-<pre>configmap/cluster-monitoring-config created</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>configmap/cluster-monitoring-config created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1939,102 +1879,102 @@ While the NooBaa Web Management Console is accessible, it should not be used to 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 2.0.9
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9
-INFO[0000] Namespace: openshift-storage
-INFO[0000]
-INFO[0000] CRD Status:
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
-INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
-INFO[0001]
-INFO[0001] Operator Status:
-INFO[0001] ✅ Exists: Namespace "openshift-storage"
-INFO[0001] ✅ Exists: ServiceAccount "noobaa"
-INFO[0001] ✅ Exists: Role "ocs-operator.v0.0.273-l5jqf"
-INFO[0001] ✅ Exists: RoleBinding "ocs-operator.v0.0.273-l5jqf-noobaa-s4vrx"
-INFO[0002] ✅ Exists: ClusterRole "ocs-operator.v0.0.273-k4j99"
-INFO[0002] ✅ Exists: ClusterRoleBinding "ocs-operator.v0.0.273-k4j99-noobaa-6hcbk"
-INFO[0002] ✅ Exists: Deployment "noobaa-operator"
-INFO[0002]
-INFO[0002] System Status:
-INFO[0002] ✅ Exists: NooBaa "noobaa"
-INFO[0002] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0002] ✅ Exists: Service "noobaa-mgmt"
-INFO[0002] ✅ Exists: Service "s3"
-INFO[0002] ✅ Exists: Secret "noobaa-server"
-INFO[0002] ✅ Exists: Secret "noobaa-operator"
-INFO[0002] ✅ Exists: Secret "noobaa-admin"
-INFO[0003] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
-INFO[0003] ✅ Exists: BucketClass "noobaa-default-bucket-class"
-INFO[0003] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
-INFO[0003] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds"
-INFO[0003] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
-INFO[0003] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
-INFO[0003] ✅ (Optional) Exists: Route "noobaa-mgmt"
-INFO[0003] ✅ (Optional) Exists: Route "s3"
-INFO[0003] ✅ Exists: PersistentVolumeClaim "db-noobaa-core-0"
-INFO[0003] ✅ System Phase is "Ready"
-INFO[0003] ✅ Exists:  "noobaa-admin"
+<pre class="pygments highlight"><code data-lang="shell"><span></span>INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> CLI version: <span class="tok-m">2</span>.0.9
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> noobaa-image: noobaa/noobaa-core:5.2.11
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> operator-image: noobaa/noobaa-operator:2.0.9
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> Namespace: openshift-storage
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> CRD Status:
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> ✅ Exists: CustomResourceDefinition <span class="tok-s2">&quot;noobaas.noobaa.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: CustomResourceDefinition <span class="tok-s2">&quot;backingstores.noobaa.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: CustomResourceDefinition <span class="tok-s2">&quot;bucketclasses.noobaa.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: CustomResourceDefinition <span class="tok-s2">&quot;objectbucketclaims.objectbucket.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: CustomResourceDefinition <span class="tok-s2">&quot;objectbuckets.objectbucket.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> Operator Status:
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: Namespace <span class="tok-s2">&quot;openshift-storage&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: ServiceAccount <span class="tok-s2">&quot;noobaa&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: Role <span class="tok-s2">&quot;ocs-operator.v0.0.273-l5jqf&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Exists: RoleBinding <span class="tok-s2">&quot;ocs-operator.v0.0.273-l5jqf-noobaa-s4vrx&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: ClusterRole <span class="tok-s2">&quot;ocs-operator.v0.0.273-k4j99&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: ClusterRoleBinding <span class="tok-s2">&quot;ocs-operator.v0.0.273-k4j99-noobaa-6hcbk&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Deployment <span class="tok-s2">&quot;noobaa-operator&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> System Status:
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: NooBaa <span class="tok-s2">&quot;noobaa&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: StatefulSet <span class="tok-s2">&quot;noobaa-core&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Service <span class="tok-s2">&quot;noobaa-mgmt&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Service <span class="tok-s2">&quot;s3&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Secret <span class="tok-s2">&quot;noobaa-server&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Secret <span class="tok-s2">&quot;noobaa-operator&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0002</span><span class="tok-o">]</span> ✅ Exists: Secret <span class="tok-s2">&quot;noobaa-admin&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ Exists: StorageClass <span class="tok-s2">&quot;openshift-storage.noobaa.io&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ Exists: BucketClass <span class="tok-s2">&quot;noobaa-default-bucket-class&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: BackingStore <span class="tok-s2">&quot;noobaa-default-backing-store&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: CredentialsRequest <span class="tok-s2">&quot;noobaa-cloud-creds&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: PrometheusRule <span class="tok-s2">&quot;noobaa-prometheus-rules&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: ServiceMonitor <span class="tok-s2">&quot;noobaa-service-monitor&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: Route <span class="tok-s2">&quot;noobaa-mgmt&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ <span class="tok-o">(</span>Optional<span class="tok-o">)</span> Exists: Route <span class="tok-s2">&quot;s3&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ Exists: PersistentVolumeClaim <span class="tok-s2">&quot;db-noobaa-core-0&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ System Phase is <span class="tok-s2">&quot;Ready&quot;</span>
+INFO<span class="tok-o">[</span><span class="tok-m">0003</span><span class="tok-o">]</span> ✅ Exists:  <span class="tok-s2">&quot;noobaa-admin&quot;</span>
 
-#------------------#
-#- Mgmt Addresses -#
-#------------------#
+<span class="tok-c1">#------------------#</span>
+<span class="tok-c1">#- Mgmt Addresses -#</span>
+<span class="tok-c1">#------------------#</span>
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9e6c341187a11ea8e670a863dc4c4d-1226242861.us-east-1.elb.amazonaws.com:443]
-ExternalIP  : []
-NodePorts   : [https://10.0.157.178:31811]
-InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.212.225:443]
-PodPorts    : [https://10.130.2.10:8443]
+ExternalDNS : <span class="tok-o">[</span>https://noobaa-mgmt-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9e6c341187a11ea8e670a863dc4c4d-1226242861.us-east-1.elb.amazonaws.com:443<span class="tok-o">]</span>
+ExternalIP  : <span class="tok-o">[]</span>
+NodePorts   : <span class="tok-o">[</span>https://10.0.157.178:31811<span class="tok-o">]</span>
+InternalDNS : <span class="tok-o">[</span>https://noobaa-mgmt.openshift-storage.svc:443<span class="tok-o">]</span>
+InternalIP  : <span class="tok-o">[</span>https://172.30.212.225:443<span class="tok-o">]</span>
+PodPorts    : <span class="tok-o">[</span>https://10.130.2.10:8443<span class="tok-o">]</span>
 
-#--------------------#
-#- Mgmt Credentials -#
-#--------------------#
+<span class="tok-c1">#--------------------#</span>
+<span class="tok-c1">#- Mgmt Credentials -#</span>
+<span class="tok-c1">#--------------------#</span>
 
 email    : admin@noobaa.io
-password : 5Iqq3+XoZS/sPWTkD2c5Aw==
+password : 5Iqq3+XoZS/sPWTkD2c5Aw<span class="tok-o">==</span>
 
-#----------------#
-#- S3 Addresses -#
-#----------------#
+<span class="tok-c1">#----------------#</span>
+<span class="tok-c1">#- S3 Addresses -#</span>
+<span class="tok-c1">#----------------#</span>
 
-ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9f0fa4b187a11ea8e670a863dc4c4d-390690077.us-east-1.elb.amazonaws.com:443]
-ExternalIP  : []
-NodePorts   : [https://10.0.157.178:31605]
-InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.252.169:443]
-PodPorts    : [https://10.130.2.10:6443]
+ExternalDNS : <span class="tok-o">[</span>https://s3-openshift-storage.apps.cluster-ocs-18dd.ocs-18dd.example.opentlc.com https://aa9f0fa4b187a11ea8e670a863dc4c4d-390690077.us-east-1.elb.amazonaws.com:443<span class="tok-o">]</span>
+ExternalIP  : <span class="tok-o">[]</span>
+NodePorts   : <span class="tok-o">[</span>https://10.0.157.178:31605<span class="tok-o">]</span>
+InternalDNS : <span class="tok-o">[</span>https://s3.openshift-storage.svc:443<span class="tok-o">]</span>
+InternalIP  : <span class="tok-o">[</span>https://172.30.252.169:443<span class="tok-o">]</span>
+PodPorts    : <span class="tok-o">[</span>https://10.130.2.10:6443<span class="tok-o">]</span>
 
-#------------------#
-#- S3 Credentials -#
-#------------------#
+<span class="tok-c1">#------------------#</span>
+<span class="tok-c1">#- S3 Credentials -#</span>
+<span class="tok-c1">#------------------#</span>
 
 AWS_ACCESS_KEY_ID     : rQNcbCCIGxkApCA3U8TB
 AWS_SECRET_ACCESS_KEY : V9qxglxRrJETkmEFBo04aWYu8Jpp6IBMS9w73fQr
 
-#------------------#
-#- Backing Stores -#
-#------------------#
+<span class="tok-c1">#------------------#</span>
+<span class="tok-c1">#- Backing Stores -#</span>
+<span class="tok-c1">#------------------#</span>
 
 NAME                           TYPE     TARGET-BUCKET                                               PHASE   AGE
 noobaa-default-backing-store   aws-s3   noobaa-backing-store-0b438b35-023f-4ce4-99e5-557f88c210b0   Ready   1h39m31s
 
-#------------------#
-#- Bucket Classes -#
-#------------------#
+<span class="tok-c1">#------------------#</span>
+<span class="tok-c1">#- Bucket Classes -#</span>
+<span class="tok-c1">#------------------#</span>
 
 NAME                          PLACEMENT                                                             PHASE   AGE
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   1h39m31s
+noobaa-default-bucket-class   <span class="tok-o">{</span>Tiers:<span class="tok-o">[{</span>Placement: BackingStores:<span class="tok-o">[</span>noobaa-default-backing-store<span class="tok-o">]}]}</span>   Ready   1h39m31s
 
-#-----------------#
-#- Bucket Claims -#
-#-----------------#
+<span class="tok-c1">#-----------------#</span>
+<span class="tok-c1">#- Bucket Claims -#</span>
+<span class="tok-c1">#-----------------#</span>
 
-No OBC's found.</pre>
+No OBC<span class="tok-err">&#39;</span>s found.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2062,7 +2002,7 @@ This dashboard does not give you connection information for your S3 endpoint, bu
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0001] ✅ Created: ObjectBucketClaim "test21obc"</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>INFO<span class="tok-o">[</span><span class="tok-m">0001</span><span class="tok-o">]</span> ✅ Created: ObjectBucketClaim <span class="tok-s2">&quot;test21obc&quot;</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2076,8 +2016,8 @@ This dashboard does not give you connection information for your S3 endpoint, bu
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME        STORAGE-CLASS                 PHASE   AGE
-test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME        STORAGE-CLASS                 PHASE   AGE
+test21obc   openshift-storage.noobaa.io   Bound   38s</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -2088,7 +2028,7 @@ test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml"><table class="pyhltable"><tr><td class="linenos"><div class="linenodiv"> 1
+<pre class="pygments highlight"><code data-lang="yaml"><table class="linenotable"><tr><td class="linenos"><div class="linenodiv"><pre> 1
  2
  3
  4
@@ -2110,7 +2050,7 @@ test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
 20
 21
 22
-23</div></td><td class="code"><span></span><span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">apiVersion</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">objectbucket.io/v1alpha1</span>
+23</pre></div></td><td class="code"><pre><span></span><span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">apiVersion</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">objectbucket.io/v1alpha1</span>
 <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">kind</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">ObjectBucketClaim</span>
 <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">metadata</span><span class="tok-p tok-p-Indicator">:</span>
   <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">creationTimestamp</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-s">&quot;2019-10-24T13:30:07Z&quot;</span>
@@ -2133,7 +2073,7 @@ test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
   <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">storageClassName</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">openshift-storage.noobaa.io</span>
 <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">status</span><span class="tok-p tok-p-Indicator">:</span>
   <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">phase</span><span class="tok-p tok-p-Indicator">:</span> <span class="tok-l tok-l-Scalar tok-l-Scalar-Plain">Bound</span>
-</td></tr></table></code></pre>
+</pre></td></tr></table></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2303,9 +2243,9 @@ test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>namespace/obc-test created
+<pre class="pygments highlight"><code data-lang="shell"><span></span>namespace/obc-test created
 objectbucketclaim.objectbucket.io/obc-test created
-job.batch/obc-test created</pre>
+job.batch/obc-test created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2319,8 +2259,8 @@ job.batch/obc-test created</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME             READY   STATUS      RESTARTS   AGE
-obc-test-bvg8h   0/1     Completed   0          22s</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME             READY   STATUS      RESTARTS   AGE
+obc-test-bvg8h   <span class="tok-m">0</span>/1     Completed   <span class="tok-m">0</span>          22s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2346,10 +2286,10 @@ Fetching the obc-test log via the <code>oc</code> command does not work correctl
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>+ s3cmd --no-check-certificate --host 10.0.140.19:30052 --host-bucket 10.0.140.19:30052 du
-0        0 objects s3://obc-test-noobaa-784461cb-1e77-4ccf-b62d-007a6ae3ef15/
+<pre class="pygments highlight"><code data-lang="shell"><span></span>+ s3cmd --no-check-certificate --host <span class="tok-m">10</span>.0.140.19:30052 --host-bucket <span class="tok-m">10</span>.0.140.19:30052 du
+<span class="tok-m">0</span>        <span class="tok-m">0</span> objects s3://obc-test-noobaa-784461cb-1e77-4ccf-b62d-007a6ae3ef15/
 --------
-0        Total</pre>
+<span class="tok-m">0</span>        Total</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2398,10 +2338,10 @@ Most applications support reading out the <code>AWS_ACCESS_KEY_ID</code> and <co
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   1         1         1       1           3h50m</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           3h50m
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   <span class="tok-m">1</span>         <span class="tok-m">1</span>         <span class="tok-m">1</span>       <span class="tok-m">1</span>           3h50m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2415,12 +2355,12 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c   1         1         1       1     
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc scale -n openshift-machine-api --replicas<span class="tok-o">=</span><span class="tok-m">2</span> machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a
 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b
+oc scale -n openshift-machine-api --replicas<span class="tok-o">=</span><span class="tok-m">2</span> machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b
 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c scaled</pre>
+oc scale -n openshift-machine-api --replicas<span class="tok-o">=</span><span class="tok-m">2</span> machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c
+machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2445,9 +2385,9 @@ machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-1c scal
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ip-10-0-133-99.us-east-1.compute.internal
+<pre class="pygments highlight"><code data-lang="shell"><span></span>ip-10-0-133-99.us-east-1.compute.internal
 ip-10-0-158-153.us-east-1.compute.internal
-ip-10-0-160-200.us-east-1.compute.internal</pre>
+ip-10-0-160-200.us-east-1.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2461,18 +2401,18 @@ ip-10-0-160-200.us-east-1.compute.internal</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc label nodes ip-10-0-131-209.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
-error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-133-99.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
+<pre class="pygments highlight"><code data-lang="shell"><span></span>oc label nodes ip-10-0-131-209.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
+error: <span class="tok-s1">&#39;cluster.ocs.openshift.io/openshift-storage&#39;</span> already has a value <span class="tok-o">()</span>, and --overwrite is <span class="tok-nb">false</span>
+oc label nodes ip-10-0-133-99.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
 node/ip-10-0-133-99.us-east-1.compute.internal labeled
-oc label nodes ip-10-0-155-12.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
-error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false
-oc label nodes ip-10-0-158-153.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-155-12.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
+error: <span class="tok-s1">&#39;cluster.ocs.openshift.io/openshift-storage&#39;</span> already has a value <span class="tok-o">()</span>, and --overwrite is <span class="tok-nb">false</span>
+oc label nodes ip-10-0-158-153.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
 node/ip-10-0-158-153.us-east-1.compute.internal labeled
-oc label nodes ip-10-0-160-200.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
+oc label nodes ip-10-0-160-200.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
 node/ip-10-0-160-200.us-east-1.compute.internal labeled
-oc label nodes ip-10-0-162-215.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage=
-error: 'cluster.ocs.openshift.io/openshift-storage' already has a value (), and --overwrite is false</pre>
+oc label nodes ip-10-0-162-215.us-east-1.compute.internal cluster.ocs.openshift.io/openshift-storage<span class="tok-o">=</span>
+error: <span class="tok-s1">&#39;cluster.ocs.openshift.io/openshift-storage&#39;</span> already has a value <span class="tok-o">()</span>, and --overwrite is <span class="tok-nb">false</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2554,7 +2494,7 @@ The effectively provisioned capacity will be three times as much as you put into
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                                              STATUS      NODE
+<pre class="pygments highlight"><code data-lang="shell"><span></span>NAME                                                              STATUS      NODE
 rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-1.compute.internal
 rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-1.compute.internal
 rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-1.compute.internal
@@ -2566,7 +2506,7 @@ rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip
 rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-1.compute.internal
 rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-1.compute.internal
 rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-1.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-1.compute.internal</pre>
+rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-1.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2594,25 +2534,25 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span></code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>sh-4.2# ceph status
+<pre class="pygments highlight"><code data-lang="shell"><span></span>sh-4.2# ceph status
   cluster:
     id:     786dbab2-ae4f-4352-8d83-5e27c6a4f341
     health: HEALTH_OK
 
   services:
-    mon: 3 daemons, quorum a,b,c (age 6h)
-    mgr: a(active, since 6h)
-    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 6 osds: 6 up (since 6m), 6 in (since 6m) <i class="conum" data-value="1"></i><b>(1)</b>
+    mon: <span class="tok-m">3</span> daemons, quorum a,b,c <span class="tok-o">(</span>age 6h<span class="tok-o">)</span>
+    mgr: a<span class="tok-o">(</span>active, since 6h<span class="tok-o">)</span>
+    mds: ocs-storagecluster-cephfilesystem:1 <span class="tok-o">{</span><span class="tok-nv">0</span><span class="tok-o">=</span>ocs-storagecluster-cephfilesystem-a<span class="tok-o">=</span>up:active<span class="tok-o">}</span> <span class="tok-m">1</span> up:standby-replay
+    osd: <span class="tok-m">6</span> osds: <span class="tok-m">6</span> up <span class="tok-o">(</span>since 6m<span class="tok-o">)</span>, <span class="tok-m">6</span> in <span class="tok-o">(</span>since 6m<span class="tok-o">)</span> <i class="conum" data-value="1"></i><b>(1)</b>
 
   data:
-    pools:   3 pools, 24 pgs
-    objects: 182 objects, 311 MiB
-    usage:   6.7 GiB used, 6.0 TiB / 6.0 TiB avail <i class="conum" data-value="2"></i><b>(2)</b>
-    pgs:     24 active+clean
+    pools:   <span class="tok-m">3</span> pools, <span class="tok-m">24</span> pgs
+    objects: <span class="tok-m">182</span> objects, <span class="tok-m">311</span> MiB
+    usage:   <span class="tok-m">6</span>.7 GiB used, <span class="tok-m">6</span>.0 TiB / <span class="tok-m">6</span>.0 TiB avail <i class="conum" data-value="2"></i><b>(2)</b>
+    pgs:     <span class="tok-m">24</span> active+clean
 
   io:
-    client:   853 B/s rd, 43 KiB/s wr, 1 op/s rd, 3 op/s wr</pre>
+    client:   <span class="tok-m">853</span> B/s rd, <span class="tok-m">43</span> KiB/s wr, <span class="tok-m">1</span> op/s rd, <span class="tok-m">3</span> op/s wr</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2642,24 +2582,24 @@ oc rsh -n openshift-storage <span class="tok-nv">$TOOLS_POD</span></code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ID  CLASS WEIGHT  TYPE NAME
- -1       5.99396 root default
- -5       5.99396     region us-east-1
- -4       1.99799         zone us-east-1a
- -3       0.99899             host ocs-deviceset-2-0-cx2vg
-  0   ssd 0.99899                 osd.0
--19       0.99899             host ocs-deviceset-2-1-4j7fb <i class="conum" data-value="1"></i><b>(1)</b>
-  5   ssd 0.99899                 osd.5
--10       1.99799         zone us-east-1b
- -9       0.99899             host ocs-deviceset-1-0-s87kw
-  1   ssd 0.99899                 osd.1
--21       0.99899             host ocs-deviceset-1-1-2rjn6 <i class="conum" data-value="1"></i><b>(1)</b>
-  4   ssd 0.99899                 osd.4
--14       1.99799         zone us-east-1c
--13       0.99899             host ocs-deviceset-0-0-chvdn
-  2   ssd 0.99899                 osd.2
--17       0.99899             host ocs-deviceset-0-1-pt9ts <i class="conum" data-value="1"></i><b>(1)</b>
-  3   ssd 0.99899                 osd.3</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>ID  CLASS WEIGHT  TYPE NAME
+ -1       <span class="tok-m">5</span>.99396 root default
+ -5       <span class="tok-m">5</span>.99396     region us-east-1
+ -4       <span class="tok-m">1</span>.99799         zone us-east-1a
+ -3       <span class="tok-m">0</span>.99899             host ocs-deviceset-2-0-cx2vg
+  <span class="tok-m">0</span>   ssd <span class="tok-m">0</span>.99899                 osd.0
+-19       <span class="tok-m">0</span>.99899             host ocs-deviceset-2-1-4j7fb <i class="conum" data-value="1"></i><b>(1)</b>
+  <span class="tok-m">5</span>   ssd <span class="tok-m">0</span>.99899                 osd.5
+-10       <span class="tok-m">1</span>.99799         zone us-east-1b
+ -9       <span class="tok-m">0</span>.99899             host ocs-deviceset-1-0-s87kw
+  <span class="tok-m">1</span>   ssd <span class="tok-m">0</span>.99899                 osd.1
+-21       <span class="tok-m">0</span>.99899             host ocs-deviceset-1-1-2rjn6 <i class="conum" data-value="1"></i><b>(1)</b>
+  <span class="tok-m">4</span>   ssd <span class="tok-m">0</span>.99899                 osd.4
+-14       <span class="tok-m">1</span>.99799         zone us-east-1c
+-13       <span class="tok-m">0</span>.99899             host ocs-deviceset-0-0-chvdn
+  <span class="tok-m">2</span>   ssd <span class="tok-m">0</span>.99899                 osd.2
+-17       <span class="tok-m">0</span>.99899             host ocs-deviceset-0-1-pt9ts <i class="conum" data-value="1"></i><b>(1)</b>
+  <span class="tok-m">3</span>   ssd <span class="tok-m">0</span>.99899                 osd.3</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -2961,41 +2901,41 @@ The local files can then be used by a remote support engineer to debug a problem
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Launch a pod to gather debugging information
+<pre class="pygments highlight"><code data-lang="shell"><span></span>Launch a pod to gather debugging information
 
- This command will launch a pod in a temporary namespace on your cluster that gathers debugging information and then
+ This <span class="tok-nb">command</span> will launch a pod in a temporary namespace on your cluster that gathers debugging information and <span class="tok-k">then</span>
 downloads the gathered information.
 
- Experimental: This command is under active development and may change without notice.
+ Experimental: This <span class="tok-nb">command</span> is under active development and may change without notice.
 
 Usage:
-  oc adm must-gather [flags]
+  oc adm must-gather <span class="tok-o">[</span>flags<span class="tok-o">]</span>
 
 Examples:
-  # gather information using the default plug-in image and command, writing into ./must-gather.local.&lt;rand&gt;
+  <span class="tok-c1"># gather information using the default plug-in image and command, writing into ./must-gather.local.&lt;rand&gt;</span>
   oc adm must-gather
 
-  # gather information with a specific local folder to copy to
-  oc adm must-gather --dest-dir=/local/directory
+  <span class="tok-c1"># gather information with a specific local folder to copy to</span>
+  oc adm must-gather --dest-dir<span class="tok-o">=</span>/local/directory
 
-  # gather information using multiple plug-in images
-  oc adm must-gather --image=quay.io/kubevirt/must-gather --image=quay.io/openshift/origin-must-gather
+  <span class="tok-c1"># gather information using multiple plug-in images</span>
+  oc adm must-gather --image<span class="tok-o">=</span>quay.io/kubevirt/must-gather --image<span class="tok-o">=</span>quay.io/openshift/origin-must-gather
 
-  # gather information using a specific image stream plug-in
-  oc adm must-gather --image-stream=openshift/must-gather:latest
+  <span class="tok-c1"># gather information using a specific image stream plug-in</span>
+  oc adm must-gather --image-stream<span class="tok-o">=</span>openshift/must-gather:latest
 
-  # gather information using a specific image, command, and pod-dir
-  oc adm must-gather --image=my/image:tag --source-dir=/pod/directory -- myspecial-command.sh
+  <span class="tok-c1"># gather information using a specific image, command, and pod-dir</span>
+  oc adm must-gather --image<span class="tok-o">=</span>my/image:tag --source-dir<span class="tok-o">=</span>/pod/directory -- myspecial-command.sh
 
 Options:
-      --dest-dir='': Set a specific directory on the local machine to write gathered data to.
-      --image=[]: Specify a must-gather plugin image to run. If not specified, OpenShift's default must-gather image
-will be used.
-      --image-stream=[]: Specify an image stream (namespace/name:tag) containing a must-gather plugin image to run.
-      --node-name='': Set a specific node to use - by default a random master will be used
-      --source-dir='/must-gather/': Set the specific directory on the pod copy the gathered data from.
+      --dest-dir<span class="tok-o">=</span><span class="tok-s1">&#39;&#39;</span>: Set a specific directory on the <span class="tok-nb">local</span> machine to write gathered data to.
+      --image<span class="tok-o">=[]</span>: Specify a must-gather plugin image to run. If not specified, OpenShift<span class="tok-s1">&#39;s default must-gather image</span>
+<span class="tok-s1">will be used.</span>
+<span class="tok-s1">      --image-stream=[]: Specify an image stream (namespace/name:tag) containing a must-gather plugin image to run.</span>
+<span class="tok-s1">      --node-name=&#39;&#39;: Set a specific node to use - by default a random master will be used</span>
+<span class="tok-s1">      --source-dir=&#39;</span>/must-gather/<span class="tok-err">&#39;</span>: Set the specific directory on the pod copy the gathered data from.
 
-Use "oc adm options" for a list of global command-line options (applies to all commands).</pre>
+Use <span class="tok-s2">&quot;oc adm options&quot;</span> <span class="tok-k">for</span> a list of global command-line options <span class="tok-o">(</span>applies to all commands<span class="tok-o">)</span>.</code></pre>
 </div>
 </div>
 </div>
@@ -3022,7 +2962,7 @@ sudo mv oc /usr/local/bin</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>brew install watch</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>brew install watch</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3030,9 +2970,9 @@ sudo mv oc /usr/local/bin</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>function watch {
-while :; do clear; date; echo; $@; sleep 2; done
-}</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span><span class="tok-k">function</span> watch <span class="tok-o">{</span>
+<span class="tok-k">while</span> :<span class="tok-p">;</span> <span class="tok-k">do</span> clear<span class="tok-p">;</span> date<span class="tok-p">;</span> echo<span class="tok-p">;</span> <span class="tok-nv">$@</span><span class="tok-p">;</span> sleep <span class="tok-m">2</span><span class="tok-p">;</span> <span class="tok-k">done</span>
+<span class="tok-o">}</span></code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3079,9 +3019,9 @@ After successfully login in, you see blue text <code>Display token</code> - clic
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Client Version: openshift-clients-4.2.0-201910041700
-Server Version: 4.2.0
-Kubernetes Version: v1.14.6+2e5ed54</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>Client Version: openshift-clients-4.2.0-201910041700
+Server Version: <span class="tok-m">4</span>.2.0
+Kubernetes Version: v1.14.6+2e5ed54</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3135,9 +3075,9 @@ Kubernetes Version: v1.14.6+2e5ed54</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 2.0.9
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.2.11
-INFO[0000] operator-image: noobaa/noobaa-operator:2.0.9</pre>
+<pre class="pygments highlight"><code data-lang="shell"><span></span>INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> CLI version: <span class="tok-m">2</span>.0.9
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> noobaa-image: noobaa/noobaa-core:5.2.11
+INFO<span class="tok-o">[</span><span class="tok-m">0000</span><span class="tok-o">]</span> operator-image: noobaa/noobaa-operator:2.0.9</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3539,8 +3479,79 @@ block device will be a collection of objects, each supporting a set of device se
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-01-20 18:10:21 CET
+Last updated 2020-01-24 11:46:37 +0100
 </div>
 </div>
+<style>
+pre.pygments .hll { background-color: #ffffcc }
+pre.pygments  { background: #f8f8f8; }
+pre.pygments .tok-c { color: #408080; font-style: italic } /* Comment */
+pre.pygments .tok-err { border: 1px solid #FF0000 } /* Error */
+pre.pygments .tok-k { color: #008000; font-weight: bold } /* Keyword */
+pre.pygments .tok-o { color: #666666 } /* Operator */
+pre.pygments .tok-ch { color: #408080; font-style: italic } /* Comment.Hashbang */
+pre.pygments .tok-cm { color: #408080; font-style: italic } /* Comment.Multiline */
+pre.pygments .tok-cp { color: #BC7A00 } /* Comment.Preproc */
+pre.pygments .tok-cpf { color: #408080; font-style: italic } /* Comment.PreprocFile */
+pre.pygments .tok-c1 { color: #408080; font-style: italic } /* Comment.Single */
+pre.pygments .tok-cs { color: #408080; font-style: italic } /* Comment.Special */
+pre.pygments .tok-gd { color: #A00000 } /* Generic.Deleted */
+pre.pygments .tok-ge { font-style: italic } /* Generic.Emph */
+pre.pygments .tok-gr { color: #FF0000 } /* Generic.Error */
+pre.pygments .tok-gh { color: #000080; font-weight: bold } /* Generic.Heading */
+pre.pygments .tok-gi { color: #00A000 } /* Generic.Inserted */
+pre.pygments .tok-go { color: #888888 } /* Generic.Output */
+pre.pygments .tok-gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+pre.pygments .tok-gs { font-weight: bold } /* Generic.Strong */
+pre.pygments .tok-gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+pre.pygments .tok-gt { color: #0044DD } /* Generic.Traceback */
+pre.pygments .tok-kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+pre.pygments .tok-kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+pre.pygments .tok-kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+pre.pygments .tok-kp { color: #008000 } /* Keyword.Pseudo */
+pre.pygments .tok-kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+pre.pygments .tok-kt { color: #B00040 } /* Keyword.Type */
+pre.pygments .tok-m { color: #666666 } /* Literal.Number */
+pre.pygments .tok-s { color: #BA2121 } /* Literal.String */
+pre.pygments .tok-na { color: #7D9029 } /* Name.Attribute */
+pre.pygments .tok-nb { color: #008000 } /* Name.Builtin */
+pre.pygments .tok-nc { color: #0000FF; font-weight: bold } /* Name.Class */
+pre.pygments .tok-no { color: #880000 } /* Name.Constant */
+pre.pygments .tok-nd { color: #AA22FF } /* Name.Decorator */
+pre.pygments .tok-ni { color: #999999; font-weight: bold } /* Name.Entity */
+pre.pygments .tok-ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+pre.pygments .tok-nf { color: #0000FF } /* Name.Function */
+pre.pygments .tok-nl { color: #A0A000 } /* Name.Label */
+pre.pygments .tok-nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+pre.pygments .tok-nt { color: #008000; font-weight: bold } /* Name.Tag */
+pre.pygments .tok-nv { color: #19177C } /* Name.Variable */
+pre.pygments .tok-ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+pre.pygments .tok-w { color: #bbbbbb } /* Text.Whitespace */
+pre.pygments .tok-mb { color: #666666 } /* Literal.Number.Bin */
+pre.pygments .tok-mf { color: #666666 } /* Literal.Number.Float */
+pre.pygments .tok-mh { color: #666666 } /* Literal.Number.Hex */
+pre.pygments .tok-mi { color: #666666 } /* Literal.Number.Integer */
+pre.pygments .tok-mo { color: #666666 } /* Literal.Number.Oct */
+pre.pygments .tok-sa { color: #BA2121 } /* Literal.String.Affix */
+pre.pygments .tok-sb { color: #BA2121 } /* Literal.String.Backtick */
+pre.pygments .tok-sc { color: #BA2121 } /* Literal.String.Char */
+pre.pygments .tok-dl { color: #BA2121 } /* Literal.String.Delimiter */
+pre.pygments .tok-sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+pre.pygments .tok-s2 { color: #BA2121 } /* Literal.String.Double */
+pre.pygments .tok-se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+pre.pygments .tok-sh { color: #BA2121 } /* Literal.String.Heredoc */
+pre.pygments .tok-si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+pre.pygments .tok-sx { color: #008000 } /* Literal.String.Other */
+pre.pygments .tok-sr { color: #BB6688 } /* Literal.String.Regex */
+pre.pygments .tok-s1 { color: #BA2121 } /* Literal.String.Single */
+pre.pygments .tok-ss { color: #19177C } /* Literal.String.Symbol */
+pre.pygments .tok-bp { color: #008000 } /* Name.Builtin.Pseudo */
+pre.pygments .tok-fm { color: #0000FF } /* Name.Function.Magic */
+pre.pygments .tok-vc { color: #19177C } /* Name.Variable.Class */
+pre.pygments .tok-vg { color: #19177C } /* Name.Variable.Global */
+pre.pygments .tok-vi { color: #19177C } /* Name.Variable.Instance */
+pre.pygments .tok-vm { color: #19177C } /* Name.Variable.Magic */
+pre.pygments .tok-il { color: #666666 } /* Literal.Number.Integer.Long */
+</style>
 </body>
 </html>

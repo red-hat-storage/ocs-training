@@ -65,31 +65,12 @@ cluster-ocs-0ec4-dgwqc-worker-{aws-region}c   1         1         1       1     
 
 WARNING: *Make sure you do the next step for finding and using your CLUSTERID*
 
-ifdef::roadshow[]
-First set some environment variable to comply with lab content.
-
 [source,role="execute"]
 ----
 CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
 echo $CLUSTERID
+curl -s https://lfbf6bao0k.execute-api.eu-central-1.amazonaws.com/machineset-lambda?clusterID=$CLUSTERID | oc apply -f -
 ----
-
-Then create a new machinset for OCS deployment for our specific OCp cluster.
-
-[source,role="execute"]
-----
-cat ~/content/support/ocslab_cluster-workerocs.yaml | sed "s/CLUSTERID/$CLUSTERID/g" | oc apply -f -
-----
-endif::[]
-
-ifdef::training[]
-[source,role="execute",subs=attributes+]
-----
-CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
-echo $CLUSTERID
-curl -s {github-raw-url}/ocp4ocs4/cluster-workerocs.yaml | sed "s/CLUSTERID/$CLUSTERID/g" | oc apply -f -
-----
-endif::[]
 
 Check that you have new *machines* created.
 
@@ -486,7 +467,7 @@ sh-4.2# ceph status
     client:   1.2 KiB/s rd, 39 KiB/s wr, 2 op/s rd, 3 op/s wr
 ----
 
-You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing 
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing
 
 [source,role="execute"]
 ----
