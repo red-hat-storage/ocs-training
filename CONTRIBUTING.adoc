@@ -11,7 +11,7 @@ Then contributing to this repository, please follow the below style guide.
 
 ## Pull Request Policy
 
-Since people have started using this repository, no un-reviewed code will be allowed in the master branch. 
+Since people have started using this repository, no un-reviewed code will be allowed in the master branch.
 
 Follow the <<Adding Content>> procedure to add your content. This applies to new documents as well as additions to already existing documents.
 
@@ -38,7 +38,7 @@ image::imgs/open-PR-long-2.png[]
 
 ## ASCIIdoc styling
 
-#### Document header
+### Document header
 
 It is best practice to copy this to the beginning of your workshop:
 
@@ -55,7 +55,7 @@ It is best practice to copy this to the beginning of your workshop:
 
 This produces good defaults for your document.
 
-#### Executable commands
+### Executable commands
 
 To make our lifes easier once we move over to Homeroom, please tag each executable command and follow this styling:
 
@@ -82,7 +82,7 @@ To make our lifes easier once we move over to Homeroom, please tag each executab
     ----
 
 
-#### Do not require people to pull the repository
+### Do not require people to pull the repository
 
 Expect people to not pull the ocs-training repository.
 
@@ -104,7 +104,7 @@ Create kafka topic
 oc apply -f https://github.com/red-hat-storage/ocs-training/raw/master/ocs4kafka/02-kafka-topic.yaml
 ----
 
-#### Keyboard shortcuts
+### Keyboard shortcuts
 
 Keyboard shortcuts should leverage the built-in ASCIIdoc format
 
@@ -124,7 +124,7 @@ For this to work, you need to first activate the experimental features in your d
 :experimental:
 ----
 
-#### Kubernetes objects should be printed in bold text
+### Kubernetes objects should be printed in bold text
 
 [red]*Do NOT do this:*
 
@@ -134,7 +134,7 @@ Once you finished these steps, you can see that we successfully mounted the rwx 
 
 Once you finished these steps, you can see that we successfully mounted the *RWX PVC* inside of our toolbox *Pod*, while it is also still mounted on the registry *Pods*.
 
-#### ASCIIdoc features and Github
+### ASCIIdoc features and Github
 
 Github unfortunately does not support many ASCIIdoc features. Until we are deploying inside of Homeroom, your lab needs to look decent inside of Github!
 
