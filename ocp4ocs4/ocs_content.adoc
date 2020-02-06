@@ -1708,7 +1708,7 @@ For more information on the Prometheus query language visit the link:https://pro
 
 == Using must-gather
 
-Must-gather is a tool for collecting data about the current'y running Openshift cluster. It loads a predefined set of containers that execute multiple programs and dump it on the local workstations filesystem.
+Must-gather is a tool for collecting data about the currently running Openshift cluster. It loads a predefined set of containers that execute multiple programs and dump it on the local workstations filesystem in unique must-gather directories.
 The local files can then be used by a remote support engineer to debug a problem more easily without needing direct cluster access. This is similar to sosreports for RHEL hosts.
 
 The OCS team has released its own image for the must-gather tool that runs storage specific commands.
