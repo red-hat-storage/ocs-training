@@ -604,7 +604,7 @@ cluster-ocs-0ec4-dgwqc-worker-us-east-1c   1         1         1       1        
 <i class="fa icon-warning" title="Warning"></i>
 </td>
 <td class="content">
-<strong>Make sure you do the next step for finding and using your CLUSTERID</strong>
+<strong>Make sure you do the next steps for finding and using your CLUSTERID</strong>
 </td>
 </tr>
 </table>
@@ -614,6 +614,9 @@ cluster-ocs-0ec4-dgwqc-worker-us-east-1c   1         1         1       1        
 <pre class="pygments highlight"><code data-lang="shell">CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
 echo $CLUSTERID</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Now you will create new <strong>machinesets</strong> and <strong>machines</strong> for OCS4.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">

@@ -549,7 +549,7 @@ cluster-ocs-0ec4-dgwqc-worker-{aws-region}c   1         1         1       1     
 <div class="title">Warning</div>
 </td>
 <td class="content">
-<strong>Make sure you do the next step for finding and using your CLUSTERID</strong>
+<strong>Make sure you do the next steps for finding and using your CLUSTERID</strong>
 </td>
 </tr>
 </table>
@@ -559,6 +559,9 @@ cluster-ocs-0ec4-dgwqc-worker-{aws-region}c   1         1         1       1     
 <pre class="highlight"><code>CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
 echo $CLUSTERID</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Now you will create new <strong>machinesets</strong> and <strong>machines</strong> for OCS4.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -3266,7 +3269,7 @@ block device will be a collection of objects, each supporting a set of device se
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-02-17 17:01:20 -0800
+Last updated 2020-02-17 17:31:55 -0800
 </div>
 </div>
 </body>
