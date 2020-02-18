@@ -1,0 +1,21 @@
+name: CI
+
+on: [push]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build AsciiDoc step
+      id: documents
+      uses: Analog-inc/asciidoctor-action@master
+      with:
+        shellcommand: "asciidoctor ocp4ocs4/ocs.adoc ocp4ocs4/ocs_roadshow.adoc ocs4postgresql/README.adoc"
+    - name: Save AsciiDoc step
+      uses: actions/upload-artifact@v1
+      with:
+        name: documents
+        path: docs/
