@@ -407,7 +407,7 @@ oc -n openshift-storage get sc
 
 Please make sure the three storage classes are available in your cluster before proceeding.
 
-NOTE: The NooBaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to it's `db` container.
+NOTE: The NooBaa pod used the `ocs-storagecluster-ceph-rbd` storage class for creating a PVC for mounting to its `db` container.
 
 === Using the Rook-Ceph toolbox to check on the Ceph backing storage
 
