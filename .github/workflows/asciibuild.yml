@@ -13,7 +13,7 @@ jobs:
       id: documents
       uses: Analog-inc/asciidoctor-action@master
       with:
-        shellcommand: 'find . -name \'*.adoc\' | grep -i -v Readme | xargs asciidoctor -D "./docs"'
+        shellcommand: 'asciidoctor -D ./docs CONTRIBUTING.adoc ocs4postgresql/PostgreSQL.adoc ocp4ocs4/ocs_content.adoc ocp4ocs4/ocs.adoc ocp4ocs4/ocs_roadshow.adoc ocs4registry/registry.adoc ocs4jenkins/Jenkins.adoc'
     - name: Save AsciiDoc step
       uses: actions/upload-artifact@v1
       with:
