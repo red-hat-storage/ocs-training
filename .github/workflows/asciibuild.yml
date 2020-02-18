@@ -1,6 +1,9 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches:
+    - master
 
 jobs:
   build:
@@ -14,13 +17,12 @@ jobs:
       uses: Analog-inc/asciidoctor-action@master
       with:
         shellcommand: 'asciidoctor -D ./docs CONTRIBUTING.adoc ocs4postgresql/PostgreSQL.adoc ocp4ocs4/ocs_content.adoc ocp4ocs4/ocs.adoc ocp4ocs4/ocs_roadshow.adoc ocs4registry/registry.adoc ocs4jenkins/Jenkins.adoc'
-    - name: Save AsciiDoc step
-      uses: actions/upload-artifact@v1
-      with:
-        name: documents
-        path: docs/
+#     - name: Save AsciiDoc step
+#       uses: actions/upload-artifact@v1
+#       with:
+#         name: documents
+#         path: docs/
     - name: Push changes
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.GITHUB_TOKEN }}
-        branch: ${{ github.ref }}
