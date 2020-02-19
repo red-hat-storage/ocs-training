@@ -167,7 +167,7 @@ oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 // [source,role="execute"]
 // ----
 // ifdef::roadshow[]
-// oc apply {{ HOME_PATH }}/support/ocslab_deploy-with-olm.yaml
+// oc apply -f {{ HOME_PATH }}/support/ocslab_deploy-with-olm.yaml
 // endif::[]
 // ifdef::training[]
 // oc apply -f http://bit.ly/ocs-olm-training
@@ -416,7 +416,7 @@ Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manu
 [source,role="execute"]
 ----
 ifdef::roadshow[]
-oc apply {{ HOME_PATH }}/support/ocslab_toolbox.yaml
+oc apply -f {{ HOME_PATH }}/support/ocslab_toolbox.yaml
 endif::[]
 ifdef::training[]
 curl -s https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml | sed 's/namespace: rook-ceph/namespace: openshift-storage/g'| oc apply -f -
@@ -470,19 +470,19 @@ sh-4.2# ceph status
   cluster:
     id:     bcc52257-12b7-4401-9f8d-c7b5bf4b5d6f
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum a,b,c (age 11m)
     mgr: a(active, since 10m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 3 osds: 3 up (since 9m), 3 in (since 9m)
- 
+
   data:
     pools:   3 pools, 24 pgs
     objects: 90 objects, 75 MiB
     usage:   3.1 GiB used, 6.0 TiB / 6.0 TiB avail
     pgs:     24 active+clean
- 
+
   io:
     client:   1.2 KiB/s rd, 42 KiB/s wr, 2 op/s rd, 2 op/s wr
 ----
@@ -926,7 +926,7 @@ If you are missing the *ConfigMap*, create it using this command:
 [source,role="execute",subs=attributes+]
 ----
 ifdef::roadshow[]
-oc apply {{ HOME_PATH }}/support/ocslab_cluster-monitoring-noinfra.yaml
+oc apply -f {{ HOME_PATH }}/support/ocslab_cluster-monitoring-noinfra.yaml
 endif::[]
 ifdef::training[]
 oc apply -f {github-raw-url}/ocp4ocs4/cluster-monitoring-config.yaml
@@ -943,7 +943,7 @@ ifdef::roadshow[]
 If the *ConfigMap* already exists because of completing prior module `OpenShift Infrastructure Nodes`, you will apply changes to the existing *ConfigMap*.
 [source,role="execute"]
 ----
-oc apply {{ HOME_PATH }}/support/ocslab_cluster-monitoring-withinfra.yaml
+oc apply -f {{ HOME_PATH }}/support/ocslab_cluster-monitoring-withinfra.yaml
 ----
 .Sample output:
 ----
@@ -1348,7 +1348,7 @@ Let's try this out:
 [source,role="execute",subs=attributes+]
 ----
 ifdef::roadshow[]
-oc apply {{ HOME_PATH }}/support/ocslab_obc-app-example.yaml
+oc apply -f {{ HOME_PATH }}/support/ocslab_obc-app-example.yaml
 endif::[]
 ifdef::training[]
 curl -s {github-raw-url}/ocp4ocs4/obc_app_example.yaml | oc apply -f -
@@ -1559,19 +1559,19 @@ sh-4.2# ceph status
   cluster:
     id:     bcc52257-12b7-4401-9f8d-c7b5bf4b5d6f
     health: HEALTH_OK
- 
+
   services:
     mon: 3 daemons, quorum a,b,c (age 25m)
     mgr: a(active, since 24m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 6 osds: 6 up (since 38s), 6 in (since 38s)
- 
+
   data:
     pools:   3 pools, 24 pgs
     objects: 92 objects, 81 MiB
     usage:   6.1 GiB used, 12 TiB / 12 TiB avail
     pgs:     24 active+clean
- 
+
   io:
     client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr
 ----
@@ -1590,24 +1590,24 @@ ceph osd crush tree
 ----
 .Example output:
 ----
-ID  CLASS WEIGHT   TYPE NAME                                
- -1       11.99396 root default                             
- -5       11.99396     region us-east-1                     
--14        3.99799         zone us-east-1a                  
--13        1.99899             host ocs-deviceset-1-0-6z8c2 
-  2   ssd  1.99899                 osd.2                    
--19        1.99899             host ocs-deviceset-1-1-zszws 
-  4   ssd  1.99899                 osd.4                    
- -4        3.99799         zone us-east-1b                  
- -3        1.99899             host ocs-deviceset-0-0-xnm9c 
-  0   ssd  1.99899                 osd.0                    
--17        1.99899             host ocs-deviceset-0-1-9xng5 
-  3   ssd  1.99899                 osd.3                    
--10        3.99799         zone us-east-1c                  
- -9        1.99899             host ocs-deviceset-2-0-fhp7l 
-  1   ssd  1.99899                 osd.1                    
--21        1.99899             host ocs-deviceset-2-1-xvjmb 
-  5   ssd  1.99899                 osd.5       
+ID  CLASS WEIGHT   TYPE NAME
+ -1       11.99396 root default
+ -5       11.99396     region us-east-1
+-14        3.99799         zone us-east-1a
+-13        1.99899             host ocs-deviceset-1-0-6z8c2
+  2   ssd  1.99899                 osd.2
+-19        1.99899             host ocs-deviceset-1-1-zszws
+  4   ssd  1.99899                 osd.4
+ -4        3.99799         zone us-east-1b
+ -3        1.99899             host ocs-deviceset-0-0-xnm9c
+  0   ssd  1.99899                 osd.0
+-17        1.99899             host ocs-deviceset-0-1-9xng5
+  3   ssd  1.99899                 osd.3
+-10        3.99799         zone us-east-1c
+ -9        1.99899             host ocs-deviceset-2-0-fhp7l
+  1   ssd  1.99899                 osd.1
+-21        1.99899             host ocs-deviceset-2-1-xvjmb
+  5   ssd  1.99899                 osd.5
 ----
 
 <1> We now have additional hosts, which are extending the hosts in the respective zone
