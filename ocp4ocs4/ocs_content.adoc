@@ -85,6 +85,10 @@ endif::[]
 
 Check that you have new *machines* created.
 
+ifdef::roadshow[]
+NOTE: If the lambda function failed, go to <<Use a local YAML file as Machineset>> and try the fallback in that section
+endif::[]
+
 [source,role="execute"]
 ----
 oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
@@ -1795,6 +1799,20 @@ Use "oc adm options" for a list of global command-line options (applies to all c
 ----
 
 // On the Openshift side must-gather has nowadays been replaced by `oc adm inspect`.
+
+ifdef::roadshow[]
+[appendix]
+== Use a local YAML file as Machineset
+
+This section will explain how to add the OCS machineset without using the lambda function.
+
+[source,role="execute"]
+----
+oc apply -f /opt/app-root/src/support/ocslab_cluster-workerocs.yaml
+----
+endif::[]
+
+Afterwards, go back to section <<Scale OCP cluster and add 3 new nodes>>
 
 ifdef::training[]
 [appendix]
