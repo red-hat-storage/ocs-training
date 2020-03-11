@@ -5,7 +5,6 @@
 :source-highlighter: pygments
 :source-language: shell
 :numbered:
-:imagesdir: imgs/
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
@@ -37,19 +36,19 @@ oc get -n openshift-console route console
 Once you are logged in, navigate to the *OperatorHub* menu.
 
 .OCP OperatorHub
-image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
+image::imgs/OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
 Now type `openshift container storage` in the *Filter by _keyword..._* box.
 
 .OCP OperatorHub filter on OpenShift Container Storage Operator
-image::OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+image::imgs/OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
 Select `OpenShift Container Storage Operator` and then select *Install*.
 
 On the next screen make sure the settings are as shown in this figure. Also, make sure to change to `A specific namespace on the cluster` and chose namespace `openshift-storage`.
 
 .OCP Subscribe to OpenShift Container Storage
-image::OCS4-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+image::imgs/OCS4-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
 NOTE: Do not change any configuration other than the namespace as shown above.
 
@@ -92,7 +91,7 @@ rook-ceph-operator-55cb44fcfc-wxppc       1/1     Running   0          3m41s
 
 Navigate to the `Operators` menu on the left and select `Installed Operators`. Make sure the selected project is set to `openshift-storage`. What you see, should be similar to the following example:
 
-image::OCP4-installed-operators.png[Openshift showing the installed operators in namespace openshift-storage]
+image::imgs/OCP4-installed-operators.png[Openshift showing the installed operators in namespace openshift-storage]
 
 Now you will move on to creating a Storage Cluster.
 
@@ -134,14 +133,14 @@ oc new-project local-storage
 
 Now switch over to your *Openshift Web Console* and select *OperatorHub*. Type `local storage` in the *Filter by _keyword..._* box.
 
-image::OCP4-LSO-filter.png[OperatorHub LSO Operator filter]
+image::imgs/OCP4-LSO-filter.png[OperatorHub LSO Operator filter]
 
 Select `Local Storage Operator` and then select *Install*.
 
 On the next screen make sure the settings are as shown in this figure. Also, make sure to change to `A specific namespace on the cluster` and chose namespace `local-storage`.
 
 .OCP Subscribe to Local Storage Operator
-image::OCS4-OCP-OperatorHub-LSO-Subscribe.png[OCP OperatorHub Subscribe]
+image::imgs/OCS4-OCP-OperatorHub-LSO-Subscribe.png[OCP OperatorHub Subscribe]
 
 NOTE: Do not change any configuration other than the namespace as shown above.
 
