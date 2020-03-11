@@ -6,9 +6,6 @@
 :source-language: shell
 :numbered:
 :imagesdir: imgs/
-:github-raw-url: https://raw.githubusercontent.com/red-hat-storage/ocs-training/local-storage
-:instance-type: i3.4xlarge
-:aws-region: us-east-1
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
