@@ -537,11 +537,11 @@ Create this LocalVolume CR for Block *PVs* using the following command:
 oc create -f local-storage-file.yaml
 ----
 
-Check for the new `localfile` *StorageClass*.
+Check for the new `localblock` *StorageClass*.
 
 [source,role="execute"]
 ----
-oc get sc | grep localfile
+oc get sc | grep localblock
 ----
 .Example output:
 ----
