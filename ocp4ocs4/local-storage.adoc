@@ -205,7 +205,7 @@ nvme0n1                      259:0    0   1.7T  0 disk
 nvme1n1                      259:1    0   1.7T  0 disk
 ----
 
-In this case the EC2 instance type is i3.4xlarge so I know all 3 worker nodes are the same. As shown above the results of 'lsblk' shows the last 2 devices, `nvme0n1` and `nvme1n1` are available with a size of 1.7 TB each. Next step is to create new *PVs* using these devices.
+In this case the EC2 instance type is i3.4xlarge so we know all 3 worker nodes are the same. As shown above the results of 'lsblk' shows the last 2 devices, `nvme0n1` and `nvme1n1` are available with a size of 1.7 TB each. Next step is to create new *PVs* using these devices.
 
 === Using the LSO LocalVolume Custom Resource to Create PVs
 
