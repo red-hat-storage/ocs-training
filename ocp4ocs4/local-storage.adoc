@@ -71,8 +71,8 @@ You can exit by pressing kbd:[Ctrl+C]
 
 The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`.
 
-.Please wait until the operator `PHASE` changes to `Succeeded`
-CAUTION: This will mark that the installation of your operator was successful. Reaching this state can take several minutes.
+.Please wait until both operators `PHASE` changes to `Succeeded`
+CAUTION: This will mark that the installation of your operators was successful. Reaching this state can take several minutes.
 
 You will now also see new operator pods in the `openshift-storage` namespace:
 
@@ -327,7 +327,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1.7Ti
+            storage: 1
         storageClassName: 'localblock'
         volumeMode: Block
     name: ocs-deviceset
@@ -339,7 +339,7 @@ spec:
 
 [IMPORTANT]
 ====
-The storage size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. If this size is greater than the actual size of the devices the deployment will fail (in this case the size of each device is 1.7 TB).
+The `storage` size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. Setting the value to `1` will guarantee that this requirement is met.
 ====	
 
 Create this StorageCluster CR using the following command:
@@ -461,7 +461,7 @@ In order to create the `Filesystem` LocalVolume CR you need to first create and 
 
 Once this has been done you can use a similar method as done for AWS by logging on to the OCP worker nodes with the OCS label (see <<Prerequisites>>) and issuing a `lsblk`. By inspecting the results of this command you will know which devices are available and what the size of each device is (e.g., /dev/sdb and size is 10 GB and /dev/sdc is 100 GB). See <<Finding Available Storage Devices>> for more details.
 
-This is an example for the LocalVolume CR for case where the 10 GB VMDK created and attached to each worker has the device name of /dev/sdb.
+This is an example for the LocalVolume CR for case where the 10 GB VMDK created and attached to each worker and has the device name of /dev/sdb.
 
 [source,yaml]
 .LocalVolume CR local-storage-file.yaml using OCS label as Node Selector
@@ -486,6 +486,11 @@ spec:
         - /dev/sdb		
 ----
 
+[NOTE]
+====
+If your OCP deployment has the `thin` *StorageClass* available for creating and attaching VMDKs to OCP nodes this can be used in place of `localfile`. You do not need then to create the `localfile` *StorageClass* using the LocalVolume CR with Filesystem volume mode shown above.	
+====
+
 Create this LocalVolume CR for Filesystem *PVs* using the following command:
 
 [source,role="execute"]
@@ -502,7 +507,7 @@ oc get sc | grep localfile
 .Example output:
 ----
 NAME            PROVISIONER                    AGE
-localfile      kubernetes.io/no-provisioner    7m46
+localfile      kubernetes.io/no-provisioner    7m46s
 ----
 
 Now create the LocalVolume CR for Block *PVs*.
@@ -546,10 +551,10 @@ oc get sc | grep localblock
 .Example output:
 ----
 NAME            PROVISIONER                     AGE
-localblock      kubernetes.io/no-provisioner    8m30
+localblock      kubernetes.io/no-provisioner    8m38s
 ----
 
-Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate creation of *PVs*, etc.
+Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate creation of `local-storage` *Pods* and *PVs* created from storage devices listed under `devicePaths` in the LocalVolume CR(s).
 
 The last step for using local storage on VMware is to create the *StorageCluster*. This is again very similar to how it was done for AWS but with a few changes.
 
@@ -569,7 +574,7 @@ spec:
       - ReadWriteOnce
       resources:
         requests:
-          storage: 10Gi
+          storage: 1
       storageClassName: 'localfile'
       volumeMode: Filesystem
   storageDeviceSets:
@@ -580,7 +585,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 100 GB
+            storage: 1
         storageClassName: 'localblock'
         volumeMode: Block
     name: ocs-deviceset
@@ -592,8 +597,13 @@ spec:
 
 [IMPORTANT]
 ====
-The storage size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. If this size is greater than the actual size of the devices the deployment will fail (in this case the storage device size is 100 GB).
-====	
+The `storage` size for *monPVCTemplate:* and *storageDeviceSets* must be less than or equal to the size of the raw block devices. Setting the value to `1` for both will guarantee that this requirement is met.
+====
+
+[NOTE]
+====
+If your OCP deployment has the `thin` *StorageClass* available for creating and attaching VMDKs to OCP nodes this can be used in place of `localfile` above.
+====
 
 Create this StorageCluster CR using the following command:
 
@@ -610,13 +620,117 @@ Reference <<Creating the OCS Storage Cluster on AWS>> for how to validate your *
 
 === Creating the OCS Storage Cluster on Bare Metal
 
-TBD
+The process for using local storage devices for OCP on bare methal environments is very similar to both AWS and VMware environments with some differences. 
 
+In order to use local storage devices on bare metal servers you must have a minimum of 3 worker nodes. Each of the machines must have at least one raw block device and the `same` storage type attached to each node (.e.g., 2TB NVMe Hard Drive). 
 
+To find the storage device names use a similar method as done for AWS and VMware environments by logging on to the OCP worker nodes with the OCS label (see <<Prerequisites>>) and issuing a `lsblk`. By inspecting the results of this command you will know which devices are available and their size. See <<Finding Available Storage Devices>> for more details.
 
+For Monitor storage a Filesystem *StorageClass* does not need to be created as it was for VMware. In the *StorageCluster* CR instead *monDataDirHostPath* will be used and set to the path of /var/lib/rook for Monitor storage.
 
+[NOTE]
+====
+If desired you could use an available raw block device (e.g., /dev/sdb) and create a LocalVolume CR with Filesystem volume mode resulting in the  `localfile` *StorageClass*. Use `localfile` as shown in the *StorageCluster CR example for VMware for Monitor storage. The downside of this approach is the Monitor storage requirement is a minimum of 10 GB and most storage devices are larger, thereby wasting space.
+====
 
+First step is to create the LocalVolume CR for Block *PVs*.
 
+[source,yaml]
+.LocalVolume CR local-storage-block.yaml using OCS label as Node Selector
+----
+apiVersion: "local.storage.openshift.io/v1"
+kind: "LocalVolume"
+metadata:
+  name: "local-disk"
+  namespace: "local-storage"
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+          - ""
+  storageClassDevices:
+    - storageClassName: "localblock"
+      volumeMode: Block
+      devicePaths:
+        - /dev/sdb
+		- /dev/sdc
+		- /dev/sdd
+		- /dev/sde
+		- /dev/sdf
+		- /dev/sdg	
+----
+
+Create this LocalVolume CR for Block *PVs* using the following command:
+
+[source,role="execute"]
+----
+oc create -f local-storage-file.yaml
+----
+
+Check for the new `localblock` *StorageClass*.
+
+[source,role="execute"]
+----
+oc get sc | grep localblock
+----
+.Example output:
+----
+NAME            PROVISIONER                     AGE
+localblock      kubernetes.io/no-provisioner    10m20s
+----
+
+Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate creation of `local-storage` *Pods* and *PVs* created from storage devices listed under `devicePaths` in the LocalVolume CR. 
+
+The last step for using local storage on bare metal servers is to create the *StorageCluster*. This is again very similar to how it was done for AWS and VMware but with a few changes.
+
+[source,yaml]
+.StorageCluster CR ocs-cluster-service.yaml using `monDataDirHostPath` and `localblock` storageclass
+----
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1
+        storageClassName: 'localblock'
+        volumeMode: Block
+    name: ocs-deviceset
+    placement: {}
+    portable: false
+    replica: 3
+    resources: {}
+----
+
+[IMPORTANT]
+====
+The `storage` size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. Setting the value to `1` for both will guarantee that this requirement is met.
+====
+
+Create this StorageCluster CR using the following command:
+
+[source,role="execute"]
+----
+oc create -f ocs-cluster-service.yaml 
+----
+.Example output:
+----
+storagecluster.ocs.openshift.io/ocs-storagecluster created
+----
+
+Reference <<Creating the OCS Storage Cluster on AWS>> for how to validate your *StorageCluster* deployment.
 
 
 
