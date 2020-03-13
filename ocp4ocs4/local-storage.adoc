@@ -350,7 +350,7 @@ Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-AWS.yaml
 ----
 .Example output:
 ----
@@ -615,7 +615,7 @@ Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-VMware.yaml
 ----
 .Example output:
 ----
@@ -729,7 +729,7 @@ Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-metal.yaml
 ----
 .Example output:
 ----
