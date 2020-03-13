@@ -221,7 +221,7 @@ The next step is to create the LSO LocalVolume CR which in turn will create *PVs
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
-  name: local-disk
+  name: local-block
   namespace: local-storage
 spec:
   nodeSelector:
@@ -247,7 +247,7 @@ oc create -f local-storage-block.yaml
 ----
 .Example output:
 ----
-localvolume.local.storage.openshift.io/local-disk created
+localvolume.local.storage.openshift.io/local-block created
 ----
 
 Now that the CR is created let's see the results.
@@ -259,12 +259,12 @@ oc -n local-storage get pods
 .Example output:
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
-local-disk-local-diskmaker-kkp7j         1/1     Running   0          5m1s
-local-disk-local-diskmaker-nqcgl         1/1     Running   0          5m1s
-local-disk-local-diskmaker-szd72         1/1     Running   0          5m1s
-local-disk-local-provisioner-bsztg       1/1     Running   0          5m1s
-local-disk-local-provisioner-g9zgf       1/1     Running   0          5m1s
-local-disk-local-provisioner-gzktp       1/1     Running   0          5m1s
+local-block-local-diskmaker-kkp7j        1/1     Running   0          5m1s
+local-block-local-diskmaker-nqcgl        1/1     Running   0          5m1s
+local-block-local-diskmaker-szd72        1/1     Running   0          5m1s
+local-block-local-provisioner-bsztg      1/1     Running   0          5m1s
+local-block-local-provisioner-g9zgf      1/1     Running   0          5m1s
+local-block-local-provisioner-gzktp      1/1     Running   0          5m1s
 local-storage-operator-765dc5b87-vfh69   1/1     Running   0          53m
 ----
 
@@ -524,7 +524,7 @@ Now create the LocalVolume CR for Block *PVs*.
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
-  name: local-disk
+  name: local-block
   namespace: local-storage
 spec:
   nodeSelector:
@@ -647,7 +647,7 @@ First step is to create the LocalVolume CR for Block *PVs*.
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
-  name: local-disk
+  name: local-block
   namespace: local-storage
 spec:
   nodeSelector:
