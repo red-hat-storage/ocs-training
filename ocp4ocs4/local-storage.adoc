@@ -11,8 +11,6 @@
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
-= Deploying Red Hat OpenShift Container Storage on an existing Red Hat OpenShift Container Platform
-
 == Installing Red Hat OpenShift Container Storage Operator using the Operator Hub
 
 Start with creating the `openshift-storage` namespace.
