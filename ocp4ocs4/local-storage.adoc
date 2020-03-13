@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :source-language: shell
 :numbered:
-:imagesdir: ../docs/imgs/
+:imagesdir: imgs/
 :instance-type: i3.4xlarge
 :aws-region: us-east-2
 // Activate experimental attribute for Keyboard Shortcut keys
