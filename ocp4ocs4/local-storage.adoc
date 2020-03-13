@@ -1,17 +1,13 @@
 = Deploying OpenShift Container Storage using Local Devices
 :toc: right
-:toclevels: 2
+:toclevels: 3
 :icons: font
 :source-highlighter: pygments
 :source-language: shell
 :numbered:
 :imagesdir: ../docs/imgs/
-:instance-type: i3.4xlarge
-:aws-region: us-east-2
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
-
-= Deploying Red Hat OpenShift Container Storage on an existing Red Hat OpenShift Container Platform
 
 == Installing Red Hat OpenShift Container Storage Operator using the Operator Hub
 
@@ -29,7 +25,7 @@ You must add the monitoring label to this namespace. This is required to get pro
 oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 ----
 
-Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route. 
+Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route.
 
 [source,role="execute"]
 ----
@@ -100,7 +96,7 @@ Now that the operator pods are running, you can create a Storage Cluster.
 
 == Installing OpenShift Container Storage on Local Storage Devices
 
-Use this procedure to install OpenShift Container Storage (OCS) on bare metal, Amazon EC2, and VMware infrastructures where OpenShift Container Platform 4 (OCP) is already installed. 
+Use this procedure to install OpenShift Container Storage (OCS) on bare metal, Amazon EC2, and VMware infrastructures where OpenShift Container Platform 4 (OCP) is already installed.
 
 [NOTE]
 ====
@@ -109,7 +105,7 @@ The following sections use YAML files and CLI to create resources used to deploy
 
 [IMPORTANT]
 ====
-Installing OpenShift Container Storage on bare metal using the Local Storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete.These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+Installing OpenShift Container Storage on bare metal using the Local Storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 ====
 
 === Prerequisites
@@ -203,13 +199,13 @@ If you don't see a command prompt, try pressing enter.
 sh-4.2# chroot /host
 sh-4.4# lsblk
 NAME                         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-xvda                         202:0    0   120G  0 disk 
+xvda                         202:0    0   120G  0 disk
 |-xvda1                      202:1    0   384M  0 part /boot
 |-xvda2                      202:2    0   127M  0 part /boot/efi
-|-xvda3                      202:3    0     1M  0 part 
-`-xvda4                      202:4    0 119.5G  0 part 
+|-xvda3                      202:3    0     1M  0 part
+`-xvda4                      202:4    0 119.5G  0 part
   `-coreos-luks-root-nocrypt 253:0    0 119.5G  0 dm   /sysroot
-nvme0n1                      259:0    0   1.7T  0 disk 
+nvme0n1                      259:0    0   1.7T  0 disk
 nvme1n1                      259:1    0   1.7T  0 disk
 ----
 
@@ -222,11 +218,11 @@ The next step is to create the LSO LocalVolume CR which in turn will create *PVs
 [source,yaml]
 .LocalVolume CR local-storage-block.yaml using OCS label as Node Selector
 ----
-apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -236,22 +232,22 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/nvme0n1
-        - /dev/nvme1n1		
-----		
+        - /dev/nvme0n1             # <-- modify this line
+        - /dev/nvme1n1             # <-- modify this line
+----
 
 Create this LocalVolume CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f local-storage-block.yaml 
+oc create -f local-storage-block.yaml
 ----
 .Example output:
 ----
-localvolume.local.storage.openshift.io/local-disk created
+localvolume.local.storage.openshift.io/local-block created
 ----
 
 Now that the CR is created let's see the results.
@@ -263,12 +259,12 @@ oc -n local-storage get pods
 .Example output:
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
-local-disk-local-diskmaker-kkp7j         1/1     Running   0          5m1s
-local-disk-local-diskmaker-nqcgl         1/1     Running   0          5m1s
-local-disk-local-diskmaker-szd72         1/1     Running   0          5m1s
-local-disk-local-provisioner-bsztg       1/1     Running   0          5m1s
-local-disk-local-provisioner-g9zgf       1/1     Running   0          5m1s
-local-disk-local-provisioner-gzktp       1/1     Running   0          5m1s
+local-block-local-diskmaker-kkp7j        1/1     Running   0          5m1s
+local-block-local-diskmaker-nqcgl        1/1     Running   0          5m1s
+local-block-local-diskmaker-szd72        1/1     Running   0          5m1s
+local-block-local-provisioner-bsztg      1/1     Running   0          5m1s
+local-block-local-provisioner-g9zgf      1/1     Running   0          5m1s
+local-block-local-provisioner-gzktp      1/1     Running   0          5m1s
 local-storage-operator-765dc5b87-vfh69   1/1     Running   0          53m
 ----
 
@@ -289,11 +285,11 @@ local-pv-c63a7061   1769Gi     RWO            Delete           Available        
 local-pv-d2a3dcde   1769Gi     RWO            Delete           Available           localblock              5m52s
 ----
 
-And finally we should have an additional *StorageClass* as a result of creating this LocalVolume CR. This *StorageClass* will be used to create *PVCs* in the next step of creating a *StorageCluster*. 
+And finally we should have an additional *StorageClass* as a result of creating this LocalVolume CR. This *StorageClass* will be used when creating *PVCs* in the next step of creating a *StorageCluster*.
 
 [source,role="execute"]
 ----
-oc get sc 
+oc get sc
 ----
 .Example output:
 ----
@@ -306,7 +302,7 @@ The next sections will detail how to create and validate the OCS *StorageCluster
 
 === Creating the OCS Storage Cluster on AWS
 
-For Amazon EC2 instance that have local storage devices (e.g., i3.4xlarge) we need to create a *StorageCluster* Custom Resource (CR) that will use the `localblock` *StorageClass* and 3 of the 6 *PVs* created in the previous section. 
+For Amazon EC2 instance that have local storage devices (e.g., i3.4xlarge) we need to create a *StorageCluster* Custom Resource (CR) that will use the `localblock` *StorageClass* and 3 of the 6 *PVs* created in the previous section.
 
 [source,yaml]
 .StorageCluster CR ocs-cluster-service.yaml using `gp2` and `localblock` storageclasses
@@ -325,7 +321,7 @@ spec:
       resources:
         requests:
           storage: 10Gi
-      storageClassName: 'gp2'
+      storageClassName: gp2
       volumeMode: Filesystem
   storageDeviceSets:
   - count: 1
@@ -336,7 +332,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -348,20 +344,22 @@ spec:
 [IMPORTANT]
 ====
 The `storage` size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. Setting the value to `1` will guarantee that this requirement is met.
-====	
+====
 
 Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml 
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-AWS.yaml
 ----
 .Example output:
 ----
 storagecluster.ocs.openshift.io/ocs-storagecluster created
 ----
 
-Once the *StorageCluster* is created OCS pods will start showing up in the `openshift-storage` namespace. For the deployment to completely finish could take up to 10 minutes so be patient. Below you will find examples of a successful deployment of the OCS *Pods* and *PVCs*. 
+==== Validating the successful OCS Storage Cluster creation on AWS
+
+Once the *StorageCluster* is created OCS pods will start showing up in the `openshift-storage` namespace. For the deployment to completely finish could take up to 10 minutes so be patient. Below you will find examples of a successful deployment of the OCS *Pods* and *PVCs*.
 
 [source,role="execute"]
 ----
@@ -457,15 +455,15 @@ If it says `Ready` you can continue on to using OCS storage for applications.
 
 The process for using local storage devices for OCP on VMware environments is very similar but has some differences. The first is the types of local storage that is supported for VMware. The 3 types are the following:
 
-* VMDK 
+* VMDK
 * Raw Device Mapping (RDM)
 * VMDirectPath
 
-In order to use local storage devices on VMware you must have a minimum of 3 worker nodes with the `same` storage type attached to each node. 
+In order to use local storage devices on VMware you must have a minimum of 3 worker nodes with the `same` storage type attached to each node.
 
-For AWS the OCS Monitor storage was created using the gp2 *StorageClass* so there was no need to create and additional *StorageClass* for `Filesystem` volume mode. For VMware we do want to create another *StorageClass* as well as update the LocalVolume CR shown in the AWS section to use the correct device names. 
+For AWS the OCS Monitor storage was created using the gp2 *StorageClass* so there was no need to create and additional *StorageClass* for `Filesystem` volume mode. For VMware we do want to create another *StorageClass* as well as update the LocalVolume CR shown in the AWS section to use the correct device names.
 
-In order to create the `Filesystem` LocalVolume CR you need to first create and attach a 10 GB VMDK to each of the OCP worker nodes with the OCS label and the storage devices that will be used for your OCS *StorageCluster*. 
+In order to create the `Filesystem` LocalVolume CR you need to first create and attach a 10 GB VMDK to each of the OCP worker nodes with the OCS label and the storage devices that will be used for your OCS *StorageCluster*.
 
 Once this has been done you can use a similar method as done for AWS by logging on to the OCP worker nodes with the OCS label (see <<Prerequisites>>) and issuing a `lsblk`. By inspecting the results of this command you will know which devices are available and what the size of each device is (e.g., /dev/sdb and size is 10 GB and /dev/sdc is 100 GB). See <<Finding Available Storage Devices>> for more details.
 
@@ -474,11 +472,11 @@ This is an example for the LocalVolume CR for case where the 10 GB VMDK created 
 [source,yaml]
 .LocalVolume CR local-storage-file.yaml using OCS label as Node Selector
 ----
-apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-file
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -488,15 +486,15 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localfile"
+    - storageClassName: localfile
       volumeMode: Filesystem
       devicePaths:
-        - /dev/sdb		
+        - /dev/sdb             # <-- modify this line
 ----
 
 [NOTE]
 ====
-If your OCP deployment has the `thin` *StorageClass* available for creating and attaching VMDKs to OCP nodes this can be used in place of `localfile`. You do not need then to create the `localfile` *StorageClass* using the LocalVolume CR with Filesystem volume mode shown above.	
+If your OCP deployment has the `thin` *StorageClass* available for creating and attaching VMDKs to OCP nodes this can be used in place of `localfile`. You do not need then to create the `localfile` *StorageClass* using the LocalVolume CR with Filesystem volume mode shown above.
 ====
 
 Create this LocalVolume CR for Filesystem *PVs* using the following command:
@@ -523,11 +521,11 @@ Now create the LocalVolume CR for Block *PVs*.
 [source,yaml]
 .LocalVolume CR local-storage-block.yaml using OCS label as Node Selector
 ----
-apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -537,17 +535,17 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdc		
+        - /dev/sdc             # <-- modify this line
 ----
 
 Create this LocalVolume CR for Block *PVs* using the following command:
 
 [source,role="execute"]
 ----
-oc create -f local-storage-file.yaml
+oc create -f local-storage-block.yaml
 ----
 
 Check for the new `localblock` *StorageClass*.
@@ -583,7 +581,7 @@ spec:
       resources:
         requests:
           storage: 1
-      storageClassName: 'localfile'
+      storageClassName: localfile
       volumeMode: Filesystem
   storageDeviceSets:
   - count: 1
@@ -594,7 +592,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -617,20 +615,20 @@ Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml 
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-VMware.yaml
 ----
 .Example output:
 ----
 storagecluster.ocs.openshift.io/ocs-storagecluster created
 ----
 
-Reference <<Creating the OCS Storage Cluster on AWS>> for how to validate your *StorageCluster* deployment.
+Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
 
 === Creating the OCS Storage Cluster on Bare Metal
 
-The process for using local storage devices for OCP on bare methal environments is very similar to both AWS and VMware environments with some differences. 
+The process for using local storage devices for OCP on bare methal environments is very similar to both AWS and VMware environments with some differences.
 
-In order to use local storage devices on bare metal servers you must have a minimum of 3 worker nodes. Each of the machines must have at least one raw block device and the `same` storage type attached to each node (.e.g., 2TB NVMe Hard Drive). 
+In order to use local storage devices on bare metal servers you must have a minimum of 3 worker nodes. Each of the machines must have at least one raw block device and the `same` storage type attached to each node (.e.g., 2TB NVMe Hard Drive).
 
 To identify the storage devices on each node use the same method as the one used for AWS and VMWare environments by logging on to each OCS worker node and issuing a lsblk command. By inspecting the results of this command you will know which devices are available and their size. See <<Finding Available Storage Devices>> for more details.
 
@@ -646,11 +644,11 @@ First step is to create the LocalVolume CR for Block *PVs*.
 [source,yaml]
 .LocalVolume CR local-storage-block.yaml using OCS label as Node Selector
 ----
-apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -660,15 +658,15 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdb
-        - /dev/sdc
-        - /dev/sdd
-        - /dev/sde
-        - /dev/sdf
-        - /dev/sdg	
+        - /dev/sdb             # <-- modify this line
+        - /dev/sdc             # <-- modify this line
+        - /dev/sdd             # <-- modify this line
+        - /dev/sde             # <-- modify this line
+        - /dev/sdf             # <-- modify this line
+        - /dev/sdg             # <-- modify this line
 ----
 
 Create this LocalVolume CR for Block *PVs* using the following command:
@@ -690,7 +688,7 @@ NAME            PROVISIONER                     AGE
 localblock      kubernetes.io/no-provisioner    10m20s
 ----
 
-Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate creation of `local-storage` *Pods* and *PVs* created from storage devices listed under `devicePaths` in the LocalVolume CR. 
+Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate creation of `local-storage` *Pods* and *PVs* created from storage devices listed under `devicePaths` in the LocalVolume CR.
 
 The last step for using local storage on bare metal servers is to create the *StorageCluster*. This is again very similar to how it was done for AWS and VMware but with a few changes.
 
@@ -713,7 +711,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -731,14 +729,14 @@ Create this StorageCluster CR using the following command:
 
 [source,role="execute"]
 ----
-oc create -f ocs-cluster-service.yaml 
+oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-metal.yaml
 ----
 .Example output:
 ----
 storagecluster.ocs.openshift.io/ocs-storagecluster created
 ----
 
-Reference <<Creating the OCS Storage Cluster on AWS>> for how to validate your *StorageCluster* deployment.
+Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
 
 
 
