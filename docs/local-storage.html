@@ -442,8 +442,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <h1>Deploying OpenShift Container Storage using Local Devices</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
-<ul class="sectlevel0">
-<li><a href="#_deploying_red_hat_openshift_container_storage_on_an_existing_red_hat_openshift_container_platform">Deploying Red Hat OpenShift Container Storage on an existing Red Hat OpenShift Container Platform</a>
 <ul class="sectlevel1">
 <li><a href="#_installing_red_hat_openshift_container_storage_operator_using_the_operator_hub">1. Installing Red Hat OpenShift Container Storage Operator using the Operator Hub</a></li>
 <li><a href="#_installing_openshift_container_storage_on_local_storage_devices">2. Installing OpenShift Container Storage on Local Storage Devices</a>
@@ -452,18 +450,19 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_installing_the_local_storage_operator">2.2. Installing the Local Storage Operator</a></li>
 <li><a href="#_finding_available_storage_devices">2.3. Finding Available Storage Devices</a></li>
 <li><a href="#_using_the_lso_localvolume_custom_resource_to_create_pvs">2.4. Using the LSO LocalVolume Custom Resource to Create PVs</a></li>
-<li><a href="#_creating_the_ocs_storage_cluster_on_aws">2.5. Creating the OCS Storage Cluster on AWS</a></li>
-<li><a href="#_creating_the_ocs_storage_cluster_on_vmware">2.6. Creating the OCS Storage Cluster on VMware</a></li>
-<li><a href="#_creating_the_ocs_storage_cluster_on_bare_metal">2.7. Creating the OCS Storage Cluster on Bare Metal</a></li>
+<li><a href="#_creating_the_ocs_storage_cluster_on_aws">2.5. Creating the OCS Storage Cluster on AWS</a>
+<ul class="sectlevel3">
+<li><a href="#_validating_the_successful_ocs_storage_cluster_creation_on_aws">2.5.1. Validating the successful OCS Storage Cluster creation on AWS</a></li>
 </ul>
 </li>
+<li><a href="#_creating_the_ocs_storage_cluster_on_vmware">2.6. Creating the OCS Storage Cluster on VMware</a></li>
+<li><a href="#_creating_the_ocs_storage_cluster_on_bare_metal">2.7. Creating the OCS Storage Cluster on Bare Metal</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 <div id="content">
-<h1 id="_deploying_red_hat_openshift_container_storage_on_an_existing_red_hat_openshift_container_platform" class="sect0">Deploying Red Hat OpenShift Container Storage on an existing Red Hat OpenShift Container Platform</h1>
 <div class="sect1">
 <h2 id="_installing_red_hat_openshift_container_storage_operator_using_the_operator_hub">1. Installing Red Hat OpenShift Container Storage Operator using the Operator Hub</h2>
 <div class="sectionbody">
@@ -630,7 +629,7 @@ rook-ceph-operator-55cb44fcfc-wxppc       1/1     Running   0          3m41s</co
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Installing OpenShift Container Storage on bare metal using the Local Storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete.These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.</p>
+<p>Installing OpenShift Container Storage on bare metal using the Local Storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.</p>
 </div>
 </td>
 </tr>
@@ -813,11 +812,11 @@ nvme1n1                      259:1    0   1.7T  0 disk</code></pre>
 <div class="listingblock">
 <div class="title">LocalVolume CR local-storage-block.yaml using OCS label as Node Selector</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+<pre class="pygments highlight"><code data-lang="yaml">apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -827,11 +826,11 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/nvme0n1
-        - /dev/nvme1n1</code></pre>
+        - /dev/nvme0n1             # &lt;-- modify this line
+        - /dev/nvme1n1             # &lt;-- modify this line</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -845,7 +844,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">localvolume.local.storage.openshift.io/local-disk created</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">localvolume.local.storage.openshift.io/local-block created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -860,12 +859,12 @@ spec:
 <div class="title">Example output:</div>
 <div class="content">
 <pre class="pygments highlight"><code data-lang="shell">NAME                                     READY   STATUS    RESTARTS   AGE
-local-disk-local-diskmaker-kkp7j         1/1     Running   0          5m1s
-local-disk-local-diskmaker-nqcgl         1/1     Running   0          5m1s
-local-disk-local-diskmaker-szd72         1/1     Running   0          5m1s
-local-disk-local-provisioner-bsztg       1/1     Running   0          5m1s
-local-disk-local-provisioner-g9zgf       1/1     Running   0          5m1s
-local-disk-local-provisioner-gzktp       1/1     Running   0          5m1s
+local-block-local-diskmaker-kkp7j        1/1     Running   0          5m1s
+local-block-local-diskmaker-nqcgl        1/1     Running   0          5m1s
+local-block-local-diskmaker-szd72        1/1     Running   0          5m1s
+local-block-local-provisioner-bsztg      1/1     Running   0          5m1s
+local-block-local-provisioner-g9zgf      1/1     Running   0          5m1s
+local-block-local-provisioner-gzktp      1/1     Running   0          5m1s
 local-storage-operator-765dc5b87-vfh69   1/1     Running   0          53m</code></pre>
 </div>
 </div>
@@ -890,7 +889,7 @@ local-pv-d2a3dcde   1769Gi     RWO            Delete           Available        
 </div>
 </div>
 <div class="paragraph">
-<p>And finally we should have an additional <strong>StorageClass</strong> as a result of creating this LocalVolume CR. This <strong>StorageClass</strong> will be used to create <strong>PVCs</strong> in the next step of creating a <strong>StorageCluster</strong>.</p>
+<p>And finally we should have an additional <strong>StorageClass</strong> as a result of creating this LocalVolume CR. This <strong>StorageClass</strong> will be used when creating <strong>PVCs</strong> in the next step of creating a <strong>StorageCluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -931,7 +930,7 @@ spec:
       resources:
         requests:
           storage: 10Gi
-      storageClassName: 'gp2'
+      storageClassName: gp2
       volumeMode: Filesystem
   storageDeviceSets:
   - count: 1
@@ -942,7 +941,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -970,7 +969,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc create -f ocs-cluster-service.yaml</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-AWS.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -979,6 +978,8 @@ spec:
 <pre class="pygments highlight"><code data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster created</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_validating_the_successful_ocs_storage_cluster_creation_on_aws">2.5.1. Validating the successful OCS Storage Cluster creation on AWS</h4>
 <div class="paragraph">
 <p>Once the <strong>StorageCluster</strong> is created OCS pods will start showing up in the <code>openshift-storage</code> namespace. For the deployment to completely finish could take up to 10 minutes so be patient. Below you will find examples of a successful deployment of the OCS <strong>Pods</strong> and <strong>PVCs</strong>.</p>
 </div>
@@ -1084,6 +1085,7 @@ ocs-storagecluster   14m   Ready   2020-03-11T22:52:04Z   4.3.0</code></pre>
 <p>If it says <code>Ready</code> you can continue on to using OCS storage for applications.</p>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_creating_the_ocs_storage_cluster_on_vmware">2.6. Creating the OCS Storage Cluster on VMware</h3>
 <div class="paragraph">
@@ -1120,11 +1122,11 @@ ocs-storagecluster   14m   Ready   2020-03-11T22:52:04Z   4.3.0</code></pre>
 <div class="listingblock">
 <div class="title">LocalVolume CR local-storage-file.yaml using OCS label as Node Selector</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+<pre class="pygments highlight"><code data-lang="yaml">apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-file
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -1134,10 +1136,10 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localfile"
+    - storageClassName: localfile
       volumeMode: Filesystem
       devicePaths:
-        - /dev/sdb</code></pre>
+        - /dev/sdb             # &lt;-- modify this line</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1183,11 +1185,11 @@ localfile      kubernetes.io/no-provisioner    7m46s</code></pre>
 <div class="listingblock">
 <div class="title">LocalVolume CR local-storage-block.yaml using OCS label as Node Selector</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+<pre class="pygments highlight"><code data-lang="yaml">apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -1197,10 +1199,10 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdc</code></pre>
+        - /dev/sdc             # &lt;-- modify this line</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1208,7 +1210,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc create -f local-storage-file.yaml</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc create -f local-storage-block.yaml</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1249,7 +1251,7 @@ spec:
       resources:
         requests:
           storage: 1
-      storageClassName: 'localfile'
+      storageClassName: localfile
       volumeMode: Filesystem
   storageDeviceSets:
   - count: 1
@@ -1260,7 +1262,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -1302,7 +1304,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc create -f ocs-cluster-service.yaml</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-VMware.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1312,7 +1314,7 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>Reference <a href="#_creating_the_ocs_storage_cluster_on_aws">Creating the OCS Storage Cluster on AWS</a> for how to validate your <strong>StorageCluster</strong> deployment.</p>
+<p>Reference <a href="#_validating_the_successful_ocs_storage_cluster_creation_on_aws">Validating the successful OCS Storage Cluster creation on AWS</a> for how to validate your <strong>StorageCluster</strong> deployment.</p>
 </div>
 </div>
 <div class="sect2">
@@ -1349,11 +1351,11 @@ spec:
 <div class="listingblock">
 <div class="title">LocalVolume CR local-storage-block.yaml using OCS label as Node Selector</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">apiVersion: "local.storage.openshift.io/v1"
-kind: "LocalVolume"
+<pre class="pygments highlight"><code data-lang="yaml">apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
 metadata:
-  name: "local-disk"
-  namespace: "local-storage"
+  name: local-block
+  namespace: local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -1363,15 +1365,15 @@ spec:
           values:
           - ""
   storageClassDevices:
-    - storageClassName: "localblock"
+    - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdb
-        - /dev/sdc
-        - /dev/sdd
-        - /dev/sde
-        - /dev/sdf
-        - /dev/sdg</code></pre>
+        - /dev/sdb             # &lt;-- modify this line
+        - /dev/sdc             # &lt;-- modify this line
+        - /dev/sdd             # &lt;-- modify this line
+        - /dev/sde             # &lt;-- modify this line
+        - /dev/sdf             # &lt;-- modify this line
+        - /dev/sdg             # &lt;-- modify this line</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1422,7 +1424,7 @@ spec:
         resources:
           requests:
             storage: 1
-        storageClassName: 'localblock'
+        storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
@@ -1450,7 +1452,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc create -f ocs-cluster-service.yaml</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc create -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-metal.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1460,7 +1462,7 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>Reference <a href="#_creating_the_ocs_storage_cluster_on_aws">Creating the OCS Storage Cluster on AWS</a> for how to validate your <strong>StorageCluster</strong> deployment.</p>
+<p>Reference <a href="#_validating_the_successful_ocs_storage_cluster_creation_on_aws">Validating the successful OCS Storage Cluster creation on AWS</a> for how to validate your <strong>StorageCluster</strong> deployment.</p>
 </div>
 </div>
 </div>
@@ -1468,7 +1470,7 @@ spec:
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-03-13 09:19:58 UTC
+Last updated 2020-03-13 15:49:28 UTC
 </div>
 </div>
 </body>
