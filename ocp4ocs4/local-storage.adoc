@@ -25,6 +25,19 @@ You must add the monitoring label to this namespace. This is required to get pro
 oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 ----
 
+[NOTE]
+====
+Prior to OCS 4.3 GA, *skip* the steps above to create openshift-storage namespace. Instead use https://gist.github.com/netzzer/8e4935d770f612a02fcbb4f6031d2d01[deploy-with-olm.yaml] and execute `oc create -f deploy-with-olm.yaml`.
+
+.Example output
+----
+namespace/openshift-storage created
+operatorgroup.operators.coreos.com/openshift-storage-operatorgroup created
+catalogsource.operators.coreos.com/ocs-catalogsource created
+catalogsource.operators.coreos.com/lib-bucket-catalogsource created
+----
+====
+
 Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route.
 
 [source,role="execute"]
