@@ -9,7 +9,7 @@
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
-== Installing Red Hat OpenShift Container Storage Operator using the Operator Hub
+== Installing OpenShift Container Storage Operator using Operator Hub
 
 Start with creating the `openshift-storage` namespace.
 
@@ -181,21 +181,7 @@ The Local Storage Operator (LSO) has been successfully installed. Now move on to
 
 Using LSO to create *PVs* can be done for bare metal, Amazon EC2, or VMware storage devices. What you must know is the exact device name on each of the 3 or more OCP worker nodes you labeled with OCS label `cluster.ocs.openshift.io/openshift-storage=''`. The method to do this is to logon to each node and verify the device names as well, the size of each device, and that the device is available.
 
-First verify the names of the worker nodes with the OCS label:
-
-[source,role="execute"]
-----
-oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
-----
-.Example output:
-----
-NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-135-71.us-east-2.compute.internal    Ready    worker   6h45m   v1.16.2
-ip-10-0-145-125.us-east-2.compute.internal   Ready    worker   6h45m   v1.16.2
-ip-10-0-160-91.us-east-2.compute.internal    Ready    worker   6h45m   v1.16.2
-----
-
-Now that you have the worker nodes that have the OCS label you can logon to each node (or a single node if they are all the same) and verify the device name for each available raw block device.
+Logon to each worker node that will be used for OCS resources and find the unique `by-id` device name for each available raw block device. You will want to copy these values to a clipboard for the next step.
 
 [source,role="execute"]
 ----
@@ -222,14 +208,48 @@ nvme0n1                      259:0    0   1.7T  0 disk
 nvme1n1                      259:1    0   1.7T  0 disk
 ----
 
-In this case the EC2 instance type is i3.4xlarge so we know all 3 worker nodes are the same. As shown above the results of 'lsblk' shows the last 2 devices, `nvme0n1` and `nvme1n1` are available with a size of 1.7 TB each. Next step is to create new *PVs* using these devices.
+After you know which local devices are available, in this case `nvme0n1` and `nvme1n1`, you can now find the `by-id`, a unique name depending on the hardware serial number for each device.
+
+----
+sh-4.4# ls -l /dev/disk/by-id/
+total 0
+lrwxrwxrwx. 1 root root 10 Mar 17 16:24 dm-name-coreos-luks-root-nocrypt -> ../../dm-0
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC -> ../../nvme0n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC -> ../../nvme1n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533130333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -> ../../nvme0n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533630333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -> ../../nvme1n1
+----
+
+In this case the EC2 instance type is i3.4xlarge so we know all 3 worker nodes are the same type of machine but their `by-id` identifier is unique for every local device. As shown above, the results of `lsblk` shows the last 2 devices `nvme0n1` and `nvme1n1` are available with a size of 1.7 TB. 
+
+For each worker node that has the OCS label (minimum 3) you will need to find the unique `by-id`. For this node they are:
+
+* `nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC`
+* `nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC`
+
+This example just shows results for one node so this method needs to be repeated for the other nodes that have storage devices to be used by OCS. Next step is to create new *PVs* using these devices. 
 
 === Using the LSO LocalVolume Custom Resource to Create PVs
 
-The next step is to create the LSO LocalVolume CR which in turn will create *PVs* and a new *StorageClass* for creating Ceph storage.
+The next step is to create the LSO LocalVolume CR which in turn will create *PVs* and a new *StorageClass* for creating Ceph storage. For this example only device `nvme0n1` will be used on each node using the `by-id` unique identifier in the CR. 
+
+Before you create this resource make sure you have labeled your OCP worker nodes with the OCS label.
+
+[source,role="execute"]
+----
+oc get nodes -l cluster.ocs.openshift.io/openshift-storage -o jsonpath='{range .items[*]}{.metadata.name}{"\n"}'
+----
+.Example output:
+----
+ip-10-0-135-71.us-east-2.compute.internal
+ip-10-0-145-125.us-east-2.compute.internal
+ip-10-0-160-91.us-east-2.compute.internal
+----
+
+Now that you know a minimum of 3 nodes are labeled you can proceed. The label is important because it is used as the `nodeSelector` below.
 
 [source,yaml]
-.LocalVolume CR local-storage-block.yaml using OCS label as Node Selector:
+.LocalVolume CR local-storage-block.yaml using OCS label as Node Selector and `by-id` device identifier:
 ----
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
@@ -248,8 +268,9 @@ spec:
     - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/nvme0n1             # <-- modify this line
-        - /dev/nvme1n1             # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS1F45C01D7E84FE3E9   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS136BC945B4ECB9AE4   # <-- modify this line
 ----
 
 Create this LocalVolume CR using the following command:
@@ -281,7 +302,7 @@ local-block-local-provisioner-gzktp      1/1     Running   0          5m1s
 local-storage-operator-765dc5b87-vfh69   1/1     Running   0          53m
 ----
 
-There should now be a new *PV* for each of the local storage devices on the 3 worker nodes. Remember when we checked above there were 2 available storage devices per worker node and the size for each was 1.7 TB.
+There should now be a new *PV* for each of the local storage devices on the 3 worker nodes. Remember when we checked above there were 2 available storage devices per worker node. Only device `nvme0n1` was used on each worker node and the size is 1.7 TB.
 
 [source,role="execute"]
 ----
@@ -291,11 +312,8 @@ oc get pv
 ----
 NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
 local-pv-40bd1474   1769Gi     RWO            Delete           Available           localblock              5m53s
-local-pv-53994ff9   1769Gi     RWO            Delete           Available           localblock              5m53s
 local-pv-66631f85   1769Gi     RWO            Delete           Available           localblock              5m52s
 local-pv-c56e9c     1769Gi     RWO            Delete           Available           localblock              5m53s
-local-pv-c63a7061   1769Gi     RWO            Delete           Available           localblock              5m53s
-local-pv-d2a3dcde   1769Gi     RWO            Delete           Available           localblock              5m52s
 ----
 
 And finally we should have an additional *StorageClass* as a result of creating this LocalVolume CR. This *StorageClass* will be used when creating *PVCs* in the next step of creating a *StorageCluster*.
@@ -318,7 +336,7 @@ The next sections will detail how to create and validate the OCS *StorageCluster
 For Amazon EC2 instance that have local storage devices (e.g., i3.4xlarge) we need to create a *StorageCluster* Custom Resource (CR) that will use the `localblock` *StorageClass* and 3 of the 6 *PVs* created in the previous section.
 
 [source,yaml]
-.StorageCluster CR ocs-cluster-service.yaml using `gp2` and `localblock` storageclasses:
+.StorageCluster CR cluster-service-AWS.yaml using `gp2` and `localblock` storageclasses:
 ----
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -434,7 +452,7 @@ persistentvolumeclaim/rook-ceph-mon-b           Bound    pvc-7c0187c1-1000-4d3b-
 persistentvolumeclaim/rook-ceph-mon-c           Bound    pvc-e30645cd-1733-46c5-b0bf-566bdd0d2ab8   10Gi       RWO            gp2                           7m34s
 ----
 
-If we now look again at the *PVs* we will see 3 are still available to be used for an *Add Capacity* activity in the future if more storage is needed for the *StorageCluster*
+If we now look again at the *PVs* again you will see they are now in a `Bound` state verses `Available` as they were before OCS *StorageCluster* was created.
 
 [source,role="execute"]
 ----
@@ -443,11 +461,8 @@ oc get pv | grep localblock
 .Example output:
 ----
 local-pv-40bd1474                          1769Gi     RWO            Delete           Bound       openshift-storage/ocs-deviceset-0-0-dq89h   localblock                             46m
-local-pv-53994ff9                          1769Gi     RWO            Delete           Available                                               localblock                             46m
 local-pv-66631f85                          1769Gi     RWO            Delete           Bound       openshift-storage/ocs-deviceset-1-0-wnbrp   localblock                             46m
 local-pv-c56e9c                            1769Gi     RWO            Delete           Bound       openshift-storage/ocs-deviceset-2-0-xst6j   localblock                             46m
-local-pv-c63a7061                          1769Gi     RWO            Delete           Available                                               localblock                             46m
-local-pv-d2a3dcde                          1769Gi     RWO            Delete           Available                                               localblock                             46m
 ----
 
 You can check the status of the storage cluster with the following:
@@ -502,7 +517,9 @@ spec:
     - storageClassName: localfile
       volumeMode: Filesystem
       devicePaths:
-        - /dev/sdb             # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c29520486e45a6896c58a10de97d   # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c29194bcdc3fbd865a67057a29ec   # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c2991133c4f1d6a604f3bc086967   # <-- modify this line
 ----
 
 [NOTE]
@@ -551,7 +568,9 @@ spec:
     - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdc             # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c2991c27c2e5ba7c47d1e4352de2   # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c29682ca9e347926406711f3dc4e   # <-- modify this line
+        - /dev/disk/by-id/scsi-36000c296aaf03a9b1e4b01d086bc6348   # <-- modify this line
 ----
 
 Create this LocalVolume CR for Block *PVs* using the following command:
@@ -573,12 +592,29 @@ NAME            PROVISIONER                     AGE
 localblock      kubernetes.io/no-provisioner    8m38s
 ----
 
+After the new *StorageClasses* are created there will be new *PVs* with `Available` status. Three will be used for Monitor storage (10 GB) and three will be used for OSD storage (100 GB).
+
+[source,role="execute"]
+----
+oc get get pv
+----
+.Example output:
+----
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+local-pv-150fdc87   100Gi      RWO            Delete           Available           localblock              2m11s
+local-pv-183bfc0a   100Gi      RWO            Delete           Available           localblock              2m11s
+local-pv-b2f5cb25   100Gi      RWO            Delete           Available           localblock              2m21s
+local-pv-ff902790   10Gi       RWO            Delete           Available           localfile               4m19s
+local-pv-ea87e127   10Gi       RWO            Delete           Available           localfile               4m20s
+local-pv-56fa56a1   10Gi       RWO            Delete           Available           localfile               4m30s
+----
+
 Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more commands to validate the creation of `local-storage` *Pods* and *PVs* associated to each local storage device listed under `devicePaths` in the LocalVolume CR(s).
 
 The last step for using local storage on VMware is to create the *StorageCluster*. This is again very similar to how it was done for AWS but with a few changes.
 
 [source,yaml]
-.StorageCluster CR ocs-cluster-service.yaml using `localfile` and `localblock` storageclasses:
+.StorageCluster CR cluster-service-VMware.yaml using `localfile` and `localblock` storageclasses:
 ----
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -674,12 +710,12 @@ spec:
     - storageClassName: localblock
       volumeMode: Block
       devicePaths:
-        - /dev/sdb             # <-- modify this line
-        - /dev/sdc             # <-- modify this line
-        - /dev/sdd             # <-- modify this line
-        - /dev/sde             # <-- modify this line
-        - /dev/sdf             # <-- modify this line
-        - /dev/sdg             # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPY81260978128A   # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPY80440W5U128A   # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPYB85AABDE128A   # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPY0A60CB81128A   # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPY0093D45E128A   # <-- modify this line
+        - /dev/disk/by-id/nvme-INTEL_SSDPEKKA128G7_BTPYE46F6060128A   # <-- modify this line
 ----
 
 Create this LocalVolume CR for Block *PVs* using the following command:
@@ -706,7 +742,7 @@ Reference <<Using the LSO LocalVolume Custom Resource to Create PVs>> for more c
 The last step for using local storage on bare metal servers is to create the *StorageCluster*. This is again very similar to how it was done for AWS and VMware but with a few changes.
 
 [source,yaml]
-.StorageCluster CR ocs-cluster-service.yaml using `monDataDirHostPath` and `localblock` storageclass:
+.StorageCluster CR cluster-service-metal.yaml using `monDataDirHostPath` and `localblock` storageclass:
 ----
 kind: StorageCluster
 metadata:
@@ -751,8 +787,208 @@ storagecluster.ocs.openshift.io/ocs-storagecluster created
 
 Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
 
+== Scaling up Storage by adding Devices to OpenShift Container Storage
 
+Use this procedure to add storage capacity (additional storage devices) to your configured Red Hat OpenShift Container Storage worker nodes.
 
+To add storage capacity to existing OCP nodes with OCS installed, you will need to find the unique `by-id` identifier for available devices that you want to add, a minimum of one device per worker node. See <<Finding Available Storage Devices>> for more details. Make sure to do this process for all existing nodes (minimum of 3) that you want to add storage to.
 
+[source,yaml]
+.LocalVolume CR local-storage-block-expand.yaml using OCS label as Node Selector and `by-id` device identifier:
+----
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-block
+  namespace: local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+          - ""
+  storageClassDevices:
+    - storageClassName: localblock
+      volumeMode: Block
+      devicePaths:
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS1F45C01D7E84FE3E9   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS6F45C01D7E84FE3E9   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS136BC945B4ECB9AE4   # <-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS636BC945B4ECB9AE4   # <-- modify this line
+----
 
+You can see that in this CR new `by-id` devices have been added. Each device maps to `nvme1n1` on one of three worker node.
+
+* nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC
+* nvme-Amazon_EC2_NVMe_Instance_Storage_AWS6F45C01D7E84FE3E9
+* nvme-Amazon_EC2_NVMe_Instance_Storage_AWS636BC945B4ECB9AE4
+
+Create this LocalVolume CR using the following command:
+
+[source,role="execute"]
+----
+oc apply -f local-storage-block-expand.yaml
+----
+.Example output:
+----
+localvolume.local.storage.openshift.io/local-block configured
+----
+
+Now that the CR is created let's see the results.
+
+[source,role="execute"]
+----
+oc get pv | grep localblock
+----
+.Example output
+----
+local-pv-1d63db9e   1769Gi     RWO            Delete           Available           localblock              33s
+local-pv-1eb9da0a   1769Gi     RWO            Delete           Available           localblock              25s
+local-pv-31021a83   1769Gi     RWO            Delete           Available           localblock              48s
+...
+----
+
+Now there are 3 more `Available` *PVs* to add to our *StorageCluster*. To do the expansion the only modification to the StorageCluster CR is to modify the `count` for *storageDeviceSets* from `1` to `2`.
+
+[source,yaml]
+.StorageCluster CR cluster-service-AWS-expand.yaml using `gp2` and `localblock` storageclasses:
+----
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monPVCTemplate:
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 10Gi
+      storageClassName: gp2
+      volumeMode: Filesystem
+  storageDeviceSets:
+  - count: 2   # <-- modify count to 2
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: 1
+        storageClassName: localblock
+        volumeMode: Block
+    name: ocs-deviceset
+    placement: {}
+    portable: false
+    replica: 3
+    resources: {}
+----
+
+[IMPORTANT]
+====
+The `storage` size for *storageDeviceSets* must be less than or equal to the size of the raw block devices. Setting the value to `1` will guarantee that this requirement is met.
+====
+
+Create this StorageCluster CR using the following command:
+
+[source,role="execute"]
+----
+oc apply -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/yamls/cluster-service-AWS-expand.yaml
+----
+.Example output:
+----
+storagecluster.ocs.openshift.io/ocs-storagecluster configured
+----
+
+You should now have 3 more OSD *Pods* (osd-3, osd-4 and osd-5) and 3 more osd-prepare *Pods*.
+
+[source,role="execute"]
+----
+oc get pods -n openshift-storage | grep 'ceph-osd'
+----
+.Example output:
+----
+...
+rook-ceph-osd-3-568d8797b6-j5xqx                                  1/1     Running     0          14m
+rook-ceph-osd-4-cc4747fdf-5glgl                                   1/1     Running     0          14m
+rook-ceph-osd-5-94c46bbcc-tb7pw                                   1/1     Running     0          14m
+...
+rook-ceph-osd-prepare-ocs-deviceset-0-1-mcmlv-qmn4r               0/1     Completed   0          14m
+rook-ceph-osd-prepare-ocs-deviceset-1-1-tjh2d-fl5zc               0/1     Completed   0          14m
+rook-ceph-osd-prepare-ocs-deviceset-2-1-nqlkg-x9wdn               0/1     Completed   0          14m
+----
+
+Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
+
+== Using the Rook-Ceph toolbox to Validate Ceph backing storage
+
+Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream `toolbox.yaml` file, but we need to modify the namespace as shown below.
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml | sed 's/namespace: rook-ceph/namespace: openshift-storage/g'| oc apply -f -
+----
+
+After the `rook-ceph-tools` *Pod* is `Running` you can access the toolbox like this:
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+Once inside the toolbox, try out the following Ceph commands to see the status of Ceph, the total number of OSDs (should be six after expanding storage), and the total amount of storage available in the cluster. 
+
+[source,role="execute"]
+----
+ceph status
+----
+
+[source,role="execute"]
+----
+ceph osd status
+----
+
+[source,role="execute"]
+----
+ceph osd tree
+----
+
+.Example output:
+[source]
+----
+sh-4.2# ceph status
+  cluster:
+    id:     fb084de5-e7c8-47f4-9c45-e57953fc44fd
+    health: HEALTH_OK
+ 
+  services:
+    mon: 3 daemons, quorum a,b,c (age 23m)
+    mgr: a(active, since 42m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
+    osd: 6 osds: 6 up (since 22m), 6 in (since 22m)
+ 
+  data:
+    pools:   3 pools, 136 pgs
+    objects: 95 objects, 94 MiB
+    usage:   6.1 GiB used, 10 TiB / 10 TiB avail
+    pgs:     136 active+clean
+ 
+  io:
+    client:   853 B/s rd, 25 KiB/s wr, 1 op/s rd, 3 op/s wr
+----
+
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing
+
+[source,role="execute"]
+----
+exit
+----
 
