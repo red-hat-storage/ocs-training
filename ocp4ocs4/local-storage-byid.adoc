@@ -927,7 +927,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-1-nqlkg-x9wdn               0/1     Comple
 
 Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
 
-== Using the Rook-Ceph toolbox to validate Ceph backing storage
+== Using the Rook-Ceph toolbox to Validate Ceph backing storage
 
 Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream `toolbox.yaml` file, but we need to modify the namespace as shown below.
 
