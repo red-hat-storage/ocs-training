@@ -1,1 +1,5 @@
-ocs4.adoc
+= Deploying and Managing OpenShift Container Storage
+
+Please head over link:https://red-hat-storage.github.io/ocs-training/ocs.html[here] to find the rendered content.
+
+https://red-hat-storage.github.io/ocs-training/ocs.html

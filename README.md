@@ -6,9 +6,7 @@ All activites were developed for OpenShift Container Platform (OCP 4) running on
 
 These repository contains hands-on workshops for both system administrators and application developers interested in learning how to deploy and manage OpenShift Container Storage (OCS).
 
-In [ocp4ocs4](ocp4ocs4/ocs4.adoc) you will find the new workshop that leverages the OCS 4 operator.
-
-In [ocp4rook](ocp4rook/ocs4.adoc) you will find the prior workshop which uses upstream Rook v1.0 to provision a Ceph-based storage backend. (Deprecated)
+In [ocp4ocs4](https://red-hat-storage.github.io/ocs-training/ocs.html) you will find the new workshop that leverages the OCS 4 operator.
 
 ## Workloads
 

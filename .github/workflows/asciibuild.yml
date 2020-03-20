@@ -1,0 +1,31 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master
+    paths-ignore:
+      - 'docs'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Build AsciiDoc step
+      id: documents
+      uses: Analog-inc/asciidoctor-action@master
+      with:
+        shellcommand: 'asciidoctor -D ./docs CONTRIBUTING.adoc ocs4postgresql/PostgreSQL.adoc ocp4ocs4/ocs_content.adoc ocp4ocs4/ocs.adoc ocp4ocs4/local-storage.adoc ocp4ocs4/ocs_roadshow.adoc ocs4registry/registry.adoc ocs4jenkins/Jenkins.adoc'
+    - name: Commit files
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add -f ./docs/*
+        git commit -m "Build websites" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}

@@ -1,0 +1,21 @@
+= Deploying and Managing OpenShift Container Storage
+:toc: right
+:toclevels: 2
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+:imagesdir: images/ocs/
+:github-raw-url: https://raw.githubusercontent.com/red-hat-storage/ocs-training/master
+:instance-type: m5.4xlarge
+:aws-region: us-east-2
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+// Build content for the training
+// :training:
+
+// Build content for the roadshow
+:roadshow:
+
+include::ocs_content.adoc[]
