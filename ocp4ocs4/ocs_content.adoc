@@ -411,18 +411,19 @@ NOTE: The NooBaa pod used the `ocs-storagecluster-ceph-rbd` storage class for cr
 
 === Using the Rook-Ceph toolbox to check on the Ceph backing storage
 
-Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it manually. For this, we can leverage the upstream `toolbox.yaml` file, but we need to modify the namespace as shown below.
+Starting with OpenShift Container Storage 4.3 the deployment of a *toolbox* can be configured using the built-in CRs.
+
+Patch the `OCSInitialization ocsinit` using the following command line:
 
 [source,role="execute"]
 ----
-ifdef::roadshow[]
-oc apply {{ HOME_PATH }}/support/ocslab_toolbox.yaml
-endif::[]
-ifdef::training[]
-curl -s https://raw.githubusercontent.com/rook/rook/release-1.1/cluster/examples/kubernetes/ceph/toolbox.yaml | sed 's/namespace: rook-ceph/namespace: openshift-storage/g'| oc apply -f -
-endif::[]
+oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ----
 
+[IMPORTANT]
+====
+Toggling the value from `true` to `false` will terminate any running *toolbox* pod immediately.
+====
 After the `rook-ceph-tools` *Pod* is `Running` you can access the toolbox like this:
 
 [source,role="execute"]
