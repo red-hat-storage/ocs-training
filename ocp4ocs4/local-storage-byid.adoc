@@ -929,7 +929,7 @@ Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for 
 
 == Using the Rook-Ceph toolbox to Validate Ceph backing storage
 
-Starting with OpenShift Container Storage 4.3 the deployment of a *toolbox* can be configured using the built-in CRs.
+Starting with OpenShift Container Storage 4.3 the deployment of a *toolbox* can be created by modifying the *CustomResource* `OCSInitialization`.
 
 You can either patch the `OCSInitialization ocsinit` using the following command line:
 
@@ -966,7 +966,7 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-Once inside the toolbox, try out the following Ceph commands to see the status of Ceph, the total number of OSDs (should be six after expanding storage), and the total amount of storage available in the cluster.
+Once inside the toolbox, try out the following Ceph commands to see the status of Ceph, the total number of OSDs (example below shows six after expanding storage), and the total amount of storage available in the cluster.
 
 [source,role="execute"]
 ----
