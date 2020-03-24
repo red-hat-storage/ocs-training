@@ -128,7 +128,7 @@ Installing OpenShift Container Storage on bare metal, Amazon EC2, and VMware usi
 * Each of the 3 worker nodes must have at least one available raw block device available to be used by OCS (e.g., 100 GB size).
 * You must have a minimum of three labeled worker nodes.
 
-** Each OCP worker node must have an specific label to deploy OCS *Pods*. To label the nodes use the following command:
+** Each OCP worker node must have a specific label to deploy OCS *Pods*. To label the nodes use the following command:
 
 [source,role="execute"]
 ----
@@ -677,7 +677,7 @@ Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for 
 
 The process for using local storage devices for OCP on bare methal environments is very similar to both AWS and VMware environments with some differences.
 
-In order to use local storage devices on bare metal servers you must have a minimum of 3 worker nodes. Each of the machines must have at least one raw block device and the `same` storage type attached to each node (.e.g., 2TB NVMe Hard Drive).
+In order to use local storage devices on bare metal servers you must have a minimum of 3 worker nodes. Each of the machines must have at least one raw block device and the `same` storage type attached to each node (.e.g., 2TB NVMe drive).
 
 To identify the storage devices on each node use the same method as the one used for AWS and VMWare environments by logging on to each OCS worker node and issuing a lsblk command. By inspecting the results of this command you will know which devices are available and their size. See <<Finding Available Storage Devices>> for more details.
 
@@ -786,6 +786,19 @@ storagecluster.ocs.openshift.io/ocs-storagecluster created
 ----
 
 Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
+
+== Scaling out Storage by adding Nodes to OpenShift Container Storage
+
+You must have three OCP worker nodes with the same storage type and size attached to each node (for example, 2TB NVMe drive) as the original OCS *StorageCluster* was created with. 
+
+* Each OCP worker node must have a specific label to deploy OCS *Pods*. To label the nodes use the following command:
+
+[source,role="execute"]
+----
+oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
+----
+
+Once the new nodes are labeled you are ready to add the new local storage device(s) available in these new worker nodes to the OCS *StorageCluster*. Follow the process in the <<Scaling up Storage by adding Devices to OpenShift Container Storage, next section>> to create new *PVs* and increase the number of Ceph OSDs. The new OSDs (3 minimum) most likely will be scheduled by OpenShift on the new worker nodes with the OCS label.
 
 == Scaling up Storage by adding Devices to OpenShift Container Storage
 
