@@ -744,6 +744,7 @@ The last step for using local storage on bare metal servers is to create the *St
 [source,yaml]
 .StorageCluster CR cluster-service-metal.yaml using `monDataDirHostPath` and `localblock` storageclass:
 ----
+apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
 metadata:
   name: ocs-storagecluster
