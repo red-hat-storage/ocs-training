@@ -139,18 +139,18 @@ NOTE: Make sure to add this label to all OCP workers that have local storage dev
 
 * No other storage providers managing locally mounted storage on the storage nodes should be present that will conflict with the Local Storage Operator (LSO).
 
-[NOTE]
-====
-In Amazon EC2, zone and region topology labels are dynamically applied by the AWS Cloud Provider. In VMware or bare metal environments, rack topology labels can be applied by a cluster administrator. In the case of VMware, care must be taken to ensure VMotion operations do not compromise the veracity of topology labels. OpenShift Container Storage inspects zone and rack toplogy labels, and uses them to inform placement policies for data availability and durability. OpenShift Container Storage requires at least three distinct racks or zones for data safety, and the zones or racks should be symmetrical in terms of node quantity.
-====
-
 ==== Label Verification
+
+[NOTE]
+=====
+In Amazon EC2, zone and region topology labels are dynamically applied by the AWS Cloud Provider. In VMware or bare metal environments, rack topology labels can be applied by a cluster administrator. In the case of VMware, care must be taken to ensure VMotion operations do not compromise the veracity of topology labels. OpenShift Container Storage inspects zone and rack toplogy labels, and uses them to inform placement policies for data availability and durability. OpenShift Container Storage requires at least three distinct racks or zones for data safety, and the zones or racks should be *symmetrical* in terms of node quantity.
+=====
 
 The following command will output a list of nodes with the OpenShift Container Storage label, and print a column for each of the topology labels OpenShift Container Storage takes into consideration. If the output from this command does not print *any* topology labels, then it is safe to proceed and OpenShift Container Storage will generate three virtual racks using `topology.rook.io/rack` topology labels. If the output from this command shows at least three different topology labels (eg. three different racks, or three different zones), then it is safe to proceed. If the output from this command shows less than three topology labels, and all nodes have pre-existing topology labels, then different nodes should be selected for OpenShift Container Storage, or provisioned and labeled if necessary.
 
 [source,role="execute"]
 ----
-`oc get nodes -L failure-domain.beta.kubernetes.io/zone,failure-domain.beta.kubernetes.io/rack,failure-domain.kubernetes.io/zone,failure-domain.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
+oc get nodes -L failure-domain.beta.kubernetes.io/zone,failure-domain.beta.kubernetes.io/rack,failure-domain.kubernetes.io/zone,failure-domain.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
 ----
 
 === Installing the Local Storage Operator
