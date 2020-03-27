@@ -140,20 +140,18 @@ In Amazon EC2, zone and region topology labels are dynamically applied by the AW
 oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
 ----
 
-== Label Verification
-
-* Verify that the nodes labeled for OCS exist in three distinct racks or zones, or that there are no zone or rack topology labels.
-* Verify that the number of nodes in each rack or zone is equal (eg. one in each, two in each).
-
-[source,role="execute"]
-----
-oc get nodes -L failure-domain.kubernetes.io/zone,failure-domain.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
-oc get nodes -L failure-domain.beta.kubernetes.io/zone,failure-domain.beta.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
-----
-
 NOTE: Make sure to add this label to all OCP workers that have local storage devices to be used by OCS.
 
 * No other storage providers managing locally mounted storage on the storage nodes should be present that will conflict with the Local Storage Operator (LSO).
+
+==== Label Verification
+
+The following command will output a list of nodes with the OpenShift Container Storage label, and print a column for each of the topology labels OpenShift Container Storage takes into consideration. If the output from this command does not print *any* topology labels, then it is safe to proceed and OpenShift Container Storage will generate three virtual racks using `topology.rook.io/rack` topology labels. If the output from this command shows at least three different topology labels (eg. three different racks, or three different zones), then it is safe to proceed. If the output from this command shows less than three topology labels, and all nodes have topology labels applied, then different nodes should be selected for OpenShift Container Storage that satisfy the prerequisites above.
+
+[source,role="execute"]
+----
+`oc get nodes -L failure-domain.beta.kubernetes.io/zone,failure-domain.beta.kubernetes.io/rack,failure-domain.kubernetes.io/zone,failure-domain.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
+----
 
 === Installing the Local Storage Operator
 
