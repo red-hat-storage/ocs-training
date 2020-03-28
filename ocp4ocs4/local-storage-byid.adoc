@@ -141,17 +141,25 @@ NOTE: Make sure to add this label to all OCP workers that have local storage dev
 
 ==== Label Verification
 
-[NOTE]
-=====
-In Amazon EC2, zone and region topology labels are dynamically applied by the AWS Cloud Provider. In VMware or bare metal environments, rack topology labels can be applied by a cluster administrator. In the case of VMware, care must be taken to ensure VMotion operations do not compromise the veracity of topology labels. OpenShift Container Storage inspects zone and rack toplogy labels, and uses them to inform placement policies for data availability and durability. OpenShift Container Storage requires at least three distinct racks or zones for data safety, and the zones or racks should be *symmetrical* in terms of node quantity.
-=====
+Amazon EC2 zone and region topology labels are dynamically applied to OCP nodes by the AWS Cloud Provider. In VMware or bare metal environments, rack topology labels can be applied by a cluster administrator prior to OCS being deployed. OCS inspects zone and rack topology labels and uses them to inform placement policies for data availability and durability.
 
-The following command will output a list of nodes with the OpenShift Container Storage label, and print a column for each of the topology labels OpenShift Container Storage takes into consideration. If the output from this command does not print *any* topology labels, then it is safe to proceed and OpenShift Container Storage will generate three virtual racks using `topology.rook.io/rack` topology labels. If the output from this command shows at least three different topology labels (eg. three different racks, or three different zones), then it is safe to proceed. If the output from this command shows less than three topology labels, and all nodes have pre-existing topology labels, then different nodes should be selected for OpenShift Container Storage, or provisioned and labeled if necessary.
+[NOTE]
+====
+OCS requires at least three failure domains for data safety and the domains should be *symmetrical* in terms of node quantity. If the OCP nodes used for the OCS deployment do not have preexisting topology labels OCS will generate three virtual racks using `topology.rook.io/rack` topology labels.
+====
+
+The following command will output a list of nodes with the OCS label, and print a column for each of the topology labels OCS takes into consideration.
 
 [source,role="execute"]
 ----
 oc get nodes -L failure-domain.beta.kubernetes.io/zone,failure-domain.beta.kubernetes.io/rack,failure-domain.kubernetes.io/zone,failure-domain.kubernetes.io/rack -l cluster.ocs.openshift.io/openshift-storage=''
 ----
+
+If the output from this command does not print *any* topology labels, then it is safe to proceed.
+
+If the output from this command shows at least three existing unique topology labels (eg. three different racks, or three different zones), then it is safe to proceed.
+
+If there are existing rack labels *and* there are less than 3 different values (e.g., 2 nodes in rack1 and 1 node in rack2 only), then different nodes should be labeled for OCS.
 
 === Installing the Local Storage Operator
 
