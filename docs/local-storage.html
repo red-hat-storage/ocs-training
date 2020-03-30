@@ -459,6 +459,7 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <li><a href="#_creating_the_ocs_storage_cluster_on_bare_metal">2.7. Creating the OCS Storage Cluster on Bare Metal</a></li>
 </ul>
 </li>
+<li><a href="#_using_the_rook_ceph_toolbox_to_validate_ceph_backing_storage">3. Using the Rook-Ceph toolbox to Validate Ceph backing storage</a></li>
 </ul>
 </div>
 </div>
@@ -1490,10 +1491,116 @@ spec:
 </div>
 </div>
 </div>
+<div class="sect1">
+<h2 id="_using_the_rook_ceph_toolbox_to_validate_ceph_backing_storage">3. Using the Rook-Ceph toolbox to Validate Ceph backing storage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with OpenShift Container Storage 4.3 the deployment of a <strong>toolbox</strong> can be created by modifying the <strong>CustomResource</strong> <code>OCSInitialization</code>.</p>
+</div>
+<div class="paragraph">
+<p>You can either patch the <code>OCSInitialization ocsinit</code> using the following command line:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Or you can edit the <code>OCSInitialization ocsinit</code> to toggle the <code>enableCephTools</code> parameter to <strong>true</strong> using the following command line:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">oc edit OCSInitialization ocsinit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>spec</code> item must be set to the following value:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">spec:
+  enableCephTools: true</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>Toggling the value from <code>true</code> to <code>false</code> will terminate any running <strong>toolbox</strong> pod immediately.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After the <code>rook-ceph-tools</code> <strong>Pod</strong> is <code>Running</code> you can access the toolbox like this:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once inside the toolbox, try out the following Ceph commands to see the status of Ceph, the total number of OSDs (example below shows six after expanding storage), and the total amount of storage available in the cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">ceph osd status</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">ceph osd tree</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">sh-4.2# ceph status
+  cluster:
+    id:     fb084de5-e7c8-47f4-9c45-e57953fc44fd
+    health: HEALTH_OK
+
+  services:
+    mon: 3 daemons, quorum a,b,c (age 23m)
+    mgr: a(active, since 42m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
+    osd: 6 osds: 6 up (since 22m), 6 in (since 22m)
+
+  data:
+    pools:   3 pools, 136 pgs
+    objects: 95 objects, 94 MiB
+    usage:   6.1 GiB used, 10 TiB / 10 TiB avail
+    pgs:     136 active+clean
+
+  io:
+    client:   853 B/s rd, 25 KiB/s wr, 1 op/s rd, 3 op/s wr</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can exit the toolbox by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="pygments highlight"><code data-lang="shell">exit</code></pre>
+</div>
+</div>
+</div>
+</div>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-03-28 00:30:39 UTC
+Last updated 2020-03-30 15:32:28 UTC
 </div>
 </div>
 </body>
