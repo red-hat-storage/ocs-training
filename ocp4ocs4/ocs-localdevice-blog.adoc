@@ -9,7 +9,7 @@
 
 == Overview
 
-TBD
+Building high performance storage services for OpenShift requires taking a holistic look at the overall architecture of the software defined storage stack. Eliminating unnecessary layers can pay dividends, and this is why we've been working hard to get OpenShift Container Storage as close to the hardware as possible.  Prior to 4.3, the only storage OCS could consume were persistent volumes from either the Amazon Web Servicces Elastic Block Storage provisioner or the vSphere Volume provisioner. This blog post will detail a new feature that will be in Technology Preview for our 4.3 release of OCS, local storage devices. In VMware environments, this translates to local disks surfaced as VMDKs, as raw device mappings, or with DirectPath I/O. In Amazon EC2, this translates to instance storage, and we are really excited with what we are seeing with both I3 and I3en instance families. We've put together this post so that folks like you could walk through how to setup OCS using instance storage in EC2, and familiarize themselves with this powerful new feature.
 
 [IMPORTANT]
 ====
