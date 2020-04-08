@@ -202,6 +202,8 @@ image::imgs/image-31.png[Kibana - Authorize Access]
 image::imgs/image-32.png[Kibana - Main Page]
 image::imgs/image-33.png[Kibana - Search For Example Logs]
 
+You can search with Query DSL with a few condtions as follows.
+kubernetes.namespace_name: "openshift-storage" AND kubernetes.labels.app: "noobaa" AND message: "ERROR: "
 
 == Summary
 
