@@ -751,6 +751,94 @@ storagecluster.ocs.openshift.io/ocs-storagecluster created
 
 Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for how to validate your *StorageCluster* deployment.
 
+== Using the Rook-Ceph toolbox to Validate Ceph backing storage
+
+Starting with OpenShift Container Storage 4.3 the deployment of a *toolbox* can be created by modifying the *CustomResource* `OCSInitialization`.
+
+You can either patch the `OCSInitialization ocsinit` using the following command line:
+
+[source,role="execute"]
+----
+oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+----
+
+Or you can edit the `OCSInitialization ocsinit` to toggle the `enableCephTools` parameter to *true* using the following command line:
+
+[source,role="execute"]
+----
+oc edit OCSInitialization ocsinit
+----
+
+The `spec` item must be set to the following value:
+
+[source,role="execute"]
+----
+spec:
+  enableCephTools: true
+----
+
+[IMPORTANT]
+====
+Toggling the value from `true` to `false` will terminate any running *toolbox* pod immediately.
+====
+
+After the `rook-ceph-tools` *Pod* is `Running` you can access the toolbox like this:
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+Once inside the toolbox, try out the following Ceph commands to see the status of Ceph, the total number of OSDs (example below shows six after expanding storage), and the total amount of storage available in the cluster.
+
+[source,role="execute"]
+----
+ceph status
+----
+
+[source,role="execute"]
+----
+ceph osd status
+----
+
+[source,role="execute"]
+----
+ceph osd tree
+----
+
+.Example output:
+[source]
+----
+sh-4.2# ceph status
+  cluster:
+    id:     fb084de5-e7c8-47f4-9c45-e57953fc44fd
+    health: HEALTH_OK
+
+  services:
+    mon: 3 daemons, quorum a,b,c (age 23m)
+    mgr: a(active, since 42m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
+    osd: 6 osds: 6 up (since 22m), 6 in (since 22m)
+
+  data:
+    pools:   3 pools, 136 pgs
+    objects: 95 objects, 94 MiB
+    usage:   6.1 GiB used, 10 TiB / 10 TiB avail
+    pgs:     136 active+clean
+
+  io:
+    client:   853 B/s rd, 25 KiB/s wr, 1 op/s rd, 3 op/s wr
+----
+
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing
+
+[source,role="execute"]
+----
+exit
+----
+
+
 
 
 
