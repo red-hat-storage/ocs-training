@@ -483,29 +483,6 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 <pre class="pygments highlight"><code data-lang="shell">oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>Prior to OCS 4.3 GA, <strong>skip</strong> the steps above to create openshift-storage namespace. Instead use <a href="https://gist.github.com/netzzer/8e4935d770f612a02fcbb4f6031d2d01">deploy-with-olm.yaml</a> and execute <code>oc create -f deploy-with-olm.yaml</code>.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example output:</div>
-<div class="content">
-<pre class="pygments highlight"><code data-lang="shell">namespace/openshift-storage created
-operatorgroup.operators.coreos.com/openshift-storage-operatorgroup created
-catalogsource.operators.coreos.com/ocs-catalogsource created
-catalogsource.operators.coreos.com/lib-bucket-catalogsource created</code></pre>
-</div>
-</div>
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>Now switch over to your <strong>Openshift Web Console</strong>. You can get your URL by issuing command below to get the OCP 4 <code>console</code> route.</p>
 </div>
@@ -1600,7 +1577,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-04-13 20:10:33 UTC
+Last updated 2020-04-14 23:32:06 UTC
 </div>
 </div>
 </body>
