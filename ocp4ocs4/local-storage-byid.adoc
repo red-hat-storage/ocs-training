@@ -38,7 +38,7 @@ oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
 // ----
 // ====
 
-Now switch over to your *Openshift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route.
+Now switch over to your *OpenShift Web Console*. You can get your URL by issuing command below to get the OCP 4 `console` route.
 
 [source,role="execute"]
 ----
@@ -965,7 +965,12 @@ Reference <<Validating the successful OCS Storage Cluster creation on AWS>> for 
 
 == Replacing a Failed Device with OpenShift Container Storage
 
-This process should be followed when an OSD *Pod* is in an `Error` state and the root cause is the underlining storage device. 
+This process should be followed when an OSD *Pod* is in an `Error` state and the root cause is a failed underlying storage device.
+
+Login to *OpenShift Web Console* and view the storage Dashboard.
+
+.OCP Storage Dashboard status after OSD failed
+image::OCS4-OCP-Dashboard-Status-Bad.png[OCP Storage Dashboard status]
 
 [NOTE]
 ====
@@ -1052,7 +1057,7 @@ ID  CLASS WEIGHT  TYPE NAME                            STATUS REWEIGHT PRI-AFF
   2   hdd 0.09669             osd.2                        up  1.00000 1.00000
 ----
 
-In the case where the data can migrated off the OSD in a `Error` state, you will want to wait until all *PGs* are `active+clean`.
+In the case where the data can be migrated off the OSD in a `Error` state, you will want to wait until all *PGs* are `active+clean`.
 
 [source,role="execute"]
 ----
@@ -1060,10 +1065,12 @@ ceph pg stat
 ----
 .Example output for all data (PGs) migrating off of OSD
 ----
-192 pgs: 192 active+clean; 380 MiB data, 1015 MiB used, 1.5 TiB / 1.5 TiB avail; 1.2 KiB/s rd, 59 KiB/s wr, 8 op/s
+192 pgs: 192 active+clean; 
+380 MiB data, 1015 MiB used, 1.5 TiB / 1.5 TiB avail; 
+1.2 KiB/s rd, 59 KiB/s wr, 8 op/s
 ----
 
-Now this OSD needs to be removed from the Ceph `Crush Map`.
+Now this OSD needs to be removed from the Ceph cluster.
 
 [source,role="execute"]
 ----
@@ -1114,7 +1121,7 @@ ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
 ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
 ----
 
-Scale down failed OSD deployment to `replicas=0`. In this example the deployment name is `rook-ceph-osd-0`.
+Scale down failed OSD *deployment* to `replicas=0`. In this example the deployment name is `rook-ceph-osd-0`.
 
 [source,role="execute"]
 ----
@@ -1137,7 +1144,7 @@ NAME                      STATUS        VOLUME              CAPACITY   ACCESS MO
 ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
 ----
 
-Now the device name needs to be identified. In this example the device name is `sdb`.
+Now the failed device name needs to be identified. In this example the device name is `sdb`.
 
 [source,role="execute"]
 ----
@@ -1152,7 +1159,7 @@ The next step is to identify the `prepare-pod` associated with the failed OSD.
 
 [source,role="execute"]
 ----
-oc describe -n openshift-storage pvc ocs-deviceset-1-0-959rp | grep Mounted
+oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted
 ----
 .Example output
 ----
@@ -1167,7 +1174,7 @@ oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68
 ----
 .Example output
 ----
-Mounted By:    rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
+pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
 ----
 
 Now the *PVC* associated with the failed OSD can be deleted.
@@ -1183,9 +1190,9 @@ persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
 
 === Replace failed drive and create new PV
 
-After the PVC associated with the failed drive is deleted it is time to replace the failed drive and use this new drive to create a new OCP *PV*.
+After the *PVC* associated with the failed drive is deleted, it is time to replace the failed drive and use this new drive to create a new OCP *PV*.
 
-First step is to login machine/node with failed drive and record the /dev/disk/by-id/{id} that is to be replaced. In this example the OCP node is `compute-2`.
+First step is to login to the OCP node with the failed drive and record the `/dev/disk/by-id/{id}` that is to be replaced. In this example the OCP node is `compute-2`.
 
 [source,role="execute"]
 ----
@@ -1204,6 +1211,9 @@ Using the device name identified earlier, `sdb`, record the `/dev/disk/by-id/{id
 
 ----
 sh-4.4# ls -alh /mnt/local-storage/localblock
+----
+.Example output
+----
 total 0
 drwxr-xr-x. 2 root root 17 Apr  8 23:03 .
 drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
@@ -1214,6 +1224,9 @@ Identify the device name for the new drive. In this example `sdd`.
 
 ----
 sh-4.4# lsblk
+----
+.Example output
+----
 NAME                         MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
 sda                            8:0    0   60G  0 disk 
 |-sda1                         8:1    0  384M  0 part /boot
@@ -1229,13 +1242,17 @@ sdd                            8:48   0  100G  0 disk
 ----
 
 Now identify the `/dev/disk/by-id/{id}` for the new drive and record for use in the next step.
+
 ----
 sh-4.2# ls -alh /dev/disk/by-id | grep sdd
+----
+.Example output
+----
 lrwxrwxrwx. 1 root root   9 Apr  9 20:45 scsi-36000c29f5c9638dec9f19b220fbe36b1 -> ../../sdd
 lrwxrwxrwx. 1 root root   9 Apr  9 20:45 wwn-0x6000c29f5c9638dec9f19b220fbe36b1 -> ../../sdd
 ----
 
-After the new `/dev/disk/by-id/{id}` is available a new disk entry (/dev/disk/by-id/<new_id>) can be added to the localvolume local-block CR.  
+After the new `/dev/disk/by-id/{id}` is available a new disk entry can be added to the *LocalVolume* CR.  
 
 [source,role="execute"]
 ----
@@ -1247,7 +1264,7 @@ NAME          AGE
 local-block   25h
 ----
 
-Edit localvolume CR and remove or comment out failed device /dev/disk/by-id/{id}.
+Edit *LocalVolume* CR and remove or comment out failed device `/dev/disk/by-id/{id}` and add the new `/dev/disk/by-id/{id}`. In this example the new device is `/dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1`.
 
 [source,role="execute"]
 ----
@@ -1283,7 +1300,7 @@ local-pv-b481410                           100Gi      RWO            Delete     
 local-pv-d9c5cbd6                          100Gi      RWO            Delete           Released    openshift-storage/ocs-deviceset-0-0-nvs68   localblock
 ----
 
-Logon to OCP node with failed device and remove the old symlink. Validate it is removed before proceeding.
+Login to OCP node with failed device and remove the old symlink. Validate it is removed before proceeding.
 
 [source,role="execute"]
 ----
@@ -1302,6 +1319,9 @@ Identify the old `symlink` for the failed device name. In this example the faile
 
 ----
 sh-4.4# ls -alh /mnt/local-storage/localblock
+----
+.Example output
+----
 total 0
 drwxr-xr-x. 2 root root 28 Apr 10 00:42 .
 drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
@@ -1309,7 +1329,7 @@ lrwxrwxrwx. 1 root root 54 Apr  8 23:03 sdb -> /dev/disk/by-id/scsi-36000c2962b2
 lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
 ----
 
-Delete the `symlink`.
+Remove the `symlink`.
 
 ----
 sh-4.4# rm /mnt/local-storage/localblock/sdb
@@ -1319,6 +1339,9 @@ Validate the `symlink` is removed.
 
 ----
 sh-4.4# ls -alh /mnt/local-storage/localblock
+----
+.Example output
+----
 total 0
 drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
 drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
@@ -1327,7 +1350,7 @@ lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9
 
 === Create new OSD for new device
 
-Delete the *PV* for failed device. This *PV* name was identified in an earlier step. In this example the *PV* name is `local-pv-d9c5cbd6`.
+Start by deleting the *PV* associated with the failed device. This *PV* name was identified in an earlier step. In this example the *PV* name is `local-pv-d9c5cbd6`.
 
 [source,role="execute"]
 ----
@@ -1351,11 +1374,11 @@ local-pv-414755e0                          100Gi      RWO            Delete     
 local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             1d18h
 ----
 
-Next step is to delete the deployment for the failed device that was scaled to `replicas=0` in and earlier step. 
+Next step is to delete the *deployment* for the failed OSD *Pod*. This *deployment* was scaled to `replicas=0` in an earlier step. 
 
 [source,role="execute"]
 ----
-oc get deployments | grep osd
+oc get -n openshift-storage deployments | grep osd
 ----
 .Example output
 ----
@@ -1375,7 +1398,7 @@ oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
 deployment.extensions "rook-ceph-osd-0" deleted
 ----
 
-Now that the deployment and all other associated OCP and Ceph resources for the failed device are deleted or removed, the new OSD can be created. This is done by restarting the `rook-ceph-operator`.
+Now that the *deployment* and all other associated OCP and Ceph resources for the failed device are deleted or removed, the new OSD can be deployed. This is done by restarting the `rook-ceph-operator` to force operator reconciliation. 
 
 [source,role="execute"]
 ----
@@ -1410,7 +1433,7 @@ NAME                                  READY   STATUS    RESTARTS   AGE
 rook-ceph-operator-6f74fb5bff-7mvrq   1/1     Running   0          66s
 ----
 
-Last step is to validate there is a new OSD, that Ceph is healthy, and that a successful replacement shows in the *OCP Web Console* Dashboards. 
+Last step is to validate there is a new OSD, that Ceph is healthy, and that a successful replacement shows in the *OpenShift Web Console* Dashboards. 
 
 [source,role="execute"]
 ----
@@ -1423,7 +1446,9 @@ rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Runnin
 rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running     0          1d20h
 ----
 
-There now is a new OSD with `rook-ceph-osd-0` name that was created in last 5 minutes for this example. Next step is to login to Ceph and see if the cluster is healthy.
+There now is a OSD that was redeployed with a similar name, `rook-ceph-osd-0`. 
+
+Next step is to login to Ceph and see if the cluster is healthy.
 
 [source,role="execute"]
 ----
@@ -1458,7 +1483,14 @@ sh-4.4# ceph status
 
 We can see the Ceph health is `HEALTH_OK`.
 
-Now logon to *OCP Web Console* and view the storage Dashboard.
+You can now exit the toolbox by either pressing kbd:[Ctrl+D] or by executing
+
+[source,role="execute"]
+----
+exit
+----
+
+Now login to *OpenShift Web Console* and view the storage Dashboard.
 
 .OCP Storage Dashboard status after OSD replacement
 image::OCS4-OCP-Dashboard-Status.png[OCP Storage Dashboard status]
