@@ -2977,8 +2977,7 @@ Use "oc adm options" for a list of global command-line options (applies to all c
 <div class="listingblock">
 <div class="title">Mac steps</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-mac*" --quiet --recursive --level=1
-ls -1 openshift-client-mac-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+<pre class="pygments highlight"><code data-lang="shell">curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac.tar.gz | tar xzv oc
 sudo mv oc /usr/local/bin</code></pre>
 </div>
 </div>
@@ -3006,8 +3005,7 @@ while :; do clear; date; echo; $@; sleep 2; done
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-linux*" --quiet --recursive --level=1
-ls -1 openshift-client-linux-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+<pre class="pygments highlight"><code data-lang="shell">curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xzv oc
 sudo mv oc /usr/bin</code></pre>
 </div>
 </div>
@@ -3504,7 +3502,7 @@ block device will be a collection of objects, each supporting a set of device se
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-04-14 23:32:06 UTC
+Last updated 2020-04-16 10:01:30 UTC
 </div>
 </div>
 </body>
