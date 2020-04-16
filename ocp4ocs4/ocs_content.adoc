@@ -1809,8 +1809,7 @@ To get the latest OpenShift CLI client run the following commands:
 .Mac steps
 [source]
 ----
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-mac*" --quiet --recursive --level=1
-ls -1 openshift-client-mac-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac.tar.gz | tar xzv oc
 sudo mv oc /usr/local/bin
 ----
 
@@ -1832,8 +1831,7 @@ Then reload your profile with `source $HOME/.profile`.
 .Linux steps
 [source]
 ----
-wget https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/ --no-directories --accept="*client-linux*" --quiet --recursive --level=1
-ls -1 openshift-client-linux-*.tar.gz | tail -n1 | xargs -I {} tar xzvf {} oc
+curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xzv oc
 sudo mv oc /usr/bin
 ----
 
