@@ -1455,9 +1455,12 @@ Next step is to login to Ceph and see if the cluster is healthy.
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
+[source,role="execute"]
+----
+ceph status
+----
 .Example output
 ----
-sh-4.4# ceph status
   cluster:
     id:     fc89e00e-959e-486b-aff1-d9734778e9e0
     health: HEALTH_OK
