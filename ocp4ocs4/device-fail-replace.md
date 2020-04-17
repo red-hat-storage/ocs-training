@@ -1,14 +1,10 @@
 This process should be followed when an OSD **Pod** is in an `Error`
 state and the root cause is a failed underlying storage device.
 
-Login to **OpenShift Web Console** and view the storage Dashboard.
+Login to the **OpenShift Web Console** and view the storage Dashboard.
 
 ![OCP Storage Dashboard status after OSD
 failed](https://access.redhat.com/sites/default/files/attachments/ocs4-ocp-dashboard-status-bad.png)
-
-Make sure to have the Rook-Ceph `toolbox` **Pod** available.
-Instructions for deploying the `toolbox` can be found in
-[How to configure Ceph toolbox in OpenShift Container Storage 4.x](https://access.redhat.com/articles/4628891).
 
 Removing failed OSD from Ceph cluster
 -------------------------------------
@@ -16,108 +12,46 @@ Removing failed OSD from Ceph cluster
 The first step is to identify the OCP node that has the bad OSD
 scheduled on it. In this example it is OCP node `compute-2`.
 
-    # oc get -n openshift-storage pods -o wide | grep osd | grep -v prepare
+    # oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
 
 **Example output:.**
 
-    rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff        0          24h   10.129.0.16   compute-2   <none>           <none>
+    rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff      0          24h   10.129.0.16   compute-2   <none>           <none>
     rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
     rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
 
-Now that the OCP node has been identified you will log into the
-`toolbox` **Pod**.
 
-    # TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-    # oc rsh -n openshift-storage $TOOLS_POD
-
-    # ceph osd tree
-
-**Example output.**
-
-    ID  CLASS WEIGHT  TYPE NAME                            STATUS REWEIGHT PRI-AFF
-     -1       0.29008 root default
-     -4       0.09669     rack rack0
-     -3       0.09669         host ocs-deviceset-0-0-nvs68
-      0   hdd 0.09669             osd.0                      down  1.00000 1.00000
-     -8       0.09669     rack rack1
-     -7       0.09669         host ocs-deviceset-1-0-959rp
-      1   hdd 0.09669             osd.1                        up  1.00000 1.00000
-    -12       0.09669     rack rack2
-    -11       0.09669         host ocs-deviceset-2-0-79j94
-      2   hdd 0.09669             osd.2                        up  1.00000 1.00000
-
-The following process will remove the **down** OSD from the cluster so a
+The following commands will remove a failed OSD from the cluster so a
 new OSD can be added.
 
-    # ceph osd out {osd-id}
+**Change OSD_ID_TO_REMOVE in the first line below for the failed OSD.**
+> In this example, OSD "0" is failed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
+
+```
+OSD_ID_TO_REMOVE=0
+ocs_namespace=openshift-storage
+
+echo "finding the operator pod"
+rook_operator_pod=$(oc -n ${ocs_namespace} get pod -l app=rook-ceph-operator -o jsonpath='{.items[0].metadata.name}')
+
+echo "marking osd out"
+oc exec -it ${rook_operator_pod} -n ${ocs_namespace} -- \
+  ceph osd out osd.${OSD_ID_TO_REMOVE} \
+  --cluster=${ocs_namespace} --conf=/var/lib/rook/${ocs_namespace}/${ocs_namespace}.config --keyring=/var/lib/rook/${ocs_namespace}/client.admin.keyring
+
+echo "purging osd"
+oc exec -it ${rook_operator_pod} -n ${ocs_namespace} -- \
+  ceph osd purge ${OSD_ID_TO_REMOVE} --force --yes-i-really-mean-it \
+  --cluster=${ocs_namespace} --conf=/var/lib/rook/${ocs_namespace}/${ocs_namespace}.config --keyring=/var/lib/rook/${ocs_namespace}/client.admin.keyring
+```
 
 **Example output.**
 
+    finding operator pod
+    marking osd out
     marked out osd.0.
-
-After the OSD is marked out the `OSD REWEIGHT RATIO` is set to `zero`.
-This will cause the data to migrate from this OSD to the remaining OSDs.
-
-In the case of only three OSDs the data cannot migrate because there is
-only one OSD in each of the 3 availability zones and only 2 OSDs are
-operational.
-
-    # ceph osd tree
-
-**Example output.**
-
-    ID  CLASS WEIGHT  TYPE NAME                            STATUS REWEIGHT PRI-AFF
-     -1       0.29008 root default
-     -4       0.09669     rack rack0
-     -3       0.09669         host ocs-deviceset-0-0-nvs68
-      0   hdd 0.09669             osd.0                      down        0 1.00000
-     -8       0.09669     rack rack1
-     -7       0.09669         host ocs-deviceset-1-0-959rp
-      1   hdd 0.09669             osd.1                        up  1.00000 1.00000
-    -12       0.09669     rack rack2
-    -11       0.09669         host ocs-deviceset-2-0-79j94
-      2   hdd 0.09669             osd.2                        up  1.00000 1.00000
-
-In the case where the data can be migrated off the OSD in a `Error`
-state, you will want to wait until all **PGs** are `active+clean`.
-
-    # ceph pg stat
-
-**Example output for all data (PGs) migrating off of OSD.**
-
-    192 pgs: 192 active+clean;
-    380 MiB data, 1015 MiB used, 1.5 TiB / 1.5 TiB avail;
-    1.2 KiB/s rd, 59 KiB/s wr, 8 op/s
-
-Now this OSD needs to be removed from the Ceph cluster.
-
-    # ceph osd purge {osd-id} --yes-i-really-mean-it
-
-**Example output.**
-
+    purging osd
     purged osd.0
-
-Now check to see that the OSD is removed.
-
-    # ceph osd tree
-
-**Example output for 3 OSD cluster after osd.0 purged.**
-
-    ID  CLASS WEIGHT  TYPE NAME                            STATUS REWEIGHT PRI-AFF
-     -1       0.19339 root default
-     -4             0     rack rack0
-     -3             0         host ocs-deviceset-0-0-nvs68
-     -8       0.09669     rack rack1
-     -7       0.09669         host ocs-deviceset-1-0-959rp
-      1   hdd 0.09669             osd.1                        up  1.00000 1.00000
-    -12       0.09669     rack rack2
-    -11       0.09669         host ocs-deviceset-2-0-79j94
-      2   hdd 0.09669             osd.2                        up  1.00000 1.00000
-
-You can now exit the toolbox by either pressing kbd:\[Ctrl+D\] or by
-executing
-
-    # exit
 
 Delete PVC resources associated with failed OSD
 -----------------------------------------------
@@ -126,17 +60,17 @@ First the **DeviceSet** must be identified that is associated with the
 failed OSD. In this example the **PVC** name is
 `ocs-deviceset-0-0-nvs68`.
 
-    # oc get -o yaml -n openshift-storage deployment rook-ceph-osd-{osd-id} | grep ceph.rook.io/pvc
+    # oc get -n openshift-storage -o yaml deployment rook-ceph-osd-{osd-id} | grep ceph.rook.io/pvc
 
 **Example output.**
 
     ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
     ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
 
-Scale down failed OSD **deployment** to `replicas=0`. In this example
+The OSD deployment can not be deleted from the cluster. In this example
 the deployment name is `rook-ceph-osd-0`.
 
-    # oc scale -n openshift-storage deployment rook-ceph-osd-{osd-id} --replicas=0
+    # oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
 
 **Example output.**
 
@@ -149,7 +83,7 @@ In this example the associated **PV** is `local-pv-d9c5cbd6`.
 
 **Example output.**
 
-    NAME                      STATUS        VOLUME              CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+    NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
     ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
 
 Now the failed device name needs to be identified. In this example the
@@ -170,7 +104,7 @@ failed OSD.
 
     Mounted By:    rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
 
-This `prepare-pod` must be deleted before the associated **PVC** can be
+This `osd-prepare` pod must be deleted before the associated **PVC** can be
 removed.
 
     # oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
@@ -181,7 +115,7 @@ removed.
 
 Now the **PVC** associated with the failed OSD can be deleted.
 
-    # oc delete -n openshift-storage pvc -n openshift-storage ocs-deviceset-0-0-nvs68
+    # oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
 
 **Example output.**
 
@@ -358,26 +292,7 @@ Verify **PV** for the failed drive is now gone. There should still be an
     local-pv-414755e0                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-1-0-959rp   localblock                             1d20h
     local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             1d18h
 
-Next step is to delete the **deployment** for the failed OSD **Pod**.
-This **deployment** was scaled to `replicas=0` in an earlier step.
-
-    # oc get -n openshift-storage deployments | grep osd
-
-**Example output.**
-
-    rook-ceph-osd-0                                      0/0     0            0           1d20h
-    rook-ceph-osd-1                                      1/1     1            1           1d20h
-    rook-ceph-osd-2                                      1/1     1            1           1d20h
-
-For this example the deployment name is `rook-ceph-osd-0`.
-
-    # oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
-
-**Example output.**
-
-    deployment.extensions "rook-ceph-osd-0" deleted
-
-Now that the **deployment** and all other associated OCP and Ceph
+Now that the all associated OCP and Ceph
 resources for the failed device are deleted or removed, the new OSD can
 be deployed. This is done by restarting the `rook-ceph-operator` to
 force operator reconciliation.
@@ -391,7 +306,7 @@ force operator reconciliation.
 
 Now delete the `rook-ceph-operator`.
 
-    # oc -n openshift-storage delete pod rook-ceph-operator-6f74fb5bff-2d982
+    # oc delete -n openshift-storage pod rook-ceph-operator-6f74fb5bff-2d982
 
 **Example output.**
 
@@ -406,11 +321,13 @@ Now validate the `rook-ceph-operator` **Pod** is restarted.
     NAME                                  READY   STATUS    RESTARTS   AGE
     rook-ceph-operator-6f74fb5bff-7mvrq   1/1     Running   0          66s
 
+Creation of the new OSD may take several minutes after the operator starts.
+
 Last step is to validate there is a new OSD, that Ceph is healthy, and
 that a successful replacement shows in the **OpenShift Web Console**
 Dashboards.
 
-    # oc -n openshift-storage get pods | grep osd | grep -v prepare
+    # oc get -n openshift-storage pods -l app=rook-ceph-osd
 
 **Example output.**
 
@@ -421,45 +338,15 @@ Dashboards.
 There now is a OSD that was redeployed with a similar name,
 `rook-ceph-osd-0`.
 
-Next step is to login to Ceph and see if the cluster is healthy.
-
-    # TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-    # oc rsh -n openshift-storage $TOOLS_POD
-
-    # ceph status
-
-**Example output.**
-
-      cluster:
-        id:     fc89e00e-959e-486b-aff1-d9734778e9e0
-        health: HEALTH_OK
-
-      services:
-        mon: 3 daemons, quorum a,b,c (age 2d)
-        mgr: a(active, since 2d)
-        mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-        osd: 3 osds: 3 up (since 11m), 3 in (since 11m)
-        rgw: 1 daemon active (ocs.storagecluster.cephobjectstore.a)
-
-      task status:
-
-      data:
-        pools:   10 pools, 192 pgs
-        objects: 479 objects, 673 MiB
-        usage:   4.9 GiB used, 292 GiB / 297 GiB avail
-        pgs:     192 active+clean
-
-      io:
-        client:   853 B/s rd, 38 KiB/s wr, 1 op/s rd, 5 op/s wr
-
-We can see the Ceph health is `HEALTH_OK`.
-
-You can now exit the toolbox by either pressing kbd:\[Ctrl+D\] or by
-executing
-
-    # exit
-
 Now login to **OpenShift Web Console** and view the storage Dashboard.
 
 ![OCP Storage Dashboard status after OSD
 replacement](https://access.redhat.com/sites/default/files/attachments/ocs4-ocp-dashboard-status.png)
+
+Removing all OSDs from a failed node
+------------------------------------
+
+If an entire node has failed, the same procedure in the above section can be followed for all OSDs
+on the failed node with the following consideration:
+- If the node is not responding, the node must be removed from OCP before the resources
+  such as pods and PVs can be deleted. Otherwise, the resources will remain in `terminating` state.
