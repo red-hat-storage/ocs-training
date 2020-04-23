@@ -96,7 +96,7 @@ spec:
       metadata:
         creationTimestamp: null
         labels:
-          role: storage-node
+          cluster.ocs.openshift.io/openshift-storage: ""
           node-role.kubernetes.io/worker: ""
       providerSpec:
         value:
@@ -166,7 +166,7 @@ spec:
       metadata:
         creationTimestamp: null
         labels:
-          role: storage-node
+          cluster.ocs.openshift.io/openshift-storage: ""
           node-role.kubernetes.io/worker: ""
       providerSpec:
         value:
