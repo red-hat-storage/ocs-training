@@ -1110,7 +1110,8 @@ to the Openshift cluster.
 === Checking on the MCG status
 
 The MCG status can be checked with the NooBaa CLI. Make sure you are in the
-`openshift-storage` project when you execute this command.
+`openshift-storage` project when you execute this command. If your machine
+dos not have the `noobaa` command installed go to *Appendix B* to install it.
 
 [source,role="execute"]
 ----
