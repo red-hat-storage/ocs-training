@@ -1467,7 +1467,7 @@ Let's try this out:
 .Deploy the Manifest:
 [source,role="execute"]
 ----
-curl -s https://https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/obc_app_example.yaml | oc apply -f -
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocp4ocs4/obc_app_example.yaml | oc apply -f -
 ----
 .Example output:
 ----
