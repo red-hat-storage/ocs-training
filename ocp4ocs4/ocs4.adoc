@@ -42,8 +42,8 @@ module.
 
 === Scale OCP cluster and add 3 new nodes
 
-In this section, you will first validate the OCP environment has 3 worker nodes
-before increasing the cluster size by additional 3 worker nodes for OCS
+In this section, you will first validate the OCP environment has 2 or 3 worker
+nodes before increasing the cluster size by additional 3 worker nodes for OCS
 resources. The `NAME` of your OCP nodes will be different than shown below.
 
 [source,role="execute"]
@@ -1899,7 +1899,7 @@ Or like this for OCS specific insights:
 
 [source,role="execute"]
 ----
-oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8
+oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.3
 ----
 
 The output will then be saved in the current directory inside of a new folder
