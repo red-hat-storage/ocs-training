@@ -28,21 +28,15 @@ new OSD can be added.
 > In this example, OSD "0" is failed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
 
 ```
-OSD_ID_TO_REMOVE=0
-ocs_namespace=openshift-storage
+failed_osd_id=0
+oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${failed_osd_id} | oc create -f -
+```
 
-echo "finding the operator pod"
-rook_operator_pod=$(oc -n ${ocs_namespace} get pod -l app=rook-ceph-operator -o jsonpath='{.items[0].metadata.name}')
+A job will be started to remove the OSD. The job should complete within several seconds.
+To view the results of the job, retrieve the logs of the pod:
 
-echo "marking osd out"
-oc exec -it ${rook_operator_pod} -n ${ocs_namespace} -- \
-  ceph osd out osd.${OSD_ID_TO_REMOVE} \
-  --cluster=${ocs_namespace} --conf=/var/lib/rook/${ocs_namespace}/${ocs_namespace}.config --keyring=/var/lib/rook/${ocs_namespace}/client.admin.keyring
-
-echo "purging osd"
-oc exec -it ${rook_operator_pod} -n ${ocs_namespace} -- \
-  ceph osd purge ${OSD_ID_TO_REMOVE} --force --yes-i-really-mean-it \
-  --cluster=${ocs_namespace} --conf=/var/lib/rook/${ocs_namespace}/${ocs_namespace}.config --keyring=/var/lib/rook/${ocs_namespace}/client.admin.keyring
+```
+oc logs -n openshift-storage ocs-osd-removal-${failed-osd-id}-<pod-suffix>
 ```
 
 **Example output.**
