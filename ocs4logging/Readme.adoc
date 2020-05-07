@@ -169,7 +169,6 @@ The Event Router ensures that OpenShift Events make their way into the Cluster L
 
 [source,role="execute"]
 ----
-oc set env ds/fluentd TRANSFORM_EVENTS=true -n openshift-logging
 oc process -f https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/ocs4logging/event-router.yaml | oc apply -f -
 ----
 
