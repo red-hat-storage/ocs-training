@@ -62,7 +62,7 @@ Now you are going to add 3 more OCP compute nodes to cluster using *machinesets*
 
 [source,role="execute"]
 ----
-oc get machinesets -n openshift-machine-api | grep -v infra
+oc get machinesets -n openshift-machine-api
 ----
 
 This will show you the existing *machinesets* used to create the 3 worker
