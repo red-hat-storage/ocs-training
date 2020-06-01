@@ -174,7 +174,7 @@ EOF
 ```
 
 NOTE:
-Prior to OCS 4.5 for OCP disconnected environments, the lib-bucket-provisioner csv and deployment will need to be edited and the image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. Edit the lib-bucket-provisioner csv first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace kubernetes/pause with this image@sha if not already correct.
+Prior to OCS 4.5 for OCP disconnected environments, the lib-bucket-provisioner csv and deployment will need to be edited and the image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. Edit the lib-bucket-provisioner csv first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
 
 ## Create Cluster
 
