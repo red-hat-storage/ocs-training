@@ -366,4 +366,4 @@ ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0             
 ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0     ocs-operator.v4.3.0   Installing
 ```
 
-Validate that all pods in openshift-storage are eventually in a running state after updating.
+Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
