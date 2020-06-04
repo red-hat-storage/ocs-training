@@ -355,7 +355,7 @@ EOF
 Validate subscription is updating
 
 ```
-watch oc get csv
+watch oc get csv -n openshift-storage
 ``` 
 
 Example output
