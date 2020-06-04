@@ -304,3 +304,66 @@ Validate new Pod is using CephRBD PVC.
 ```
 oc get pod csirbd-demo-pod -o yaml| grep "claimName: rbd-pvc"
 ```
+
+## Upgrade OCS version (major version) 
+
+Validate current version of OCS.
+
+```
+oc get csv -n openshift-storage
+``` 
+
+Example output
+```
+NAME                            DISPLAY                       VERSION   REPLACES   PHASE
+lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
+ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                Succeeded
+```
+
+Verify there is a new OCS stable channel.
+
+```
+oc describe packagemanifests ocs -n openshift-marketplace |grep stable-
+``` 
+
+Example output
+```
+    Name:         stable-4.2
+    Name:         stable-4.3
+    Name:           stable-4.4
+  Default Channel:  stable-4.4
+```  
+  
+Apply subscription with new stable-4.4 channel.
+
+```
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage 
+spec:
+  channel: "stable-4.4"
+  installPlanApproval: Automatic
+  name: ocs-operator 
+  source: redhat-operators 
+  sourceNamespace: openshift-marketplace
+EOF
+```
+
+Validate subscription is updating
+
+```
+watch oc get csv
+``` 
+
+Example output
+```
+NAME                            DISPLAY                       VERSION   REPLACES              PHASE
+lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                           Succeeded
+ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                           Replacing
+ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0     ocs-operator.v4.3.0   Installing
+```
+
+Validate that all pods in openshift-storage are eventually in a running state after updating.
