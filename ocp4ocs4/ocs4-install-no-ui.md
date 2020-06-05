@@ -1,6 +1,6 @@
 # Overview
 
-OpenShift Container Platform 4.3 has been verified to work in conjunction with [local storage](https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html) devices and OpenShift Container Storage 4.3 on AWS EC2, VMware, KVM guests, and Bare Metal hosts.
+OpenShift Container Platform 4.3 and 4.4 has been verified to work in conjunction with [local storage](https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html) devices and OpenShift Container Storage 4.4 on AWS EC2, VMware, and Bare Metal hosts.
 
 # Installing the Local Storage Operator
 
@@ -182,7 +182,7 @@ metadata:
   name: ocs-operator
   namespace: openshift-storage 
 spec:
-  channel: "stable-4.3"
+  channel: "stable-4.4"
   installPlanApproval: Automatic
   name: ocs-operator 
   source: redhat-operators 
@@ -246,11 +246,11 @@ oc rsh -n openshift-storage $TOOLS_POD
 Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster
 
 ```
-# ceph status
+sh-4.4# ceph status
 ```
 
 ```
-# ceph osd tree
+sh-4.4# ceph osd tree
 ```
 
 ## Create test application using CephRBD PVC
