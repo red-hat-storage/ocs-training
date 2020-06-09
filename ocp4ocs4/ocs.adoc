@@ -242,7 +242,7 @@ watch oc -n openshift-storage get csv
 ----
 NAME                            DISPLAY                       VERSION   REPLACES   PHASE
 lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                Succeeded
+ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0                Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C].
@@ -278,7 +278,7 @@ Operators`. Make sure the selected project is set to `openshift-storage`.
 What you see, should be similar to the following example picture:
 
 .Installed Operators in the openshift-storage namespace
-image::OCP-installed-operators.png[Openshift showing the installed operators in namespace openshift-storage]
+image::OCP4-installed-operators.png[Openshift showing the installed operators in namespace openshift-storage]
 
 Click on `Openshift Container Storage Operator` to get to the OCS
 configuration screen.
@@ -286,8 +286,7 @@ configuration screen.
 .OCS configuration screen
 image::OCS4-config-screen-all.png[OCS configuration screen]
 
-On the top of the OCS configuration screen, scroll over to the right and
-click on `Storage cluster` and then click on `Create OCS Cluster Service`. If
+On the top of the OCS configuration screen, click on `Storage Cluster` and then click on `Create OCS Cluster Service`. If
 you do not see `Create OCS Cluster Service` refresh your browser window.
 
 .OCS Create Storage Cluster
@@ -324,9 +323,7 @@ back to the `Openshift Container Storage Operator` screen and selecting `All
 instances`.
 
 Please wait until all *Pods* are marked as `Running` in the CLI or until you
-see all instances shown below as `Ready` Status in the Web Console. Some
-instances may stay in `Unknown` Status which is not a concern if your `Ready`
-status matches the following diagram:
+see all instances shown below as `Ready` Status in the Web Console and matches the following diagram:
 
 .OCS instance overview after cluster install is finished
 image::OCS4-finished-cluster-install.png[OCS instance overview after cluster install is finished]
@@ -1899,7 +1896,7 @@ Or like this for OCS specific insights:
 
 [source,role="execute"]
 ----
-oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.3
+oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.4
 ----
 
 The output will then be saved in the current directory inside of a new folder

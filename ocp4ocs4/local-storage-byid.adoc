@@ -74,9 +74,9 @@ watch oc -n openshift-storage get csv
 ----
 .Example output:
 ----
-NAME                            DISPLAY                       VERSION        REPLACES   PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                     Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                     Succeeded
+NAME                            DISPLAY                       VERSION   REPLACES   PHASE
+lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
+ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0                Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C]
@@ -118,7 +118,7 @@ The following sections use YAML files and CLI to create resources used to deploy
 
 [IMPORTANT]
 ====
-Installing OpenShift Container Storage on bare metal, Amazon EC2, and VMware using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+Installing OpenShift Container Storage Amazon EC2 using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 ====
 
 === Prerequisites
