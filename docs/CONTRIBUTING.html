@@ -5,7 +5,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="generator" content="Asciidoctor 2.0.10">
-<title>Openshift Image Registry</title>
+<title>Contributing</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
 <style>
 /* Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
@@ -439,543 +439,240 @@ body.book #toc,body.book #preamble,body.book h1.sect0,body.book .sect1>h2{page-b
 </head>
 <body class="article toc2 toc-right">
 <div id="header">
-<h1>Openshift Image Registry</h1>
+<h1>Contributing</h1>
 <div id="toc" class="toc2">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
-<li><a href="#_requirement">1. Requirement</a></li>
-<li><a href="#_registry_introduction">2. Registry introduction</a></li>
-<li><a href="#_image_registry_operator">3. Image Registry Operator</a></li>
-<li><a href="#_registry_storage_needs">4. Registry storage needs</a>
+<li><a href="#_pull_request_policy">1. Pull Request Policy</a></li>
+<li><a href="#_adding_content">2. Adding Content</a></li>
+<li><a href="#_asciidoc_styling">3. ASCIIdoc styling</a>
 <ul class="sectlevel2">
-<li><a href="#_project">4.1. Project</a></li>
-<li><a href="#_pods">4.2. Pods</a></li>
-</ul>
-</li>
-<li><a href="#_review_the_current_registry_operator_configuration_settings">5. Review the current Registry Operator configuration settings</a></li>
-<li><a href="#_moving_the_registry_storage_to_ocs">6. Moving the registry storage to OCS</a>
-<ul class="sectlevel2">
-<li><a href="#_storage_class">6.1. Storage Class</a></li>
-<li><a href="#_pvc_persistent_volume_claim">6.2. PVC (Persistent Volume Claim)</a></li>
-<li><a href="#_configure_image_registry_to_use_the_newly_created_pvc">6.3. Configure Image registry to use the newly created PVC</a></li>
+<li><a href="#_document_header">3.1. Document header</a></li>
+<li><a href="#_executable_commands">3.2. Executable commands</a></li>
+<li><a href="#_do_not_require_people_to_pull_the_repository">3.3. Do not require people to pull the repository</a></li>
+<li><a href="#_keyboard_shortcuts">3.4. Keyboard shortcuts</a></li>
+<li><a href="#_kubernetes_objects_should_be_printed_in_bold_text">3.5. Kubernetes objects should be printed in bold text</a></li>
+<li><a href="#_asciidoc_features_and_github">3.6. ASCIIdoc features and Github</a></li>
 </ul>
 </li>
 </ul>
 </div>
 </div>
 <div id="content">
-<div class="sect1">
-<h2 id="_requirement">1. Requirement</h2>
+<div id="preamble">
 <div class="sectionbody">
 <div class="paragraph">
-<p>This exercise scenario supposes that you already have Openshift Container Storage running inside your Openshift environment. If not, then please return back the previous installation section that takes care of fulfilling this requirement.</p>
+<p>Then contributing to this repository, please follow the below style guide.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_pull_request_policy">1. Pull Request Policy</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Since people have started using this repository, no un-reviewed code will be allowed in the master branch.</p>
 </div>
 <div class="paragraph">
-<p>In order to be sure on the presence of Openshift Container Storage, please run:</p>
+<p>Follow the <a href="#_adding_content">Adding Content</a> procedure to add your content. This applies to new documents as well as additions to already existing documents.</p>
 </div>
-<div class="listingblock execute">
+<div class="paragraph">
+<p>Once you are satisfied with your content and it has been verified by you, open a pull request to merge your branch into master.</p>
+</div>
+<div class="paragraph">
+<p>To open a PR you can follow these steps:</p>
+</div>
+<div class="imageblock">
 <div class="content">
-<pre class="highlight"><code>oc describe project openshift-storage|grep Status</code></pre>
+<img src="imgs/open-PR-dashboard.png" alt="open PR dashboard">
 </div>
+<div class="title">Figure 1. If you have recently pushed to your branch, Github will allow you to quickly open a PR</div>
 </div>
-<div class="paragraph">
-<p>The result of the above command should be similar like:</p>
-</div>
-<div class="listingblock">
+<div class="imageblock">
 <div class="content">
-<pre>Status:			Active</pre>
+<img src="imgs/open-PR-long.png" alt="open PR long">
 </div>
+<div class="title">Figure 2. If you did not recently push to your branch, go to the branch overview:</div>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_registry_introduction">2. Registry introduction</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>OpenShift Container Platform provides a built in Container Image Registry which runs as a standard workload on the cluster.
-A registry is typically used as a publication target for images built on the cluster as well as a source of images for workloads running on the cluster.</p>
-</div>
-<div class="paragraph">
-<p>In addition, it is integrated into the cluster user authentication and authorization system which means that access to create and retrieve images is controlled by defining user permissions on the image resources.</p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_image_registry_operator">3. Image Registry Operator</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The Registry is configured and managed by an infrastructure operator.
-The Image Registry Operator installs a single instance of the OpenShift Container Platform registry, and it manages all configuration of the registry, including setting up registry storage when you install an installer-provisioned infrastructure cluster on AWS, GCP, Azure, or OpenStack.</p>
-</div>
-<div class="paragraph">
-<p>The Image Registry Operator runs in the <code>openshift-image-registry</code> namespace, and manages the registry instance in that location as well. All configuration and workload resources for the registry reside in that namespace.</p>
-</div>
-<div class="paragraph">
-<p>In case you want to see detailed information about the registry operator then run:</p>
-</div>
-<div class="listingblock execute">
+<div class="imageblock">
 <div class="content">
-<pre class="highlight"><code>oc describe configs.imageregistry.operator.openshift.io</code></pre>
+<img src="imgs/open-PR-long-2.png" alt="open PR long 2">
 </div>
+<div class="title">Figure 3. Start a PR from the overview</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_registry_storage_needs">4. Registry storage needs</h2>
+<h2 id="_adding_content">2. Adding Content</h2>
 <div class="sectionbody">
-<div class="paragraph">
-<p>A registy needs to have storage to store its contents in.
-Image data is stored in two locations.
-The actual image data is stored in a configurable
-storage location such as cloud storage or a filesystem volume.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a new branch in which you work. The branch name should include your name.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Including your name helps us in finding out if the branch can be recycled</p>
+</li>
+</ul>
 </div>
-<div class="paragraph">
-<p>The image metadata, which is exposed by the standard cluster APIs and is used to perform access control, is stored as standard API resources, specifically images and imagestreams.</p>
+</li>
+<li>
+<p>Only work inside of your branch</p>
+</li>
+<li>
+<p><strong>For Workloads</strong> create a new folder in the scheme <code>ocs4&lt;workload&gt;</code> where workload should explain what your workload is about. Example: <code>ocs4metrics</code></p>
+</li>
+<li>
+<p>Write your content in ASCIIdoc format - respect the ASCIIdoc styling information below</p>
+</li>
+</ul>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_asciidoc_styling">3. ASCIIdoc styling</h2>
+<div class="sectionbody">
 <div class="sect2">
-<h3 id="_project">4.1. Project</h3>
+<h3 id="_document_header">3.1. Document header</h3>
 <div class="paragraph">
-<p>The registry is arranged in a Project (namespace) named: ‘openshift-image-registry’</p>
-</div>
-<div class="paragraph">
-<p>To get more information about this project, run the following oc command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc describe project openshift-image-registry</code></pre>
-</div>
+<p>It is best practice to copy this to the beginning of your workshop:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlight"><code class="language-yaml" data-lang="yaml">Name:			openshift-image-registry
-Created:		3 hours ago
-Labels:			openshift.io/cluster-monitoring=true
-Annotations:		openshift.io/node-selector=
-			openshift.io/sa.scc.mcs=s0:c18,c17
-			openshift.io/sa.scc.supplemental-groups=1000340000/10000
-			openshift.io/sa.scc.uid-range=1000340000/10000
-Display Name:		&lt;none&gt;
-Description:		&lt;none&gt;
-Status:			Active
-Node Selector:		&lt;none&gt;
-Quota:			&lt;none&gt;
-Resource limits:	&lt;none&gt;</code></pre>
+<pre>= YOUR TITLE
+:toc: right
+:toclevels: 2
+:icons: font
+:source-language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This produces good defaults for your document.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_pods">4.2. Pods</h3>
+<h3 id="_executable_commands">3.2. Executable commands</h3>
 <div class="paragraph">
-<p>To view the registry related pods, run the command:</p>
+<p>To make our lifes easier once we move over to Homeroom, please tag each executable command and follow this styling:</p>
 </div>
-<div class="listingblock execute">
+<div class="literalblock">
 <div class="content">
-<pre class="highlight"><code>oc get pods -n openshift-image-registry</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>(The <code>NAME</code> of your machines will be different than shown below)</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>NAME                                               READY   STATUS    RESTARTS   AGE
-cluster-image-registry-operator-74465655b4-gq44m   2/2     Running   0          3h16m
-image-registry-7489584ddc-jhw2j                    1/1     Running   0          3h16m
-node-ca-4x477                                      1/1     Running   0          116m
-node-ca-d82rv                                      1/1     Running   0          3h16m
-node-ca-gxd8r                                      1/1     Running   0          3h16m
-node-ca-kjp28                                      1/1     Running   0          3h16m
-node-ca-lvb48                                      1/1     Running   0          116m
-node-ca-ndwhh                                      1/1     Running   0          3h16m
-node-ca-nwstp                                      1/1     Running   0          116m
-node-ca-pwrrs                                      1/1     Running   0          3h16m</pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_review_the_current_registry_operator_configuration_settings">5. Review the current Registry Operator configuration settings</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>Lets review the current Registry settings first. To do so, please run the command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc edit configs.imageregistry.operator.openshift.io/cluster</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre># Please edit the object below. Lines beginning with a '#' will be ignored,
-# and an empty file will abort the edit. If an error occurs while saving this file will be
-# reopened with the relevant failures.
-#
-apiVersion: imageregistry.operator.openshift.io/v1
-kind: Config
-metadata:
-  creationTimestamp: "2019-10-28T09:07:09Z"
-  finalizers:
-  - imageregistry.operator.openshift.io/finalizer
-  generation: 3
-  name: cluster
-  resourceVersion: "16463"
-  selfLink: /apis/imageregistry.operator.openshift.io/v1/configs/cluster
-  uid: 52880e6b-f962-11e9-8995-12a861d1434e
-spec:
-  defaultRoute: true
-  httpSecret: 0c394aabee8e6a9ef8aa2c927c8f8c487f8ad3249ff67794a8685af4f76c72811c97ee4ddf936602dd9fca12e198c4eff413130568a4c356d7b6f14f805bcb59
-  logging: 2
-  managementState: Managed
-  proxy:
-    http: ""
-    https: ""
-    noProxy: ""
-  readOnly: false
-  replicas: 1
-  requests:
-    read:
-      maxInQueue: 0
-      maxRunning: 0
-      maxWaitInQueue: 0s
-    write:
-      maxInQueue: 0
-      maxRunning: 0
-      maxWaitInQueue: 0s
-  storage:
-    s3:
-      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
-      encrypt: true
-      keyID: ""
-      region: us-east-1
-      regionEndpoint: ""
-status:
-  conditions:
-  - lastTransitionTime: "2019-10-28T09:07:10Z"
-reason: S3 Bucket Exists
-    status: "True"
-    type: StorageExists
-  - lastTransitionTime: "2019-10-28T09:07:10Z"
-    message: Public access to the S3 bucket and its contents have been successfully
-      blocked.
-    reason: Public Access Block Successful
-    status: "True"
-    type: StoragePublicAccessBlocked
-  - lastTransitionTime: "2019-10-28T09:07:10Z"
-    message: Tags were successfully applied to the S3 bucket
-    reason: Tagging Successful
-    status: "True"
-    type: StorageTagged
-  - lastTransitionTime: "2019-10-28T09:07:10Z"
-    message: Default AES256 encryption was successfully enabled on the S3 bucket
-    reason: Encryption Successful
-    status: "True"
-    type: StorageEncrypted
-  - lastTransitionTime: "2019-10-28T09:07:10Z"
-    message: Default cleanup of incomplete multipart uploads after one (1) day was
-    successfully enabled
-    reason: Enable Cleanup Successful
-    status: "True"
-    type: StorageIncompleteUploadCleanupEnabled
-  - lastTransitionTime: "2019-10-28T09:07:56Z"
-    message: The registry is ready
-    reason: Ready
-    status: "True"
-    type: Available
-  - lastTransitionTime: "2019-10-28T09:18:32Z"
-    message: The registry is ready
-    reason: Ready
-    status: "False"
-    type: Progressing
-  - lastTransitionTime: "2019-10-28T09:07:11Z"
-    status: "False"
-    type: Degraded
-  - lastTransitionTime: "2019-10-28T09:07:11Z"
-    status: "False"
-    type: Removed
-  observedGeneration: 3
-  readyReplicas: 0
-  storage:
-    s3:
-      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
-      encrypt: true
-      keyID: ""
-      region: us-east-1
-      regionEndpoint: ""
-  storageManaged: true</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <code>storage</code> designation currently refers to <code>s3</code> and a <code>bucket</code> name. This is   initial deployment of OCP4 on AWS infrastructure.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlight"><code class="language-yaml" data-lang="yaml">storage:
-    s3:
-      bucket: cluster-ocs-f562-9d4rh-image-registry-us-east-1-rjqkgcsxlotmwm
-      encrypt: true
-      keyID: ""
-      region: us-east-1
-      regionEndpoint: ""</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Close the <code>VI</code> editor by first pressing <kbd>ESC</kbd> and then <kbd>:</kbd> followed by <kbd>q</kbd><kbd>!</kbd> and <kbd>ENTER</kbd></p>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_moving_the_registry_storage_to_ocs">6. Moving the registry storage to OCS</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>In this section we will change the registry storage to OCS, where it will consume CephFS RWX storage, as multiple pods will need to access the storage concurrently.</p>
-</div>
-<div class="sect2">
-<h3 id="_storage_class">6.1. Storage Class</h3>
-<div class="paragraph">
-<p>First we want to make sure that a CephFS storageclass is present, in order to create a Persistant Volume Claim for the registry storage.</p>
-</div>
-<div class="paragraph">
-<p>To check for presence of an existing CephFS storage class, please run the following command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc get sc</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This should result in an outcome similar to:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>NAME                                    PROVISIONER                             AGE
-gp2                                     kubernetes.io/aws-ebs                   5h57m
-ocs-storagecluster-ceph-rbd (default)   openshift-storage.rbd.csi.ceph.com      4h5m
-ocs-storagecluster-cephfs               openshift-storage.cephfs.csi.ceph.com   4h5m
-openshift-storage.noobaa.io             openshift-storage.noobaa.io/obc         3h59m</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>According to the above output, there is already a storageclass named <code>ocs-storagecluster-cephfs</code></p>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_pvc_persistent_volume_claim">6.2. PVC (Persistent Volume Claim)</h3>
-<div class="paragraph">
-<p>In this step we will setup a <code>pvc</code> named <code>ocs4registry</code> addressed to our storageclass named <code>ocs-storagecluster-cephfs</code>, which is going to be used for storing registry data.</p>
-</div>
-<div class="paragraph">
-<p>First, please make sure to be inside the <code>openshift-image-registry</code> project.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc project openshift-image-registry</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In order to create the pvc, please run the following command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc create -f &lt;(echo '{
-   "apiVersion": "v1",
-   "kind": "PersistentVolumeClaim",
-   "metadata": {
-     "name": "ocs4registry"
-   },
-   "spec": {
-     "storageClassName": "ocs-storagecluster-cephfs",
-     "accessModes": [ "ReadWriteMany" ],
-     "resources": {
-       "requests": { "storage": "100Gi"
-     }
-   }
- }
-}');</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This should result in:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>persistentvolumeclaim/ocs4registry created</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>To check if it worked out well:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc get pvc</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output:</div>
-<div class="content">
-<pre>NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-ocs4registry   Bound    pvc-b7339457-fb23-11e9-846d-0a3016334dd1   100Gi      RWX            ocs-storagecluster-cephfs   60s</pre>
+<pre>[source,role="execute"]
+----
+oc get replicaset -n openshift-monitoring
+----
+.Example output:
+----
+NAME                                     DESIRED   CURRENT   READY   AGE
+cluster-monitoring-operator-84cd9df668   1         1         1       6d23h
+grafana-5db6fd97f8                       1         1         1       6d23h
+kube-state-metrics-895899678             1         1         1       6d23h
+openshift-state-metrics-77d5f699d8       1         1         1       6d23h
+prometheus-adapter-57db7c5495            0         0         0       6d4h
+prometheus-adapter-67469c5b8b            0         0         0       6d23h
+prometheus-adapter-74f79b678f            0         0         0       6d4h
+prometheus-adapter-7cd7578f49            2         2         2       6d
+prometheus-operator-5df7bc8b4f           0         0         0       6d23h
+prometheus-operator-6584955c55           0         0         0       6d23h
+prometheus-operator-cbfd89f9             1         1         1       6d23h
+telemeter-client-66db9b8bb5              0         0         0       6d23h
+telemeter-client-7c65855db4              1         1         1       6d23h
+----</pre>
 </div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configure_image_registry_to_use_the_newly_created_pvc">6.3. Configure Image registry to use the newly created PVC</h3>
+<h3 id="_do_not_require_people_to_pull_the_repository">3.3. Do not require people to pull the repository</h3>
 <div class="paragraph">
-<p>In this section we will instruct the registry operator to use the CephFS-backed RWX PVC.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>This method of moving the registry to OCS will work exactly the same for OCP on VMware infrastructure.</p>
-</div>
-</td>
-</tr>
-</table>
+<p>Expect people to not pull the ocs-training repository.</p>
 </div>
 <div class="paragraph">
-<p>Now configure the registry to use the OCS storage.
-Find the <code>storage:</code> stanza and remove it and everything below it.
-Everthing above it should remain in place. Then put the following instead:</p>
+<p>If you want to apply a specific file, use the raw link from within Github</p>
 </div>
-<div class="listingblock execute">
+<div class="imageblock">
 <div class="content">
-<pre class="highlight"><code>oc edit configs.imageregistry.operator.openshift.io</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Find the storage section and add the following:</div>
-<div class="content">
-<pre>  storage:
-    pvc:
-     claim: ocs4registry</pre>
+<img src="imgs/Github-get-raw-link.png" alt="Github get raw link">
 </div>
 </div>
 <div class="paragraph">
-<p>Close the <code>VI</code> editor by first pressing <kbd>ESC</kbd> and then <kbd>:</kbd> followed by <kbd>wq!</kbd> and <kbd>ENTER</kbd></p>
+<p><strong class="red">Do NOT do this:</strong></p>
 </div>
 <div class="paragraph">
-<p>Then check the <code>/registry</code> mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS <code>pvc</code> instead of the <code>s3</code> resources on AWS. Here is how to do this:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc get pods</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <code>NAME</code> of your machines will be different than shown below</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="title">Example output:</div>
-<div class="content">
-<pre>NAME                                               READY   STATUS    RESTARTS   AGE
-cluster-image-registry-operator-6d65bcbd4b-7h6b6   2/2     Running   0          8h
-image-registry-6c4dbbcdbb-9bl8w                    1/1     Running   0          8m59s
-node-ca-26q5d                                      1/1     Running   0          8h
-node-ca-6tdrs                                      1/1     Running   0          8h
-node-ca-9jdwt                                      1/1     Running   0          8h
-node-ca-g6dr5                                      1/1     Running   0          8h
-node-ca-jt7w8                                      1/1     Running   0          8h
-node-ca-r9qtx                                      1/1     Running   0          7h41m
-node-ca-srgv9                                      1/1     Running   0          7h41m
-node-ca-wg2xs                                      1/1     Running   0          7h41m</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>We now open a up remote shell on the <code>registry</code> pod. This is the podname that starts with <code>image-registry-*</code></p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <code>NAME</code> of your registry pod will be different than shown below</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>oc rsh image-registry-6c4dbbcdbb-9bl8w</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Once connected, a bash prompt appears. You are now running a bash shell on the pod itself.</p>
-</div>
-<div class="paragraph">
-<p>From within this remote shell, we can run both the <code>df -h</code> and/or <code>mount</code> command, which shows the result information from pod perspective:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>sh-4.2$ df -h | grep registry</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This results in the following output:</p>
+<p>Create kafka topic</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206  100G     0  100G   0% /registry</pre>
+<pre class="highlight"><code>oc apply -f 02-kafka-topic.yaml</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Another approach to take could be to use the <code>mount</code> command.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlight"><code>sh-4.2$ mount | grep registry</code></pre>
-</div>
+<p><strong class="green">Instead DO this:</strong></p>
 </div>
 <div class="paragraph">
-<p>Resulting in the following output:</p>
+<p>Create kafka topic</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>172.30.107.130:6789,172.30.82.116:6789,172.30.125.23:6789:/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206 on /registry type ceph (rw,relatime,name=csi-cephfs-node,secret=&lt;hidden&gt;,acl,mds_namespace=ocs-storagecluster-cephfilesystem)</pre>
+<pre>oc apply -f https://github.com/red-hat-storage/ocs-training/raw/master/ocs4kafka/02-kafka-topic.yaml</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_keyboard_shortcuts">3.4. Keyboard shortcuts</h3>
+<div class="paragraph">
+<p>Keyboard shortcuts should leverage the built-in ASCIIdoc format</p>
+</div>
+<div class="paragraph">
+<p><strong class="red">Do NOT do this:</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>press ``ctrl+c`` to cancel</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>At this point, the image registry should be using the OCS RWX volume, backed by CephFS.</p>
+<p><strong class="green">Instead DO this:</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>press kbd:[Ctrl+C] to cancel</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>In the output from either command, it is shown that the <code>/registry</code> filesystem mount originates from <code>/volumes/csi/csi-vol-5b88bd0e-fc09-11e9-9939-0a580a820206</code> sourced from Ceph nodes, managed by the <code>rook</code> operator.</p>
+<p>For this to work, you need to first activate the experimental features in your document by adding this to the top:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_kubernetes_objects_should_be_printed_in_bold_text">3.5. Kubernetes objects should be printed in bold text</h3>
+<div class="paragraph">
+<p><strong class="red">Do NOT do this:</strong></p>
 </div>
 <div class="paragraph">
-<p>As a result from the <code>df -h</code> command, we can verify it has 100Gi available space.
-The <code>mount</code> command shows which options were used when mounting the <code>/registry</code> filesystem slice.</p>
+<p>Once you finished these steps, you can see that we successfully mounted the rwx pvc inside of our toolbox pod, while it is also still mounted on the registry pods.</p>
 </div>
 <div class="paragraph">
-<p>You can exit the pod remote shell <code>rsh</code> by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing <code>exit</code>.</p>
+<p><strong class="green">Instead DO this:</strong></p>
+</div>
+<div class="paragraph">
+<p>Once you finished these steps, you can see that we successfully mounted the <strong>RWX PVC</strong> inside of our toolbox <strong>Pod</strong>, while it is also still mounted on the registry <strong>Pods</strong>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_asciidoc_features_and_github">3.6. ASCIIdoc features and Github</h3>
+<div class="paragraph">
+<p>Github unfortunately does not support many ASCIIdoc features. Until we are deploying inside of Homeroom, your lab needs to look decent inside of Github!</p>
+</div>
+<div class="paragraph">
+<p>One of the features that Github lacks is <code>import:</code> to include another document inside of another document. It is up to you to verify that the ASCIIdoc you produce works on Github.</p>
 </div>
 </div>
 </div>
