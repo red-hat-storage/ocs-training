@@ -26,12 +26,12 @@ spec:
       metadata:
         creationTimestamp: null
         labels:
-          role: storage-node
+          cluster.ocs.openshift.io/openshift-storage: ""
           node-role.kubernetes.io/worker: ""
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-0d8f77b753c0d96dd
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -96,12 +96,12 @@ spec:
       metadata:
         creationTimestamp: null
         labels:
-          role: storage-node
+          cluster.ocs.openshift.io/openshift-storage: ""
           node-role.kubernetes.io/worker: ""
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-0d8f77b753c0d96dd
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -166,12 +166,12 @@ spec:
       metadata:
         creationTimestamp: null
         labels:
-          role: storage-node
+          cluster.ocs.openshift.io/openshift-storage: ""
           node-role.kubernetes.io/worker: ""
       providerSpec:
         value:
           ami:
-            id: ami-0eef624367320ec26
+            id: ami-0d8f77b753c0d96dd
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
