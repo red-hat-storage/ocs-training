@@ -71,7 +71,7 @@ spec:
               ) {
           node("maven-s") {
             stage('Source Checkout') {
-              git url: "https://github.com/redhat-gpte-devopsautomation/openshift-tasks.git"
+              git url: "https://github.com/sagyvolkov/sagy-openshift-tasks.git"
               script {
                 def pom = readMavenPom file: 'pom.xml'
                 def version = pom.version
