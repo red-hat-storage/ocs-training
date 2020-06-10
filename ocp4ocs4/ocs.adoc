@@ -208,7 +208,7 @@ image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
 Now type `container storage` in the *Filter by _keyword..._* box.
 
 .OCP OperatorHub filter on OpenShift Container Storage Operator
-image::OCS-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+image::OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
 Select `OpenShift Container Storage Operator` and then select *Install*.
 
