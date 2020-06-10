@@ -547,9 +547,9 @@ Do not change any configuration other than the namespace as shown above.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">NAME                            DISPLAY                       VERSION        REPLACES   PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                     Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                     Succeeded</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">NAME                            DISPLAY                       VERSION   REPLACES   PHASE
+lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
+ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0                Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -630,7 +630,7 @@ rook-ceph-operator-55cb44fcfc-wxppc       1/1     Running   0          3m41s</co
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Installing OpenShift Container Storage on bare metal, Amazon EC2, and VMware using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.</p>
+<p>Installing OpenShift Container Storage Amazon EC2 using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.</p>
 </div>
 </td>
 </tr>
@@ -1109,76 +1109,10 @@ ocs-storagecluster   14m   Ready   2020-03-11T22:52:04Z   4.3.0</code></pre>
 <p>In order to use local storage devices on VMware you must have a minimum of 3 worker nodes with the <code>same</code> storage type attached to each node.</p>
 </div>
 <div class="paragraph">
-<p>For AWS the OCS Monitor storage was created using the gp2 <strong>StorageClass</strong> so there was no need to create and additional <strong>StorageClass</strong> for <code>Filesystem</code> volume mode. For VMware we do want to create another <strong>StorageClass</strong> as well as update the LocalVolume CR shown in the AWS section to use the correct device names.</p>
+<p>Once this has been done you can use a similar method as done for AWS by logging on to the OCP worker nodes with the OCS label (see <a href="#_prerequisites">Prerequisites</a>) and issuing a <code>lsblk</code>. By inspecting the results of this command you will know which devices are available and what the size of each device is (e.g., /dev/sdb is 100 GB). See <a href="#_finding_available_storage_devices">Finding Available Storage Devices</a> for more details.</p>
 </div>
 <div class="paragraph">
-<p>In order to create the <code>Filesystem</code> LocalVolume CR you need to first create and attach a 10 GB VMDK to each of the OCP worker nodes with the OCS label and the storage devices that will be used for your OCS <strong>StorageCluster</strong>.</p>
-</div>
-<div class="paragraph">
-<p>Once this has been done you can use a similar method as done for AWS by logging on to the OCP worker nodes with the OCS label (see <a href="#_prerequisites">Prerequisites</a>) and issuing a <code>lsblk</code>. By inspecting the results of this command you will know which devices are available and what the size of each device is (e.g., /dev/sdb and size is 10 GB and /dev/sdc is 100 GB). See <a href="#_finding_available_storage_devices">Finding Available Storage Devices</a> for more details.</p>
-</div>
-<div class="paragraph">
-<p>This is an example for the LocalVolume CR for case where the 10 GB VMDK created and attached to each worker and has the device name of /dev/sdb.</p>
-</div>
-<div class="listingblock">
-<div class="title">LocalVolume CR local-storage-file.yaml using OCS label as Node Selector:</div>
-<div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">apiVersion: local.storage.openshift.io/v1
-kind: LocalVolume
-metadata:
-  name: local-file
-  namespace: local-storage
-spec:
-  nodeSelector:
-    nodeSelectorTerms:
-    - matchExpressions:
-        - key: cluster.ocs.openshift.io/openshift-storage
-          operator: In
-          values:
-          - ""
-  storageClassDevices:
-    - storageClassName: localfile
-      volumeMode: Filesystem
-      devicePaths:
-        - /dev/sdb             # &lt;-- modify this line</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>If your OCP deployment has the <code>thin</code> <strong>StorageClass</strong> available for creating and attaching VMDKs to OCP nodes this can be used in place of <code>localfile</code>. You do not need then to create the <code>localfile</code> <strong>StorageClass</strong> using the LocalVolume CR with Filesystem volume mode shown above.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Create this LocalVolume CR for Filesystem <strong>PVs</strong> using the following command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc create -f local-storage-file.yaml</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Check for the new <code>localfile</code> <strong>StorageClass</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc get sc | grep localfile</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output:</div>
-<div class="content">
-<pre class="pygments highlight"><code data-lang="shell">NAME            PROVISIONER                    AGE
-localfile      kubernetes.io/no-provisioner    7m46s</code></pre>
-</div>
+<p>For Monitor storage in the StorageCluster CR use <strong>monDataDirHostPath</strong> and set its value to /var/lib/rook.</p>
 </div>
 <div class="paragraph">
 <p>Now create the LocalVolume CR for Block <strong>PVs</strong>.</p>
@@ -1236,7 +1170,7 @@ localblock      kubernetes.io/no-provisioner    8m38s</code></pre>
 <p>The last step for using local storage on VMware is to create the <strong>StorageCluster</strong>. This is again very similar to how it was done for AWS but with a few changes.</p>
 </div>
 <div class="listingblock">
-<div class="title">StorageCluster CR ocs-cluster-service.yaml using <code>localfile</code> and <code>localblock</code> storageclasses:</div>
+<div class="title">StorageCluster CR ocs-cluster-service.yaml using <code>localblock</code> storageclass:</div>
 <div class="content">
 <pre class="pygments highlight"><code data-lang="yaml">apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -1245,15 +1179,7 @@ metadata:
   namespace: openshift-storage
 spec:
   manageNodes: false
-  monPVCTemplate:
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 1
-      storageClassName: localfile
-      volumeMode: Filesystem
+  monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
   - count: 1
     dataPVCTemplate:
@@ -1281,20 +1207,6 @@ spec:
 <td class="content">
 <div class="paragraph">
 <p>The <code>storage</code> size for <strong>monPVCTemplate:</strong> and <strong>storageDeviceSets</strong> must be less than or equal to the size of the raw block devices. Setting the value to <code>1</code> for both will guarantee that this requirement is met.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>The <code>thin</code> <strong>StorageClass</strong> can be used for creating Monitor storage instead of <code>localfile</code> if available.</p>
 </div>
 </td>
 </tr>
@@ -1330,7 +1242,7 @@ spec:
 <p>To identify the storage devices on each node use the same method as the one used for AWS and VMWare environments by logging on to each OCS worker node and issuing a lsblk command. By inspecting the results of this command you will know which devices are available and their size. See <a href="#_finding_available_storage_devices">Finding Available Storage Devices</a> for more details.</p>
 </div>
 <div class="paragraph">
-<p>For Monitor storage, a Filesystem <strong>StorageClass</strong> does not need to be created as it was for VMware. In the StorageCluster CR use <strong>monDataDirHostPath</strong> and set its value to /var/lib/rook for Monitor storage.</p>
+<p>For Monitor storage in the StorageCluster CR use <strong>monDataDirHostPath</strong> and set its value to /var/lib/rook.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1409,7 +1321,8 @@ localblock      kubernetes.io/no-provisioner    10m20s</code></pre>
 <div class="listingblock">
 <div class="title">StorageCluster CR ocs-cluster-service.yaml using <code>monDataDirHostPath</code> and <code>localblock</code> storageclass:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="yaml">kind: StorageCluster
+<pre class="pygments highlight"><code data-lang="yaml">apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
 metadata:
   name: ocs-storagecluster
   namespace: openshift-storage
@@ -1577,7 +1490,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-06-09 17:40:47 UTC
+Last updated 2020-06-10 16:13:19 UTC
 </div>
 </div>
 </body>

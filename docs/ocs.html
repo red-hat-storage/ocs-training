@@ -784,7 +784,7 @@ prometheus metrics and alerts for the OCP storage dashboards. To label the
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../docs/imgs/OCS-OCP-OperatorHub-Filter.png" alt="OCP OperatorHub Filter">
+<img src="../docs/imgs/OCS4-OCP-OperatorHub-Filter.png" alt="OCP OperatorHub Filter">
 </div>
 <div class="title">Figure 3. OCP OperatorHub filter on OpenShift Container Storage Operator</div>
 </div>
@@ -846,7 +846,7 @@ installation.</p>
 <div class="content">
 <pre class="pygments highlight"><code data-lang="shell">NAME                            DISPLAY                       VERSION   REPLACES   PHASE
 lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                Succeeded</code></pre>
+ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0                Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -900,7 +900,7 @@ What you see, should be similar to the following example picture:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="../docs/imgs/OCP-installed-operators.png" alt="Openshift showing the installed operators in namespace openshift-storage">
+<img src="../docs/imgs/OCP4-installed-operators.png" alt="Openshift showing the installed operators in namespace openshift-storage">
 </div>
 <div class="title">Figure 7. Installed Operators in the openshift-storage namespace</div>
 </div>
@@ -915,8 +915,7 @@ configuration screen.</p>
 <div class="title">Figure 8. OCS configuration screen</div>
 </div>
 <div class="paragraph">
-<p>On the top of the OCS configuration screen, scroll over to the right and
-click on <code>Storage cluster</code> and then click on <code>Create OCS Cluster Service</code>. If
+<p>On the top of the OCS configuration screen, click on <code>Storage Cluster</code> and then click on <code>Create OCS Cluster Service</code>. If
 you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
 </div>
 <div class="imageblock">
@@ -988,9 +987,7 @@ instances</code>.</p>
 </div>
 <div class="paragraph">
 <p>Please wait until all <strong>Pods</strong> are marked as <code>Running</code> in the CLI or until you
-see all instances shown below as <code>Ready</code> Status in the Web Console. Some
-instances may stay in <code>Unknown</code> Status which is not a concern if your <code>Ready</code>
-status matches the following diagram:</p>
+see all instances shown below as <code>Ready</code> Status in the Web Console and matches the following diagram:</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -3106,7 +3103,7 @@ storage specific commands.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.3</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.4</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3767,7 +3764,7 @@ throughout the cluster.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-06-09 17:40:47 UTC
+Last updated 2020-06-10 16:13:19 UTC
 </div>
 </div>
 </body>
