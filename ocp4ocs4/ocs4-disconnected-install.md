@@ -3,33 +3,28 @@
 This doc is based on [this document][1]
 
 ## Motivation
-In a disconnected environment there is no access to the OLM catalog and the image registries, so in order to install OCS we need to do 2 things:
-1. provide a custom catalog that contains OCS CSV (cluster service version)
-    - this is done using the command `oc adm catalog build`. this command is going over a given catalog (e.g. redhat-operators), builds an olm catalog image and pushes it to the mirror registry.
-    - to work around the issue of `lib-bucket-provisioner` which is a dependency in community-operators we will need to build a catalog image for community-operators as well. once this issue will be fixed this will be unnecessary.
+In a disconnected OpenShift environment there is no access to the OLM catalog and the Red Hat image registries. In order to install OCS we need to do 2 things:
+1. Provide custom catalogs that contains OCS, Local Storage Operator (LSO), and lib-bucket-provisioner CSV (Cluster Service Version).
+    - This is done using the command `oc adm catalog build`. This command is going over a given catalog (e.g. redhat-operators), builds an olm catalog image and pushes it to the mirror registry.
+    - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, we will need to build a custom catalog image for for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
 2. mirror all images that are required by OCS to a mirror registry which is accessible from the OCP cluster
     - this is done using the command `oc adm catalog mirror`. this command goes over the CSVs in the catalog and copy all required images to the mirror registry.
     - to work around the missing `relatedImages` in OCS CSV, we will need to manually mirror required images which are not copied with `oc adm catalog mirror`. this is done using `oc image mirror`
     - `oc adm catalog mirror` generates `imageContentSourcePolicy.yaml` to install in the cluster. this resource tells OCP what is the mapping each image in the mirror registry. we need to add to it also the mapping of the related images before applying in the cluster.
 
+## Prerequisites
+1. Assumption that a OCP disconnected cluster is already installed and a mirror registry exists on a bastion host ([see here][4]).   
 
+2. The oc client [version 4.4][5] is installed and logged in to the cluster as the cluster-admin role. 
 
-## prerequisites
-1. assuming that a disconnected cluster is already installed and a mirror registry exists on a bastion host ([see here][4]).   
-The following steps can also be applied and tested on a connected cluster. since we disable the default catalog (operator hub), the flow should be similar on both connected and disconnected envs
-2. oc is installed and logged in to the cluster. I used [oc 4.4][5], for earlier versions thigs might not work as well
-
-
-## env vars (fill the correct details for your setup)
+3. Export env vars (fill the correct details for your setup).
   ```
   export AUTH_FILE="~/podman_config.json"
   export MIRROR_REGISTRY_DNS="<your_registry>"
   ```
-
-
-## create auth file
-* get redhat registry [pull secret][3] and paste it to `${AUTH_FILE}`
-* podman login to the mirror registry and store the credentials in `${AUTH_FILE}`
+4. Create your auth file.
+* Get your unique redhat registry [pull secret][3] and paste it to `${AUTH_FILE}`
+* Podman login to the mirror registry and store the credentials in `${AUTH_FILE}`
   ```
   podman login ${MIRROR_REGISTRY_DNS} --tls-verify=false --authfile ${AUTH_FILE}
   ```
@@ -60,8 +55,6 @@ you should eventually get something similar to this:
   }
   ```
 
-
-
 ## Building and mirroring the Operator catalog image
 
 - **build oeprators catalog for redhat operators**  
@@ -84,7 +77,7 @@ This is a long operation and should take ~1-2 hours. It requires ~60-70 GB of di
 ## **OCS-4.4.0 workarounds** 
 
 
-### relatedImages workarounds
+### CSV relatedImages workarounds
 
   In OCS-4.4 the relatedImages are in the CSV for the most part. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV relatedImages. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images.
 
@@ -198,4 +191,4 @@ the ***Operators*** section in the UI should now present all of the catalog cont
 [2]: https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-building-operator-catalog-image_olm-restricted-networks
 [3]: https://cloud.redhat.com/openshift/install/pull-secret
 [4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations
-[5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest-4.4/
+[5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.4/
