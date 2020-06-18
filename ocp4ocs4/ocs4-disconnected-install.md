@@ -1,4 +1,4 @@
-# OCS on a Disconnected environment
+# Disconnected Install for OpenShift Container Storage
 
 This doc is based on [this document][1]
 
@@ -10,7 +10,7 @@ In a disconnected environment there is no access to the OLM catalog and the imag
 2. mirror all images that are required by OCS to a mirror registry which is accessible from the OCP cluster
     - this is done using the command `oc adm catalog mirror`. this command goes over the CSVs in the catalog and copy all required images to the mirror registry.
     - to work around the missing `relatedImages` in OCS CSV, we will need to manually mirror required images which are not copied with `oc adm catalog mirror`. this is done using `oc image mirror`
-    - `oc adm catalog mirror` generates `imageContentSourcePolicy.yaml` to install in the cluster. this resource tells OCP what is the mapping each image in the mirror registry. we need to add to it also the mapping of the related images before aplying in the cluster.
+    - `oc adm catalog mirror` generates `imageContentSourcePolicy.yaml` to install in the cluster. this resource tells OCP what is the mapping each image in the mirror registry. we need to add to it also the mapping of the related images before applying in the cluster.
 
 
 
@@ -81,41 +81,25 @@ This is a long operation and should take ~1-2 hours. It requires ~60-70 GB of di
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   ```
 
-## **OCS-4.3\4.4 workarounds** 
+## **OCS-4.4.0 workarounds** 
 
 
 ### relatedImages workarounds
 
-As a work around for the missing `relatedImages` in ocs CSV (OCS-4.3) we want to mirror the operands images manually.  
-`oc image mirror` accepts as input a mapping file.  
-the format of a mapping is `registry.redhat.io/account/repository@sha256:xxxxxx=mirror.registry/account/repository` (no tag at the target)  
-below are examples of a mapping file for **OCS-4.3.0**  and **OCS-4.4.0** (other versions will require different images. go over the CSV and make sure that all of the used images (can be grepped with `sha256`) are mapped in the file)  
-save the content below to `mapping.txt`  
-
-  mapping.txt for OCS-4.3.0:
-  ```
-  registry.redhat.io/ocs4/cephcsi-rhel8@sha256:9aa61eec1d23169521f83b4664115d9aa69710d69d7f2f4a939ec753d15c0400=<your_registry>/ocs4/cephcsi-rhel8
-  registry.redhat.io/ocs4/mcg-core-rhel8@sha256:74d03cc253774bd817750ba0fe3cfec125282f8549343067610799f2eee5ea80=<your_registry>/ocs4/mcg-core-rhel8
-  registry.redhat.io/rhceph/rhceph-4-rhel8@sha256:9e521d33c1b3c7f5899a8a5f36eee423b8003827b7d12d780a58a701d0a64f0d=<your_registry>/rhceph/rhceph-4-rhel8
-  registry.redhat.io/openshift4/ose-csi-driver-registrar@sha256:b40c8e8392e432f49c4abf6b5248fb6a349ab9dff49c7f9467df3fc974937a6d=<your_registry>/openshift4/ose-csi-driver-registrar
-  registry.redhat.io/openshift4/ose-csi-external-attacher@sha256:faeb96365fafba1255ca3b9ad7e3f6ddd8791588b9ff283a7acffd7d5c89fe09=<your_registry>/openshift4/ose-csi-external-attacher
-  registry.redhat.io/openshift4/ose-csi-external-provisioner-rhel7@sha256:0570eacd3cb8b5d60fd3ecf4c80860280725c81d83bc2a04326d3393c6dcb2be=<your_registry>/openshift4/ose-csi-external-provisioner-rhel7
-  registry.redhat.io/openshift4/ose-csi-external-resizer-rhel7@sha256:e7302652fe3f698f8211742d08b2dcea9d77925de458eb30c20789e12ee7ae33=<your_registry>/openshift4/ose-csi-external-resizer-rhel7
-  registry.redhat.io/rhscl/mongodb-36-rhel7@sha256:254c9046eaf61c451b40bac3f897c40bc59f187e5313b9799fbcacf17398a191=<your_registry>/rhscl/mongodb-36-rhel7
-  quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105=<your_registry>/noobaa/pause
-  registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:a512e88410cadd6e4b286aca63b8917389dd73e8c202189563055c37f4c50fef=<your_registry>/ocs4/ocs-must-gather-rhel8
-  quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d=<your_registry>/noobaa/lib-bucket-catalog
-  ```
-
-  in OCS-4.4 the relatedImages do appear in the CSV, but we still need to fix the missing pause image for lib-bucket-provisioner.  
-  Also the `ose-csi-external-resizer` image is missing in the relatedImage (Although it is not yet used by OCS we'll mirror it anyway)
+  In OCS-4.4 the relatedImages are in the CSV for the most part. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV relatedImages. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images.
 
   mapping.txt for OCS-4.4.0:
+  
   ```
-  registry.redhat.io/openshift4/ose-csi-external-resizer-rhel7@sha256:e7302652fe3f698f8211742d08b2dcea9d77925de458eb30c20789e12ee7ae33=<your_registry>/openshift4/ose-csi-external-resizer-rhel7
-  quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105=<your_registry>/noobaa/pause
-  registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:823e0fb90bb272997746eb4923463cef597cc74818cd9050f791b64df4f2c9b2=<your_registry>/ocs4/ocs-must-gather-rhel8
-  quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d=<your_registry>/noobaa/lib-bucket-catalog
+registry.redhat.io/openshift4/ose-csi-external-resizer-rhel7@sha256:e7302652fe3f698f8211742d08b2dcea9d77925de458eb30c20789e12ee7ae33=<your_registry>/openshift4/ose-csi-external-resizer-rhel7
+
+registry.redhat.io/ocs4/ocs-rhel8-operator@sha256:78b97049b194ebf4f72e29ac83b0d4f8aaa5659970691ff459bf19cfd661e93a
+
+quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105=<your_registry>/noobaa/pause
+
+quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d=<your_registry>/noobaa/lib-bucket-catalog
+
+registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:823e0fb90bb272997746eb4923463cef597cc74818cd9050f791b64df4f2c9b2=<your_registry>/ocs4/ocs-must-gather-rhel8
   ```
 
 - **Mirror the images in `mapping.txt`**  
@@ -124,24 +108,35 @@ save the content below to `mapping.txt`
   ```
 
 
-- **Add the images we mirrored in `mapping.txt` to the imageContentSourcePolicy**  
-After `oc adm catalog mirror` is completed it will print an output dir where an `imageContentSourcePolicy.yaml` is generated (usually the catalog image with `-manifests` suffix. e.g: `redhat-operators-manifests`).
-the missing related images should be added to the `ImageContentSourcePolicy` spec. e.g. an entry for rhceph-rhel8: 
+- **Validate imageContentSourcePolicy**  
+After `oc adm catalog mirror` is completed it will print an output dir where an `imageContentSourcePolicy.yaml` is generated. Check the content of this file for the mirrors shown below. Add any missing mirrors.
+ 
   ```yaml
-    - mirrors:
-      - <your_registry>/ocs4/rhceph-rhel8
-      source: registry.redhat.io/ocs4/rhceph-rhel8
+  spec:
+    repositoryDigestMirrors:
+	- mirrors:
+	  - <your_registry>/ocs4
+	  source: registry.redhat.io/ocs4
+	- mirrors:
+	  - <your_registry>/rhceph
+	  source: registry.redhat.io/rhceph
+	- mirrors:
+	  - <your_registry>/noobaa
+	  source: quay.io/noobaa
+	- mirrors:
+	  - <your_registry>/openshift4
+	  source: registry.redhat.io/openshift4
+	- mirrors:
+	  - <your_registry>/rhscl
+	  source: registry.redhat.io/rhscl  
   ```
-
-
 
 ### lib-bucket-provisioner workarounds
 
-- OCS versions 4.3 and 4.4 are still dependent on lib-bucket-provisioner which is part of community-operators catalog. To work around this dependency it's necessary to 
-create a CatalogSource pointing to the lib-bucket-catalog image that was mirrored in previous step
+OCS version 4.4 is still dependent on lib-bucket-provisioner which is included in the community-operators catalog. If this catalog is not created to work around this dependency it's necessary to create a custom CatalogSource pointing to the lib-bucket-provisoner image that was mirrored in previous step.
 
-  - **Create CatalogSource for lib-bucket-provisioner**  
-Create a CatalogSource object that references the catalog image for lib-bucket-provisioner. Modify the following to your specifications and save it as a catalogsource.yaml file:
+- **Create Custom CatalogSource for lib-bucket-provisioner**  
+Create a CatalogSource object that references the catalog image for lib-bucket-provisioner. Save it as for example the catalogsource.yaml file:
   ```yaml
   apiVersion: operators.coreos.com/v1alpha1
   kind: CatalogSource
@@ -163,9 +158,8 @@ Create a CatalogSource object that references the catalog image for lib-bucket-p
   oc create -f catalogsource.yaml
   ```
 
-- Prior to OCS 4.5 for OCP disconnected environments, the lib-bucket-provisioner csv and deployment will need to be edited and the image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. 
-After the deployment of OCS, edit the lib-bucket-provisioner csv first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
-
+- **The lib-bucket-provisioner CSV and Deployment need to be edited**  
+The image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. After the deployment of OCS, edit the lib-bucket-provisioner CSV first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
 
 ## Normal path (after workarounds)
 
@@ -204,8 +198,8 @@ All Done!
 
 the ***Operators*** section in the UI should now present all of the catalog content, and you can install OCS from the mirror registry
 
-[1]:https://docs.openshift.com/container-platform/4.3/operators/olm-restricted-networks.html#olm-restricted-networks-operatorhub_olm-restricted-networks
-[2]: https://docs.openshift.com/container-platform/4.3/operators/olm-restricted-networks.html#olm-building-operator-catalog-image_olm-restricted-networks
+[1]:https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-restricted-networks-operatorhub_olm-restricted-networks
+[2]: https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-building-operator-catalog-image_olm-restricted-networks
 [3]: https://cloud.redhat.com/openshift/install/pull-secret
-[4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.3/html/installing/installation-configuration#installing-restricted-networks-preparations
+[4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations
 [5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp-dev-preview/latest-4.4/
