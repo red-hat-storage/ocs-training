@@ -156,7 +156,7 @@ Create a CatalogSource object that references the catalog image for lib-bucket-p
   
   Create the catalogsource:
   ```
-  oc create -f lib-bcuket-catalogsource.yaml
+  oc apply -f lib-bcuket-catalogsource.yaml
   ```
   Verify catalogsource and pod are created:
   
@@ -191,7 +191,7 @@ Create a CatalogSource object that references the catalog image for redhat-opera
   ```
   Create the catalogsource:
   ```
-  oc create -f redhat-operator-catalogsource.yaml
+  oc apply -f redhat-operator-catalogsource.yaml
   ```
   Verify catalogsource and pod are created:
   
