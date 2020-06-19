@@ -201,7 +201,7 @@ Create a CatalogSource object that references the catalog image for redhat-opera
 The update process to build and mirror the redhat-operators catalog image is exactly the same as creating the initial catalog image as detailed above in this article. Make sure to modify the ose-operator-registry tag before doing the build and mirror operation (e.g., v4.4 -> v4.5). Best practice is to use the same image tag, v1, for the new redhat-operators image and then restart the redhat-operator pod to get the new image.
 
   ```
-  oc delete pod redhat-operators-xxxxxxxxxx-xxxxx -n openshift-marketplace
+  oc delete $(oc get pod -n openshift-marketplace -o name | grep redhat-operators) -n openshift-marketplace
   ```
   Validate new redhat-operator pod is running
   ```
