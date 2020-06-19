@@ -66,7 +66,7 @@ Cluster administrators can build a custom Operator catalog image to be used by O
 - **Build operators catalog for redhat-operators**  
 The tag of the `ose-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g., 4.4). If this is for an update of the redhat-operators catalog make sure to change the `ose-operator-registry` tag to latest version (e.g., v4.4 -> v4.5).
   ```
-  oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=registry.redhat.io/openshift4/ose-operator-registry:v4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
+  oc adm catalog build --appregistry-org redhat-operators --from=registry.redhat.io/openshift4/ose-operator-registry:v4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE} --insecure
   ```
 
 - **Mirror the redhat-operators catalog**  
