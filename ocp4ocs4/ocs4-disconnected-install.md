@@ -2,7 +2,7 @@
 This document is to supplement OpenShift Container Platform (OCP) documentation for installing the OpenShift Container Storage (OCS) service in a air-gap disconnected or proxy environment. Reference official OCP documentation [here][1].
 
 ## Overview
-In a disconnected OpenShift environment there is no access to the OLM catalog and the Red Hat image registries. In order to install OCS we need to do 2 things:
+In a disconnected OpenShift environment there is no access to the OLM catalog and the Red Hat image registries. In order to install OCS you need to do 2 things:
 
 1. Provide catalogs that contain OCS, Local Storage Operator (LSO), and lib-bucket-provisioner CSV (Cluster Service Version).
     - This can be done using the command `oc adm catalog build`. This command goes over a given catalog (e.g. redhat-operators) and builds an olm catalog image and then pushes it to the mirror registry.
@@ -91,7 +91,7 @@ ocs-operator
 For OCS 4.4.0 there is a need to do a few workarounds when installing in a disconnected environment. Future versions of OCS should not need these additional steps to properly install.
 
 ### Mirroring missing images
-  In OCS version 4.4.0 many of the `relatedImages` are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
+  In OCS version 4.4.0 many of the `relatedImages` are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so you still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
 
   Save content below to mapping-missing.txt:
   
