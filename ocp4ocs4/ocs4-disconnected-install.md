@@ -59,7 +59,7 @@ You should eventually get something similar to this:
 
 ## Building and mirroring standard redhat-operator catalog image
 
-- **Build oeprators catalog for redhat operators**  
+- **Build operators catalog for redhat-operators**  
 The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.4).
   ```
   oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=quay.io/openshift/origin-operator-registry:4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
