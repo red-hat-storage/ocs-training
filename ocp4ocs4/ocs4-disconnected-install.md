@@ -1,21 +1,23 @@
 # Disconnected Install for OpenShift Container Storage
 
-This doc is based on [this document][1]
+This document is to supplement OpenShift Container Platform (OCP) documentation for installing the OpenShift Container Storage (OCS) service in a air-gap disconnected or proxy environment. Reference official OCP documentation [here][1].
 
-## Motivation
+## Overview
 In a disconnected OpenShift environment there is no access to the OLM catalog and the Red Hat image registries. In order to install OCS we need to do 2 things:
-1. Provide custom catalogs that contains OCS, Local Storage Operator (LSO), and lib-bucket-provisioner CSV (Cluster Service Version).
-    - This is done using the command `oc adm catalog build`. This command is going over a given catalog (e.g. redhat-operators), builds an olm catalog image and pushes it to the mirror registry.
-    - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, we will need to build a custom catalog image for for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
-2. mirror all images that are required by OCS to a mirror registry which is accessible from the OCP cluster
-    - this is done using the command `oc adm catalog mirror`. this command goes over the CSVs in the catalog and copy all required images to the mirror registry.
-    - to work around the missing `relatedImages` in OCS CSV, we will need to manually mirror required images which are not copied with `oc adm catalog mirror`. this is done using `oc image mirror`
-    - `oc adm catalog mirror` generates `imageContentSourcePolicy.yaml` to install in the cluster. this resource tells OCP what is the mapping each image in the mirror registry. we need to add to it also the mapping of the related images before applying in the cluster.
+
+1. Provide catalogs that contain OCS, Local Storage Operator (LSO), and lib-bucket-provisioner CSV (Cluster Service Version).
+    - This can be done using the command `oc adm catalog build`. This command goes over a given catalog (e.g. redhat-operators) and builds an olm catalog image and then pushes it to the mirror registry.
+    - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, you will need to build a custom catalog image for for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
+	
+2. Mirror all images that are required by OCS to a mirror registry which is accessible from the OCP cluster.
+    - This is done using the command `oc adm catalog mirror`. This command goes over the CSVs in the catalog and copies all required images to the mirror registry.
+    - To work around the missing `relatedImages` in the OCS and lib-bucket-provisioner CSV, you will need to manually mirror required images which are not copied with `oc adm catalog mirror`. This is done using `oc image mirror`.
+    - The `oc adm catalog mirror` step generates the `imageContentSourcePolicy.yaml` file to install in the cluster. This resource tells OCP the external registry mapping for each image in the mirror registry. Add additional mirroring mappings for the missing `relatedImages` for OCS and lib-bucket-provisioner before applying `imageContentSourcePolicy.yaml`in the cluster.
 
 ## Prerequisites
-1. Assumption that a OCP disconnected cluster is already installed and a mirror registry exists on a bastion host ([see here][4]).   
+1. An OCP 4.3 or higher disconnected cluster is already installed and a mirror registry exists on a bastion host ([see here][4]).   
 
-2. The oc client [version 4.4][5] is installed and logged in to the cluster as the cluster-admin role. 
+2. The oc client [version 4.4][5] is installed and logged into the cluster as the cluster-admin role. 
 
 3. Export env vars (fill the correct details for your setup).
   ```
@@ -28,7 +30,7 @@ In a disconnected OpenShift environment there is no access to the OLM catalog an
   ```
   podman login ${MIRROR_REGISTRY_DNS} --tls-verify=false --authfile ${AUTH_FILE}
   ```
-you should eventually get something similar to this:
+You should eventually get something similar to this:
   ```json
   {
     "auths": {
@@ -55,16 +57,16 @@ you should eventually get something similar to this:
   }
   ```
 
-## Building and mirroring the Operator catalog image
+## Building and mirroring standard redhat-operator catalog image
 
-- **build oeprators catalog for redhat operators**  
+- **Build oeprators catalog for redhat operators**  
 The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.3)
   ```
   oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=quay.io/openshift/origin-operator-registry:4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
   ```
 
-- **mirror the redhat-operators catalog**  
-This is a long operation and should take ~1-2 hours. It requires ~60-70 GB of disk space on the bastion (the mirror machine)
+- **Mirror the redhat-operators catalog**  
+This is a long operation and could take 1-5 hours. It requires 60-70 GB of disk space on the bastion (the mirror machine).
   ```
   oc adm catalog mirror ${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 ${MIRROR_REGISTRY_DNS}  --insecure --registry-config=${AUTH_FILE}
   ```
@@ -74,14 +76,22 @@ This is a long operation and should take ~1-2 hours. It requires ~60-70 GB of di
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   ```
 
+## Building and mirroring custom catalog image (optional)
+To build a custom redhat-operators catalog reference requirements and instructions found [here][6]. This method is not supported by Red Hat but is very useful for creating a custom redhat-operators catalog that only includes the operators you need to install in your OCP cluster. In the case of installing OCS, this would be the ocs-operator and local-storage-operator that would go in your `offline-operator-list`. Example below for entries in this file:
+
+```
+local-storage-operator
+ocs-operator
+````
+
 ## **OCS-4.4.0 workarounds** 
 
 
-### CSV relatedImages workarounds
+### Mirroring missing images
 
-  In OCS-4.4 the relatedImages are in the CSV for the most part. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV relatedImages. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images.
+  In OCS-4.4 many of the `relatedImage`s are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
 
-  mapping.txt for OCS-4.4.0:
+  Save content below to mapping-missing.txt:
   
   ```
 registry.redhat.io/openshift4/ose-csi-external-resizer-rhel7@sha256:e7302652fe3f698f8211742d08b2dcea9d77925de458eb30c20789e12ee7ae33=<your_registry>/openshift4/ose-csi-external-resizer-rhel7
@@ -91,14 +101,13 @@ quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322
 registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:823e0fb90bb272997746eb4923463cef597cc74818cd9050f791b64df4f2c9b2=<your_registry>/ocs4/ocs-must-gather-rhel8
   ```
 
-- **Mirror the images in `mapping.txt`**  
+- **Mirror the images in `mapping-missing.txt`**  
   ```
-  oc image mirror -f mapping.txt --insecure --registry-config=${AUTH_FILE}
+  oc image mirror -f mapping-missing.txt --insecure --registry-config=${AUTH_FILE}
   ```
-
 
 - **Validate imageContentSourcePolicy**  
-After `oc adm catalog mirror` is completed it will print an output dir where an `imageContentSourcePolicy.yaml` is generated. Check the content of this file for the mirrors shown below. Add any missing mirrors.
+After `oc adm catalog mirror` is completed it will print an output dir where an `imageContentSourcePolicy.yaml` is generated. Check the content of this file for the mirrors shown below. Add any missing entries to `imageContentSourcePolicy.yaml`.
  
   ```yaml
   spec:
@@ -120,12 +129,12 @@ After `oc adm catalog mirror` is completed it will print an output dir where an 
 	  source: registry.redhat.io/rhscl  
   ```
 
-### lib-bucket-provisioner workarounds
+### Creating the CatalogSource for lib-bucket-provisioner
 
-OCS version 4.4 is still dependent on lib-bucket-provisioner which is included in the community-operators catalog. If this catalog is not created to work around this dependency it's necessary to create a custom CatalogSource pointing to the lib-bucket-provisoner image that was mirrored in previous step.
+OCS version 4.4 is dependent on lib-bucket-provisioner which is included in the community-operators catalog. ***If the community-operators catalog is not created, it is necessary to create a custom CatalogSource for the lib-bucket-provisioner.***
 
 - **Create Custom CatalogSource for lib-bucket-provisioner**  
-Create a CatalogSource object that references the catalog image for lib-bucket-provisioner. Save it as for example the catalogsource.yaml file:
+Create a CatalogSource object that references the catalog image for lib-bucket-provisioner. Save it as the lib-bucket-catalogsource.yaml file:
   ```yaml
   apiVersion: operators.coreos.com/v1alpha1
   kind: CatalogSource
@@ -142,24 +151,26 @@ Create a CatalogSource object that references the catalog image for lib-bucket-p
     sourceType: grpc  
   ```
   
-  create the catalog source:
+  Create the catalogsource:
   ```
-  oc create -f catalogsource.yaml
+  oc create -f lib-bcuket-catalogsource.yaml
+  ```
+  Verify catalogsource and pod are created:
+  
+  ```
+  oc get catalogsource,pod -n openshift-marketplace | grep lib-bucket
   ```
 
-- **The lib-bucket-provisioner CSV and Deployment need to be edited**  
-The image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. After the deployment of OCS, edit the lib-bucket-provisioner CSV first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
+## Creating the CatalogSource for redhat-operators
 
-## Normal path (after workarounds)
-
-- **After adding the related images (in the `relatedImages workarounds` section), apply the `imageContentSourcePolicy.yaml` file to the cluster**  
-(the file is generated by `oc adm catalog mirror`. the output dir is usually `./[catalog image name]-manifests`)
+- **Apply the `imageContentSourcePolicy.yaml` file to the cluster**  
+(the file is generated by `oc adm catalog mirror` and thhe output dir is usually `./[catalog image name]-manifests`)
   ```
   oc apply -f ./[output dir]/imageContentSourcePolicy.yaml
   ```
 
 - **Create CatalogSource for redhat-operators**  
-Create a CatalogSource object that references the catalog image for redhat-operators. Modify the following to your specifications and save it as a catalogsource.yaml file:
+Create a CatalogSource object that references the catalog image for redhat-operators. Modify the following to use <your_registry> and save it as a redhat-operator-catalogsource.yaml file:
   ```yaml
   apiVersion: operators.coreos.com/v1alpha1
   kind: CatalogSource
@@ -175,20 +186,27 @@ Create a CatalogSource object that references the catalog image for redhat-opera
     displayName: Redhat Operators Catalog
     publisher: Red Hat  
   ```
-  create the catalog source:
+  Create the catalogsource:
   ```
-  oc create -f catalogsource.yaml
+  oc create -f redhat-operator-catalogsource.yaml
+  ```
+  Verify catalogsource and pod are created:
+  
+  ```
+  oc get catalogsource,pod -n openshift-marketplace | grep redhat-operators
   ```
 
+***OperatorHub*** in the OCP console UI should now present all of the operators in the redhat-operator catalog as well as the lib-bucket-provisioner operator. You can now install OCS 4.4 using the [Deployment Guide][7].
+
+- **The lib-bucket-provisioner CSV and Deployment needs to be edited during Installation**  
+Because the CSV, lib-bucket-provisioner.v1.0.0.clusterserviceversion.yaml, does not use a sha for pulling images, quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. After the deployment of OCS, edit the lib-bucket-provisioner CSV first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
 
 All Done!
 
-
-
-the ***Operators*** section in the UI should now present all of the catalog content, and you can install OCS from the mirror registry
-
-[1]:https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-restricted-networks-operatorhub_olm-restricted-networks
+[1]:https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html
 [2]: https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-building-operator-catalog-image_olm-restricted-networks
 [3]: https://cloud.redhat.com/openshift/install/pull-secret
 [4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations
 [5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.4/
+[6]: https://github.com/arvin-a/openshift-disconnected-operators
+[7]: https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.4/html/deploying_openshift_container_storage/deploying-openshift-container-storage#installing-openshift-container-storage-operator-using-the-operator-hub_rhocs
