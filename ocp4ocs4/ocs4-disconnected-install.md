@@ -60,7 +60,7 @@ You should eventually get something similar to this:
 ## Building and mirroring standard redhat-operator catalog image
 
 - **Build oeprators catalog for redhat operators**  
-The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.3)
+The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.4).
   ```
   oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=quay.io/openshift/origin-operator-registry:4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
   ```
@@ -84,12 +84,12 @@ local-storage-operator
 ocs-operator
 ````
 
-## **OCS-4.4.0 workarounds** 
+## **OCS version 4.4.0 workarounds** 
 
 
 ### Mirroring missing images
 
-  In OCS-4.4 many of the `relatedImage`s are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
+  In OCS version 4.4.0 many of the `relatedImages` are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so we still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
 
   Save content below to mapping-missing.txt:
   
@@ -107,7 +107,7 @@ registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:823e0fb90bb272997746eb49234
   ```
 
 - **Validate imageContentSourcePolicy**  
-After `oc adm catalog mirror` is completed it will print an output dir where an `imageContentSourcePolicy.yaml` is generated. Check the content of this file for the mirrors shown below. Add any missing entries to `imageContentSourcePolicy.yaml`.
+After `oc adm catalog mirror` is completed it will create the `imageContentSourcePolicy.yaml` file. Check the content of this file for the mirrors mapping shown below. Add any missing entries to the end of the `imageContentSourcePolicy.yaml` file.
  
   ```yaml
   spec:
