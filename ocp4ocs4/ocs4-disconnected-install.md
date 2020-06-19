@@ -23,7 +23,7 @@ These requirements need to be met before proceeding.
 3. Export env vars (fill the correct details for your setup).
   ```
   export AUTH_FILE="<location_of_auth.json>"
-  export MIRROR_REGISTRY_DNS="<your_registry_url>"
+  export MIRROR_REGISTRY_DNS="<registry_host_name>:<port>"
   ```
 4. Create your auth file.
 
