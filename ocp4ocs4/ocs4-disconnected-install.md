@@ -21,10 +21,13 @@ In a disconnected OpenShift environment there is no access to the OLM catalog an
 
 3. Export env vars (fill the correct details for your setup).
   ```
-  export AUTH_FILE="~/podman_config.json"
-  export MIRROR_REGISTRY_DNS="<your_registry>"
+  export AUTH_FILE="<location_of_auth.json>"
+  export MIRROR_REGISTRY_DNS="<your_registry_url>"
   ```
 4. Create your auth file.
+
+* The location of the auth.json file generated when you use podman or docker to login to registries using podman. The auth file is located either in your home directory under .docker or /run/user/your_uid/containers/auth.json or /var/run/containers/your_uid/auth.json.
+
 * Get your unique redhat registry [pull secret][3] and paste it to `${AUTH_FILE}`
 * Podman login to the mirror registry and store the credentials in `${AUTH_FILE}`
   ```
@@ -62,7 +65,7 @@ You should eventually get something similar to this:
 - **Build operators catalog for redhat-operators**  
 The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.4).
   ```
-  oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=quay.io/openshift/origin-operator-registry:4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
+  oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=registry.redhat.io/openshift4/ose-operator-registry:v4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
   ```
 
 - **Mirror the redhat-operators catalog**  
