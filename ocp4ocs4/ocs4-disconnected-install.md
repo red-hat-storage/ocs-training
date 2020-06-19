@@ -88,7 +88,7 @@ local-storage-operator
 ocs-operator
 ````
 
-## **OCS version 4.4.0 workarounds** 
+## OCS version 4.4.0 workarounds 
 For OCS 4.4.0 there is a need to do a few workarounds when installing in a disconnected environment. Future versions of OCS should not need these additional steps to properly install.
 
 ### Mirroring missing images
