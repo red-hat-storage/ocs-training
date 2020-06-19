@@ -8,7 +8,8 @@ In a disconnected OpenShift environment there is no access to the OLM catalog an
     - This can be done using the command `oc adm catalog build`. This command goes over a given catalog (e.g. redhat-operators) and builds an olm catalog image and then pushes it to the mirror registry.
     - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, you will need to build a custom catalog image for for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
 	
-2. Mirror all images that are required by OCS to a mirror registry which is accessible from the OCP cluster.
+	
+2. Mirror all images that are required by OCS to a mirror registry running on a machine that has access to the Internet. Once the mirror registry has been updated, transfer the content of the mirror registry to a registry that can be accessed from your OCP cluster.
     - This is done using the command `oc adm catalog mirror`. This command goes over the CSVs in the catalog and copies all required images to the mirror registry.
     - To work around the missing `relatedImages` in the OCS and lib-bucket-provisioner CSV, you will need to manually mirror required images which are not copied with `oc adm catalog mirror`. This is done using `oc image mirror`.
     - The `oc adm catalog mirror` step generates the `imageContentSourcePolicy.yaml` file to install in the cluster. This resource tells OCP the external registry mapping for each image in the mirror registry. Add additional mirroring mappings for the missing `relatedImages` for OCS and lib-bucket-provisioner before applying `imageContentSourcePolicy.yaml`in the cluster.
@@ -63,7 +64,7 @@ You should eventually get something similar to this:
 ## Building and mirroring standard redhat-operator catalog image
 Cluster administrators can build a custom Operator catalog image to be used by Operator Lifecycle Manager (OLM) and push the image to a container image registry that supports Docker v2-2. For a OCP cluster on a restricted network, this registry must have access to registry.access.redhat.com, registry.redhat.io and quay.io during the build and mirroring process (such as the mirror registry created during the restricted network installation).
 - **Build operators catalog for redhat-operators**  
-The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.4).
+The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g., 4.4). If this is for an update of the redhat-operators catalog make sure to change the `ose-operator-registry` tag to latest version (e.g., v4.4 -> v4.5).
   ```
   oc adm catalog build --insecure --appregistry-endpoint https://quay.io/cnr --appregistry-org redhat-operators --from=registry.redhat.io/openshift4/ose-operator-registry:v4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE}
   ```
