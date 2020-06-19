@@ -6,7 +6,7 @@ In a disconnected OpenShift environment there is no access to the OLM catalog an
 
 1. Provide catalogs that contain OCS, Local Storage Operator (LSO), and lib-bucket-provisioner CSV (Cluster Service Version).
     - This can be done using the command `oc adm catalog build`. This command goes over a given catalog (e.g. redhat-operators) and builds an olm catalog image and then pushes it to the mirror registry.
-    - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, you will need to build a custom catalog image for for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
+    - Given `lib-bucket-provisioner` is currently a dependency for OCS installation, you will need to build a custom catalog image for this Community operator. Future versions of OCS will not need lib-bucket-provisioner.
 	
 	
 2. Mirror all images that are required by OCS to a mirror registry running on a machine that has access to the Internet. Once the mirror registry has been updated, transfer the content of the mirror registry to a registry that can be accessed from your OCP cluster.
