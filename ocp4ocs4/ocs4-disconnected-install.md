@@ -61,7 +61,7 @@ You should eventually get something similar to this:
   ```
 
 ## Building and mirroring standard redhat-operator catalog image
-Cluster administrators can build a custom Operator catalog image to be used by Operator Lifecycle Manager (OLM) and push the image to a container image registry that supports Docker v2-2. For a OCP cluster on a restricted network, this registry must have access to registry.redhat.io and quay.io during the build and mirroring process (such as the mirror registry created during the restricted network installation).
+Cluster administrators can build a custom Operator catalog image to be used by Operator Lifecycle Manager (OLM) and push the image to a container image registry that supports Docker v2-2. For a OCP cluster on a restricted network, this registry must have access to registry.access.redhat.com, registry.redhat.io and quay.io during the build and mirroring process (such as the mirror registry created during the restricted network installation).
 - **Build operators catalog for redhat-operators**  
 The tag of the `origin-operator-registry` in the `--from` flag should match the major and minor versions of the OCP cluster (e.g. 4.4).
   ```
