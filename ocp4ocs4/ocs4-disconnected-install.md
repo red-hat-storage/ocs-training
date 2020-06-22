@@ -1,5 +1,7 @@
-# Disconnected Install for OpenShift Container Storage
+# OpenShift Container Storage (OCS) 4.4 Disconnected Installation - Tech Preview
 This document is to supplement OpenShift Container Platform (OCP) documentation for installing the OpenShift Container Storage (OCS) service in a air-gap disconnected or proxy environment. Reference official OCP documentation [here][1].
+
+This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please add an [Issue][8] or contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com) via email.
 
 ## Overview
 In a disconnected OpenShift environment there is no access to the OLM catalog and the Red Hat image registries. In order to install OCS you need to do 2 things:
@@ -80,16 +82,17 @@ This is a long operation and could take 1-5 hours. It requires 60-70 GB of disk 
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   ```
 
-## Building and mirroring custom catalog image (optional)
-To build a custom redhat-operators catalog reference requirements and instructions found [here][6]. This method is not supported by Red Hat but is very useful for creating a custom redhat-operators catalog that only includes the operators you need to install in your OCP cluster. In the case of installing OCS, this would be the ocs-operator and local-storage-operator that would go in your `offline-operator-list`. Example below for entries in this file:
+## Building and mirroring custom catalog image for specific operators (optional)
+This method, described [here][6], is very useful for creating a custom redhat-operators catalog that only includes the operators you need to install in your OCP cluster. The instructions would replace using `oc adm catalog build` and `oc adm catalog mirror` in the previous section.
+
+In the case of installing OCS, this would be the ocs-operator and local-storage-operator that would go in your `offline-operator-list`. Example below for entries in this file:
 
 ```
 local-storage-operator
 ocs-operator
 ````
-
-## OCS version 4.4.0 workarounds 
-For OCS 4.4.0 there is a need to do a few workarounds when installing in a disconnected environment. Future versions of OCS should not need these additional steps to properly install.
+## OCS version 4.4.0 instructions 
+For OCS 4.4.0, installing in a disconnected or offline environment is a tech preview feature, hence a few more manual steps needed. Future versions of OCS should not need these additional steps to properly install.
 
 ### Mirroring missing images
   In OCS version 4.4.0 many of the `relatedImages` are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so you still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
@@ -159,7 +162,7 @@ Create a CatalogSource object that references the catalog image for lib-bucket-p
   
   Create the catalogsource:
   ```
-  oc apply -f lib-bcuket-catalogsource.yaml
+  oc apply -f lib-bucket-catalogsource.yaml
   ```
   Verify catalogsource and pod are created:
   
@@ -211,10 +214,11 @@ The update process to build and mirror the redhat-operators catalog image is exa
 Because the CSV, lib-bucket-provisioner.v1.0.0.clusterserviceversion.yaml, does not use a sha for pulling images, quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. After the deployment of OCS, edit the lib-bucket-provisioner CSV first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
 
 
-[1]:https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html
+[1]:https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/operators/olm-restricted-networks
 [2]: https://docs.openshift.com/container-platform/4.4/operators/olm-restricted-networks.html#olm-building-operator-catalog-image_olm-restricted-networks
 [3]: https://cloud.redhat.com/openshift/install/pull-secret
 [4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations
 [5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.4/
 [6]: https://github.com/arvin-a/openshift-disconnected-operators
 [7]: https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.4/html/deploying_openshift_container_storage/deploying-openshift-container-storage#installing-openshift-container-storage-operator-using-the-operator-hub_rhocs
+[8]: https://github.com/red-hat-storage/ocs-training/issues
