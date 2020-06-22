@@ -82,16 +82,17 @@ This is a long operation and could take 1-5 hours. It requires 60-70 GB of disk 
   oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'
   ```
 
-## Building and mirroring custom catalog image (optional)
-To build a custom redhat-operators catalog reference requirements and instructions found [here][6]. This method is not supported by Red Hat but is very useful for creating a custom redhat-operators catalog that only includes the operators you need to install in your OCP cluster. In the case of installing OCS, this would be the ocs-operator and local-storage-operator that would go in your `offline-operator-list`. Example below for entries in this file:
+## Building and mirroring custom catalog image for specific operators (optional)
+This method, described [here][6], is very useful for creating a custom redhat-operators catalog that only includes the operators you need to install in your OCP cluster. The instructions would replace using `oc adm catalog build` and `oc adm catalog mirror` in the previous section.
+
+In the case of installing OCS, this would be the ocs-operator and local-storage-operator that would go in your `offline-operator-list`. Example below for entries in this file:
 
 ```
 local-storage-operator
 ocs-operator
 ````
-
-## OCS version 4.4.0 workarounds 
-For OCS 4.4.0 there is a need to do a few workarounds when installing in a disconnected environment. Future versions of OCS should not need these additional steps to properly install.
+## OCS version 4.4.0 instructions 
+For OCS 4.4.0, installing in a disconnected or offline environment is a tech preview feature, hence a few more manual steps needed. Future versions of OCS should not need these additional steps to properly install.
 
 ### Mirroring missing images
   In OCS version 4.4.0 many of the `relatedImages` are detailed in the CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so you still need to add a few missing images that are not yet in the OCS 4.4 CSV `relatedImages` section. Below is an example of a mapping file for OCS-4.4.0 that includes the missing images for OCS 4.4.0.
