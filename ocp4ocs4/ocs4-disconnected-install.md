@@ -1,6 +1,8 @@
 # OpenShift Container Storage (OCS) 4.4 Disconnected Installation - Development Preview
 This document is to supplement OpenShift Container Platform (OCP) documentation for installing the OpenShift Container Storage (OCS) service in a air-gap disconnected or proxy environment. Reference official OCP documentation [here][1].
 
+**Development Preview releases are meant for customers who are willing to evaluate new products or releases of products in a early stage of product development. In this case, OCS 4.4 `connected` is GA and supported, but OCS 4.4 `disconnected` is not yet released or supported.**
+
 This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please add an [Issue][8] or contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com) via email.
 
 ## Overview
