@@ -141,6 +141,8 @@ After `oc adm catalog mirror` is completed it will create the `imageContentSourc
   ```
   oc apply -f ./[output dir]/imageContentSourcePolicy.yaml
   ```
+**Note:** Once the Image Content Source Policy is updated all nodes (master, infra and workers) in the cluster will have to be updated and rebooted. **This process is automatically handled through the Machine Config Pool operator and will take at about 15 minutes although the exact elapsed time will vary based on the number of nodes in your OpenShift cluster.** You can monitor the update process via the oc get mcp command or the oc get node command.
+
 ### Creating the CatalogSource for lib-bucket-provisioner
 OCS version 4.4 is dependent on lib-bucket-provisioner which is included in the community-operators catalog. ***If the community-operators catalog is not created, it is necessary to create a custom CatalogSource for the lib-bucket-provisioner.***
 
