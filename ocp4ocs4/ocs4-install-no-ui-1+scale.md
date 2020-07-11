@@ -61,7 +61,7 @@ You will need to add the OCS label to each OCP node. The OCS operator looks for 
 oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
 ```
 
-You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, ...)
+You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, ...).
 
 ```
 oc label node e1n1.fbond topology.rook.io/rack=rack0
@@ -208,7 +208,9 @@ As described above this method of deployment does not require initial deployment
 
 Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, ...). There must be a minimum of 3 OCP nodes with storage devices. 
 
-Storage Cluster CR:
+The only modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., six servers with 4 disks each count = 24) that you want to use for your OCS cluster.
+
+Example Storage Cluster CR:
 
 ```
 apiVersion: ocs.openshift.io/v1
@@ -220,7 +222,7 @@ spec:
   manageNodes: false
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 24
+  - count: 24  # <-- modify count to number of disks
     dataPVCTemplate:
       spec:
         accessModes:
