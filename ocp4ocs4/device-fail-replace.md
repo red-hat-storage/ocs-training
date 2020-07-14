@@ -12,20 +12,22 @@ Removing failed OSD from Ceph cluster
 The first step is to identify the OCP node that has the bad OSD
 scheduled on it. In this example it is OCP node `compute-2`.
 
-    # oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
+```
+oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
+```
 
 **Example output:.**
-
-    rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff      0          24h   10.129.0.16   compute-2   <none>           <none>
-    rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
-    rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
-
+```
+rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff      0          24h   10.129.0.16   compute-2   <none>           <none>
+rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
+rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
+```
 
 The following commands will remove a failed OSD from the cluster so a
 new OSD can be added.
 
 **Change OSD_ID_TO_REMOVE in the first line below for the failed OSD.**
-> In this example, OSD "0" is failed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
+In this example, OSD "0" is failed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
 
 ```
 failed_osd_id=0
@@ -54,45 +56,59 @@ First the **DeviceSet** must be identified that is associated with the
 failed OSD. In this example the **PVC** name is
 `ocs-deviceset-0-0-nvs68`.
 
-    # oc get -n openshift-storage -o yaml deployment rook-ceph-osd-{osd-id} | grep ceph.rook.io/pvc
+```
+oc get -n openshift-storage -o yaml deployment rook-ceph-osd-{osd-id} | grep ceph.rook.io/pvc
+```
 
 **Example output.**
-
+```
+ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
     ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
-    ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
+```
 
 The OSD deployment can not be deleted from the cluster. In this example
 the deployment name is `rook-ceph-osd-0`.
 
-    # oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
+```
+oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
+```
 
 **Example output.**
-
-    deployment.extensions/rook-ceph-osd-0 scaled
+```
+deployment.extensions/rook-ceph-osd-0 scaled
+```
 
 Now identify the **PV** associated with the **PVC** identified earlier.
 In this example the associated **PV** is `local-pv-d9c5cbd6`.
 
-    # oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+```
+oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+```
 
 **Example output.**
-
-    NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-    ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
+```
+NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
+```
 
 Now the failed device name needs to be identified. In this example the
 device name is `sdb`.
 
-    # oc get pv local-pv-d9c5cbd6 -o yaml | grep path
+```
+oc get pv local-pv-d9c5cbd6 -o yaml | grep path
+```
 
 **Example output.**
-
-    path: /mnt/local-storage/localblock/sdb
+```
+path: /mnt/local-storage/localblock/sdb
+```
 
 The next step is to identify the `prepare-pod` associated with the
 failed OSD.
 
-    # oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted
+```
+oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted
+```
 
 **Example output.**
 
@@ -101,19 +117,27 @@ failed OSD.
 This `osd-prepare` pod must be deleted before the associated **PVC** can be
 removed.
 
-    # oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
+```
+oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
+```
 
 **Example output.**
 
-    pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
+```
+pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
+```
 
 Now the **PVC** associated with the failed OSD can be deleted.
 
-    # oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+```
+oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+```
 
 **Example output.**
 
-    persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
+```
+persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
+```
 
 Replace failed drive and create new PV
 --------------------------------------
@@ -126,7 +150,9 @@ First step is to login to the OCP node with the failed drive and record
 the `/dev/disk/by-id/{id}` that is to be replaced. In this example the
 OCP node is `compute-2`.
 
-    # oc debug node/compute-2
+```
+oc debug node/compute-2
+```
 
 **Example output.**
 
@@ -139,8 +165,9 @@ OCP node is `compute-2`.
 Using the device name identified earlier, `sdb`, record the
 `/dev/disk/by-id/{id}` for use in the next step.
 
-    sh-4.4# ls -alh /mnt/local-storage/localblock
-
+```
+sh-4.4# ls -alh /mnt/local-storage/localblock
+```
 **Example output.**
 
     total 0
@@ -150,7 +177,9 @@ Using the device name identified earlier, `sdb`, record the
 
 Identify the device name for the new drive. In this example `sdd`.
 
-    sh-4.4# lsblk
+```
+sh-4.4# lsblk
+```
 
 **Example output.**
 
@@ -170,7 +199,9 @@ Identify the device name for the new drive. In this example `sdd`.
 Now identify the `/dev/disk/by-id/{id}` for the new drive and record for
 use in the next step.
 
-    sh-4.2# ls -alh /dev/disk/by-id | grep sdd
+```
+sh-4.2# ls -alh /dev/disk/by-id | grep sdd
+```
 
 **Example output.**
 
@@ -180,8 +211,10 @@ use in the next step.
 After the new `/dev/disk/by-id/{id}` is available a new disk entry can
 be added to the **LocalVolume** CR.
 
-    # oc get -n local-storage localvolume
 
+```
+oc get -n local-storage localvolume
+```
 **Example output.**
 
     NAME          AGE
@@ -192,7 +225,9 @@ Edit **LocalVolume** CR and remove or comment out failed device
 example the new device is
 `/dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1`.
 
-    # oc edit -n local-storage localvolume local-block
+```
+oc edit -n local-storage localvolume local-block
+```
 
 **Example output.**
 
@@ -212,19 +247,24 @@ Make sure to save the changes after editing using kbd:\[:wq!\].
 Validate that there is new `Available` **PV** of correct size and that
 the old **PV** is now in a `Released` state.
 
-    # oc get pv | grep 100Gi
+```
+oc get pv | grep 100Gi
+```
 
 **Example output.**
-
-    local-pv-3e8964d3                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-2-0-79j94   localblock                             25h
-    local-pv-414755e0                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-1-0-959rp   localblock                             25h
-    local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             3m24s
-    local-pv-d9c5cbd6                          100Gi      RWO            Delete           Released    openshift-storage/ocs-deviceset-0-0-nvs68   localblock
+```
+local-pv-3e8964d3                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-2-0-79j94   localblock                             25h
+local-pv-414755e0                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-1-0-959rp   localblock                             25h
+local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             3m24s
+local-pv-d9c5cbd6                          100Gi      RWO            Delete           Released    openshift-storage/ocs-deviceset-0-0-nvs68   localblock
+```
 
 Login to OCP node with failed device and remove the old symlink.
 Validate it is removed before proceeding.
 
-    # oc debug node/compute-2
+```
+oc debug node/compute-2
+```
 
 **Example output.**
 
@@ -237,30 +277,39 @@ Validate it is removed before proceeding.
 Identify the old `symlink` for the failed device name. In this example
 the failed device name is `sdb`.
 
-    sh-4.4# ls -alh /mnt/local-storage/localblock
+```
+sh-4.4# ls -alh /mnt/local-storage/localblock
+```
 
 **Example output.**
 
-    total 0
-    drwxr-xr-x. 2 root root 28 Apr 10 00:42 .
-    drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
-    lrwxrwxrwx. 1 root root 54 Apr  8 23:03 sdb -> /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237
-    lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
+```
+total 0
+drwxr-xr-x. 2 root root 28 Apr 10 00:42 .
+drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
+lrwxrwxrwx. 1 root root 54 Apr  8 23:03 sdb -> /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237
+lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
+```
 
 Remove the `symlink`.
 
-    sh-4.4# rm /mnt/local-storage/localblock/sdb
+```
+sh-4.4# rm /mnt/local-storage/localblock/sdb
+```
 
 Validate the `symlink` is removed.
 
-    sh-4.4# ls -alh /mnt/local-storage/localblock
+```
+sh-4.4# ls -alh /mnt/local-storage/localblock
+```
 
 **Example output.**
-
-    total 0
-    drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
-    drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
-    lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
+```
+total 0
+drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
+drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
+lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
+```
 
 Create new OSD for new device
 -----------------------------
