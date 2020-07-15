@@ -64,7 +64,7 @@ oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
 You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, ...).
 
 ```
-oc label node e1n1.fbond topology.rook.io/rack=rack0
+oc label node <NodeName> topology.rook.io/rack=rack0
 ```
 
 ## Finding Device Names 
