@@ -1,146 +1,145 @@
+# OpenShift Container Storage:  Replacing a Drive
+
 This process should be followed when an OSD **Pod** is in an `Error`
-state and the root cause is a failed underlying storage device.
+or `CrashLoopBackOff` state and the root cause is a failed underlying storage device. This process can also be used to replace a healthy drive.
 
-Login to the **OpenShift Web Console** and view the storage Dashboard.
+## Removing failed OSD from Ceph cluster
 
-![OCP Storage Dashboard status after OSD
-failed](https://access.redhat.com/sites/default/files/attachments/ocs4-ocp-dashboard-status-bad.png)
+1. The first step is to identify the OCP node that has the bad OSD scheduled on it.
 
-Removing failed OSD from Ceph cluster
--------------------------------------
+    ```
+    oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
+    ```
+    **Example output:.**
+    ```
+    rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff      0          24h   10.129.0.16   compute-2   <none>           <none>
+    rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
+    rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
+    ```
 
-The first step is to identify the OCP node that has the bad OSD
-scheduled on it. In this example it is OCP node `compute-2`.
+2. In this example, `rook-ceph-osd-0-6d77d6c7c6-m8xj6` needs to be replaced and `compute-2` is the OCP node on which the OSD is scheduled. If the OSD to be replaced is healthy, the status of the pod will be Running.
 
-```
-oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
-```
+    ```
+    osd_id_to_remove=0
+    oc scale -n openshift-storage deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0
+    ```
 
-**Example output:.**
-```
-rook-ceph-osd-0-6d77d6c7c6-m8xj6                                  0/1     CrashLoopBackOff      0          24h   10.129.0.16   compute-2   <none>           <none>
-rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
-rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
-```
+    **Example output.**
+    ```
+    deployment.extensions/rook-ceph-osd-0 scaled
+    ```
+3. Verify that the rook-ceph-osd pod is terminated.
+    ```
+    oc get -n openshift-storage pods -l ceph-osd-id=${osd_id_to_remove}
+    ```
+    The pod should be deleted.
+	
+    ```
+    No resources found in openshift-storage namespace.
+    ```
 
-The following commands will remove a failed OSD from the cluster so a
-new OSD can be added.
+4. The following commands will remove a OSD from the cluster so a new OSD can be added.
 
-**Change OSD_ID_TO_REMOVE in the first line below for the failed OSD.**
-In this example, OSD "0" is failed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
+    **Change OSD_ID_TO_REMOVE in the first line below for the failed OSD.**
+    In this example, OSD "0" is to be removed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
 
-```
-failed_osd_id=0
-oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${failed_osd_id} | oc create -f -
-```
+    ```
+    oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+    ```
 
-A job will be started to remove the OSD. The job should complete within several seconds.
-To view the results of the job, retrieve the logs of the pod:
+    A job will be started to remove the OSD. The job should complete within several seconds. To view the results of the job, retrieve the logs of the pod associated with the job:
 
-```
-oc logs -n openshift-storage ocs-osd-removal-${failed-osd-id}-<pod-suffix>
-```
+    ```
+    oc logs -n openshift-storage ocs-osd-removal-${osd_id_to_remove}-<pod-suffix>
+    ```
 
-**Example output.**
+     **Example output.**
+     ```
+	++ grep 'osd.0 '
+	++ ceph osd tree
+	++ awk '{print $5}'
+	+ osd_status=down
+	OSD 0 is down. Proceeding to mark out and purge
+	+ [[ down == \u\p ]]
+	+ echo 'OSD 0 is down. Proceeding to mark out and purge'
+	+ ceph osd out osd.0
+	marked out osd.0. 
+	+ ceph osd purge osd.0 --force --yes-i-really-mean-it
+	purged osd.0
+    ```
 
-    finding operator pod
-    marking osd out
-    marked out osd.0.
-    purging osd
-    purged osd.0
+## Delete PVC resources associated with failed OSD
 
-Delete PVC resources associated with failed OSD
------------------------------------------------
+1. First the **DeviceSet** must be identified that is associated with the failed OSD.
 
-First the **DeviceSet** must be identified that is associated with the
-failed OSD. In this example the **PVC** name is
-`ocs-deviceset-0-0-nvs68`.
+    ```
+    oc get -n openshift-storage -o yaml deployment rook-ceph-osd-${osd_id_to_remove} | grep ceph.rook.io/pvc
+    ```
 
-```
-oc get -n openshift-storage -o yaml deployment rook-ceph-osd-{osd-id} | grep ceph.rook.io/pvc
-```
-
-**Example output.**
-```
-ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
+    **Example output.**
+    ```
     ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
-```
+        ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
+    ```
 
-The OSD deployment can not be deleted from the cluster. In this example
-the deployment name is `rook-ceph-osd-0`.
+2. Now identify the **PV** associated with the **PVC** identified earlier. Make sure to use your PVC name identified in prior step.
 
-```
-oc delete -n openshift-storage deployment rook-ceph-osd-{osd-id}
-```
+    ```
+    oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+    ```
 
-**Example output.**
-```
-deployment.extensions/rook-ceph-osd-0 scaled
-```
+    **Example output.**
+    ```
+    NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
+    ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
+    ```
 
-Now identify the **PV** associated with the **PVC** identified earlier.
-In this example the associated **PV** is `local-pv-d9c5cbd6`.
+3. Now the failed device name needs to be identified. Make sure to use your PV name identified in prior step. Record the device name for a future step (i.e., sdb).
 
-```
-oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68
-```
+    ```
+    oc get pv local-pv-d9c5cbd6 -o yaml | grep path
+    ```
 
-**Example output.**
-```
-NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
-ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
-```
+    **Example output.**
+    ```
+    path: /mnt/local-storage/localblock/sdb
+    ```
 
-Now the failed device name needs to be identified. In this example the
-device name is `sdb`.
+4. The next step is to identify the `prepare-pod` associated with the removed OSD. Make sure to use your PVC name identified in prior step.
 
-```
-oc get pv local-pv-d9c5cbd6 -o yaml | grep path
-```
+    ```
+    oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted
+    ```
 
-**Example output.**
-```
-path: /mnt/local-storage/localblock/sdb
-```
-
-The next step is to identify the `prepare-pod` associated with the
-failed OSD.
-
-```
-oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted
-```
-
-**Example output.**
+    **Example output.**
 
     Mounted By:    rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
 
-This `osd-prepare` pod must be deleted before the associated **PVC** can be
-removed.
+    This `osd-prepare` pod must be deleted before the associated **PVC** can be removed.
 
-```
-oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
-```
+    ```
+    oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
+    ```
 
-**Example output.**
+    **Example output.**
 
-```
-pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
-```
+    ```
+    pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
+    ```
 
-Now the **PVC** associated with the failed OSD can be deleted.
+5. Now the **PVC** associated with the failed OSD can be deleted.
 
-```
-oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
-```
+    ```
+    oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
+    ```
 
-**Example output.**
+    **Example output.**
 
-```
-persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
-```
+    ```
+    persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
+    ```
 
-Replace failed drive and create new PV
---------------------------------------
+## Replace failed drive and create new PV
 
 After the **PVC** associated with the failed drive is deleted, it is
 time to replace the failed drive and use this new drive to create a new
@@ -311,8 +310,7 @@ drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
 lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
 ```
 
-Create new OSD for new device
------------------------------
+## Create new OSD for new device
 
 Start by deleting the **PV** associated with the failed device. This
 **PV** name was identified in an earlier step. In this example the
@@ -381,13 +379,7 @@ Dashboards.
 There now is a OSD that was redeployed with a similar name,
 `rook-ceph-osd-0`.
 
-Now login to **OpenShift Web Console** and view the storage Dashboard.
-
-![OCP Storage Dashboard status after OSD
-replacement](https://access.redhat.com/sites/default/files/attachments/ocs4-ocp-dashboard-status.png)
-
-Removing all OSDs from a failed node
-------------------------------------
+## Removing all OSDs from a failed node
 
 If an entire node has failed, the same procedure in the above section can be followed for all OSDs
 on the failed node with the following consideration:
