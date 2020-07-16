@@ -128,18 +128,29 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
     ```
 
-5. Now the **PVC** associated with the failed OSD can be deleted.
+5. Now the **PVC** and **PV** associated with the failed OSD can be deleted.
 
     ```
     oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
     ```
 
     **Example output.**
-
     ```
     persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
     ```
-
+	
+	Now delete the PV.
+    
+	```
+	oc delete pv local-pv-d9c5cbd6
+	```
+	
+	**Example output.**
+	```
+	persistentvolume "local-pv-d9c5cbd6" deleted
+	```
+	
+	Validate that both the PVC and the PV are deleted.
 ## Replace failed drive and create new PV
 
 After the **PVC** associated with the failed drive is deleted, it is
@@ -312,28 +323,6 @@ lrwxrwxrwx. 1 root root 54 Apr 10 00:42 sdd -> /dev/disk/by-id/scsi-36000c29f5c9
 ```
 
 ## Create new OSD for new device
-
-Start by deleting the **PV** associated with the failed device. This
-**PV** name was identified in an earlier step. In this example the
-**PV** name is `local-pv-d9c5cbd6`.
-
-    # oc delete pv local-pv-d9c5cbd6
-
-**Example output.**
-
-    persistentvolume "local-pv-d9c5cbd6" deleted
-
-Verify **PV** for the failed drive is now gone. There should still be an
-`Available` **PV** for the new drive.
-
-    # oc get pv | grep 100Gi
-
-**Example output.**
-
-    local-pv-3e8964d3                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-2-0-79j94   localblock                             1d20h
-    local-pv-414755e0                          100Gi      RWO            Delete           Bound       openshift-storage/ocs-deviceset-1-0-959rp   localblock                             1d20h
-    local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             1d18h
-
 Now that the all associated OCP and Ceph
 resources for the failed device are deleted or removed, the new OSD can
 be deployed. This is done by restarting the `rook-ceph-operator` to
