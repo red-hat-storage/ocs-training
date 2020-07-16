@@ -112,9 +112,10 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
 
     **Example output.**
-
+    ```
     Mounted By:    rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7
-
+    ```
+	
     This `osd-prepare` pod must be deleted before the associated **PVC** can be removed.
 
     ```
