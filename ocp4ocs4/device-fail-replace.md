@@ -128,7 +128,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
     ```
 
-5. Now the **PVC** and **PV** associated with the failed OSD can be deleted.
+5. Now the **PVC** associated with the failed OSD can be deleted.
 
     ```
     oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
@@ -138,19 +138,6 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
     persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
     ```
-	
-	Now delete the PV.
-    
-	```
-	oc delete pv local-pv-d9c5cbd6
-	```
-	
-	**Example output.**
-	```
-	persistentvolume "local-pv-d9c5cbd6" deleted
-	```
-	
-	Validate that both the PVC and the PV are deleted.
 ## Replace failed drive and create new PV
 
 After the **PVC** associated with the failed drive is deleted, it is
@@ -269,7 +256,17 @@ local-pv-414755e0                          100Gi      RWO            Delete     
 local-pv-b481410                           100Gi      RWO            Delete           Available                                               localblock                             3m24s
 local-pv-d9c5cbd6                          100Gi      RWO            Delete           Released    openshift-storage/ocs-deviceset-0-0-nvs68   localblock
 ```
-
+	Now delete the PV.
+    
+	```
+	oc delete pv local-pv-d9c5cbd6
+	```
+	
+	**Example output.**
+	```
+	persistentvolume "local-pv-d9c5cbd6" deleted
+	```
+	
 Login to OCP node with failed device and remove the old symlink.
 Validate it is removed before proceeding.
 
