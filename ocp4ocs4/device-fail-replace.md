@@ -246,9 +246,9 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..	
 	```
 	
-	Both /dev/mapper and /dev/ceph should be checked to see if there are orphans before moving on. Use the results of `vgdisplay` to find these orphans. 
+	Both /dev/mapper and /dev/ should be checked to see if there are orphans related to ceph before moving on. Use the results of `vgdisplay` to find these orphans. 
 	
-	If there's anything in /dev/mapper with "ceph" in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with "ceph" in the name that's not from the list of VG Names.
+	If there is anything in /dev/mapper with `ceph` in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with `ceph` in the name that is not from the list of VG Names.
 4. Now delete the PV associated with the PVC already removed.
     
 	```
@@ -311,6 +311,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
       - devicePaths:
         - /dev/disk/by-id/scsi-36000c29346bca85f723c4c1f268b5630
         - /dev/disk/by-id/scsi-36000c29134dfcfaf2dfeeb9f98622786
+    #   - /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237	
         - /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
         storageClassName: localblock
         volumeMode: Block
