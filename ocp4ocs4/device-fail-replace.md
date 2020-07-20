@@ -1,11 +1,11 @@
 # OpenShift Container Storage:  Replacing a Drive
 
 This process should be followed when an OSD **Pod** is in an `Error`
-or `CrashLoopBackOff` state and the root cause is a failed underlying storage device. This process can also be used to replace a healthy drive.
+or `CrashLoopBackOff` state and the root cause is a failed underlying storage device. This process can also be used to replace a healthy drive or a drive that is intermittently in an `Error` state.  
 
 ## Removing failed OSD from Ceph cluster
 
-1. The first step is to identify the OCP node that has the bad OSD scheduled on it.
+1. The first step is to identify the OCP node that has the OSD scheduled on it that is to be replaced. Make sure to record the OCP node name for use in future step. In this example, `rook-ceph-osd-0-6d77d6c7c6-m8xj6` needs to be replaced and `compute-2` is the OCP node on which the OSD is scheduled. If the OSD to be replaced is currently healthy, the status of the pod will be Running.
 
     ```
     oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide
@@ -16,8 +16,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     rook-ceph-osd-1-85d99fb95f-2svc7                                  1/1     Running               0          24h   10.128.2.24   compute-0   <none>           <none>
     rook-ceph-osd-2-6c66cdb977-jp542                                  1/1     Running               0          24h   10.130.0.18   compute-1   <none>           <none>
     ```
-
-2. In this example, `rook-ceph-osd-0-6d77d6c7c6-m8xj6` needs to be replaced and `compute-2` is the OCP node on which the OSD is scheduled. If the OSD to be replaced is healthy, the status of the pod will be Running.
+2. The OSD deployment needs to be scaled down so the OSD pod will be deleted or terminated.
 
     ```
     osd_id_to_remove=0
@@ -29,6 +28,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     deployment.extensions/rook-ceph-osd-0 scaled
     ```
 3.  Verify that the rook-ceph-osd pod is terminated.
+
     ```
     oc get -n openshift-storage pods -l ceph-osd-id=${osd_id_to_remove}
     ```
@@ -37,10 +37,9 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
     No resources found in openshift-storage namespace.
     ```
+4. The following commands will remove a OSD from the Ceph cluster so a new OSD can be added.
 
-4. The following commands will remove a OSD from the cluster so a new OSD can be added.
-
-    **Change OSD_ID_TO_REMOVE in the first line below for the failed OSD.**
+    **Change OSD_ID_TO_REMOVE to the OSD that was terminated.**
     In this example, OSD "0" is to be removed. The OSD ID is the integer in the pod name immediately after the "rook-ceph-osd-" prefix.
 	
 	Make sure any prior removal jobs are deleted. For example, `oc delete job ocs-osd-removal-0`.
@@ -49,7 +48,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
     ```
 
-    A job will be started to remove the OSD. The job should complete within several seconds. To view the results of the job, retrieve the logs of the pod associated with the job:
+    A job will be started to remove the OSD. The job should complete within several seconds. To view the results of the job, retrieve the logs of the pod associated with the job.
 
     ```
     oc logs -n openshift-storage ocs-osd-removal-${osd_id_to_remove}-<pod-suffix>
@@ -72,7 +71,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
 
 ## Delete PVC resources associated with failed OSD
 
-1. First the **DeviceSet** must be identified that is associated with the failed OSD.
+1. First the **PVC** must be identified that is associated with the OSD that was terminated and then purged from the Ceph cluster in the prior section.
 
     ```
     oc get -n openshift-storage -o yaml deployment rook-ceph-osd-${osd_id_to_remove} | grep ceph.rook.io/pvc
@@ -83,8 +82,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
         ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
     ```
-
-2. Now identify the **PV** associated with the **PVC** identified earlier. Make sure to use your PVC name identified in prior step.
+2. Now identify the **PV** associated with the **PVC**. Make sure to use your PVC name identified in prior step.
 
     ```
     oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68
@@ -95,8 +93,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     NAME                      STATUS        VOLUME        CAPACITY   ACCESS MODES   STORAGECLASS   AGE
     ocs-deviceset-0-0-nvs68   Bound   local-pv-d9c5cbd6   100Gi      RWO            localblock     24h
     ```
-
-3. Now the failed device name needs to be identified. Make sure to use your PV name identified in prior step. Record the device name for a future step (i.e., sdb).
+3. Now the storage device name needs to be identified. Make sure to use your PV name identified in prior step. Record the device name (i.e., sdb).
 
     ```
     oc get pv local-pv-d9c5cbd6 -o yaml | grep path
@@ -106,7 +103,6 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
     path: /mnt/local-storage/localblock/sdb
     ```
-
 4. The next step is to identify the `prepare-pod` associated with the removed OSD. Make sure to use your PVC name identified in prior step.
 
     ```
@@ -129,8 +125,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
     pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted
     ```
-
-5. Now the **PVC** associated with the failed OSD can be deleted.
+5. Now the **PVC** associated with the removed OSD can be deleted.
 
     ```
     oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68
@@ -141,12 +136,11 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     persistentvolumeclaim "ocs-deviceset-0-0-nvs68" deleted
     ```
 	After the **PVC** associated with the failed drive is deleted, it is
-	time to replace the failed drive and use this new drive to create a new
-	OCP **PV**.
+	time to replace the failed drive.
 	
 ## Replace drive and create new PV
 
-1. First step is to login to the OCP node with the failed drive and record the `/dev/disk/by-id/{id}` that is to be replaced. In this example the OCP node is `compute-2`. To login to correct OCP node use SSH or `oc debug node\<NodeName>`.
+1. First step is to login to the OCP node with the storage drive to be replaced and record the `/dev/disk/by-id/{id}`. In this example the OCP node is `compute-2`. To login to correct OCP node use SSH or `oc debug node\<NodeName>`.
 
     ```
     oc debug node/compute-2
@@ -160,10 +154,10 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     If you don't see a command prompt, try pressing enter.
     sh-4.2# chroot /host
 
-    Using the device name identified earlier, `sdb`, record the
+    Using the device name identified earlier, `sdb` in this case, record the
     `/dev/disk/by-id/{id}` for use in the next step.
 
-     ```
+    ```
     sh-4.4# ls -alh /mnt/local-storage/localblock
     ```
     **Example output.**
@@ -173,11 +167,20 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
     lrwxrwxrwx. 1 root root 54 Apr  8 23:03 sdb -> /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237
 	```
-2. Next step is to comment out this drive in the `localvolume` CR and apply the CR again.
-
-    Edit **LocalVolume** CR and remove or comment out failed device `/dev/disk/by-id/{id}`.
+2. Next step is to comment out this drive in the `localvolume` CR and apply the CR again. Find the name of the CR.
 
     ```
+    oc get -n local-storage localvolume
+    ```
+    **Example output.**
+    ```
+    NAME          AGE
+    local-block   25h
+    ```
+	
+	Edit **LocalVolume** CR and remove or comment out failed device `/dev/disk/by-id/{id}`.
+	
+	```
     oc edit -n local-storage localvolume local-block
     ```
 
@@ -195,7 +198,6 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
 	```
 	
 	Make sure to save the changes after editing using kbd:\[:wq!\].
-
 3. Now the symlink associated with the drive to be removed can be deleted. Login to OCP node with failed device and remove the old symlink.
 
     ```
@@ -204,11 +206,11 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
 
     **Example output.**
 
-     Starting pod/compute-2-debug ...
-     To use host binaries, run `chroot /host`
-     Pod IP: 10.70.56.66
-     If you don't see a command prompt, try pressing enter.
-     sh-4.2# chroot /host
+    Starting pod/compute-2-debug ...
+    To use host binaries, run `chroot /host`
+    Pod IP: 10.70.56.66
+    If you don't see a command prompt, try pressing enter.
+    sh-4.2# chroot /host
 
     Identify the old `symlink` for the failed device name. In this example the failed device name is `sdb`.
 
@@ -243,9 +245,10 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..	
 	
-	Both /dev/mapper and /dev/ceph should be checked to see if there are orphans before moving on. If there's anything in /dev/mapper with "ceph" in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with "ceph" in the name that's not from the list of VG Names.
+	Both /dev/mapper and /dev/ceph should be checked to see if there are orphans before moving on. Use the results of `vgdisplay` to find these orphans. 
 	
-4. Now delete the PV assocaited with the PVC already removed.
+	If there's anything in /dev/mapper with "ceph" in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with "ceph" in the name that's not from the list of VG Names.
+4. Now delete the PV associated with the PVC already removed.
     
 	```
 	oc delete pv local-pv-d9c5cbd6
@@ -257,7 +260,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
 
 5. Replace drive with new drive.	
 
-6. Log back into the correct OCP node. Identify the device name for the new drive. The device name could be the same as the old drive but the `by-id` should have changed unless you are just reseating the same drive.
+6. Log back into the correct OCP node and identify the device name for the new drive. The device name could be the same as the old drive (i.e., sdb) but the `by-id` should have changed unless you are just reseating the same drive.
 
     ```
     sh-4.4# lsblk
@@ -273,7 +276,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
       `-coreos-luks-root-nocrypt 253:0    0 59.5G  0 dm   /sysroot
     sdb                            8:16   0  100G  0 disk
 	```
-    Now identify the `/dev/disk/by-id/{id}` for the new drive and record for use in the next step. In some case it may be difficult to identify the new `by-id`. Compare the output from these two commands, `ls -l /dev/disk/by-id/` and `ls -alh /mnt/local-storage/localblock` to find the new `by-id`. In this case we know it is device `sdb` from the results of `lsblk`.
+    Now identify the `/dev/disk/by-id/{id}` for the new drive and record for use in the next step. In some case it may be difficult to identify the new `by-id`. Compare the output from these two commands, `ls -l /dev/disk/by-id/` and `ls -alh /mnt/local-storage/localblock` to find the new `by-id`. In this case we know it is device `sdb` from the results of `lsblk` above.
 		
 	```
     sh-4.2# ls -alh /dev/disk/by-id | grep sdb
@@ -281,7 +284,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     **Example output.**
     ```
     lrwxrwxrwx. 1 root root   9 Apr  9 20:45 scsi-36000c29f5c9638dec9f19b220fbe36b1 -> ../../sdb
-    lrwxrwxrwx. 1 root root   9 Apr  9 20:45 wwn-0x6000c29f5c9638dec9f19b220fbe36b1 -> ../../sdb
+	...
     ```
 7. After the new `/dev/disk/by-id/{id}` is available a new disk entry can be added to the **LocalVolume** CR.
 
@@ -289,10 +292,11 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     oc get -n local-storage localvolume
     ```
     **Example output.**
-
+    ```
     NAME          AGE
     local-block   25h
-
+    ```
+	
     Edit **LocalVolume** CR and add the new `/dev/disk/by-id/{id}`. In this example the new device is `/dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1`.
 
     ```
@@ -312,8 +316,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     [...]
     ````
     Make sure to save the changes after editing using kbd:\[:wq!\].
-
-    Validate that there is new `Available` **PV** of correct size.
+8. Validate that there is a new `Available` **PV** of correct size.
 
     ```
     oc get pv | grep 100Gi
@@ -338,7 +341,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     ```
     deployment.extensions/rook-ceph-osd-0 deleteed
     ```
-2. Now that the all associated OCP and Ceph resources for the failed device are deleted or removed, the new OSD can be deployed. This is done by restarting the `rook-ceph-operator` to force operator reconciliation.
+2. Now that the all associated OCP and Ceph resources for the failed device are deleted or removed, the new OSD can be deployed. This is done by restarting the `rook-ceph-operator` to force the CephCluster reconciliation.
 
     ```
     oc get -n openshift-storage pod -l app=rook-ceph-operator
@@ -374,7 +377,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
 	
     Creation of the new OSD may take several minutes after the operator starts.
 
-3. Last step is to validate there is a new OSD, that Ceph is healthy, and that a successful replacement shows in the **OpenShift Web Console** Dashboards.
+3. Last step is to validate there is a new OSD in a `Running` state.
 
     ```
     oc get -n openshift-storage pods -l app=rook-ceph-osd
