@@ -311,6 +311,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
       - devicePaths:
         - /dev/disk/by-id/scsi-36000c29346bca85f723c4c1f268b5630
         - /dev/disk/by-id/scsi-36000c29134dfcfaf2dfeeb9f98622786
+    #   - /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237	
         - /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
         storageClassName: localblock
         volumeMode: Block
