@@ -244,6 +244,7 @@ or `CrashLoopBackOff` state and the root cause is a failed underlying storage de
     total 0
     drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..	
+	```
 	
 	Both /dev/mapper and /dev/ceph should be checked to see if there are orphans before moving on. Use the results of `vgdisplay` to find these orphans. 
 	
