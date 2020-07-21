@@ -196,7 +196,7 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
     [...]
 	~~~
 	
-	Make sure to save the changes after editing using kbd:\[:wq!\].
+	Make sure to save the changes after editing using <kbd>:wq!</kbd>.
 3. Now the symlink associated with the drive to be removed can be deleted. Login to OCP node with failed device and remove the old symlink.
 
     ~~~
@@ -316,7 +316,7 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
         volumeMode: Block
     [...]
     ~~~
-    Make sure to save the changes after editing using kbd:\[:wq!\].
+    Make sure to save the changes after editing using <kbd>:wq!</kbd>.
 8. Validate that there is a new `Available` **PV** of correct size.
 
     ~~~
