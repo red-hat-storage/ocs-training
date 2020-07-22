@@ -13,7 +13,7 @@
 
 Customers and Partners need a testing tool to validate OpenShift Container
 Storage performance offered by the cluster for each storage class created
-during the deployment
+during the deployment.
 
 Use of something simple like the `dd` command to validate the storage backend
 is not optimal for testing a Ceph cluster. The `dd` command suffers from being
@@ -29,8 +29,8 @@ view of the level of performance offered by the storage backend through the
 use of a multi-threaded tool that can leverage all the OSDs within
 the Ceph cluster during the test sequence.
 
-This tool uses `sysbench` as a base. It offers multiple testing capabilities
-(CPU, Mutex, file, mysql) allowing for this new testing tool to be
+`sysbench` as a tool offers multiple testing capabilities
+(CPU, Mutex, file, mysql) allowing for this testing tool to be
 expanded over time while having sequential and random IO capabilities as well
 as single and multi threading capabilities. It is also a tool actively maintained
 on github (`https://github.com/akopytov/sysbench`).
