@@ -18,12 +18,13 @@ view on the level of performance offered by the cluster for each
 storage class created during the deployment.
 
 We have had engineers on site use of the `dd` command to
-validate the storage backend and observing poor results. 
+validate the storage backend and observing poor results when using
+direct IO processing. 
 The `dd` command suffers from being a purely sequential IO tool and a
-single-threaded too causing `dd` as a toll to only talk to a single OSD
-at a time for each 4MB sequence it reads or write.
+single-threaded one causing `dd` to only talk to a single OSD
+at a time for each 4MB sequence it reads or writes.
 
-Given these limitations it appeared necessary to make a tool available 
+Given these limitations, it appeared necessary to make a tool available 
 to easily perform a functional test of OpenShift Container Storage 
 (provision a volume, attach a volume, read or write from or to a volume
 detach the volume, delete the volume) while also allowing to get a better
@@ -31,10 +32,11 @@ view of the level of perfoamnce offered by the storage backend through the
 use of a multi-threaded tool that would leverage all the OSDs within
 the storage cluster during the test sequence.
 
-Our choice went toward `sysbench`. As a tool it offers multiple testing
-capabilities (CPU, Mutex, file, mysql) allowing for the readily available
-testing tool to be expanded over time while having sequential and random
-IO capabilities as well as single and multi thread capabilities.
+We decided to use `sysbench` to build out toolkit. As a tool it offers
+multiple testing capabilities (CPU, Mutex, file, mysql) allowing for the
+readily available testing tool to be expanded over time while having
+sequential and random IO capabilities as well as single and multi thread
+capabilities. It is also a well known tool still maintained on github.
 
 == Building your custom container image (disconnected environments)
 
