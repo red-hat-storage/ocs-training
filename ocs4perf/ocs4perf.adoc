@@ -109,7 +109,7 @@ see fit.
 
 [source,role="execute"]
 ----
-oc create -f jcl-sysbench-write.yaml
+# oc create -f jcl-sysbench-write.yaml
 ----
 .Example output:
 ----
@@ -122,7 +122,7 @@ Verify the storage was alloicated and bound to the pod.
 
 [source,role="execute"]
 ----
-oc project sysbench
+# oc project sysbench
 ----
 .Example output:
 ----
@@ -131,7 +131,7 @@ Now using project "sysbench" on server "https://api.ocp4.front.sepia.ceph.com:64
 
 [source,role="execute"]
 ----
-oc get pvc
+# oc get pvc
 ----
 .Example output:
 ----
