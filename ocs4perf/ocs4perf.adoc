@@ -75,17 +75,8 @@ following commands in the directory containing your yaml files.
 ----
 # for f in $(ls *.yaml); do echo $f; sed -i -e 's/ocs-storagecluster/ocs-independent-storagecluster/g' $f; done
 ----
-.Example output:
-----
-jcl-sysbench-idle-rwx.yaml
-jcl-sysbench-idle.yaml
-jcl-sysbench-read-rwx.yaml
-jcl-sysbench-readwrite-rwx.yaml
-jcl-sysbench-readwrite.yaml
-jcl-sysbench-read.yaml
-jcl-sysbench-write-rwx.yaml
-jcl-sysbench-write.yaml
-----
+
+Same `bash` `for` loop can be used to update your container image reference.
 
 == Testing your RBD storage class
 
