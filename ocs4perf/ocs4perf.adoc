@@ -107,37 +107,60 @@ use the `jcl-sysbench-idle.yaml` file. Once the pod starts you will have
 20 minutes to connect into the pod  via `oc rsh` and perform any test you 
 see fit.
 
-```
-**oc create -f jcl-sysbench-write.yaml**
+[source,role="execute"]
+----
+oc create -f jcl-sysbench-write.yaml
+----
+.Example output:
+----
 namespace/sysbench created
 persistentvolumeclaim/pvc-sysbenchrbd-write created
 job.batch/sysbench-file-write created
-```
+----
 
 Verify the storage was alloicated and bound to the pod.
 
-```
-# oc project sysbench
+[source,role="execute"]
+----
+oc project sysbench
+----
+.Example output:
+----
 Now using project "sysbench" on server "https://api.ocp4.front.sepia.ceph.com:6443".
-# oc get pvc
+----
+
+[source,role="execute"]
+----
+oc get pvc
+----
+.Example output:
+----
 NAME                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
 pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi        RWO            ocs-independent-storagecluster-ceph-rbd   13s
-```
+----
 
 Now wait for the pod to complete. Allr esults will be displayed in the pod log.
 
-```
-# oc get pods -w
+[source,role="execute"]
+----
+oc get pods -w
+----
+.Example output:
+----
 NAME                        READY   STATUS              RESTARTS   AGE
 sysbench-file-write-m6mnd   0/1     ContainerCreating   0          26s
 sysbench-file-write-m6mnd   1/1     Running             0          27s
 sysbench-file-write-m6mnd   0/1     Completed           0          41s
-```
+----
 
 Now inspect the test results.
 
-```
-# oc logs sysbench-file-write-m6mnd
+[source,role="execute"]
+----
+oc logs sysbench-file-write-m6mnd
+----
+.Example output:
+----
 Currently mounted filesystems for Random WRITE test
 /dev/rbd0                               999320     2564    980372   1% /tmp/data
 Changing working directory to /tmp/data
@@ -152,130 +175,7 @@ Creating files for the test...
 Extra file open flags: (none)
 Creating file test_file.0
 Creating file test_file.1
-Creating file test_file.2
-Creating file test_file.3
-Creating file test_file.4
-Creating file test_file.5
-Creating file test_file.6
-Creating file test_file.7
-Creating file test_file.8
-Creating file test_file.9
-Creating file test_file.10
-Creating file test_file.11
-Creating file test_file.12
-Creating file test_file.13
-Creating file test_file.14
-Creating file test_file.15
-Creating file test_file.16
-Creating file test_file.17
-Creating file test_file.18
-Creating file test_file.19
-Creating file test_file.20
-Creating file test_file.21
-Creating file test_file.22
-Creating file test_file.23
-Creating file test_file.24
-Creating file test_file.25
-Creating file test_file.26
-Creating file test_file.27
-Creating file test_file.28
-Creating file test_file.29
-Creating file test_file.30
-Creating file test_file.31
-Creating file test_file.32
-Creating file test_file.33
-Creating file test_file.34
-Creating file test_file.35
-Creating file test_file.36
-Creating file test_file.37
-Creating file test_file.38
-Creating file test_file.39
-Creating file test_file.40
-Creating file test_file.41
-Creating file test_file.42
-Creating file test_file.43
-Creating file test_file.44
-Creating file test_file.45
-Creating file test_file.46
-Creating file test_file.47
-Creating file test_file.48
-Creating file test_file.49
-Creating file test_file.50
-Creating file test_file.51
-Creating file test_file.52
-Creating file test_file.53
-Creating file test_file.54
-Creating file test_file.55
-Creating file test_file.56
-Creating file test_file.57
-Creating file test_file.58
-Creating file test_file.59
-Creating file test_file.60
-Creating file test_file.61
-Creating file test_file.62
-Creating file test_file.63
-Creating file test_file.64
-Creating file test_file.65
-Creating file test_file.66
-Creating file test_file.67
-Creating file test_file.68
-Creating file test_file.69
-Creating file test_file.70
-Creating file test_file.71
-Creating file test_file.72
-Creating file test_file.73
-Creating file test_file.74
-Creating file test_file.75
-Creating file test_file.76
-Creating file test_file.77
-Creating file test_file.78
-Creating file test_file.79
-Creating file test_file.80
-Creating file test_file.81
-Creating file test_file.82
-Creating file test_file.83
-Creating file test_file.84
-Creating file test_file.85
-Creating file test_file.86
-Creating file test_file.87
-Creating file test_file.88
-Creating file test_file.89
-Creating file test_file.90
-Creating file test_file.91
-Creating file test_file.92
-Creating file test_file.93
-Creating file test_file.94
-Creating file test_file.95
-Creating file test_file.96
-Creating file test_file.97
-Creating file test_file.98
-Creating file test_file.99
-Creating file test_file.100
-Creating file test_file.101
-Creating file test_file.102
-Creating file test_file.103
-Creating file test_file.104
-Creating file test_file.105
-Creating file test_file.106
-Creating file test_file.107
-Creating file test_file.108
-Creating file test_file.109
-Creating file test_file.110
-Creating file test_file.111
-Creating file test_file.112
-Creating file test_file.113
-Creating file test_file.114
-Creating file test_file.115
-Creating file test_file.116
-Creating file test_file.117
-Creating file test_file.118
-Creating file test_file.119
-Creating file test_file.120
-Creating file test_file.121
-Creating file test_file.122
-Creating file test_file.123
-Creating file test_file.124
-Creating file test_file.125
+[... truncated ...]
 Creating file test_file.126
 Creating file test_file.127
 134217728 bytes written in 3.41 seconds (37.51 MiB/sec).
@@ -335,6 +235,6 @@ sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
 Removing test files...
 + set +x
 Changing working directory to /
-```
+----
 
 
