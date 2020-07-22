@@ -61,7 +61,8 @@ All the pre-populated testing scripts have been configured the following way:
 
 All yaml files below are configured with the storage class names of an
 internal cluster and for pulling the container image from the public
-location mentioned above.
+location mentioned above. Each yaml file also creates by default a project
+named `sysbench`.
 
 * Write Mode
 ** `oc create -f jcl-sysbench-write.yaml`
@@ -117,16 +118,7 @@ Verify the storage was alloicated and bound to the pod.
 
 [source,role="execute"]
 ----
-# oc project sysbench
-----
-.Example output:
-----
-Now using project "sysbench" on server "https://api.ocp4.front.sepia.ceph.com:6443".
-----
-
-[source,role="execute"]
-----
-# oc get pvc
+# oc get pvc -n sysbench
 ----
 .Example output:
 ----
@@ -138,7 +130,7 @@ Now wait for the pod to complete. Allr esults will be displayed in the pod log.
 
 [source,role="execute"]
 ----
-# oc get pods -w
+# oc get pods -n sysbench -w
 ----
 .Example output:
 ----
@@ -152,7 +144,7 @@ Now inspect the test results.
 
 [source,role="execute"]
 ----
-# oc logs sysbench-file-write-m6mnd
+# oc logs sysbench-file-write-m6mnd -n sysbench
 ----
 .Example output:
 ----
