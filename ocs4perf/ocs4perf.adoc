@@ -169,7 +169,7 @@ Now inspect the test results.
 
 [source,role="execute"]
 ----
-# oc logs sysbench-file-write-m6mnd -n sysbench
+# oc logs $(oc get pods -o name -n sysbench) -n sysbench
 ----
 .Example output:
 ----
