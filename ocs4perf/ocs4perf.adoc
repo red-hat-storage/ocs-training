@@ -95,11 +95,9 @@ location mentioned above.
 ** `oc create -f jcl-sysbench-idle-rwx.yaml`
 ** `oc delete -f jcl-sysbench-idle-rwx.yaml`
 
-If creating your own container image make sure to update the 'docker tag'
-and 'docker push' command with the appropriate references as well as the
-YAML files provided. For convenience the `quay.io/vcppds7878/jclsysbench:latest`
-is publicly available providing your Red Hat OpenShift Cluster has access to
-the quay.io registry.
+If using your own container image make sure to update the `docker tag`
+and `docker push` commands with the appropriate references as well as the
+YAML files provided.
 
 == Example Output
 
