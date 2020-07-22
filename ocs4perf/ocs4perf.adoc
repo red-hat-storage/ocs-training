@@ -108,7 +108,7 @@ use the `jcl-sysbench-idle.yaml` file. Once the pod starts you will have
 see fit.
 
 ```
-# oc create -f jcl-sysbench-write.yaml
+**oc create -f jcl-sysbench-write.yaml**
 namespace/sysbench created
 persistentvolumeclaim/pvc-sysbenchrbd-write created
 job.batch/sysbench-file-write created
