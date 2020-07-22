@@ -19,10 +19,11 @@ storage class created during the deployment.
 
 We have had engineers on site use of the `dd` command to
 validate the storage backend and observing poor results when using
-direct IO processing. 
-The `dd` command suffers from being a purely sequential IO tool and a
+direct IO processing. As a matetr of fact, the `dd` command suffers
+from being a purely sequential IO tool and a
 single-threaded one causing `dd` to only talk to a single OSD
-at a time for each 4MB sequence it reads or writes.
+at a time for each 4MB sequence it reads or writes when using
+the following IO flags: `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
 
 Given these limitations, it appeared necessary to make a tool available 
 to easily perform a functional test of OpenShift Container Storage 
