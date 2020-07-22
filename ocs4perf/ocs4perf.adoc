@@ -11,34 +11,29 @@
 
 == Introduction
 
-It appeared that it would be convenient to have at hand a 
-testing tool to help the customers validate the functional aspects of
-OpenShift Container Storage while being able to have a comprehensive
-view on the level of performance offered by the cluster for each
-storage class created during the deployment.
+Customers and Partners need a testing tool to validate OpenShift Container
+Storage performance offered by the cluster for each storage class created
+during the deployment
 
-We have had engineers on site use of the `dd` command to
-validate the storage backend and observing poor results when using
-direct IO processing. As a matetr of fact, the `dd` command suffers
-from being a purely sequential IO tool and a
-single-threaded one causing `dd` to only talk to a single OSD
-at a time for each 4MB sequence it reads or writes when using
-the following IO flags: `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
+Use of something simple like the `dd` command to validate the storage backend
+is not optimal for testing a Ceph cluster. The `dd` command suffers from being
+a purely sequential IO and single-threaded tool causing `dd` to only communicate
+with a single OSD at a time for each 4MB sequence it reads or writes when using
+IO flags such as `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
 
-Given these limitations, it appeared necessary to make a tool available 
+Given these limitations, it is necessary to make a tool available 
 to easily perform a functional test of OpenShift Container Storage 
 (provision a volume, attach a volume, read or write from or to a volume,
 detach the volume, delete the volume) while also allowing to get a better
-view of the level of perfoamnce offered by the storage backend through the
-use of a multi-threaded tool that would leverage all the OSDs within
-the storage cluster during the test sequence.
+view of the level of performance offered by the storage backend through the
+use of a multi-threaded tool that can leverage all the OSDs within
+the Ceph cluster during the test sequence.
 
-We decided to use `sysbench` to build our toolkit. As a tool, it offers
-multiple testing capabilities (CPU, Mutex, file, mysql) allowing for the
-readily available testing tool to be expanded over time while having
-sequential and random IO capabilities as well as single and multi threading
-capabilities. It is also a well known tool still maintained on github
-(`https://github.com/akopytov/sysbench`).
+This tool uses `sysbench` as a base. It offers multiple testing capabilities
+(CPU, Mutex, file, mysql) allowing for this new testing tool to be
+expanded over time while having sequential and random IO capabilities as well
+as single and multi threading capabilities. It is also a tool actively maintained
+on github (`https://github.com/akopytov/sysbench`).
 
 == Building your custom container image (disconnected environments)
 
