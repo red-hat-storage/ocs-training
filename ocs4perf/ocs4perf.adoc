@@ -59,12 +59,35 @@ All the pre-populated testing scripts have been configured the following way:
 ** All IO tests use 16 trheads
 * Step 3 - Cleanup the test files in an asynchornous way
 
-== Testing your RBD storage class
+=== Default Configuration (Internal cluster)
 
 All yaml files below are configured with the storage class names of an
 internal cluster and for pulling the container image from the public
 location mentioned above. Each yaml file also creates by default a project
 named `sysbench`.
+
+=== External Cluster Configuration
+
+To switch the yaml files when testing against an external cluster run the 
+following commands in the directory containing your yaml files.
+
+[source,role="execute"]
+----
+# for f in $(ls *.yaml); do echo $f; sed -i -e 's/ocs-storagecluster/ocs-independent-storagecluster/g' $f; done
+----
+.Example output:
+----
+jcl-sysbench-idle-rwx.yaml
+jcl-sysbench-idle.yaml
+jcl-sysbench-read-rwx.yaml
+jcl-sysbench-readwrite-rwx.yaml
+jcl-sysbench-readwrite.yaml
+jcl-sysbench-read.yaml
+jcl-sysbench-write-rwx.yaml
+jcl-sysbench-write.yaml
+----
+
+== Testing your RBD storage class
 
 * Write Mode
 ** `oc create -f jcl-sysbench-write.yaml`
