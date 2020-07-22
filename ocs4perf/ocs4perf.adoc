@@ -10,9 +10,12 @@
 :experimental:
 
 == Building your custom container image (disconnected environments)
+
+~~~
 docker build -t sysbench:latest .
 docker tag sysbench:latest {use_your_preferred_registry}/sysbench:latest
 docker push {use_your_preferred_registry}/sysbench:latest
+~~~
 
 We have made publicly available the container image at
 `quay.io/vcppds7878/jclsysbench:latest` for convenience if you
