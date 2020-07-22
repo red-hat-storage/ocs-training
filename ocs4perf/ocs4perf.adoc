@@ -9,6 +9,33 @@
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
+== Introduction
+
+It appeared that it would be convenient to have at hand a 
+testing tool to help the customers validate the functional aspects of
+OpenShift Container Storage while being able to have a comprehensive
+view on the level of performance offered by the cluster for each
+storage class created during the deployment.
+
+We have had engineers on site use of the `dd` command to
+validate the storage backend and observing poor results. 
+The `dd` command suffers from being a purely sequential IO tool and a
+single-threaded too causing `dd` as a toll to only talk to a single OSD
+at a time for each 4MB sequence it reads or write.
+
+Given these limitations it appeared necessary to make a tool available 
+to easily perform a functional test of OpenShift Container Storage 
+(provision a volume, attach a volume, read or write from or to a volume
+detach the volume, delete the volume) while also allowing to get a better
+view of the level of perfoamnce offered by the storage backend through the
+use of a multi-threaded tool that would leverage all the OSDs within
+the storage cluster during the test sequence.
+
+Our choice went toward `sysbench`. As a tool it offers multiple testing
+capabilities (CPU, Mutex, file, mysql) allowing for the readily available
+testing tool to be expanded over time while having sequential and random
+IO capabilities as well as single and multi thread capabilities.
+
 == Building your custom container image (disconnected environments)
 
 ```
@@ -28,31 +55,270 @@ internal cluster and for pulling the container image from the public
 location mentioned above.
 
 * Write Mode
-** oc create -f jcl-sysbench-write.yaml
-** oc delete -f jcl-sysbench-write.yaml
+** `oc create -f jcl-sysbench-write.yaml`
+** `oc delete -f jcl-sysbench-write.yaml`
 * Read/Write Mode
-** oc create -f jcl-sysbench-readwrite.yaml
-** oc delete -f jcl-sysbench-readwrite.yaml
+** `oc create -f jcl-sysbench-readwrite.yaml`
+** `oc delete -f jcl-sysbench-readwrite.yaml`
 * Read Mode
-** oc create -f jcl-sysbench-read.yaml
-** oc delete -f jcl-sysbench-read.yaml
+** `oc create -f jcl-sysbench-read.yaml`
+** `oc delete -f jcl-sysbench-read.yaml`
 * IDLE Mode (run your own commands)
-** oc create -f jcl-sysbench-idle.yaml
-** oc delete -f jcl-sysbench-idle.yaml
+** `oc create -f jcl-sysbench-idle.yaml`
+** `oc delete -f jcl-sysbench-idle.yaml`
 
 == Testing your CephFS storage class
 * Write Mode
-** oc create -f jcl-sysbench-write-rwx.yaml
-** oc delete -f jcl-sysbench-write-rwx.yaml
+** `oc create -f jcl-sysbench-write-rwx.yaml`
+** `oc delete -f jcl-sysbench-write-rwx.yaml`
 * Read/Write Mode
-** oc create -f jcl-sysbench-readwrite-rwx.yaml
-** oc delete -f jcl-sysbench-readwrite-rwx.yaml
+** `oc create -f jcl-sysbench-readwrite-rwx.yaml`
+** `oc delete -f jcl-sysbench-readwrite-rwx.yaml`
 * Read Mode
-** oc create -f jcl-sysbench-read-rwx.yaml
-** oc delete -f jcl-sysbench-read-rwx.yaml
+** `oc create -f jcl-sysbench-read-rwx.yaml`
+** `oc delete -f jcl-sysbench-read-rwx.yaml`
 * IDLE Mode (run your own commands)
-** oc create -f jcl-sysbench-idle-rwx.yaml
-** oc delete -f jcl-sysbench-idle-rwx.yaml
+** `oc create -f jcl-sysbench-idle-rwx.yaml`
+** `oc delete -f jcl-sysbench-idle-rwx.yaml`
 
 If creating your own container image make sure to update the 'docker tag' and 'docker push' command with the appropriate references as well as the YAML files provided. For convenience I have made the quay.io/vcppds7878/jclsysbench:latest publicly accessible so you can use the YAML files out of the box if your Red Hat OpenShift Cluster has access to access to the quay.io registry.
+
+== Example Output
+
+Start a random write test. The default is to run the test with 16 threads
+with a 4KB block size. If you are looking for a more customizable experience
+use the `jcl-sysbench-idle.yaml` file. Once the pod starts you will have
+20 minutes to connect into the pod  via `oc rsh` and perform any test you 
+see fit.
+
+```
+# oc create -f jcl-sysbench-write.yaml
+namespace/sysbench created
+persistentvolumeclaim/pvc-sysbenchrbd-write created
+job.batch/sysbench-file-write created
+```
+
+Verify the storage was alloicated and bound to the pod.
+
+```
+# oc project sysbench
+Now using project "sysbench" on server "https://api.ocp4.front.sepia.ceph.com:6443".
+# oc get pvc
+NAME                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi        RWO            ocs-independent-storagecluster-ceph-rbd   13s
+```
+
+Now wait for the pod to complete. Allr esults will be displayed in the pod log.
+
+```
+# oc get pods -w
+NAME                        READY   STATUS              RESTARTS   AGE
+sysbench-file-write-m6mnd   0/1     ContainerCreating   0          26s
+sysbench-file-write-m6mnd   1/1     Running             0          27s
+sysbench-file-write-m6mnd   0/1     Completed           0          41s
+```
+
+Now inspect the test results.
+
+```
+# oc logs sysbench-file-write-m6mnd
+Currently mounted filesystems for Random WRITE test
+/dev/rbd0                               999320     2564    980372   1% /tmp/data
+Changing working directory to /tmp/data
+Current working directory for control before execution
+/tmp/data
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-io-mode=async --file-fsync-freq=0 prepare
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+128 files, 1024Kb each, 128Mb total
+Creating files for the test...
+Extra file open flags: (none)
+Creating file test_file.0
+Creating file test_file.1
+Creating file test_file.2
+Creating file test_file.3
+Creating file test_file.4
+Creating file test_file.5
+Creating file test_file.6
+Creating file test_file.7
+Creating file test_file.8
+Creating file test_file.9
+Creating file test_file.10
+Creating file test_file.11
+Creating file test_file.12
+Creating file test_file.13
+Creating file test_file.14
+Creating file test_file.15
+Creating file test_file.16
+Creating file test_file.17
+Creating file test_file.18
+Creating file test_file.19
+Creating file test_file.20
+Creating file test_file.21
+Creating file test_file.22
+Creating file test_file.23
+Creating file test_file.24
+Creating file test_file.25
+Creating file test_file.26
+Creating file test_file.27
+Creating file test_file.28
+Creating file test_file.29
+Creating file test_file.30
+Creating file test_file.31
+Creating file test_file.32
+Creating file test_file.33
+Creating file test_file.34
+Creating file test_file.35
+Creating file test_file.36
+Creating file test_file.37
+Creating file test_file.38
+Creating file test_file.39
+Creating file test_file.40
+Creating file test_file.41
+Creating file test_file.42
+Creating file test_file.43
+Creating file test_file.44
+Creating file test_file.45
+Creating file test_file.46
+Creating file test_file.47
+Creating file test_file.48
+Creating file test_file.49
+Creating file test_file.50
+Creating file test_file.51
+Creating file test_file.52
+Creating file test_file.53
+Creating file test_file.54
+Creating file test_file.55
+Creating file test_file.56
+Creating file test_file.57
+Creating file test_file.58
+Creating file test_file.59
+Creating file test_file.60
+Creating file test_file.61
+Creating file test_file.62
+Creating file test_file.63
+Creating file test_file.64
+Creating file test_file.65
+Creating file test_file.66
+Creating file test_file.67
+Creating file test_file.68
+Creating file test_file.69
+Creating file test_file.70
+Creating file test_file.71
+Creating file test_file.72
+Creating file test_file.73
+Creating file test_file.74
+Creating file test_file.75
+Creating file test_file.76
+Creating file test_file.77
+Creating file test_file.78
+Creating file test_file.79
+Creating file test_file.80
+Creating file test_file.81
+Creating file test_file.82
+Creating file test_file.83
+Creating file test_file.84
+Creating file test_file.85
+Creating file test_file.86
+Creating file test_file.87
+Creating file test_file.88
+Creating file test_file.89
+Creating file test_file.90
+Creating file test_file.91
+Creating file test_file.92
+Creating file test_file.93
+Creating file test_file.94
+Creating file test_file.95
+Creating file test_file.96
+Creating file test_file.97
+Creating file test_file.98
+Creating file test_file.99
+Creating file test_file.100
+Creating file test_file.101
+Creating file test_file.102
+Creating file test_file.103
+Creating file test_file.104
+Creating file test_file.105
+Creating file test_file.106
+Creating file test_file.107
+Creating file test_file.108
+Creating file test_file.109
+Creating file test_file.110
+Creating file test_file.111
+Creating file test_file.112
+Creating file test_file.113
+Creating file test_file.114
+Creating file test_file.115
+Creating file test_file.116
+Creating file test_file.117
+Creating file test_file.118
+Creating file test_file.119
+Creating file test_file.120
+Creating file test_file.121
+Creating file test_file.122
+Creating file test_file.123
+Creating file test_file.124
+Creating file test_file.125
+Creating file test_file.126
+Creating file test_file.127
+134217728 bytes written in 3.41 seconds (37.51 MiB/sec).
++ set +x
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-extra-flags=dsync run
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 16
+Initializing random number generator from current time
+
+
+Extra file open flags: dsync
+128 files, 1MiB each
+128MiB total file size
+Block size 4KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random write test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      0.00
+    writes/s:                     8466.75
+    fsyncs/s:                     11034.61
+
+Throughput:
+    read, MiB/s:                  0.00
+    written, MiB/s:               33.07
+
+General statistics:
+    total time:                          10.0060s
+    total number of events:              193174
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.82
+         max:                                   13.63
+         95th percentile:                        2.97
+         sum:                               158721.54
+
+Threads fairness:
+    events (avg/stddev):           12073.3750/109.77
+    execution time (avg/stddev):   9.9201/0.00
+
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-io-mode=async --file-fsync-freq=0 cleanup
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+Removing test files...
++ set +x
+Changing working directory to /
+```
+
 
