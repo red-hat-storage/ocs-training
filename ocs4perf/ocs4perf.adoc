@@ -143,7 +143,7 @@ Now wait for the pod to complete. Allr esults will be displayed in the pod log.
 
 [source,role="execute"]
 ----
-oc get pods -w
+# oc get pods -w
 ----
 .Example output:
 ----
@@ -157,7 +157,7 @@ Now inspect the test results.
 
 [source,role="execute"]
 ----
-oc logs sysbench-file-write-m6mnd
+# oc logs sysbench-file-write-m6mnd
 ----
 .Example output:
 ----
