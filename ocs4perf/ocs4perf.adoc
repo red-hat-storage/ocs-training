@@ -15,8 +15,10 @@ Customers and Partners need a testing tool to validate OpenShift Container
 Storage performance offered by the cluster for each storage class created
 during the deployment.
 
-Use of something simple like the `dd` command to validate the storage backend
-is not optimal for testing a Ceph cluster. The `dd` command suffers from being
+Using basic commands for benchmarking, such as the `dd` command, are not
+representative of modern multi-threaded workloads. Likewise, using
+single-threading commands, such as `dd`, for IO benchmarking are unable
+to illustrate OCS/Ceph performance. The `dd` command suffers from being
 a purely sequential IO and single-threaded tool causing `dd` to only communicate
 with a single OSD at a time for each 4MB sequence it reads or writes when using
 IO flags such as `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
@@ -114,7 +116,7 @@ persistentvolumeclaim/pvc-sysbenchrbd-write created
 job.batch/sysbench-file-write created
 ----
 
-Verify the storage was alloicated and bound to the pod.
+Verify the storage was allocated and bound to the pod.
 
 [source,role="execute"]
 ----
