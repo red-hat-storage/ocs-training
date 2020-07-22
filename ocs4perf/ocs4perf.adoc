@@ -27,17 +27,18 @@ the following IO flags: `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
 
 Given these limitations, it appeared necessary to make a tool available 
 to easily perform a functional test of OpenShift Container Storage 
-(provision a volume, attach a volume, read or write from or to a volume
+(provision a volume, attach a volume, read or write from or to a volume,
 detach the volume, delete the volume) while also allowing to get a better
 view of the level of perfoamnce offered by the storage backend through the
 use of a multi-threaded tool that would leverage all the OSDs within
 the storage cluster during the test sequence.
 
-We decided to use `sysbench` to build out toolkit. As a tool it offers
+We decided to use `sysbench` to build our toolkit. As a tool, it offers
 multiple testing capabilities (CPU, Mutex, file, mysql) allowing for the
 readily available testing tool to be expanded over time while having
-sequential and random IO capabilities as well as single and multi thread
-capabilities. It is also a well known tool still maintained on github.
+sequential and random IO capabilities as well as single and multi threading
+capabilities. It is also a well known tool still maintained on github
+(`https://github.com/akopytov/sysbench`).
 
 == Building your custom container image (disconnected environments)
 
@@ -50,6 +51,16 @@ docker push {use_your_preferred_registry}/sysbench:latest
 We have made publicly available the container image at
 `quay.io/vcppds7878/jclsysbench:latest` for convenience if you
 have Internet access from your OCP cluster.
+
+All the pre-populated testing scripts have been configured the following way:
+
+* Step 1 - Prepare the test files in an asynchornous way
+** Data sample is 128MB spread over 128 files
+* Step 2 - IO test run
+** All IO testing use `O_DSYNC` flag in synchronous mode
+** All IO size are set to 4KB
+** All IO tests use 16 trheads
+* Step 3 - Cleanup the test files in an asynchornous way
 
 == Testing your RBD storage class
 
