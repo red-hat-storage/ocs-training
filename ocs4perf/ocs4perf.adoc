@@ -1,0 +1,55 @@
+= Testing your OpenShift Container Storage deployment
+:toc: right
+:toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+:imagesdir: ../docs/imgs/
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Building your custom container image (disconnected environments)
+docker build -t sysbench:latest .
+docker tag sysbench:latest {use_your_preferred_registry}/sysbench:latest
+docker push {use_your_preferred_registry}/sysbench:latest
+
+We have made publicly available the container image at
+`quay.io/vcppds7878/jclsysbench:latest` for convenience if you
+have Internet access from your OCP cluster.
+
+== Testing your RBD storage class
+
+All yaml files below are configured with the storage class names of an
+internal cluster and for pulling the container image from the public
+location mentioned above.
+
+* Write Mode
+** oc create -f jcl-sysbench-write.yaml
+** oc delete -f jcl-sysbench-write.yaml
+* Read/Write Mode
+** oc create -f jcl-sysbench-readwrite.yaml
+** oc delete -f jcl-sysbench-readwrite.yaml
+* Read Mode
+** oc create -f jcl-sysbench-read.yaml
+** oc delete -f jcl-sysbench-read.yaml
+* IDLE Mode (run your own commands)
+** oc create -f jcl-sysbench-idle.yaml
+** oc delete -f jcl-sysbench-idle.yaml
+
+== Testing your CephFS storage class
+* Write Mode
+** oc create -f jcl-sysbench-write-rwx.yaml
+** oc delete -f jcl-sysbench-write-rwx.yaml
+* Read/Write Mode
+** oc create -f jcl-sysbench-readwrite-rwx.yaml
+** oc delete -f jcl-sysbench-readwrite-rwx.yaml
+* Read Mode
+** oc create -f jcl-sysbench-read-rwx.yaml
+** oc delete -f jcl-sysbench-read-rwx.yaml
+* IDLE Mode (run your own commands)
+** oc create -f jcl-sysbench-idle-rwx.yaml
+** oc delete -f jcl-sysbench-idle-rwx.yaml
+
+If creating your own container image make sure to update the 'docker tag' and 'docker push' command with the appropriate references as well as the YAML files provided. For convenience I have made the quay.io/vcppds7878/jclsysbench:latest publicly accessible so you can use the YAML files out of the box if your Red Hat OpenShift Cluster has access to access to the quay.io registry.
+
