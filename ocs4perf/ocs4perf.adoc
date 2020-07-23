@@ -58,7 +58,7 @@ All the pre-populated testing scripts have been configured the following way:
 * Step 2 - IO test run
 ** All IO testing use `O_DSYNC` flag in synchronous mode
 ** All IO size are set to 4KB, 4MB or 1GB
-** All IO tests use 16 trheads except the 1GB sequential test with 2
+** All IO tests use 16 threads except the 1GB sequential using only 2
 * Step 3 - Cleanup the test files in an asynchornous way
 
 === Default Configuration (Internal cluster)
