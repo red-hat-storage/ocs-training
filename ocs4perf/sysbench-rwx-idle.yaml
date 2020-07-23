@@ -8,39 +8,39 @@ spec: {}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: pvc-sysbench-read
+  name: pvc-sysbench-idle
   namespace: sysbench
 spec:
   accessModes:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 10Gi
   storageClassName: ocs-storagecluster-cephfs
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: sysbench-file-read
+  name: sysbench-file-idle
   namespace: sysbench
 spec:
   template:
     metadata:
-      name: sysbench-file-read
+      name: sysbench-file-idle
     spec:
       containers:
-      - name: sysbench-file-read
-        image: quay.io/vcppds7878/jclsysbench:latest
+      - name: sysbench-file-idle
+        image: quay.io/vcppds7878/sysbench:latest
         command: ["sh"]
         args:
           - '-c'
-          - '/tmp/jcl-script-randrd.sh'
+          - 'echo "Entering sysbench IDLE mode. Script are in /tmp.";ls /tmp/*.sh;echo "Waiting for 10 minutes";sleep 600;echo "Waiting for 10 minutes";sleep 600;echo "Terminating"'
         volumeMounts:
         - name: tmp-store
           mountPath: /tmp/data
       volumes:
       - name: tmp-store
         persistentVolumeClaim:
-          claimName: pvc-sysbench-read
+          claimName: pvc-sysbench-idle
           readOnly: false
       restartPolicy: Never

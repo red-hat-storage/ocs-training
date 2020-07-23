@@ -9,8 +9,8 @@ RUN mkdir /tmp/data
 
 WORKDIR /tmp/data
 
-COPY ./jcl-script-*.sh /tmp/
+COPY ./file-*.sh /tmp/
 
-RUN chmod +x /tmp/jcl-script-*.sh
+RUN chmod +x /tmp/*.sh
 
 CMD ["/bin/bash","-c","sleep 3600"]

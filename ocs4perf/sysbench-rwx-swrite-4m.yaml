@@ -8,15 +8,15 @@ spec: {}
 kind: PersistentVolumeClaim
 apiVersion: v1
 metadata:
-  name: pvc-sysbenchrbd-write
+  name: pvc-sysbench-write
   namespace: sysbench
 spec:
   accessModes:
-    - ReadWriteOnce
+    - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
-  storageClassName: ocs-storagecluster-ceph-rbd
+      storage: 5Gi
+  storageClassName: ocs-storagecluster-cephfs
 ---
 apiVersion: batch/v1
 kind: Job
@@ -30,17 +30,17 @@ spec:
     spec:
       containers:
       - name: sysbench-file-write
-        image: quay.io/vcppds7878/jclsysbench:latest
+        image: quay.io/vcppds7878/sysbench:latest
         command: ["sh"]
         args:
           - '-c'
-          - '/tmp/jcl-script-randwr.sh'
+          - '/tmp/file-sequential-write-4m.sh'
         volumeMounts:
         - name: tmp-store
           mountPath: /tmp/data
       volumes:
       - name: tmp-store
         persistentVolumeClaim:
-          claimName: pvc-sysbenchrbd-write
+          claimName: pvc-sysbench-write
           readOnly: false
       restartPolicy: Never

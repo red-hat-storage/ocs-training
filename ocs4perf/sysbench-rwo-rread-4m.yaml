@@ -15,7 +15,7 @@ spec:
     - ReadWriteOnce
   resources:
     requests:
-      storage: 1Gi
+      storage: 5Gi
   storageClassName: ocs-storagecluster-ceph-rbd
 ---
 apiVersion: batch/v1
@@ -30,11 +30,11 @@ spec:
     spec:
       containers:
       - name: sysbench-file-read
-        image: quay.io/vcppds7878/jclsysbench:latest
+        image: quay.io/vcppds7878/sysbench:latest
         command: ["sh"]
         args:
           - '-c'
-          - '/tmp/jcl-script-randrd.sh'
+          - '/tmp/file-random-read-4m.sh'
         volumeMounts:
         - name: tmp-store
           mountPath: /tmp/data

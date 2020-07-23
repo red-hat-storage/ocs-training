@@ -15,7 +15,7 @@ spec:
     - ReadWriteMany
   resources:
     requests:
-      storage: 1Gi
+      storage: 5Gi
   storageClassName: ocs-storagecluster-cephfs
 ---
 apiVersion: batch/v1
@@ -30,11 +30,11 @@ spec:
     spec:
       containers:
       - name: sysbench-file-readwrite
-        image: quay.io/vcppds7878/jclsysbench:latest
+        image: quay.io/vcppds7878/sysbench:latest
         command: ["sh"]
         args:
           - '-c'
-          - '/tmp/jcl-script-randrw.sh'
+          - '/tmp/file-sequential-readwrite-1g.sh'
         volumeMounts:
         - name: tmp-store
           mountPath: /tmp/data

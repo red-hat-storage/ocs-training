@@ -46,17 +46,19 @@ docker push {use_your_preferred_registry}/sysbench:latest
 ```
 
 We have made publicly available the container image at
-`quay.io/vcppds7878/jclsysbench:latest` for convenience if you
+`quay.io/vcppds7878/sysbench:latest` for convenience if you
 have Internet access from your OCP cluster.
 
 All the pre-populated testing scripts have been configured the following way:
 
 * Step 1 - Prepare the test files in an asynchornous way
-** Data sample is 128MB spread over 128 files
+** Data sample is 128MB spread over 128 files for 4KB testing
+** Data sample is 512MB spread over 128 files for 4MB testing
+** Data sample is 4096MB spread over 2 files for 1GB testing
 * Step 2 - IO test run
 ** All IO testing use `O_DSYNC` flag in synchronous mode
-** All IO size are set to 4KB
-** All IO tests use 16 trheads
+** All IO size are set to 4KB, 4MB or 1GB
+** All IO tests use 16 trheads except the 1GB sequential test with 2
 * Step 3 - Cleanup the test files in an asynchornous way
 
 === Default Configuration (Internal cluster)
@@ -65,6 +67,8 @@ All yaml files below are configured with the storage class names of an
 internal cluster and for pulling the container image from the public
 location mentioned above. Each yaml file also creates by default a project
 named `sysbench`.
+
+Each pod is allocated a 5GB PVC execpt the IDLE pod that is allocated a 10GB one.
 
 === External Cluster Configuration
 
@@ -78,50 +82,52 @@ following commands in the directory containing your yaml files.
 
 Same `bash` `for` loop can be used to update your container image reference.
 
-== Testing your RBD storage class
+== IDLE Test Box
+
+* RWO PVC (run your own commands)
+** `oc create -f sysbench-rwo-idle.yaml`
+** `oc delete -f sysbench-rwo-idle.yaml`
+* RWX PVC (run your own commands)
+** `oc create -f sysbench-rwx-idle.yaml`
+** `oc delete -f sysbench-rwx-idle.yaml`
+
+== Preconfigured Test Box
 
 * Write Mode
-** `oc create -f jcl-sysbench-write.yaml`
-** `oc delete -f jcl-sysbench-write.yaml`
+** `oc create -f sysbench-[rwo|rwx]-[r|s]write-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]write-[4k|4m|1g].yaml`
 * Read/Write Mode
-** `oc create -f jcl-sysbench-readwrite.yaml`
-** `oc delete -f jcl-sysbench-readwrite.yaml`
+** `oc create -f sysbench-[rwo|rwx]-[r|s]readwrite-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]readwrite-[4k|4m|1g].yaml`
 * Read Mode
-** `oc create -f jcl-sysbench-read.yaml`
-** `oc delete -f jcl-sysbench-read.yaml`
-* IDLE Mode (run your own commands)
-** `oc create -f jcl-sysbench-idle.yaml`
-** `oc delete -f jcl-sysbench-idle.yaml`
-
-== Testing your CephFS storage class
-* Write Mode
-** `oc create -f jcl-sysbench-write-rwx.yaml`
-** `oc delete -f jcl-sysbench-write-rwx.yaml`
-* Read/Write Mode
-** `oc create -f jcl-sysbench-readwrite-rwx.yaml`
-** `oc delete -f jcl-sysbench-readwrite-rwx.yaml`
-* Read Mode
-** `oc create -f jcl-sysbench-read-rwx.yaml`
-** `oc delete -f jcl-sysbench-read-rwx.yaml`
-* IDLE Mode (run your own commands)
-** `oc create -f jcl-sysbench-idle-rwx.yaml`
-** `oc delete -f jcl-sysbench-idle-rwx.yaml`
+** `oc create -f sysbench-[rwo|rwx]-[r|s]read-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]read-[4k|4m|1g].yaml`
 
 If using your own container image make sure to update the `docker tag`
 and `docker push` commands with the appropriate references as well as the
 YAML files provided.
 
+You can for each type of test choose the following option built-in the
+file name:
+
+# PVC type
+## Choose between `rwo` (RBD based) or `rwx` (CephFS based)
+# Workload type
+## Choose between `r` (random) or `s` (sequential) workload type
+# IO Size
+## Choose between `4k` (4KB), `4m` (4MB) or `1g` (1GB)
+
 == Example Output
 
 Start a random write test. The default is to run the test with 16 threads
 with a 4KB block size. If you are looking for a more customizable experience
-use the `jcl-sysbench-idle.yaml` file. Once the pod starts you will have
-20 minutes to connect into the pod  via `oc rsh` and perform any test you 
-see fit.
+use the `sysbench-rwo-idle.yaml` or sysbench-rwx-idle.yaml file. Once the
+pod starts you will have 20 minutes to connect into the pod  via `oc rsh`
+and perform any test you see fit.
 
 [source,role="execute"]
 ----
-# oc create -f jcl-sysbench-write.yaml
+# oc create -f sysbench-rwo-rwrite-4k.yaml
 ----
 .Example output:
 ----
