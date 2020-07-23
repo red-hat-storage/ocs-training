@@ -865,7 +865,7 @@ the `oc set volume` command. Execute the following
 
 [source,role="execute"]
 ----
-oc set volume dc/file-uploader --add --name=my-shared-storage \
+oc set volume deployment/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -875,8 +875,8 @@ oc set volume dc/file-uploader --add --name=my-shared-storage \
 This command will:
 
 * create a *PersistentVolumeClaim*
-* update the *DeploymentConfig* to include a `volume` definition
-* update the *DeploymentConfig* to attach a `volumemount` into the specified
+* update the *Deployment* to include a `volume` definition
+* update the *Deployment* to attach a `volumemount` into the specified
   `mount-path`
 * cause a new deployment of the 3 application *Pods*
 
