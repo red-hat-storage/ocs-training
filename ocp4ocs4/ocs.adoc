@@ -840,7 +840,7 @@ oc expose svc/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
-oc scale --replicas=3 dc/file-uploader -n my-shared-storage
+oc scale --replicas=3 deployment/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
