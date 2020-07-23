@@ -107,15 +107,14 @@ If using your own container image make sure to update the `docker tag`
 and `docker push` commands with the appropriate references as well as the
 YAML files provided.
 
-You can for each type of test choose the following option built-in the
-file name:
+You can choose the following predefined options built-in the file name:
 
-# PVC type
-## Choose between `rwo` (RBD based) or `rwx` (CephFS based)
-# Workload type
-## Choose between `r` (random) or `s` (sequential) workload type
-# IO Size
-## Choose between `4k` (4KB), `4m` (4MB) or `1g` (1GB)
+* PVC type
+** Choose between `rwo` (RBD based) or `rwx` (CephFS based)
+* Workload type
+** Choose between `r` (random) or `s` (sequential) workload type
+* IO size
+** Choose between `4k` (4KB), `4m` (4MB) or `1g` (1GB)
 
 == Example Output
 
