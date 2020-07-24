@@ -77,7 +77,7 @@ following commands in the directory containing your yaml files.
 
 [source,role="execute"]
 ----
-# for f in $(ls *.yaml); do echo $f; sed -i -e 's/ocs-storagecluster/ocs-independent-storagecluster/g' $f; done
+# for f in $(ls *.yaml); do sed -i -e 's/ocs-storagecluster/ocs-independent-storagecluster/g' $f; done
 ----
 
 === Disconnected Environments
@@ -87,7 +87,7 @@ in a disconnected environment. To do so run the following command.
 
 [source,role="execute"]
 ----
-# for f in $(ls *.yaml); do echo $f; sed -i -e "s#sysbench:latest#sysbench@sha256:$(docker image inspect quay.io/vcppds7878/sysbench:latest|jq -r '.[].RepoDigests[0]')#g" $f; done
+# for f in $(ls *.yaml); do sed -i -e "s#sysbench:latest#sysbench@sha256:$(docker image inspect quay.io/vcppds7878/sysbench:latest|jq -r '.[].RepoDigests[0]')#g" $f; done
 ----
 
 === Custom Build Environments
