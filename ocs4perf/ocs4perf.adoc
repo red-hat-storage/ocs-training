@@ -87,8 +87,11 @@ in a disconnected environment. To do so run the following command.
 
 [source,role="execute"]
 ----
+# docker pull quay.io/vcppds7878/sysbench:latest
 # for f in $(ls *.yaml); do sed -i -e "s#sysbench:latest#sysbench@sha256:$(docker image inspect quay.io/vcppds7878/sysbench:latest|jq -r '.[].RepoDigests[0]')#g" $f; done
 ----
+
+Need be replace the `docker` command with the `podman` command.
 
 === Custom Build Environments
 
