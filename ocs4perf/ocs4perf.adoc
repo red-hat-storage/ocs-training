@@ -52,13 +52,13 @@ have Internet access from your OCP cluster.
 All the pre-populated testing scripts have been configured the following way:
 
 * Step 1 - Prepare the test files in an asynchornous way
-** Data sample is 128MB spread over 128 files for 4KB testing
-** Data sample is 512MB spread over 128 files for 4MB testing
+** Data sample is 4096MB spread over 128 files for 4KB and 4MB testing
 ** Data sample is 4096MB spread over 2 files for 1GB testing
 * Step 2 - IO test run
 ** All IO testing use `O_DSYNC` flag in synchronous mode
 ** All IO size are set to 4KB, 4MB or 1GB
 ** All IO tests use 16 threads except the 1GB sequential using only 2
+** All IO tests will run for 30 seconds
 * Step 3 - Cleanup the test files in an asynchornous way
 
 === Default Configuration (Internal cluster)
