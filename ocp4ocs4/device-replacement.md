@@ -244,12 +244,11 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
     drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..	
 	~~~
+	For OCS 4.5 or greater LVM is not in use, ceph-volume `raw` mode is in play instead. Therefore, validation below is not needed.
 	
 	Both /dev/mapper and /dev/ should be checked to see if there are orphans related to ceph before moving on. Use the results of `vgdisplay` to find these orphans.
 	
-	If there is anything in /dev/mapper with `ceph` in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with `ceph` in the name that is not from the list of VG Names.
-	
-	For OCS 4.5 or greater LVM is not in use, ceph-volume `raw` mode is in play instead. Therefore, validation above is not needed. 
+	If there is anything in /dev/mapper with `ceph` in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with `ceph` in the name that is not from the list of VG Names. 
 4. Now delete the PV associated with the PVC already removed.
     
 	~~~
