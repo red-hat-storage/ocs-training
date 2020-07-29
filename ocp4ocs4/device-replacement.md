@@ -139,7 +139,7 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
 	
 ## Replace drive and create new PV
 
-1. First step is to login to the OCP node with the storage drive to be replaced and record the `/dev/disk/by-id/{id}`. In this example the OCP node is `compute-2`. To login to correct OCP node use SSH or `oc debug node\<NodeName>`.
+1. First step is to login to the OCP node with the storage drive to be replaced and record the `/dev/disk/by-id/{id}`. In this example the OCP node is `compute-2`. To login to correct OCP node use SSH or `oc debug node/<NodeName>`.
 
     ~~~
     # oc debug node/compute-2
@@ -245,9 +245,11 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
     drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..	
 	~~~
 	
-	Both /dev/mapper and /dev/ should be checked to see if there are orphans related to ceph before moving on. Use the results of `vgdisplay` to find these orphans. 
+	Both /dev/mapper and /dev/ should be checked to see if there are orphans related to ceph before moving on. Use the results of `vgdisplay` to find these orphans.
 	
 	If there is anything in /dev/mapper with `ceph` in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with `ceph` in the name that is not from the list of VG Names.
+	
+	If OCS 4.5 or greater is in use then LVM is not in use and validation above is not needed. 
 4. Now delete the PV associated with the PVC already removed.
     
 	~~~
