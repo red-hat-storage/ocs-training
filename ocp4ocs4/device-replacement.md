@@ -249,7 +249,7 @@ This process should be followed when an OSD **Pod** is in an `Error` or `CrashLo
 	
 	If there is anything in /dev/mapper with `ceph` in the name, that is not from the list of VG Names, then dmsetup remove it. Same thing under /dev/ceph-*, remove anything with `ceph` in the name that is not from the list of VG Names.
 	
-	If OCS 4.5 or greater is in use then LVM is not in use and validation above is not needed. 
+	For OCS 4.5 or greater LVM is not in use, ceph-volume `raw` mode is in play instead. Therefore, validation above is not needed. 
 4. Now delete the PV associated with the PVC already removed.
     
 	~~~
