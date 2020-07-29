@@ -230,7 +230,7 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 100Mi
+            storage: "100Mi"
         storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
@@ -243,7 +243,13 @@ spec:
               operator: Exists
     portable: false
     replica: 1
-    resources: {}
+    resources:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "1"
+        memory: "5Gi"
 ```
 
 ```
