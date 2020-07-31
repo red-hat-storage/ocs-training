@@ -101,14 +101,14 @@ oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
 
 They may be in `Provisioning` for sometime so repeat command above until they are
-in a `Running` STATE. The `NAME` of your machines will be different than
+in a `Running` STATE or go on to next step. The `NAME` of your machines will be different than
 shown below.
 
 ----
-NAME                                                STATE     TYPE         REGION      ZONE         AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   Running   m5.4xlarge   us-east-2   us-east-2a   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   Running   m5.4xlarge   us-east-2   us-east-2b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   Running   m5.4xlarge   us-east-2   us-east-2c   70s
+NAME                                                STATE         TYPE         REGION      ZONE         AGE
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   Provisioned   m5.4xlarge   us-east-2   us-east-2a   70s
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   Provisioned   m5.4xlarge   us-east-2   us-east-2b   70s
+cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   Provisioned   m5.4xlarge   us-east-2   us-east-2c   70s
 ----
 
 You can see that the workerocs *machines* are using are also using the AWS
