@@ -224,5 +224,5 @@ Because the CSV, lib-bucket-provisioner.v1.0.0.clusterserviceversion.yaml, does 
 [4]: https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations
 [5]: https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.4/
 [6]: https://github.com/arvin-a/openshift-disconnected-operators
-[7]: https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.4/html/deploying_openshift_container_storage/deploying-openshift-container-storage#installing-openshift-container-storage-operator-using-the-operator-hub_rhocs
+[7]: https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.4/html/deploying_openshift_container_storage/deploying-openshift-container-storage-on-openshift-container-platform_rhocs
 [8]: https://github.com/red-hat-storage/ocs-training/issues
