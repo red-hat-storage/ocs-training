@@ -2,15 +2,18 @@
 
 The Machine API cannot facilitate the creation of nodes that have a single node-role `node-role.kubernetes.io/infra`. Nodes created with the Machine API can only have node-roles in addition to `node-role.kubernetes.io/worker`. A common approach is desirable for consistency across environemnts, both those with and without Machine API support. As such we suggest the creation of nodes with dual worker/infra node-roles
 
-Once the Machine API supports the creation of nodes without the `node-role.kubernetes.io/worker` node-role, probaly in conjunction with a infrastructure node specific MachineConfig, then we can move to suggesting single node-role infra nodes.
+If the Machine API eventually supports the creation of nodes without the `node-role.kubernetes.io/worker` node-role, then we could instead suggest single node-role infrasturcture nodes. Without a `node-role.kubernetes.io/worker` node-role, a MachineCOnfigPool needs to be created to facilitate node upgrades.
 
 # Anatomy of a Infrastructure node.
 
-* Label `node-role.kubernetes.io/infra` to node object
-* Tainted to repel customer applications / workloads
-* Taint key/value matching OCS toleration
+Infrastructure nodes have a few attributes, notably they are:
 
-Example from labeling and taint required for infrastructure node that will be used to run OCS services:
+* Labeled with `node-role.kubernetes.io/infra`
+* Tainted with `node.ocs.openshift.io/storage="true"`
+
+The label identifies the nodes infra nodes, and the taint repels customer applications / workloads.
+
+Example of the taint and labels required on infrastructure node that will be used to run OCS services:
 ~~~
     spec:
       taints:
@@ -27,11 +30,11 @@ Example from labeling and taint required for infrastructure node that will be us
 
 # Machine sets
 
-If the Machine API is supported in the environment, then labels should be added to the templates for the Machine Sets that will be provisioning the infrastructure nodes. Avoid the anti-pattern of adding labels manully to nodes created by the machine API. Doing so is analogous to adding labels to pods created by a deployment, in both cases, when (not if) the pod/node fails, it's replacement will not have the appropriate labels.
+If the Machine API is supported in the environment, then labels should be added to the templates for the Machine Sets that will be provisioning the infrastructure nodes. Avoid the anti-pattern of adding labels manually to nodes created by the machine API. Doing so is analogous to adding labels to pods created by a deployment, in both cases, when (not if) the pod/node fails, it's replacement will not have the appropriate labels.
 
-NOTE: In EC2 environments, you will want exactly three machine sets, each provisioning infrastructure nodes in a particular availability zone.
+NOTE: In EC2 environments, you will want exactly three machine sets, each configured to provision infrastructure nodes in a distinct availability zone.
 
-Example Machine Set template that will create nodes with appropriate labeling and taint required for infrastructure nodes that will be used to run OCS services:
+Example Machine Set template that creates nodes with the appropriate taint and lables required for infrastructure nodes that will be used to run OCS services:
 ~~~
   template:
     metadata:
@@ -58,6 +61,14 @@ Example Machine Set template that will create nodes with appropriate labeling an
 Only when the Machine APi is not supported in the environment should labels be directly applied to nodes. 
 
 ~~~
-oc label node ... 
+oc label node <node> node-role.kubernetes.io/infra=""
+oc label node <node> cluster.ocs.openshift.io/openshift-storage=""
 oc taint node <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
+
+# Notes
+
+The OpenShift Console has a number of bugs (perhaps with a single cause) that affect the use of infrastructure nodes created using the approach above.
+
+* [StorageCluster UI forces the selection / labeling of nodes even when sufficient nodes have already been labeled](https://bugzilla.redhat.com/show_bug.cgi?id=1857480)
+* [Nodes with infra role not listed in StorageCluster creation pane](https://bugzilla.redhat.com/show_bug.cgi?id=1857481)
