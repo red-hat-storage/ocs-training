@@ -100,8 +100,8 @@ Check that you have new *machines* created.
 oc get machines -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
 
-The machines will be in `Provisioning` for sometime so repeat command above until they are
-in a `Running` STATE or go on to next step. The `NAME` of your machines will be different than
+The *machines* will be in `Provisioning` for sometime so repeat command above until they are
+in a `Running` STATE or go on to next step. The `NAME` of your *machines* will be different than
 shown below.
 
 ----
