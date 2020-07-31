@@ -92,7 +92,7 @@ In the case of installing OCS, this would be the ocs-operator and local-storage-
 ```
 local-storage-operator
 ocs-operator
-````
+```
 ## OCS version 4.4.0 instructions 
 For OCS 4.4.0, installing in a disconnected or offline environment is a tech preview feature, hence a few more manual steps needed. Future versions of OCS should not need these additional steps to properly install.
 
@@ -210,7 +210,7 @@ The update process to build and mirror the redhat-operators catalog image is exa
   Validate new redhat-operator pod is running
   ```
   oc get pod -n openshift-marketplace | grep redhat-operators
-  ````
+  ```
 ## Installing OCS using OperatorHub
 ***OperatorHub*** in the OCP console UI should now present all of the operators in the redhat-operator catalog as well as the lib-bucket-provisioner operator. You can now install OCS 4.4 using the [Deployment Guide][7].
 
