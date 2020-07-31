@@ -31,7 +31,7 @@ spec:
       providerSpec:
         value:
           ami:
-            id: ami-01e7fdcb66157b224
+            id: ami-0523c75e911667e58
           apiVersion: awsproviderconfig.openshift.io/v1beta1
           blockDevices:
           - ebs:
@@ -43,7 +43,7 @@ spec:
           deviceIndex: 0
           iamInstanceProfile:
             id: CLUSTERID-worker-profile
-          instanceType: m4.4xlarge
+          instanceType: m5.4xlarge
           kind: AWSMachineProviderConfig
           metadata:
             creationTimestamp: null
