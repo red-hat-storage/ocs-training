@@ -1674,7 +1674,7 @@ scale to 3 instances for high availability:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc scale --replicas=3 deployment/file-uploader -n my-shared-storage</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc scale --replicas=3 dc/file-uploader -n my-shared-storage</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1712,7 +1712,7 @@ the <code>oc set volume</code> command. Execute the following</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc set volume deployment/file-uploader --add --name=my-shared-storage \
+<pre class="pygments highlight"><code data-lang="shell">oc set volume dc/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -1728,10 +1728,10 @@ the <code>oc set volume</code> command. Execute the following</p>
 <p>create a <strong>PersistentVolumeClaim</strong></p>
 </li>
 <li>
-<p>update the <strong>Deployment</strong> to include a <code>volume</code> definition</p>
+<p>update the <strong>DeploymentConfig</strong> to include a <code>volume</code> definition</p>
 </li>
 <li>
-<p>update the <strong>Deployment</strong> to attach a <code>volumemount</code> into the specified
+<p>update the <strong>DeploymentConfig</strong> to attach a <code>volumemount</code> into the specified
 <code>mount-path</code></p>
 </li>
 <li>
@@ -3764,7 +3764,7 @@ throughout the cluster.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-08-04 15:38:50 UTC
+Last updated 2020-08-04 18:56:58 UTC
 </div>
 </div>
 </body>
