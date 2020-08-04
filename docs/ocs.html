@@ -3273,13 +3273,13 @@ Kubernetes Version: v1.16.2</code></pre>
 <div class="listingblock">
 <div class="title">Mac steps without Homebrew</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-mac-v2.2.0 ; chmod +x noobaa-mac-v2.2.0 ; sudo mv noobaa-mac-v2.2.0 /usr/local/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-linux-v2.2.0 ; chmod +x noobaa-linux-v2.2.0 ; sudo mv noobaa-linux-v2.2.0 /usr/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3764,7 +3764,7 @@ throughout the cluster.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-08-04 13:59:35 UTC
+Last updated 2020-08-04 15:22:59 UTC
 </div>
 </div>
 </body>
