@@ -2008,9 +2008,9 @@ oc version
 ----
 .Example output:
 ----
-Client Version: 4.3.1
-Server Version: 4.3.1
-Kubernetes Version: v1.16.2
+Client Version: 4.4.8
+Server Version: 4.4.8
+Kubernetes Version: v1.17.1
 ----
 
 [NOTE]
