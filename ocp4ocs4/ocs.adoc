@@ -1116,9 +1116,9 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.1.1                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1 
+INFO[0000] CLI version: 2.2.0                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0 
 INFO[0000] Namespace: openshift-storage                 
 INFO[0000]                                              
 INFO[0000] CRD Status:                                  
@@ -2048,9 +2048,9 @@ noobaa version
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.1.1
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1
+INFO[0000] CLI version: 2.2.0                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0
 ----
 
 [NOTE]
