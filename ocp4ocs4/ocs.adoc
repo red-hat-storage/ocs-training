@@ -1742,8 +1742,8 @@ exit
 
 == Monitoring the OCS environment
 
-This section covers the different tools available with OCS 4.2 when it comes
-to monitoring the environment. This section relies on the existing UI.
+This section covers the different tools available with OCS 4 when it comes
+to monitoring the environment.
 
 Individuals already familiar with OCP will feel comfortable with this section
 but for those who are not, it will be a good bootstrap.
