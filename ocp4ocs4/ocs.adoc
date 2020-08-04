@@ -2031,13 +2031,13 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-mac-v2.2.0 ; chmod +x noobaa-mac-v2.2.0 ; sudo mv noobaa-mac-v2.2.0 /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-linux-v2.2.0 ; chmod +x noobaa-linux-v2.2.0 ; sudo mv noobaa-linux-v2.2.0 /usr/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
