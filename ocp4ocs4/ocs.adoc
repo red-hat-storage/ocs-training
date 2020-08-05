@@ -403,8 +403,7 @@ If it says `Ready`, you can continue.
 
 You can now also check the status of your storage cluster with the OCS
 specific *Dashboards* that are included in your *Openshift Web Console*. You
-can reach this by clicking on `Home` on your left navigation bar, then
-selecting `Dashboards` and finally clicking on `Persistent Storage` on the
+can reach this by clicking on `Overview` on your left navigation bar, then clicking on `Persistent Storage` on the
 top navigation bar of the content page.
 
 NOTE: If you just finished your OCS 4 deployment it could take 5-10 minutes
@@ -422,9 +421,7 @@ image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage 
 |<5> | Utilization | Overview of the storage cluster usage and performance
 |===
 
-OCS ships with a *Dashboard* for the Object Store service as well. From
-within the *Dashboard* menu click on the `Object Service` on the top
-navigation bar of the content page.
+OCS ships with a *Dashboard* for the Object Store service as well. After navigating to *Overview* on your left navigation bar, click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
 image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
