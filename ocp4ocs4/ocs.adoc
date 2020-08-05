@@ -421,7 +421,7 @@ image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage 
 |<5> | Utilization | Overview of the storage cluster usage and performance
 |===
 
-OCS ships with a *Dashboard* for the Object Store service as well. After navigating to *Overview* on your left navigation bar, click on the `Object Service` on the top navigation bar of the content page.
+OCS ships with a *Dashboard* for the Object Store service as well. After navigating to `Overview` on your left navigation bar, click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
 image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
