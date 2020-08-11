@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: webinarrgw
+spec: {}
+---
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: webinarbucketrgw
+  namespace: webinarrgw
+spec:
+  generateBucketName: "webinarbucketrgw"
+  storageClassName: ocs-storageslcuter-ceph-rgw
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch1
+  namespace: webinarrgw
+  labels:
+    app: batch1
+spec:
+  template:
+    metadata:
+      labels:
+        app: batch1
+    spec:
+      restartPolicy: OnFailure
+      containers:
+        - image: amazon/aws-cli:latest
+          command: ["sh"]
+          args:
+            - '-c'
+            - 'export AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID ; export AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY ; while true; do export mystamp=$(date +%Y%m%d_%H%M%S); dd if=/dev/urandom of=/tmp/file_${mystamp} bs=1M count=1; set -x && aws  --no-verify-ssl --endpoint http://$BUCKET_HOST:$BUCKET_PORT s3 cp /tmp/file_${mystamp} s3://$BUCKET_NAME; sleep 60; rm /tmp/file_${mystamp}; done'
+          name: batch1
+          env:
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: webinarbucketrgw
+                  key: BUCKET_NAME
+            - name: BUCKET_HOST
+              valueFrom:
+                configMapKeyRef:
+                  name: webinarbucketrgw
+                  key: BUCKET_HOST
+            - name: BUCKET_PORT
+              valueFrom:
+                configMapKeyRef:
+                  name: webinarbucketrgw
+                  key: BUCKET_PORT
+            - name: AWS_DEFAULT_REGION
+              valueFrom:
+                configMapKeyRef:
+                  name: webinarbucketrgw
+                  key: BUCKET_REGION
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: webinarbucketrgw
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: webinarbucketrgw
+                  key: AWS_SECRET_ACCESS_KEY

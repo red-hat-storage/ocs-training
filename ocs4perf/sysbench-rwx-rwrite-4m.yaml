@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sysbench
+spec: {}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-sysbench-write
+  namespace: sysbench
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ocs-storagecluster-cephfs
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sysbench-file-write
+  namespace: sysbench
+spec:
+  template:
+    metadata:
+      name: sysbench-file-write
+    spec:
+      containers:
+      - name: sysbench-file-write
+        image: quay.io/vcppds7878/sysbench:latest
+        command: ["sh"]
+        args:
+          - '-c'
+          - '/tmp/file-random-write-4m.sh'
+        volumeMounts:
+        - name: tmp-store
+          mountPath: /tmp/data
+      volumes:
+      - name: tmp-store
+        persistentVolumeClaim:
+          claimName: pvc-sysbench-write
+          readOnly: false
+      restartPolicy: Never
