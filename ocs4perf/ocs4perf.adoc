@@ -88,7 +88,7 @@ in a disconnected environment. To do so run the following command.
 [source,role="execute"]
 ----
 # docker pull quay.io/vcppds7878/sysbench:v1.0
-# for f in $(ls *.yaml); do sed -i -e "s#sysbench:latest#sysbench@sha256:$(podman inspect quay.io/vcppds7878/sysbench:v1.0|jq -r '.[].RepoDigests[0]'|cut -f2 -d:)#g" $f; done
+# for f in $(ls *.yaml); do sed -i -e "s#sysbench:latest#sysbench@sha256:$(docker inspect quay.io/vcppds7878/sysbench:v1.0|jq -r '.[].RepoDigests[0]'|cut -f2 -d:)#g" $f; done
 ----
 
 Need be replace the `docker` command with the `podman` command.
