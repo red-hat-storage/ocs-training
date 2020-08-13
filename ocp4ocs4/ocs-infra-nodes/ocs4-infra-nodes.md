@@ -65,10 +65,3 @@ oc label node <node> node-role.kubernetes.io/infra=""
 oc label node <node> cluster.ocs.openshift.io/openshift-storage=""
 oc taint node <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
-
-# Notes
-
-The OpenShift Console has a number of bugs (perhaps with a single cause) that affect the use of infrastructure nodes created using the approach above. Until resolved, a StorageCluster CR will need to be created manuall (analogous to local storage).
-
-* [StorageCluster UI forces the selection / labeling of nodes even when sufficient nodes have already been labeled](https://bugzilla.redhat.com/show_bug.cgi?id=1857480)
-* [Nodes with infra role not listed in StorageCluster creation pane](https://bugzilla.redhat.com/show_bug.cgi?id=1857481)
