@@ -1,6 +1,6 @@
 # Overview
 
-OpenShift Container Platform 4.3 and 4.4 has been verified to work in conjunction with [local storage](https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html) devices and OpenShift Container Storage 4.4 on AWS EC2, VMware, and Bare Metal hosts.
+OpenShift Container Platform has been verified to work in conjunction with [local storage](https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html) devices and OpenShift Container Storage on AWS EC2, VMware, and Bare Metal hosts.
 
 # Installing the Local Storage Operator
 
@@ -126,24 +126,7 @@ oc create -f block-storage.yaml
 ```
 
 # Installing OpenShift Container Storage
-Verify that the community-operators catalogsource is created (oc get catalogsource -n openshift-marketplace). If it is not present, then create this custom catalogsource for lib-bucket-provisioner operator before attempting to install OCS.
 
-```
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: lib-bucket-catalogsource
-  namespace: openshift-marketplace
-spec:
-  displayName: lib-bucket-provisioner
-  icon:
-    base64data: PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4=
-    mediatype: image/svg+xml
-  image: quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d
-  publisher: Red Hat
-  sourceType: grpc
-  ```
-  
 ## Install Operator
 
 Create `openshift-storage` namespace
@@ -189,9 +172,6 @@ spec:
   sourceNamespace: openshift-marketplace
 EOF
 ```
-
-NOTE:
-Prior to OCS 4.5 for OCP disconnected environments, the lib-bucket-provisioner csv and deployment will need to be edited and the image quay.io/noobaa/pause will need to be replaced with quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105. Edit the lib-bucket-provisioner csv first with this image@sha. Next, edit the lib-bucket-provisioner deployment and replace quay.io/noobaa/pause with this image@sha if not already correct.
 
 ## Create Cluster
 
@@ -361,9 +341,8 @@ watch oc get csv -n openshift-storage
 Example output
 ```
 NAME                            DISPLAY                       VERSION   REPLACES              PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                           Succeeded
 ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                           Replacing
-ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0     ocs-operator.v4.3.0   Installing
+ocs-operator.v4.4.2             OpenShift Container Storage   4.4.2     ocs-operator.v4.3.0   Installing
 ```
 
 Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
