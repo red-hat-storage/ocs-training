@@ -1,0 +1,46 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: sysbench
+spec: {}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-sysbenchrbd-read
+  namespace: sysbench
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: sysbench-file-read
+  namespace: sysbench
+spec:
+  template:
+    metadata:
+      name: sysbench-file-read
+    spec:
+      containers:
+      - name: sysbench-file-read
+        image: quay.io/vcppds7878/sysbench:latest
+        command: ["sh"]
+        args:
+          - '-c'
+          - '/tmp/file-random-read-4m.sh'
+        volumeMounts:
+        - name: tmp-store
+          mountPath: /tmp/data
+      volumes:
+      - name: tmp-store
+        persistentVolumeClaim:
+          claimName: pvc-sysbenchrbd-read
+          readOnly: false
+      restartPolicy: Never

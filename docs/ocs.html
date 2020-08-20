@@ -1077,8 +1077,7 @@ created:</p>
 <div class="paragraph">
 <p>You can now also check the status of your storage cluster with the OCS
 specific <strong>Dashboards</strong> that are included in your <strong>Openshift Web Console</strong>. You
-can reach this by clicking on <code>Home</code> on your left navigation bar, then
-selecting <code>Dashboards</code> and finally clicking on <code>Persistent Storage</code> on the
+can reach this by clicking on <code>Overview</code> on your left navigation bar, then clicking on <code>Persistent Storage</code> on the
 top navigation bar of the content page.</p>
 </div>
 <div class="admonitionblock note">
@@ -1145,9 +1144,7 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 </tbody>
 </table>
 <div class="paragraph">
-<p>OCS ships with a <strong>Dashboard</strong> for the Object Store service as well. From
-within the <strong>Dashboard</strong> menu click on the <code>Object Service</code> on the top
-navigation bar of the content page.</p>
+<p>OCS ships with a <strong>Dashboard</strong> for the Object Store service as well. After navigating to <code>Overview</code> on your left navigation bar, click on the <code>Object Service</code> on the top navigation bar of the content page.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1674,7 +1671,7 @@ scale to 3 instances for high availability:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc scale --replicas=3 deployment/file-uploader -n my-shared-storage</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">oc scale --replicas=3 dc/file-uploader -n my-shared-storage</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1712,7 +1709,7 @@ the <code>oc set volume</code> command. Execute the following</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">oc set volume deployment/file-uploader --add --name=my-shared-storage \
+<pre class="pygments highlight"><code data-lang="shell">oc set volume dc/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -1728,10 +1725,10 @@ the <code>oc set volume</code> command. Execute the following</p>
 <p>create a <strong>PersistentVolumeClaim</strong></p>
 </li>
 <li>
-<p>update the <strong>Deployment</strong> to include a <code>volume</code> definition</p>
+<p>update the <strong>DeploymentConfig</strong> to include a <code>volume</code> definition</p>
 </li>
 <li>
-<p>update the <strong>Deployment</strong> to attach a <code>volumemount</code> into the specified
+<p>update the <strong>DeploymentConfig</strong> to attach a <code>volumemount</code> into the specified
 <code>mount-path</code></p>
 </li>
 <li>
@@ -2047,9 +2044,9 @@ dos not have the <code>noobaa</code> command installed go to <strong>Appendix B<
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">INFO[0000] CLI version: 2.1.1
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1
+<pre class="pygments highlight"><code data-lang="shell">INFO[0000] CLI version: 2.2.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0
 INFO[0000] Namespace: openshift-storage
 INFO[0000]
 INFO[0000] CRD Status:
@@ -2815,8 +2812,8 @@ that the old and the new OSDs share the load.</p>
 <h2 id="_monitoring_the_ocs_environment">8. Monitoring the OCS environment</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section covers the different tools available with OCS 4.2 when it comes
-to monitoring the environment. This section relies on the existing UI.</p>
+<p>This section covers the different tools available with OCS 4 when it comes
+to monitoring the environment.</p>
 </div>
 <div class="paragraph">
 <p>Individuals already familiar with OCP will feel comfortable with this section
@@ -3237,9 +3234,9 @@ After successfully login in, you see blue text <code>Display token</code> - clic
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">Client Version: 4.3.1
-Server Version: 4.3.1
-Kubernetes Version: v1.16.2</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">Client Version: 4.4.8
+Server Version: 4.4.8
+Kubernetes Version: v1.17.1</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3273,13 +3270,13 @@ Kubernetes Version: v1.16.2</code></pre>
 <div class="listingblock">
 <div class="title">Mac steps without Homebrew</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-mac-v2.2.0 ; chmod +x noobaa-mac-v2.2.0 ; sudo mv noobaa-mac-v2.2.0 /usr/local/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-linux-v2.2.0 ; chmod +x noobaa-linux-v2.2.0 ; sudo mv noobaa-linux-v2.2.0 /usr/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3293,9 +3290,9 @@ Kubernetes Version: v1.16.2</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="pygments highlight"><code data-lang="shell">INFO[0000] CLI version: 2.1.1
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1</code></pre>
+<pre class="pygments highlight"><code data-lang="shell">INFO[0000] CLI version: 2.2.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3764,7 +3761,7 @@ throughout the cluster.</p>
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-07-31 17:24:23 UTC
+Last updated 2020-08-19 14:13:37 UTC
 </div>
 </div>
 </body>

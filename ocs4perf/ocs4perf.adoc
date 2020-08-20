@@ -1,0 +1,269 @@
+= Testing your OpenShift Container Storage deployment
+:toc: right
+:toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+:imagesdir: ../docs/imgs/
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Introduction
+
+Customers and Partners need a testing tool to validate OpenShift Container
+Storage performance offered by the cluster for each storage class created
+during the deployment.
+
+Using basic commands for benchmarking, such as the `dd` command, are not
+representative of modern multi-threaded workloads. Likewise, using
+single-threading commands, such as `dd`, for IO benchmarking are unable
+to illustrate OCS/Ceph performance. The `dd` command suffers from being
+a purely sequential IO and single-threaded tool causing `dd` to only communicate
+with a single OSD at a time for each 4MB sequence it reads or writes when using
+IO flags such as `O_DSYNC`, `O_SYNC` or `O_DIRECT`.
+
+Given these limitations, it is necessary to make a tool available 
+to easily perform a functional test of OpenShift Container Storage 
+(provision a volume, attach a volume, read or write from or to a volume,
+detach the volume, delete the volume) while also allowing to get a better
+view of the level of performance offered by the storage backend through the
+use of a multi-threaded tool that can leverage all the OSDs within
+the Ceph cluster during the test sequence.
+
+The `sysbench` tool offers multiple testing capabilities
+(CPU, Mutex, file, mysql) allowing for this testing tool to be
+expanded over time while having sequential and random IO capabilities as well
+as single and multi threading capabilities. It is also a tool actively maintained
+on github (`https://github.com/akopytov/sysbench`).
+
+== Building your custom container image (disconnected environments)
+
+```
+docker build -t sysbench:latest .
+docker tag sysbench:latest {use_your_preferred_registry}/sysbench:latest
+docker push {use_your_preferred_registry}/sysbench:latest
+```
+
+We have made publicly available the container image at
+`quay.io/vcppds7878/sysbench:latest` for convenience if you
+have Internet access from your OCP cluster.
+
+All the pre-populated testing scripts have been configured the following way:
+
+* Step 1 - Prepare the test files in an asynchornous way
+** Data sample is 4096MB spread over 128 files for 4KB and 4MB testing
+** Data sample is 4096MB spread over 2 files for 1GB testing
+* Step 2 - IO test run
+** All IO testing use `O_DSYNC` flag in synchronous mode
+** All IO size are set to 4KB, 4MB or 1GB
+** All IO tests use 16 threads except the 1GB sequential using only 2
+** All IO tests will run for 30 seconds
+* Step 3 - Cleanup the test files in an asynchornous way
+
+=== Default Configuration (Internal cluster)
+
+All yaml files below are configured with the storage class names of an
+internal cluster and for pulling the container image from the public
+location mentioned above. Each yaml file also creates by default a project
+named `sysbench`.
+
+Each pod is allocated a 5GB PVC execpt the IDLE pod that is allocated a 10GB one.
+
+=== External Cluster Configuration
+
+To switch the yaml files when testing against an external cluster run the 
+following commands in the directory containing your yaml files.
+
+[source,role="execute"]
+----
+# for f in $(ls *.yaml); do sed -i -e 's/ocs-storagecluster/ocs-external-storagecluster/g' $f; done
+----
+
+=== Disconnected Environments
+
+You might require to update the yaml files provided with a SHA based reference when operating
+in a disconnected environment. To do so run the following command.
+
+[source,role="execute"]
+----
+# docker pull quay.io/vcppds7878/sysbench:v1.0
+# for f in $(ls *.yaml); do sed -i -e "s#sysbench:latest#sysbench@sha256:$(docker inspect quay.io/vcppds7878/sysbench:v1.0|jq -r '.[].RepoDigests[0]'|cut -f2 -d:)#g" $f; done
+----
+
+Need be replace the `docker` command with the `podman` command.
+
+The current version of the tool matches the following characteristics:
+
+----
+v1.0: sha256:1009aacf752870bd38bda64d5c372fa7f370d225532560799a484a18a52ddea1
+----
+
+=== Custom Build Environments
+
+Same `bash` `for` loop can be used to update your container image reference.
+
+== IDLE Test Box
+
+* RWO PVC (run your own commands)
+** `oc create -f sysbench-rwo-idle.yaml`
+** `oc delete -f sysbench-rwo-idle.yaml`
+* RWX PVC (run your own commands)
+** `oc create -f sysbench-rwx-idle.yaml`
+** `oc delete -f sysbench-rwx-idle.yaml`
+
+== Preconfigured Test Box
+
+* Write Mode
+** `oc create -f sysbench-[rwo|rwx]-[r|s]write-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]write-[4k|4m|1g].yaml`
+* Read/Write Mode
+** `oc create -f sysbench-[rwo|rwx]-[r|s]readwrite-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]readwrite-[4k|4m|1g].yaml`
+* Read Mode
+** `oc create -f sysbench-[rwo|rwx]-[r|s]read-[4k|4m|1g].yaml`
+** `oc delete -f sysbench-[rwo|rwx]-[r|s]read-[4k|4m|1g].yaml`
+
+If using your own container image make sure to update the `docker tag`
+and `docker push` commands with the appropriate references as well as the
+YAML files provided.
+
+You can choose the following predefined options built-in the file name:
+
+* PVC type
+** Choose between `rwo` (RBD based) or `rwx` (CephFS based)
+* Workload type
+** Choose between `r` (random) or `s` (sequential) workload type
+* IO size
+** Choose between `4k` (4KB), `4m` (4MB) or `1g` (1GB)
+
+== Example Output
+
+Start a random write test. The default is to run the test with 16 threads
+with a 4KB block size. If you are looking for a more customizable experience
+use the `sysbench-rwo-idle.yaml` or sysbench-rwx-idle.yaml file. Once the
+pod starts you will have 20 minutes to connect into the pod  via `oc rsh`
+and perform any test you see fit.
+
+[source,role="execute"]
+----
+# oc create -f sysbench-rwo-rwrite-4k.yaml
+----
+.Example output:
+----
+namespace/sysbench created
+persistentvolumeclaim/pvc-sysbenchrbd-write created
+job.batch/sysbench-file-write created
+----
+
+Verify the storage was allocated and bound to the pod.
+
+[source,role="execute"]
+----
+# oc get pvc -n sysbench
+----
+.Example output:
+----
+NAME                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi        RWO            ocs-independent-storagecluster-ceph-rbd   13s
+----
+
+Now wait for the pod to complete. All results will be displayed in the pod log.
+
+[source,role="execute"]
+----
+# oc get pods -n sysbench -w
+----
+.Example output:
+----
+NAME                        READY   STATUS              RESTARTS   AGE
+sysbench-file-write-m6mnd   0/1     ContainerCreating   0          26s
+sysbench-file-write-m6mnd   1/1     Running             0          27s
+sysbench-file-write-m6mnd   0/1     Completed           0          41s
+----
+
+Now inspect the test results.
+
+[source,role="execute"]
+----
+# oc logs $(oc get pods -o name -n sysbench) -n sysbench
+----
+.Example output:
+----
+Currently mounted filesystems for Random WRITE test
+/dev/rbd0                               999320     2564    980372   1% /tmp/data
+Changing working directory to /tmp/data
+Current working directory for control before execution
+/tmp/data
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-io-mode=async --file-fsync-freq=0 prepare
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+128 files, 1024Kb each, 128Mb total
+Creating files for the test...
+Extra file open flags: (none)
+Creating file test_file.0
+Creating file test_file.1
+[... truncated ...]
+Creating file test_file.126
+Creating file test_file.127
+134217728 bytes written in 3.41 seconds (37.51 MiB/sec).
++ set +x
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-extra-flags=dsync run
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+Running the test with following options:
+Number of threads: 16
+Initializing random number generator from current time
+
+
+Extra file open flags: dsync
+128 files, 1MiB each
+128MiB total file size
+Block size 4KiB
+Number of IO requests: 0
+Read/Write ratio for combined random IO test: 1.50
+Periodic FSYNC enabled, calling fsync() each 100 requests.
+Calling fsync() at the end of test, Enabled.
+Using synchronous I/O mode
+Doing random write test
+Initializing worker threads...
+
+Threads started!
+
+
+File operations:
+    reads/s:                      0.00
+    writes/s:                     8466.75
+    fsyncs/s:                     11034.61
+
+Throughput:
+    read, MiB/s:                  0.00
+    written, MiB/s:               33.07
+
+General statistics:
+    total time:                          10.0060s
+    total number of events:              193174
+
+Latency (ms):
+         min:                                    0.00
+         avg:                                    0.82
+         max:                                   13.63
+         95th percentile:                        2.97
+         sum:                               158721.54
+
+Threads fairness:
+    events (avg/stddev):           12073.3750/109.77
+    execution time (avg/stddev):   9.9201/0.00
+
++ sysbench --threads=16 --test=fileio --file-total-size=128m --file-test-mode=rndwr --file-block-size=4k --file-io-mode=async --file-fsync-freq=0 cleanup
+WARNING: the --test option is deprecated. You can pass a script name or path on the command line without any options.
+sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
+
+Removing test files...
++ set +x
+Changing working directory to /
+----
+
+

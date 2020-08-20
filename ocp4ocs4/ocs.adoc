@@ -403,8 +403,7 @@ If it says `Ready`, you can continue.
 
 You can now also check the status of your storage cluster with the OCS
 specific *Dashboards* that are included in your *Openshift Web Console*. You
-can reach this by clicking on `Home` on your left navigation bar, then
-selecting `Dashboards` and finally clicking on `Persistent Storage` on the
+can reach this by clicking on `Overview` on your left navigation bar, then clicking on `Persistent Storage` on the
 top navigation bar of the content page.
 
 NOTE: If you just finished your OCS 4 deployment it could take 5-10 minutes
@@ -422,9 +421,7 @@ image::OCS-dashboard-healthy.png[OCS Dashboard after successful backing storage 
 |<5> | Utilization | Overview of the storage cluster usage and performance
 |===
 
-OCS ships with a *Dashboard* for the Object Store service as well. From
-within the *Dashboard* menu click on the `Object Service` on the top
-navigation bar of the content page.
+OCS ships with a *Dashboard* for the Object Store service as well. After navigating to `Overview` on your left navigation bar, click on the `Object Service` on the top navigation bar of the content page.
 
 .OCS Multi-Cloud-Gateway Dashboard after successful installation
 image::OCS-noobaa-dashboard-healthy.png[OCS Multi-Cloud-Gateway Dashboard after successful installation]
@@ -840,7 +837,7 @@ oc expose svc/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
-oc scale --replicas=3 deployment/file-uploader -n my-shared-storage
+oc scale --replicas=3 dc/file-uploader -n my-shared-storage
 ----
 [source,role="execute"]
 ----
@@ -865,7 +862,7 @@ the `oc set volume` command. Execute the following
 
 [source,role="execute"]
 ----
-oc set volume deployment/file-uploader --add --name=my-shared-storage \
+oc set volume dc/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -875,8 +872,8 @@ oc set volume deployment/file-uploader --add --name=my-shared-storage \
 This command will:
 
 * create a *PersistentVolumeClaim*
-* update the *Deployment* to include a `volume` definition
-* update the *Deployment* to attach a `volumemount` into the specified
+* update the *DeploymentConfig* to include a `volume` definition
+* update the *DeploymentConfig* to attach a `volumemount` into the specified
   `mount-path`
 * cause a new deployment of the 3 application *Pods*
 
@@ -1116,9 +1113,9 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.1.1                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1 
+INFO[0000] CLI version: 2.2.0                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0 
 INFO[0000] Namespace: openshift-storage                 
 INFO[0000]                                              
 INFO[0000] CRD Status:                                  
@@ -1742,8 +1739,8 @@ exit
 
 == Monitoring the OCS environment
 
-This section covers the different tools available with OCS 4.2 when it comes
-to monitoring the environment. This section relies on the existing UI.
+This section covers the different tools available with OCS 4 when it comes
+to monitoring the environment.
 
 Individuals already familiar with OCP will feel comfortable with this section
 but for those who are not, it will be a good bootstrap.
@@ -2008,9 +2005,9 @@ oc version
 ----
 .Example output:
 ----
-Client Version: 4.3.1
-Server Version: 4.3.1
-Kubernetes Version: v1.16.2
+Client Version: 4.4.8
+Server Version: 4.4.8
+Kubernetes Version: v1.17.1
 ----
 
 [NOTE]
@@ -2031,13 +2028,13 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "mac" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-mac-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/local/bin/
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-mac-v2.2.0 ; chmod +x noobaa-mac-v2.2.0 ; sudo mv noobaa-mac-v2.2.0 /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -s https://api.github.com/repos/noobaa/noobaa-operator/releases/latest | grep "linux" | cut -d : -f 2,3 | tr -d \" | wget -qi - ; mv noobaa-linux-* noobaa ; chmod +x noobaa; sudo mv noobaa /usr/bin/
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-linux-v2.2.0 ; chmod +x noobaa-linux-v2.2.0 ; sudo mv noobaa-linux-v2.2.0 /usr/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
@@ -2048,9 +2045,9 @@ noobaa version
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.1.1
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.3.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.1.1
+INFO[0000] CLI version: 2.2.0                           
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
+INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0
 ----
 
 [NOTE]
