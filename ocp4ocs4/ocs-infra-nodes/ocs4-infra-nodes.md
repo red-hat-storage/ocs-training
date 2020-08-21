@@ -1,15 +1,15 @@
 # Why use Infrastructure nodes?
 Using Infrastructure nodes to schedule OpenShift Container Storage (OCS) resources will save on OpenShift Container Platform (OCP) subscription costs. Any OCP node that has a `infra` node-role label will only require OCS subscription but no OCP subscription.
 # Background
-Currently the Machine API cannot handle the creation of nodes carrying only the `node-role.kubernetes.io/infra` node-role label. Nodes created with the Machine API can only have node-roles in addition to `node-role.kubernetes.io/worker`. A common approach is desirable for consistency across environments, both those with and without Machine API support. As such we suggest the creation of nodes with dual worker/infra node-roles or labels.
+Currently the Machine API cannot handle the creation of nodes carrying only the `node-role.kubernetes.io/infra` node-role label. Nodes created with the Machine API can only have node-roles added along with the default `node-role.kubernetes.io/worker`. 
 
-When the Machine API supports the creation of `infra` nodes without the additional `node-role.kubernetes.io/worker` node-role, a new `MachineConfigPool` needs to be created to facilitate node upgrades or any `MachineConfig` changes to the `infra` nodes.
+A common approach is desirable for consistency across environments, both those with and without Machine API support (reference section below for manual configuration of `infa` nodes). Because of this, it highly recommended in all cases to have nodes with the dual `worker/infra` node-role or label.
 # Anatomy of an Infrastructure node
-Infrastructure nodes for use with OpenShift Container Storage (OCS) have a few attributes. Required is the `infra` label:
+Infrastructure nodes for use with OCS have a few attributes. Required is the `infra` label so that the OCP subscription cost will not be applied to the new `infra` node.
 
 * Labeled with `node-role.kubernetes.io/infra`
 
-Adding a NoSchedule OCS taint is highly recommended so that the `infra` node will only schedule OCS resources. 
+Adding a NoSchedule OCS taint is also required so that the `infra` node will only schedule OCS resources. 
 
 * Tainted with `node.ocs.openshift.io/storage="true"`
 
@@ -64,13 +64,13 @@ oc label node <node> node-role.kubernetes.io/infra=""
 oc label node <node> cluster.ocs.openshift.io/openshift-storage=""
 ~~~
 
-Adding a NoSchedule OCS taint is highly recommended so that the `infra` node will only schedule OCS resources.
+Adding a NoSchedule OCS taint is also required so that the `infra` node will only schedule OCS resources and repel any other non-OCS workloads.
 
 ~~~
 oc adm taint <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
 
-If the `worker` node-role is removed and there is only the `infra` node-role on the `infra` nodes, a new `MachineConfigPool` needs to be created to facilitate node upgrades or any `MachineConfig` changes to the `infra` nodes.
+It is highly recommended to keep the `worker` node-role on the new `infra` node. Currently OCP default is to *only* create a worker and master `MachineConfigPool` used for applying any new `MachineConfig` including upgrading OCP. If the `worker` node-role is removed from a OCP node the changes in the new `MachineConfig` will not be applied to nodes with *only* the `infra` node-role.
 # Toleration for Local Storage Operator 
 When local storage devices are used for creating the OCS cluster (i.e., AWS i3en.3xlarge instance type) then LSO will need to installed before OCS can be deployed. In order to allow the LSO pods to schedule on the `infra` nodes with the OCS NoSchedule taint, a toleration has to be added to the `LocalVolume` custom resource file.
 
