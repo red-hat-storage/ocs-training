@@ -3,7 +3,7 @@ Using Infrastructure nodes to schedule OpenShift Container Storage (OCS) resourc
 # Background
 Currently the Machine API cannot handle the creation of nodes carrying only the `node-role.kubernetes.io/infra` node-role label. Nodes created with the Machine API can only have node-roles added along with the default `node-role.kubernetes.io/worker`. 
 
-A common approach is desirable for consistency across environments, both those with and without Machine API support (reference section below for manual configuration of `infa` nodes). Because of this, it highly recommended in all cases to have nodes with the dual `worker/infra` node-role or label.
+A common approach is desirable for consistency across environments, both those with and without Machine API support (reference section below for manual configuration of `infa` nodes). Because of this, it is highly recommended in all cases to have nodes with the dual `worker/infra` node-role or label.
 # Anatomy of an Infrastructure node
 Infrastructure nodes for use with OCS have a few attributes. Required is the `infra` label so that the OCP subscription cost will not be applied to the new `infra` node.
 
