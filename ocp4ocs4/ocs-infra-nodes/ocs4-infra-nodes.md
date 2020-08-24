@@ -71,7 +71,7 @@ oc adm taint <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
 
 
-# Warning: Do not remove `worker` node-role
+# Warning: Do not remove worker node-role
 The removal of the `worker` node-role is not recommended. If already removed, it should be added again to each `infra` node. Adding a `infra` node-role and OCS taint is sufficient to conform to entitlement exemption requirements, and it is not necessary to remove the `worker` node-role. In fact, removing the `worker` node-role from `infra` nodes can cause issues unless changes are made both to the OpenShift scheduler and to `MachineConfig` resources.
 
 # Toleration for Local Storage Operator 
