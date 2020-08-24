@@ -5,11 +5,11 @@ Currently the Machine API cannot handle the creation of nodes carrying only the 
 
 A common approach is desirable for consistency across environments, both those with and without Machine API support (reference section below for manual configuration of `infa` nodes). Because of this, it is highly recommended in all cases to have nodes with the dual `worker/infra` node-role or label.
 # Anatomy of an Infrastructure node
-Infrastructure nodes for use with OCS have a few attributes. Required is the `infra` label so that the OCP subscription cost will not be applied to the new `infra` node.
+Infrastructure nodes for use with OCS have a few attributes. The `infra` node-role label is required to ensure the node does not consume OCP entitlements. Effectively, the `infra` node-role label is responsible for ensuring only OCS entitlements are necessary for the nodes running OCS.
 
 * Labeled with `node-role.kubernetes.io/infra`
 
-Adding a NoSchedule OCS taint is also required so that the `infra` node will only schedule OCS resources. 
+Adding a OCS taint with a NoSchedule effect is also required so that the `infra` node will only schedule OCS resources.
 
 * Tainted with `node.ocs.openshift.io/storage="true"`
 
@@ -70,7 +70,10 @@ Adding a NoSchedule OCS taint is also required so that the `infra` node will onl
 oc adm taint <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
 
-It is highly recommended to keep the `worker` node-role on the new `infra` node. Currently OCP default is to *only* create a worker and master `MachineConfigPool` used for applying any new `MachineConfig` including upgrading OCP. If the `worker` node-role is removed from a OCP node the changes in the new `MachineConfig` will not be applied to nodes with *only* the `infra` node-role.
+
+# Warning: Do not remove `worker` node-role
+The removal of the `worker` node-role is not recommended. If already removed, it should be added again to each `infra` node. Adding a `infra` node-role and OCS taint is sufficient to conform to entitlement exemption requirements, and it is not necessary to remove the `worker` node-role. In fact, removing the `worker` node-role from `infra` nodes can cause issues unless changes are made both to the OpenShift scheduler and to `MachineConfig` resources.
+
 # Toleration for Local Storage Operator 
 When local storage devices are used for creating the OCS cluster (i.e., AWS i3en.3xlarge instance type) then LSO will need to installed before OCS can be deployed. In order to allow the LSO pods to schedule on the `infra` nodes with the OCS NoSchedule taint, a toleration has to be added to the `LocalVolume` custom resource file.
 
