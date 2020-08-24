@@ -9,7 +9,7 @@ Infrastructure nodes for use with OCS have a few attributes. The `infra` node-ro
 
 * Labeled with `node-role.kubernetes.io/infra`
 
-Adding a OCS taint with a NoSchedule effect is also required so that the `infra` node will only schedule OCS resources. 
+Adding a OCS taint with a NoSchedule effect is also required so that the `infra` node will only schedule OCS resources.
 
 * Tainted with `node.ocs.openshift.io/storage="true"`
 
@@ -72,7 +72,7 @@ oc adm taint <node> node.ocs.openshift.io/storage="true":NoSchedule
 
 
 # Warning: Do not remove `worker` node-role
-Adding a `infra` node-role and OCS taint is sufficient to conform to entitlement exemption requirements, and it is not necessary to remove the `worker` node-role. In fact, removing the `worker` node-role from `infra` nodes can cause issues unless changes are made both to the scheduler, and to machine configs. We do not recommend the removal of the `worker` node-role, and if already removed, we suggest adding it back. 
+The removal of the `worker` node-role is not recommended. If already removed, it should be added again to each `infra` node. Adding a `infra` node-role and OCS taint is sufficient to conform to entitlement exemption requirements, and it is not necessary to remove the `worker` node-role. In fact, removing the `worker` node-role from `infra` nodes can cause issues unless changes are made both to the OpenShift scheduler and to MachineConfig resources.
 
 # Toleration for Local Storage Operator 
 When local storage devices are used for creating the OCS cluster (i.e., AWS i3en.3xlarge instance type) then LSO will need to installed before OCS can be deployed. In order to allow the LSO pods to schedule on the `infra` nodes with the OCS NoSchedule taint, a toleration has to be added to the `LocalVolume` custom resource file.
