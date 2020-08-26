@@ -360,8 +360,6 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Comple
 rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Running     0          171m
 ~~~
 
-**Note:** If required in the future the cluster can be expanded again.
-
 ### Cluster Re-Expansion Example
 You can easily expand the capacity of an existing cluster via the CLI through the update of the `storageDeviceSets` count in the `storagecluster` object in the `openshift-storage` namespace.
 
