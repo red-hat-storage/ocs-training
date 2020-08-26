@@ -31,8 +31,8 @@ These requirements need to be met before proceeding.
 
 ## Procedure
 
-### Identify how many devicesets have been deployed
-As a strating point always display and keep at hand a complete list of all the pods
+### Identify `storageDeviceSets`
+As a starting point we recommend to display and keep at hand a complete list of the pods
 running in the `openshift-storage` namespace.
 
 ~~~
@@ -80,11 +80,11 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Completed   0          3m40s
 ~~~
 
-Before you can shrink your cluster you need to identify how many devicesets have
+Before you can downsize your cluster you need to validate how many `storageDeviceSets` have
 been deployed so you can adjust the value properly. 
 
-You may shrink your cluster one deviceset at a time. Simply loop through this procedure
-for each deviceset that has to be removed from the cluster.
+You MUST downsize your cluster one `storageDeviceSets` at a time. Simply loop through this procedure
+for each `storageDeviceSets` that has to be removed from the cluster with their corresponding OSDs.
 
 ~~~
 $ deviceset=$(oc get storagecluster -o json | jq '.items[0].spec.storageDeviceSets[0].count')
@@ -92,8 +92,8 @@ $ echo ${deviceset}
 2
 ~~~
 
-**Note:** If the number of storage devicesets is `1` do **NOT** proceed as you will
-end up loosing all data in your OCS cluster.
+**Note:** If the `count` of storage `storageDeviceSets` is `1` do **NOT** proceed as this will
+result in a totak data loss in your OCS cluster.
 
 Start a Ceph toolbox pod to verify the health of your internal Ceph cluster.
 
@@ -109,15 +109,15 @@ $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 HEALTH_OK
 ~~~
 
-**Note:** If the status of the cluster is not HEALTH_OK please address any issue prior to proceeding.
+**Note:** If the status of the cluster is not HEALTH_OK, address any issue prior to proceeding.
 
-### Decrease `DeviceSet` Count
+### Decrease `storageDeviceSets` Count
 
 ~~~
 $ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
 ~~~
 
-**Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`.
+**Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`. See example below.
 
 ~~~
 $ newset=$((deviceset - 1))
@@ -125,15 +125,15 @@ $ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --
 storagecluster.ocs.openshift.io/ocs-storagecluster patched
 ~~~
 
-Verify the `storagecluster` object has been updated.
+Verify the `storagecluster` object has been updated. In the example below we go from 2 to 1 `storageDeviceSets`.
 
 ~~~
 $ oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storageDeviceSets[0].count'
 1
 ~~~
 
-### Take Note of Existing DeviceSets and OSDs
-Before you can proceed you have to identify the `DeviceSets` that are to be removed from 
+### Take Note of Existing `storageDeviceSets` and OSDs
+Before you can proceed you have to identify the `storageDeviceSets` that are to be removed from 
 your cluster. 
 
 ~~~
@@ -146,9 +146,9 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        44
 rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40m
 ~~~
 
-**Note:** Each `DeviceSet` has 3 jobs, one per replica. The rank of the `DeviceSet`
-is identified by the value after `data`. `xxx-deviceset-0-data-0-yyy` means this
-job is for the first replica (`deviceset-0`) for the first rank (`data-0`).
+**Note:** Each `storageDeviceSets` has 3 jobs, one per replica. The rank of the `storageDeviceSets`
+is materialized by the value after `data`. `xxx-deviceset-0-data-0-yyy` means this
+job is for the first replica (`deviceset-**0**`) for the first rank (`data-**0**`).
 
 We recommend that you shrink your cluster by removing the higher OSD IDs. To identify
 the correct OSDs, verify which OSDs have been deployed with the following command.
