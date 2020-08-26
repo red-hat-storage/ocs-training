@@ -157,7 +157,7 @@ In the example above the following objects will be removed from the cluster:
 ### Remove OSDs from the Ceph Cluster
 You **MUST** remove each OSD, ONE AT A TIME, using the following set of commands. Make sure the cluster reaches `HEALTH_OK` status before removing the next OSD.
 
-Step 1 - Scale down OSD deployment
+#### Step 1 - Scale down OSD deployment
 ~~~
 $ osd_id_to_remove=5
 $ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
@@ -172,13 +172,13 @@ $ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
 
 Once the OSD pod has been removed, you can remove the OSD from the Ceph cluster.
 
-Step 2 - Removed OSD from Ceph cluster
+#### Step 2 - Removed OSD from Ceph cluster
 ~~~
 $ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 job.batch/ocs-osd-removal-5 created
 ~~~
 
-Step 3 - Check Cluster Status and Data Protection
+#### Step 3 - Check Cluster Status and Data Protection
 Check cluster status and wait until status is `HEALTH_OK`
 
 ~~~
