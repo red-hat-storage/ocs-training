@@ -1,6 +1,6 @@
-# OpenShift Container Storage (OCS) 4.5 Shrink Existing Internal Cluster
-This document is to supplement the OpenShift Container Storage (OCS) and provide
-instructions for shrinking a previously deployed internal mode cluster.
+# OpenShift Container Storage (OCS) 4.4 & 4.5 Internal Cluster Downsizing
+This document is to supplement the OpenShift Container Storage (OCS) documentation
+and provide instructions for shrinking a previously deployed internal mode cluster.
 It is not clear at this point when this procedure will be officially documented
 nor when it will be automated via the `rook-ceph` operator.
 
@@ -15,7 +15,7 @@ via email.
 ## Overview
 Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by
 removing OSDs or MONs but this functionality is not documented for OCS. The purpose
-of this document is to details the steps necessary to safely reduce the number
+of this document is to detail the steps required to safely reduce the number
 of OSDs in an OCS internal cluster. Such situation may be faced when an application
 is migrated or removed from the cluster and the OCP administrator would like
 to reduce the amount of resources used by the OCS cluster (`gp2` persistent volumes,
@@ -23,7 +23,7 @@ CPU and RAM consumed by OSDs that are no longer needed).
 
 ## Prerequisites
 These requirements need to be met before proceeding.
-1. An OCS 4.5 or higher internal cluster 
+1. An OCS 4.4 or higher internal cluster 
 
 2. The OCS cluster is healthy and all data is protected
 
