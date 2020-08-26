@@ -1,39 +1,23 @@
-# OpenShift Container Storage (OCS) 4.4 & 4.5 Internal Cluster Downsizing
-This document is to supplement the OpenShift Container Storage (OCS) documentation
-and provide instructions for shrinking a previously deployed internal mode cluster.
-It is not clear at this point when this procedure will be officially documented
-nor when it will be automated via the `rook-ceph` operator.
+# OpenShift Container Storage (OCS) - Downsize Internal Cluster (4.4 and higher)
+This document is to supplement the OpenShift Container Storage (OCS) documentation and provide instructions for downsizing a previously deployed internal mode cluster. It is not clear at this point when this procedure will be officially documented nor when it will be automated via the `rook-ceph` operator.
 
-This document currently details the step for a dynamically provisioned OCS cluster
-through the `gp2` (AWS) or `thin` storage class regardless of the OSD device size.
+This document currently details the step for a dynamically provisioned OCS cluster through the `gp2` (AWS) or `thin` (VMWare) storage class regardless of the OSD device size.
 
-This is a live document to be used in various environments and configurations.
-If you find any mistakes or missing instructions, please add an [Issue][8] or
-contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com)
-via email.
+This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please feel free to comment on this KCS or contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com) via email.
 
 ## Overview
-Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by
-removing OSDs or MONs but this functionality is not documented for OCS. The purpose
-of this document is to detail the steps required to safely reduce the number
-of OSDs in an OCS internal cluster. Such situation may be faced when an application
-is migrated or removed from the cluster and the OCP administrator would like
-to reduce the amount of resources used by the OCS cluster (`gp2` persistent volumes,
-CPU and RAM consumed by OSDs that are no longer needed).
+Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by removing OSDs or MONs but this functionality is not documented for OCS. The purpose of this document is to detail the steps required to safely reduce the number of OSDs in an OCS internal cluster. Such situation may be faced when an application is migrated or removed from the cluster and the OCP administrator would like to reduce the amount of resources used by the OCS cluster (`gp2` persistent volumes, CPU and RAM consumed by OSDs that are no longer needed).
 
 ## Prerequisites
-These requirements need to be met before proceeding.
+These requirements need to be met before proceeding:
 1. An OCS 4.4 or higher internal cluster 
-
 2. The OCS cluster is healthy and all data is protected
-
 3. The OCS cluster contains 6 or more OSDs
 
 ## Procedure
 
-### Identify `storageDeviceSets`
-As a starting point we recommend to display and keep at hand a complete list of the pods
-running in the `openshift-storage` namespace.
+### Identify Existing storageDeviceSets
+As a starting point we recommend to display and keep at hand a complete list of the pods running in the `openshift-storage` namespace.
 
 ~~~
 $ oc get pods
@@ -80,20 +64,16 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Completed   0          3m40s
 ~~~
 
-Before you can downsize your cluster you need to validate how many `storageDeviceSets` have
-been deployed so you can adjust the value properly. 
+Before you can downsize your cluster you need to validate how many `storageDeviceSets` have been deployed so you can adjust the value properly. Each `storageDeviceSets` requires 3 OSDs deployed on 3 unique OCP nodes and the minimum number in a cluster is 1.
 
-You MUST downsize your cluster one `storageDeviceSets` at a time. Simply loop through this procedure
-for each `storageDeviceSets` that has to be removed from the cluster with their corresponding OSDs.
-
+The following command will provide you with the current number of `storageDeviceSets` configured in your cluster:
 ~~~
 $ deviceset=$(oc get storagecluster -o json | jq '.items[0].spec.storageDeviceSets[0].count')
 $ echo ${deviceset}
 2
 ~~~
 
-**Note:** If the `count` of storage `storageDeviceSets` is `1` do **NOT** proceed as this will
-result in a totak data loss in your OCS cluster.
+**Note:** If the `count` of storage `storageDeviceSets` is `1` do **NOT** proceed as this will result in a total data loss in your OCS cluster.
 
 Start a Ceph toolbox pod to verify the health of your internal Ceph cluster.
 
@@ -111,7 +91,7 @@ HEALTH_OK
 
 **Note:** If the status of the cluster is not HEALTH_OK, address any issue prior to proceeding.
 
-### Decrease `storageDeviceSets` Count
+### Decrease storageDeviceSets Count
 
 ~~~
 $ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
@@ -132,9 +112,8 @@ $ oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storag
 1
 ~~~
 
-### Take Note of Existing `storageDeviceSets` and OSDs
-Before you can proceed you have to identify the `storageDeviceSets` that are to be removed from 
-your cluster. 
+### Take Note of Existing storageDeviceSets and OSDs
+Before you can proceed you have to identify the `storageDeviceSets` that are to be removed from your cluster. 
 
 ~~~
 $ oc get job.batch -n openshift-storage | grep prepare
@@ -146,13 +125,9 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        44
 rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40m
 ~~~
 
-**Note:** Each `storageDeviceSets` has 3 jobs, one per replica. The rank of the `storageDeviceSets`
-is materialized by the value after `data`. If we look at the job `xxx-deviceset-0-data-0-yyy`
-it means the job is for the first replica (**`deviceset-0`**) for the first rank (**`data-0`**).
+**Note:** Each `storageDeviceSets` has 3 jobs, one per replica. The rank of the `storageDeviceSets` is materialized by the value after `data`. If we look at the job `xxx-deviceset-0-data-0-yyy` it means the job is for the first replica (**`deviceset-0`**) for the first rank (**`data-0`**).
 
-We recommend that you shrink your cluster by removing the higher OSD IDs that are deployed
-for the higher rank `storageDeviceSets`. To identify the correct OSDs, verify which OSDs have
-been deployed with the following command.
+We recommend that you shrink your cluster by removing the higher OSD IDs that are deployed for the higher rank `storageDeviceSets`. To identify the correct OSDs, verify which OSDs have been deployed with the following command.
 
 ~~~
 $ oc get pods | grep osd | grep -v prepare
@@ -164,9 +139,7 @@ rook-ceph-osd-4-75c8d6894-fp9wb                                   1/1     Runnin
 rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Running     0          46m
 ~~~
 
-In the example above, the first `storageDeviceSets` correspond to OSDs 0 through 2 while the 
-second `storageDeviceSets` correspond to OSDs 3 through 5. Need be you can verify which `storageDeviceSets`
-is being used by each OSD using the following command.
+In the example above, the first `storageDeviceSets` correspond to OSDs 0 through 2 while the second `storageDeviceSets` correspond to OSDs 3 through 5. You can verify which `storageDeviceSets` is being used by each OSD using the following command.
 
 ~~~
 $ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o json | jq -r '.metadata.labels["ceph.rook.io/pvc"]'
@@ -182,9 +155,9 @@ In the example above the following objects will be removed from the cluster:
 * DeviceSet with id ocs-deviceset-0-data-1
 
 ### Remove OSDs from the Ceph Cluster
-You need to remove each OSD, ONE AT A TIME, using the following set of commands.
-Make sure the cluster reaches `HEALTH_OK` status before removing the next OSD.
+You **MUST** remove each OSD, ONE AT A TIME, using the following set of commands. Make sure the cluster reaches `HEALTH_OK` status before removing the next OSD.
 
+Step 1 - Scale down OSD deployment
 ~~~
 $ osd_id_to_remove=5
 $ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
@@ -199,11 +172,13 @@ $ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
 
 Once the OSD pod has been removed, you can remove the OSD from the Ceph cluster.
 
+Step 2 - Removed OSD from Ceph cluster
 ~~~
 $ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 job.batch/ocs-osd-removal-5 created
 ~~~
 
+Step 3 - Check Cluster Status and Data Protection
 Check cluster status and wait until status is `HEALTH_OK`
 
 ~~~
@@ -219,14 +194,14 @@ $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 5 osds: 5 up (since 3m), 5 in (since 95s); epoch: e85
 ~~~
 
-You can now proceed with the next OSD removal. Simply repeat the commands in the chapter
-after updating the `osd_id_to_remove=` command to match the OSD id. In this example you
-would then proceed with the following values:
+You can now proceed with the next OSD removal, Step 1, 2 and 3 of this chapter (Remove OSDs from the Ceph Cluster). Simply update the `osd_id_to_remove=` command in Step 1 to match the OSD id.
+
+**Note:** In our test environment we repeated Step 1, 2 and 3 with the following values:
 
 * `osd_id_to_remove=4`
 * `osd_id_to_remove=3`
 
-Here is a screen capture of our test environment.
+Here are the commands for this example after the first OSD (5) is removed and purged from Ceph.
 
 ~~~
 $ osd_id_to_remove=4
@@ -243,28 +218,19 @@ $ osd_id_to_remove=3
 $ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
 deployment.apps/rook-ceph-osd-3 scaled
 $ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
-rook-ceph-osd-3-cb4b7bb9c-9zncq                                   0/1     Terminating   0          74m
-$ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
-rook-ceph-osd-3-cb4b7bb9c-9zncq                                   0/1     Terminating   0          74m
-$ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
 $ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 job.batch/ocs-osd-removal-3 created
 $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 HEALTH_WARN too many PGs per OSD (288 > max 250)
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health detail
-HEALTH_WARN too many PGs per OSD (288 > max 250)
-TOO_MANY_PGS too many PGs per OSD (288 > max 250)
 $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 3 osds: 3 up (since 99s), 3 in (since 53s); epoch: e120
 ~~~
 
-**Note:** Although the status of the cluster is not `HEALTH_OK` in the above example no warning
-or error is reported regarding the protection of the data itself.
+**Note:** Although the status of the cluster is not `HEALTH_OK` in the above example no warning or error is reported regarding the protection of the data itself.
 
 ### Remove OSD Deployment Objects
 
-Now that the OSDs have been removed from the Ceph cluster and the OSD pods have been removed
-from the OCP cluster we will remove the deployment object for each OSD we have removed.
+Now that the OSDs have been removed from the Ceph cluster and the OSD pods have been removed from the OCP cluster we will remove the deployment object for each OSD we have removed.
 
 ~~~
 for i in 5 4 3; do oc delete -n openshift-storage deployment.apps/rook-ceph-osd-${i}; done
@@ -275,8 +241,7 @@ deployment.apps "rook-ceph-osd-3" deleted
 
 ### Remove Prepare Jobs
 
-Now that the deployments have been removed we will clean up the prepare jobs that were
-responsible for preparing the storage devices for the OSDs that no longer exist.
+Now that the deployments have been removed we will clean up the prepare jobs that were responsible for preparing the storage devices for the OSDs that no longer exist.
 
 ~~~
 $ oc get job -n openshift-storage | grep prepare
@@ -325,9 +290,7 @@ persistentvolumeclaim "ocs-deviceset-0-data-1-q72z4" deleted
 ~~~
 
 ### Final Cleanup
-
-Verify the physical volumes that were dynamically provisioned for the OSDs
-we removed have been deleted.
+Verify the physical volumes that were dynamically provisioned for the OSDs we removed have been deleted.
 
 ~~~
 $ oc get pvc -n openshift-storage| grep deviceset
@@ -355,7 +318,7 @@ job.batch "ocs-osd-removal-3" deleted
 
 **Note:** Adapt the `for` loop arguments to match your OSD ids.
 
-Verify no unnecessary pod was left over.
+Verify no unnecessary pod was left over (osd-prepare job, rook-ceph-osd pod, osd-removal job, ...).
 
 ~~~
 $ oc get pods -n openshift-storage
@@ -397,10 +360,12 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Comple
 rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Running     0          171m
 ~~~
 
-**Note:** At this point later in the future the cluster can be expanded again. The simplest way to do
-so is to update the `storageDeviceSets` count in the `storagecluster` object. In the example below we
-will expand the same OCS cluster we used for our test from 3 OSDs to 6 OSDs to bring it back to its
-original size.
+**Note:** If required in the future the cluster can be expanded again.
+
+### Cluster Re-Expansion Example
+You can easily expand the capacity of an existing cluster via the CLI through the update of the `storageDeviceSets` count in the `storagecluster` object in the `openshift-storage` namespace.
+
+As an example, let's expand the same OCS cluster we just downsized to 3 OSDs and bring it back to its original size (6 OSDs).
 
 ~~~
 $ newset=2
