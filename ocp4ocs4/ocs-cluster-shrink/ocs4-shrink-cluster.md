@@ -398,8 +398,9 @@ rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Runnin
 ~~~
 
 **Note:** At this point later in the future the cluster can be expanded again. The simplest way to do
-update the `storageDeviceSets` count in the `storagecluster` object. In the example below we will expand
-the same OCS cluster we used for our test from 3 OSDs to 6 OSDs to bring it back to its original size.
+so is to update the `storageDeviceSets` count in the `storagecluster` object. In the example below we
+will expand the same OCS cluster we used for our test from 3 OSDs to 6 OSDs to bring it back to its
+original size.
 
 ~~~
 $ newset=2
