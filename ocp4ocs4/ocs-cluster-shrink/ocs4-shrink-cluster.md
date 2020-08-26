@@ -1,4 +1,4 @@
-# OpenShift Container Storage (OCS) - Downsize Internal Cluster (4.4 and higher)
+# OpenShift Container Storage (OCS) - Downsize Internal Cluster 4.4 and higher
 This document is to supplement the OpenShift Container Storage (OCS) documentation and provide instructions for downsizing a previously deployed internal mode cluster. It is not clear at this point when this procedure will be officially documented nor when it will be automated via the `rook-ceph` operator.
 
 This document currently details the step for a dynamically provisioned OCS cluster through the `gp2` (AWS) or `thin` (VMWare) storage class regardless of the OSD device size.
