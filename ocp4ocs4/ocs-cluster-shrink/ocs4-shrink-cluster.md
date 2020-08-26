@@ -147,8 +147,8 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40
 ~~~
 
 **Note:** Each `storageDeviceSets` has 3 jobs, one per replica. The rank of the `storageDeviceSets`
-is materialized by the value after `data`. `xxx-deviceset-0-data-0-yyy` means this
-job is for the first replica (`deviceset-**0**`) for the first rank (`data-**0**`).
+is materialized by the value after `data`. If we look at the job `xxx-deviceset-0-data-0-yyy`
+it means the job is for the first replica (**`deviceset-0`**) for the first rank (`data-0`).
 
 We recommend that you shrink your cluster by removing the higher OSD IDs. To identify
 the correct OSDs, verify which OSDs have been deployed with the following command.
