@@ -1,4 +1,4 @@
-# OpenShift Container Storage Internal Cluster Downsizing
+# How to downsize/scale down Red Hat OpenShift Container Storage 4.X internal cluster?
 This document is to supplement the OpenShift Container Storage (OCS) documentation for versions 4.4 or higher and provide instructions for downsizing a previously deployed internal mode cluster. It is not clear at this point when this procedure will be officially documented nor when it will be automated via the `rook-ceph` operator.
 
 This document currently details the step for a dynamically provisioned OCS cluster through the `gp2` (AWS) or `thin` (VMWare) storage class regardless of the OSD device size.
@@ -6,7 +6,7 @@ This document currently details the step for a dynamically provisioned OCS clust
 This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please feel free to comment on this KCS or contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com) via email.
 
 ## Overview
-Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by removing OSDs or MONs but this functionality is not documented for OCS. The purpose of this document is to detail the steps required to safely reduce the number of OSDs in an OCS internal cluster. Such situation may be faced when an application is migrated or removed from the cluster and the OCP administrator would like to reduce the amount of resources used by the OCS cluster (`gp2` persistent volumes, CPU and RAM consumed by OSDs that are no longer needed).
+Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by removing OSDs or MONs but this functionality is not documented for OCS. The purpose of this document is to detail the steps required to safely reduce the number of OSDs in an OCS internal cluster. Such a situation may be faced when an application is migrated or removed from the cluster and the OCP administrator would like to reduce the number of resources used by the OCS cluster (`gp2` persistent volumes, CPU, and RAM consumed by OSDs that are no longer needed).
 
 ## Prerequisites
 These requirements need to be met before proceeding:
@@ -97,7 +97,7 @@ HEALTH_OK
 $ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
 ~~~
 
-**Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`. See example below.
+**Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`. See thee example below.
 
 ~~~
 $ newset=$((deviceset - 1))
@@ -146,7 +146,7 @@ $ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o json | jq 
 ocs-deviceset-1-data-1-jv2qk
 ~~~
 
-In the example above the following objects will be removed from the cluster:
+From the example above the following objects will be removed from the cluster:
 * OSD with id 5
 * OSD with id 4
 * OSD with id 3
@@ -170,7 +170,7 @@ Verify OSD pod has been terminated
 $ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
 ~~~
 
-Once the OSD pod has been removed, you can remove the OSD from the Ceph cluster.
+Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster.
 
 #### Step 2 - Removed OSD from Ceph cluster
 ~~~
@@ -179,7 +179,7 @@ job.batch/ocs-osd-removal-5 created
 ~~~
 
 #### Step 3 - Check Cluster Status and Data Protection
-Check cluster status and wait until status is `HEALTH_OK`
+Check cluster status and wait until the status is `HEALTH_OK`
 
 ~~~
 $ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
@@ -318,7 +318,7 @@ job.batch "ocs-osd-removal-3" deleted
 
 **Note:** Adapt the `for` loop arguments to match your OSD ids.
 
-Verify no unnecessary pod was left over (osd-prepare job, rook-ceph-osd pod, osd-removal job, ...).
+Verify no unnecessary pod was leftover (osd-prepare job, rook-ceph-osd pod, osd-removal job, ...).
 
 ~~~
 $ oc get pods -n openshift-storage
