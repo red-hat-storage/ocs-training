@@ -870,6 +870,22 @@ Everthing above it should remain in place. Then put the following instead:</p>
 <p>Close the <code>VI</code> editor by first pressing <kbd>ESC</kbd> and then <kbd>:</kbd> followed by <kbd>wq!</kbd> and <kbd>ENTER</kbd></p>
 </div>
 <div class="paragraph">
+<p>Alternate method to use the OCS storage can be done using the <code>oc patch</code> command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlight"><code>oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{ "claim": "ocs4registry"}}}}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And this command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlight"><code>oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'"}}}}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
 <p>Then check the <code>/registry</code> mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS <code>pvc</code> instead of the <code>s3</code> resources on AWS. Here is how to do this:</p>
 </div>
 <div class="listingblock execute">
@@ -983,7 +999,7 @@ The <code>mount</code> command shows which options were used when mounting the <
 </div>
 <div id="footer">
 <div id="footer-text">
-Last updated 2020-08-24 20:02:14 UTC
+Last updated 2020-09-01 22:03:31 UTC
 </div>
 </div>
 </body>
