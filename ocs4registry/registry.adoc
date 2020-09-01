@@ -329,6 +329,19 @@ oc edit configs.imageregistry.operator.openshift.io
 
 Close the `VI` editor by first pressing kbd:[ESC] and then kbd:[:] followed by kbd:[wq!] and kbd:[ENTER]
 
+Alternate method to use the OCS storage can be done using the `oc patch` command.
+
+[source,role="execute"]
+----
+oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"storage":{"pvc":{ "claim": "ocs4registry"}}}}'
+----
+And this command.
+
+[source,role="execute"]
+----
+oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Managed"}}'"}}}}'
+----
+
 Then check the `/registry` mountpoint inside the image-registry pod, as a validation that the pod now uses the OCS `pvc` instead of the `s3` resources on AWS. Here is how to do this:
 
 [source,role="execute"]
