@@ -67,7 +67,7 @@ oc label node <node> cluster.ocs.openshift.io/openshift-storage=""
 Adding a NoSchedule OCS taint is also required so that the `infra` node will only schedule OCS resources and repel any other non-OCS workloads.
 
 ~~~
-oc adm taint <node> node.ocs.openshift.io/storage="true":NoSchedule
+oc adm taint node <node> node.ocs.openshift.io/storage="true":NoSchedule
 ~~~
 
 
