@@ -129,7 +129,7 @@ oc create -f block-storage.yaml
 
 ## Install Operator
 
-Create `openshift-storage` namespace
+Create `openshift-storage` namespace.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: v1
@@ -142,7 +142,7 @@ spec: {}
 EOF
 ```
 
-Create Operator Group for OCS Operator
+Create Operator Group for OCS Operator.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
@@ -156,7 +156,7 @@ spec:
 EOF
 ```
 
-Subscribe to OCS Operator
+Subscribe to OCS Operator.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -175,7 +175,7 @@ EOF
 
 ## Create Cluster
 
-Storage Cluster CR
+Storage Cluster CR. For each set of 3 OSDs increment the `count`.
 
 ```
 apiVersion: ocs.openshift.io/v1
@@ -210,20 +210,20 @@ oc create -f storagecluster.yaml
 
 # Verifying the Installation
 
-Deploy the Rook-Ceph toolbox pod
+Deploy the Rook-Ceph toolbox pod.
 
 ```
 oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ```
 
-Establish a remote shell to the toolbox pod
+Establish a remote shell to the toolbox pod.
 
 ```
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ```
 
-Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster
+Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster.
 
 ```
 sh-4.4# ceph status
@@ -293,9 +293,8 @@ Validate current version of OCS.
 oc get csv -n openshift-storage
 ``` 
 
-Example output
+Example output.
 ```
-NAME                            DISPLAY                       VERSION   REPLACES   PHASE
 NAME                  DISPLAY                       VERSION   REPLACES   PHASE
 ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                Succeeded
 ```
@@ -332,17 +331,28 @@ spec:
 EOF
 ```
 
-Validate subscription is updating
+Validate subscription is updating.
 
 ```
 watch oc get csv -n openshift-storage
 ``` 
 
-Example output
+Example output.
 ```
 NAME                  DISPLAY                       VERSION   REPLACES              PHASE
 ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                           Replacing
 ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing
+```
+Validate new version of OCS.
+
+```
+oc get csv -n openshift-storage
+``` 
+
+Example output.
+```
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Succeeded
 ```
 
 Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
