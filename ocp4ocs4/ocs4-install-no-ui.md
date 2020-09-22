@@ -305,7 +305,7 @@ Verify there is a new OCS stable channel.
 oc describe packagemanifests ocs -n openshift-marketplace |grep stable-
 ``` 
 
-Example output
+Example output.
 ```
     Name:         stable-4.3
     Name:         stable-4.4
