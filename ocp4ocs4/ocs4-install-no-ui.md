@@ -233,7 +233,7 @@ sh-4.4# ceph status
 sh-4.4# ceph osd tree
 ```
 
-## Create test application using CephRBD PVC
+## Create test CephRBD PVC and CephFS PVC
 
 ```
 cat <<EOF | oc apply -f -
@@ -261,28 +261,22 @@ oc get pvc | grep rbd-pvc
 cat <<EOF | oc apply -f -
 ---
 apiVersion: v1
-kind: Pod
+kind: PersistentVolumeClaim
 metadata:
-  name: csirbd-demo-pod
+  name: cephfs-pvc
 spec:
-  containers:
-   - name: web-server
-     image: nginx
-     volumeMounts:
-       - name: mypvc
-         mountPath: /var/lib/www/html
-  volumes:
-   - name: mypvc
-     persistentVolumeClaim:
-       claimName: rbd-pvc
-       readOnly: false
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
 EOF
 ```
-
-Validate new Pod is using CephRBD PVC.
+Validate new PVC is created.
 
 ```
-oc get pod csirbd-demo-pod -o yaml| grep "claimName: rbd-pvc"
+oc get pvc | grep cephfs-pvc
 ```
 
 ## Upgrade OCS version (major version) 
