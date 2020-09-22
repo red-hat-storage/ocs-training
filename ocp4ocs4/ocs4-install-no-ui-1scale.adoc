@@ -315,10 +315,10 @@ Validate current version of OCS.
 oc get csv -n openshift-storage
 ``` 
 
-Example output
+Example output.
 ```
-NAME                            DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.4.2             OpenShift Container Storage   4.4.2                Succeeded
+NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                Succeeded
 ```
 
 Verify there is a new OCS stable channel.
@@ -327,9 +327,8 @@ Verify there is a new OCS stable channel.
 oc describe packagemanifests ocs -n openshift-marketplace |grep stable-
 ``` 
 
-Example output
+Example output.
 ```
-    Name:         stable-4.2
     Name:         stable-4.3
     Name:         stable-4.4
     Name:           stable-4.5
@@ -354,17 +353,28 @@ spec:
 EOF
 ```
 
-Validate subscription is updating
+Validate subscription is updating.
 
 ```
 watch oc get csv -n openshift-storage
 ``` 
 
-Example output
+Example output.
 ```
-NAME                            DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.4.2             OpenShift Container Storage   4.4.2                           Replacing
-ocs-operator.v4.5.0             OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                           Replacing
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing
+```
+Validate new version of OCS.
+
+```
+oc get csv -n openshift-storage
+``` 
+
+Example output.
+```
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Succeeded
 ```
 
 Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
