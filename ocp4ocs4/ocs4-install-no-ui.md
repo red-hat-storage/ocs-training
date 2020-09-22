@@ -296,8 +296,8 @@ oc get csv -n openshift-storage
 Example output
 ```
 NAME                            DISPLAY                       VERSION   REPLACES   PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                Succeeded
+NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                Succeeded
 ```
 
 Verify there is a new OCS stable channel.
@@ -308,13 +308,13 @@ oc describe packagemanifests ocs -n openshift-marketplace |grep stable-
 
 Example output
 ```
-    Name:         stable-4.2
     Name:         stable-4.3
-    Name:           stable-4.4
-  Default Channel:  stable-4.4
+    Name:         stable-4.4
+    Name:           stable-4.5
+  Default Channel:  stable-4.5
 ```  
   
-Apply subscription with new stable-4.4 channel.
+Apply subscription with new stable-4.5 channel.
 
 ```
 cat <<EOF | oc apply -f -
@@ -324,7 +324,7 @@ metadata:
   name: ocs-operator
   namespace: openshift-storage 
 spec:
-  channel: "stable-4.4"
+  channel: "stable-4.5"
   installPlanApproval: Automatic
   name: ocs-operator 
   source: redhat-operators 
@@ -340,9 +340,9 @@ watch oc get csv -n openshift-storage
 
 Example output
 ```
-NAME                            DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                           Replacing
-ocs-operator.v4.4.2             OpenShift Container Storage   4.4.2     ocs-operator.v4.3.0   Installing
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                           Replacing
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing
 ```
 
 Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
