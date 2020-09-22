@@ -139,7 +139,7 @@ oc create -f block-storage.yaml
   
 ## Install Operator
 
-Create `openshift-storage` namespace
+Create `openshift-storage` namespace.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: v1
@@ -152,7 +152,7 @@ spec: {}
 EOF
 ```
 
-Create Operator Group for OCS Operator
+Create Operator Group for OCS Operator.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
@@ -166,7 +166,7 @@ spec:
 EOF
 ```
 
-Subscribe to OCS Operator
+Subscribe to OCS Operator.
 ```
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
@@ -238,20 +238,20 @@ oc create -f storagecluster.yaml
 
 # Verifying the Installation
 
-Deploy the Rook-Ceph toolbox pod
+Deploy the Rook-Ceph toolbox pod.
 
 ```
 oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ```
 
-Establish a remote shell to the toolbox pod
+Establish a remote shell to the toolbox pod.
 
 ```
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ```
 
-Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster
+Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster.
 
 ```
 sh-4.4# ceph status
