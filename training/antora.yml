@@ -1,0 +1,7 @@
+name: training
+title: OCS Installation and Configuration
+version: master
+nav:
+  - modules/infra-nodes/nav.adoc
+  - modules/ocs4/nav.adoc
+  - modules/ocs4perf/nav.adoc
