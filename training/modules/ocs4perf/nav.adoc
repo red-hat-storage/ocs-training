@@ -1,2 +1,2 @@
 
-* xref:ocs4perf.adoc[Learn how to benchmark OCS]
+* xref:ocs4perf.adoc[Test deployment post-install]

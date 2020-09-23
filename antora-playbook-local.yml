@@ -1,7 +1,7 @@
 site:
   title: OCS Training
   url: https://red-hat-storage.github.io/ocs-training
-  start_page: training::siteindex.adoc
+  start_page: training::index.adoc
   robots: allow
 content:
   sources:

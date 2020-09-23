@@ -1,2 +1,2 @@
 
-* xref:ocs4-infra-nodes.adoc[Install OCS on infra nodes]
+* xref:ocs4-infra-nodes.adoc[Deploying on Infra nodes]
