@@ -1637,19 +1637,18 @@ oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec
 ----
 .Example output:
 ----
-NAME                                                              STATUS      NODE
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal
+rook-ceph-osd-0-5dd77b475-zn7fq                                   Running     ip-10-0-136-250.us-east-2.compute.internal
+rook-ceph-osd-1-686f5dff76-tlr9r                                  Running     ip-10-0-162-88.us-east-2.compute.internal
+rook-ceph-osd-2-fb48fb96-b8dv6                                    Running     ip-10-0-154-203.us-east-2.compute.internal
+rook-ceph-osd-3-77f95c4bbc-gc8nt                                  Running     ip-10-0-150-158.us-east-2.compute.internal
+rook-ceph-osd-4-64dcb564db-t5w82                                  Running     ip-10-0-143-214.us-east-2.compute.internal
+rook-ceph-osd-5-6b4b8bbf44-9jfjq                                  Running     ip-10-0-174-206.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-l4b6w-qqxfc          Succeeded   ip-10-0-136-250.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-wfw6d-9tnk8          Succeeded   ip-10-0-143-214.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-hvrdt-gcd7v          Succeeded   ip-10-0-154-203.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-vrvs7-d5ff7          Succeeded   ip-10-0-150-158.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-v7gnf-8nrrd          Succeeded   ip-10-0-162-88.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-t5hqf-s2cqs          Succeeded   ip-10-0-174-206.us-east-2.compute.internal
 ----
 
 This is everything that you need to do to extend the OCS storage.
@@ -1714,24 +1713,24 @@ ceph osd crush tree
 ----
 .Example output:
 ----
-ID  CLASS WEIGHT   TYPE NAME                                
- -1       11.99396 root default                             
- -5       11.99396     region us-east-1                     
--14        3.99799         zone us-east-1a                  
--13        1.99899             host ocs-deviceset-1-0-6z8c2 
-  2   ssd  1.99899                 osd.2                    
--19        1.99899             host ocs-deviceset-1-1-zszws 
-  4   ssd  1.99899                 osd.4                    
- -4        3.99799         zone us-east-1b                  
- -3        1.99899             host ocs-deviceset-0-0-xnm9c 
-  0   ssd  1.99899                 osd.0                    
--17        1.99899             host ocs-deviceset-0-1-9xng5 
-  3   ssd  1.99899                 osd.3                    
--10        3.99799         zone us-east-1c                  
- -9        1.99899             host ocs-deviceset-2-0-fhp7l 
-  1   ssd  1.99899                 osd.1                    
--21        1.99899             host ocs-deviceset-2-1-xvjmb 
-  5   ssd  1.99899                 osd.5
+ID  CLASS WEIGHT   TYPE NAME
+ -1       12.00000 root default
+ -5       12.00000     region us-east-2
+ -4        4.00000         zone us-east-2a
+ -3        2.00000             host ocs-deviceset-0-data-0-l4b6w
+  0   ssd  2.00000                 osd.0
+-21        2.00000             host ocs-deviceset-0-data-1-wfw6d
+  4   ssd  2.00000                 osd.4
+-14        4.00000         zone us-east-2b
+-13        2.00000             host ocs-deviceset-1-data-0-hvrdt
+  2   ssd  2.00000                 osd.2
+-19        2.00000             host ocs-deviceset-1-data-1-vrvs7
+  3   ssd  2.00000                 osd.3
+-10        4.00000         zone us-east-2c
+ -9        2.00000             host ocs-deviceset-2-data-0-v7gnf
+  1   ssd  2.00000                 osd.1
+-17        2.00000             host ocs-deviceset-2-data-1-t5hqf
+  5   ssd  2.00000                 osd.5
 ----
 
 <1> We now have additional hosts, which are extending the hosts in the respective zone
