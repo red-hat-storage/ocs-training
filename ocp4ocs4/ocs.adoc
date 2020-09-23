@@ -220,16 +220,10 @@ On the next screen make sure the settings are as shown in this figure.
 .OCP Subscribe to OpenShift Container Storage
 image::OCS4-OCP-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
-Make sure to change to `A specific namespace on the cluster` and chose
-namespace `openshift-storage`.
-
-.Select specific namespace openshift-storage
-image::OCS-OCP-OperatorHub-Subscribe-Detail.png[OCP OperatorHub Subscribe Details]
-
 NOTE: Do not change any configuration other than the namespace as shown
 above.
 
-Click `Subscribe`.
+Click *Subscribe*.
 
 Now you can go back to your terminal window to check the progress of the
 installation.
@@ -240,9 +234,8 @@ watch oc -n openshift-storage get csv
 ----
 .Example output:
 ----
-NAME                            DISPLAY                       VERSION   REPLACES   PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                Succeeded
-ocs-operator.v4.4.0             OpenShift Container Storage   4.4.0                Succeeded
+NAME                            DISPLAY                       VERSION   NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0                Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C].
@@ -264,7 +257,6 @@ oc -n openshift-storage get pods
 .Example output:
 ----
 NAME                                     READY   STATUS    RESTARTS   AGE
-lib-bucket-provisioner-dc8cb8bfd-5sr9w   1/1     Running   0          2m14s
 noobaa-operator-58d8fbb457-hg495         1/1     Running   0          2m6s
 ocs-operator-66c778887d-8qkqm            1/1     Running   0          2m6s
 rook-ceph-operator-98b4c45c9-zxlxz       1/1     Running   0          2m6s
@@ -351,7 +343,6 @@ csi-rbdplugin-jrnh9                                               3/3     Runnin
 csi-rbdplugin-provisioner-86c8bc888d-6xfbr                        5/5     Running     0          17m
 csi-rbdplugin-provisioner-86c8bc888d-ks6zv                        5/5     Running     0          17m
 csi-rbdplugin-x9nqb                                               3/3     Running     0          17m
-lib-bucket-provisioner-55f74d96f6-79tlk                           1/1     Running     0          93m
 noobaa-core-0                                                     1/1     Running     0          14m
 noobaa-db-0                                                       1/1     Running     0          14m
 noobaa-endpoint-7f5fff7d49-554qs                                  1/1     Running     0          12m
@@ -523,6 +514,11 @@ sh-4.2# ceph status
     mgr: a(active, since 10m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 3 osds: 3 up (since 9m), 3 in (since 9m)
+
+  task status:
+      scrub status:
+          mds.ocs-storagecluster-cephfilesystem-a: idle
+          mds.ocs-storagecluster-cephfilesystem-b: idle
  
   data:
     pools:   3 pools, 24 pgs
@@ -862,7 +858,7 @@ the `oc set volume` command. Execute the following
 
 [source,role="execute"]
 ----
-oc set volume dc/file-uploader --add --name=my-shared-storage \
+oc set volume deployment/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -872,8 +868,8 @@ oc set volume dc/file-uploader --add --name=my-shared-storage \
 This command will:
 
 * create a *PersistentVolumeClaim*
-* update the *DeploymentConfig* to include a `volume` definition
-* update the *DeploymentConfig* to attach a `volumemount` into the specified
+* update the *Deployment* to include a `volume` definition
+* update the *Deployment* to attach a `volumemount` into the specified
   `mount-path`
 * cause a new deployment of the 3 application *Pods*
 
@@ -1113,101 +1109,111 @@ noobaa status -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.2.0                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0 
-INFO[0000] Namespace: openshift-storage                 
-INFO[0000]                                              
-INFO[0000] CRD Status:                                  
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io" 
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io" 
-INFO[0000]                                              
-INFO[0000] Operator Status:                             
-INFO[0000] ✅ Exists: Namespace "openshift-storage"      
-INFO[0000] ✅ Exists: ServiceAccount "noobaa"            
-INFO[0000] ✅ Exists: Role "ocs-operator.v4.3.0-379.ci-hl98v" 
-INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.3.0-379.ci-hl98v-noobaa-dntmk" 
-INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.3.0-379.ci-vwg96" 
-INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.3.0-379.ci-vwg96-noobaa-sm9pv" 
-INFO[0000] ✅ Exists: Deployment "noobaa-operator"       
-INFO[0000]                                              
-INFO[0000] System Status:                               
-INFO[0000] ✅ Exists: NooBaa "noobaa"                    
-INFO[0000] ✅ Exists: StatefulSet "noobaa-core"          
-INFO[0000] ✅ Exists: StatefulSet "noobaa-db"            
-INFO[0000] ✅ Exists: Service "noobaa-mgmt"              
-INFO[0000] ✅ Exists: Service "s3"                       
-INFO[0000] ✅ Exists: Service "noobaa-db"                
-INFO[0000] ✅ Exists: Secret "noobaa-server"             
-INFO[0000] ✅ Exists: Secret "noobaa-operator"           
-INFO[0000] ✅ Exists: Secret "noobaa-endpoints"          
-INFO[0000] ✅ Exists: Secret "noobaa-admin"              
-INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io" 
-INFO[0000] ✅ Exists: BucketClass "noobaa-default-bucket-class" 
-INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"       
-INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint" 
-INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store" 
-INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-cloud-creds" 
-INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules" 
-INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor" 
-INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"     
-INFO[0000] ✅ (Optional) Exists: Route "s3"              
-INFO[0000] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-0" 
-INFO[0000] ✅ System Phase is "Ready"                    
-INFO[0000] ✅ Exists:  "noobaa-admin"                    
+INFO[0000] CLI version: 2.3.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.5.0
+INFO[0000] operator-image: noobaa/noobaa-operator:2.3.0
+INFO[0000] Namespace: openshift-storage
+INFO[0000]
+INFO[0000] CRD Status:
+INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0000]
+INFO[0000] Operator Status:
+INFO[0000] ✅ Exists: Namespace "openshift-storage"
+INFO[0000] ✅ Exists: ServiceAccount "noobaa"
+INFO[0000] ✅ Exists: Role "ocs-operator.v4.5.0-w7xhr"
+INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.5.0-w7xhr-noobaa-vxfsn"
+INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.5.0-rcswh"
+INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.5.0-rcswh-noobaa-j9rkp"
+INFO[0000] ✅ Exists: Deployment "noobaa-operator"
+INFO[0000]
+INFO[0000] System Status:
+INFO[0000] ✅ Exists: NooBaa "noobaa"
+INFO[0000] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0000] ✅ Exists: StatefulSet "noobaa-db"
+INFO[0000] ✅ Exists: Service "noobaa-mgmt"
+INFO[0000] ✅ Exists: Service "s3"
+INFO[0000] ✅ Exists: Service "noobaa-db"
+INFO[0000] ✅ Exists: Secret "noobaa-server"
+INFO[0000] ✅ Exists: Secret "noobaa-operator"
+INFO[0000] ✅ Exists: Secret "noobaa-endpoints"
+INFO[0000] ✅ Exists: Secret "noobaa-admin"
+INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0000] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"
+INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
+INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
+INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
+INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
+INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
+INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
+INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"
+INFO[0000] ✅ (Optional) Exists: Route "s3"
+INFO[0000] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-0"
+INFO[0000] ✅ System Phase is "Ready"
+INFO[0000] ✅ Exists:  "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.ocp43.makestoragegreatagain.com https://a81f4015a847b410c9ed68338c26b654-444130336.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs4-0e35.ocs4-0e35.
+sandbox577.opentlc.com https://aa294f5987c2b4d2aa2120149666e40b-580940553.us-east-2.el
+b.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.156.225:30445]
+NodePorts   : [https://10.0.159.98:32484]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.11.223:443]
-PodPorts    : [https://10.129.2.21:8443]
+InternalIP  : [https://172.30.66.63:443]
+PodPorts    : [https://10.129.2.25:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : ORS2csCe2bz8B7B3Pzp9/A==
+password : nQdzF14mJlUliFOu51Vydw==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.ocp43.makestoragegreatagain.com https://a620dcd7cf7f94ab2b0f66c3dc58b305-1999213520.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs4-0e35.ocs4-0e35.sandbox57
+7.opentlc.com https://aed30343521d544d98491619b9ff193f-1558442573.us-east-2.elb.amazon
+aws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.169.39:31682]
+NodePorts   : [https://10.0.169.142:30465]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.231.73:443]
-PodPorts    : [https://10.130.2.20:6443]
+InternalIP  : [https://172.30.203.2:443]
+PodPorts    : [https://10.128.2.12:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : JmE0a2yPGOLEoz8qTnGF
-AWS_SECRET_ACCESS_KEY : wf/XM2TScK93pBD+pj93185OSA8vff19KmVN/n/I
+AWS_ACCESS_KEY_ID     : GqrNDEIOuz0XcfSQfzL1
+AWS_SECRET_ACCESS_KEY : K+uAG7aamxWuKpIjbXDTKLcCkKmBjcdGr+nZXFsd
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET                                           PHASE   AGE       
-noobaa-default-backing-store   aws-s3   nb.1585673526229.apps.ocp43.makestoragegreatagain.com   Ready   3h1m40s   
+NAME                           TYPE     TARGET-BUCKET
+      PHASE   AGE
+noobaa-default-backing-store   aws-s3   nb.1600187786380.ocs4-0e35.sandbox577.opentlc.
+com   Ready   1h55m36s
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE       
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   3h1m40s   
+NAME                          PLACEMENT
+              PHASE   AGE
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backin
+g-store]}]}   Ready   1h55m36s
 
 #-----------------#
 #- Bucket Claims -#
@@ -1245,7 +1251,8 @@ noobaa obc create test21obc -n openshift-storage
 ----
 .Example output:
 ----
-INFO[0001] ✅ Created: ObjectBucketClaim "test21obc"
+INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0000] ✅ Created: ObjectBucketClaim "test21obc"
 ----
 
 The NooBaa CLI has created the necessary configuration inside of NooBaa and
@@ -1630,19 +1637,18 @@ oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec
 ----
 .Example output:
 ----
-NAME                                                              STATUS      NODE
-rook-ceph-osd-0-8675cf4f4-7gpbv                                   Running     ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-1-58b9d954cf-9s6bw                                  Running     ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-2-6994dd5f44-hsqrv                                  Running     ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-3-6675d5495c-7p68z                                  Running     ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-4-8665bfc79b-xn8xg                                  Running     ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-5-8ffff58d6-kscbt                                   Running     ip-10-0-158-153.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-0-d2ppm-vvlt8               Succeeded   ip-10-0-131-209.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-1-869tk-btn8x               Succeeded   ip-10-0-133-99.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-0-9tmc6-svb84               Succeeded   ip-10-0-162-215.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-1-7qsxd-lppp6               Succeeded   ip-10-0-160-200.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qtbfv-j4nr4               Succeeded   ip-10-0-155-12.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-1-glsgj-x4k7t               Succeeded   ip-10-0-158-153.us-east-2.compute.internal
+rook-ceph-osd-0-5dd77b475-zn7fq                                   Running     ip-10-0-136-250.us-east-2.compute.internal
+rook-ceph-osd-1-686f5dff76-tlr9r                                  Running     ip-10-0-162-88.us-east-2.compute.internal
+rook-ceph-osd-2-fb48fb96-b8dv6                                    Running     ip-10-0-154-203.us-east-2.compute.internal
+rook-ceph-osd-3-77f95c4bbc-gc8nt                                  Running     ip-10-0-150-158.us-east-2.compute.internal
+rook-ceph-osd-4-64dcb564db-t5w82                                  Running     ip-10-0-143-214.us-east-2.compute.internal
+rook-ceph-osd-5-6b4b8bbf44-9jfjq                                  Running     ip-10-0-174-206.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-l4b6w-qqxfc          Succeeded   ip-10-0-136-250.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-wfw6d-9tnk8          Succeeded   ip-10-0-143-214.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-hvrdt-gcd7v          Succeeded   ip-10-0-154-203.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-vrvs7-d5ff7          Succeeded   ip-10-0-150-158.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-v7gnf-8nrrd          Succeeded   ip-10-0-162-88.us-east-2.compute.internal
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-t5hqf-s2cqs          Succeeded   ip-10-0-174-206.us-east-2.compute.internal
 ----
 
 This is everything that you need to do to extend the OCS storage.
@@ -1677,6 +1683,11 @@ sh-4.2# ceph status
     mgr: a(active, since 24m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
     osd: 6 osds: 6 up (since 38s), 6 in (since 38s)
+
+  task status:
+      scrub status:
+          mds.ocs-storagecluster-cephfilesystem-a: idle
+          mds.ocs-storagecluster-cephfilesystem-b: idle
  
   data:
     pools:   3 pools, 24 pgs
@@ -1702,24 +1713,24 @@ ceph osd crush tree
 ----
 .Example output:
 ----
-ID  CLASS WEIGHT   TYPE NAME                                
- -1       11.99396 root default                             
- -5       11.99396     region us-east-1                     
--14        3.99799         zone us-east-1a                  
--13        1.99899             host ocs-deviceset-1-0-6z8c2 
-  2   ssd  1.99899                 osd.2                    
--19        1.99899             host ocs-deviceset-1-1-zszws 
-  4   ssd  1.99899                 osd.4                    
- -4        3.99799         zone us-east-1b                  
- -3        1.99899             host ocs-deviceset-0-0-xnm9c 
-  0   ssd  1.99899                 osd.0                    
--17        1.99899             host ocs-deviceset-0-1-9xng5 
-  3   ssd  1.99899                 osd.3                    
--10        3.99799         zone us-east-1c                  
- -9        1.99899             host ocs-deviceset-2-0-fhp7l 
-  1   ssd  1.99899                 osd.1                    
--21        1.99899             host ocs-deviceset-2-1-xvjmb 
-  5   ssd  1.99899                 osd.5
+ID  CLASS WEIGHT   TYPE NAME
+ -1       12.00000 root default
+ -5       12.00000     region us-east-2
+ -4        4.00000         zone us-east-2a
+ -3        2.00000             host ocs-deviceset-0-data-0-l4b6w
+  0   ssd  2.00000                 osd.0
+-21        2.00000             host ocs-deviceset-0-data-1-wfw6d
+  4   ssd  2.00000                 osd.4
+-14        4.00000         zone us-east-2b
+-13        2.00000             host ocs-deviceset-1-data-0-hvrdt
+  2   ssd  2.00000                 osd.2
+-19        2.00000             host ocs-deviceset-1-data-1-vrvs7
+  3   ssd  2.00000                 osd.3
+-10        4.00000         zone us-east-2c
+ -9        2.00000             host ocs-deviceset-2-data-0-v7gnf
+  1   ssd  2.00000                 osd.1
+-17        2.00000             host ocs-deviceset-2-data-1-t5hqf
+  5   ssd  2.00000                 osd.5
 ----
 
 <1> We now have additional hosts, which are extending the hosts in the respective zone
@@ -1829,7 +1840,7 @@ related information or OCS related information. The queries can be simple or
 complex using the Prometheus query syntax and all its available functions.
 
 Let's start testing a simple query example and enter the following text
-(`ceph_osd_op`) in the query field. When you are done typing, simply hit
+`ceph_osd_op` in the query field. When you are done typing, simply hit
 `[Enter]`.
 
 .Simple Ceph Query
@@ -1854,14 +1865,14 @@ image::metrics-complexcephgraph.png[Ceph Complex Graph]
 
 All OCP metrics are also available through the integrated *Metrics* window.
 Feel free to try with any of the OCP related metrics such as
-`process_cpu_seconds_total` for example.
+`irate(process_cpu_seconds_total[5m])` for example.
 
 .Complex OCP Graph
 image::metrics-complexocpgraph.png[OCP Complex Graph]
 
 NOTE: Have a look at the difference between
 `sum(irate(process_cpu_seconds_total[5m]))` and
-`irate(process_cpu_seconds_total[5m])` for instance.
+`irate(process_cpu_seconds_total[5m])` from above.
 
 [NOTE]
 ====
@@ -1893,7 +1904,7 @@ Or like this for OCS specific insights:
 
 [source,role="execute"]
 ----
-oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.4
+oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.5
 ----
 
 The output will then be saved in the current directory inside of a new folder
@@ -2005,9 +2016,9 @@ oc version
 ----
 .Example output:
 ----
-Client Version: 4.4.8
-Server Version: 4.4.8
-Kubernetes Version: v1.17.1
+Client Version: 4.5.9
+Server Version: 4.5.9
+Kubernetes Version: v1.18.3+6c42de8
 ----
 
 [NOTE]
@@ -2028,13 +2039,13 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-mac-v2.2.0 ; chmod +x noobaa-mac-v2.2.0 ; sudo mv noobaa-mac-v2.2.0 /usr/local/bin/noobaa
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-mac-v2.3.0 ; chmod +x noobaa-mac-v2.3.0 ; sudo mv noobaa-mac-v2.3.0 /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.2.0/noobaa-linux-v2.2.0 ; chmod +x noobaa-linux-v2.2.0 ; sudo mv noobaa-linux-v2.2.0 /usr/bin/noobaa
+curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-linux-v2.3.0 ; chmod +x noobaa-linux-v2.3.0 ; sudo mv noobaa-linux-v2.3.0 /usr/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
@@ -2045,15 +2056,10 @@ noobaa version
 ----
 .Example output:
 ----
-INFO[0000] CLI version: 2.2.0                           
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.4.0       
-INFO[0000] operator-image: noobaa/noobaa-operator:2.2.0
+INFO[0000] CLI version: 2.3.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.5.0
+INFO[0000] operator-image: noobaa/noobaa-operator:2.3.0
 ----
-
-[NOTE]
-====
-The above commands will always pull the latest noobaa version, so your version might be higher than the version in the example output.
-====
 
 [appendix]
 == Introduction to Ceph
