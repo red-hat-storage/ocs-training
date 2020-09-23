@@ -564,7 +564,7 @@ oc new-project my-database-app
 Now create the new application.
 
 ----
-curl https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
 ----
 
 After the deployment is started you can monitor with these commands.
@@ -1967,7 +1967,7 @@ To get the latest OpenShift CLI client run the following commands:
 .Mac steps
 [source]
 ----
-curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac.tar.gz | tar xzv oc
+curl -s https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac.tar.gz | tar xzv oc
 sudo mv oc /usr/local/bin
 ----
 
@@ -1989,7 +1989,7 @@ Then reload your profile with `source $HOME/.profile`.
 .Linux steps
 [source]
 ----
-curl https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xzv oc
+curl -s https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xzv oc
 sudo mv oc /usr/bin
 ----
 
@@ -2038,13 +2038,13 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-mac-v2.3.0 ; chmod +x noobaa-mac-v2.3.0 ; sudo mv noobaa-mac-v2.3.0 /usr/local/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-mac-v2.3.0 ; chmod +x noobaa-mac-v2.3.0 ; sudo mv noobaa-mac-v2.3.0 /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -LO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-linux-v2.3.0 ; chmod +x noobaa-linux-v2.3.0 ; sudo mv noobaa-linux-v2.3.0 /usr/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-linux-v2.3.0 ; chmod +x noobaa-linux-v2.3.0 ; sudo mv noobaa-linux-v2.3.0 /usr/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
