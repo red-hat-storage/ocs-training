@@ -1,5 +1,6 @@
 * xref:ocs.adoc[General deploy and use]
 * xref:ocs4-disconnected-install.adoc[Disconnected env install]
 * xref:ocs4-install-no-ui.adoc[CLI based install]
+* xref:ocs-localdevice-blog.adoc[Local disk install]
 * xref:device-replacement.adoc[Live disk replacement]
 * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
