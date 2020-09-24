@@ -1,2 +1,4 @@
 *.html
 *.pdf
+build/
+.cache/
