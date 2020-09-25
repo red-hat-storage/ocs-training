@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>1+ scaling with OCS using local storage :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-install-no-ui-1scale.html">
+    <meta name="generator" content="Antora 2.3.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-disconnected-install.html">Disconnected env install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs-localdevice-blog.html">Local disk install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="device-replacement.html">Live disk replacement</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">OCS Installation and Configuration</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-install-no-ui-1scale.html">Single node scaling support</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-install-no-ui-1scale.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">1+ scaling with OCS using local storage</h1>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>OpenShift Container Platform has been verified to work in conjunction with <a href="https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html">local storage</a> devices and OpenShift Container Storage on AWS EC2, VMware, and Bare Metal hosts.</p>
+</div>
+<div class="paragraph">
+<p>In addition, using the method detailed in this document, you can use 1+ scaling for adding new storage nodes (vs 3+ scaling or needing to add 3 nodes to expand cluster horizontal). This method also allows starting with a number of OCP nodes that does not need to be a multiple of 3 (i.e., 3, 6, 9 &#8230;&#8203;). You will still need a minimum of 3 nodes and these nodes need to meet the OCS CPU and Mem requirements. The difference is that the initial number of nodes to not need to be multiple of 3 (3, 4, 5, &#8230;&#8203;) as documented in the official OCS documentation.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_the_local_storage_operator"><a class="anchor" href="#_installing_the_local_storage_operator"></a>Installing the Local Storage Operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>First, you will need to create a namespace for the Local Storage Operator. A self descriptive 'local-storage' namespace is recommended.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: local-storage
+spec: {}
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, you will need to install the Local Storage Operator. This can be done via the following commands, or through the OpenShift Console. If you choose to install the Local Storage Operator from the OpenShift Console, ensure that you install it into the <code>local-storage</code> namespace you created in the previous step.</p>
+</div>
+<div class="paragraph">
+<p>Create Operator Group for Local Storage Operator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  annotations:
+    olm.providedAPIs: LocalVolume.v1.local.storage.openshift.io
+  name: local-storage
+  namespace: local-storage
+spec:
+  targetNamespaces:
+  - local-storage
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Subscribe to Local Storage Operator:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: local-storage-operator
+  namespace: local-storage
+spec:
+  channel: "4.5"
+  installPlanApproval: Automatic
+  name: local-storage-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_preparing_nodes"><a class="anchor" href="#_preparing_nodes"></a>Preparing Nodes</h3>
+<div class="paragraph">
+<p>You will need to add the OCS label to each OCP node. The OCS operator looks for this label to know which nodes can be scheduling targets for OCS components. Later we will configure the Local Storage Operator to create PVs from storage devices on nodes with this label. You must have a minimum of three labeled worker nodes. To label the nodes use the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc label node &lt;NodeName&gt; cluster.ocs.openshift.io/openshift-storage=''</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, &#8230;&#8203;).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc label node &lt;NodeName&gt; topology.rook.io/rack=rack0</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_finding_device_names"><a class="anchor" href="#_finding_device_names"></a>Finding Device Names</h3>
+<div class="paragraph">
+<p>Next, you will need to know the device names on the nodes labeled for OCS. You can access the nodes using <code>oc debug node</code> and issuing the <code>lsblk</code> command after <code>chroot</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>$ oc debug node/&lt;node_name&gt;
+
+sh-4.4# chroot /host
+sh-4.4# lsblk
+NAME                         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
+nvme0n1                      259:0    0   120G  0 disk
+|-nvme0n1p1                  259:1    0   384M  0 part /boot
+|-nvme0n1p2                  259:2    0   127M  0 part /boot/efi
+|-nvme0n1p3                  259:3    0     1M  0 part
+`-nvme0n1p4                  259:4    0 119.5G  0 part
+  `-coreos-luks-root-nocrypt 253:0    0 119.5G  0 dm   /sysroot
+nvme1n1                      259:5    0  1000G  0 disk
+nvme2n1                      259:6    0  1000G  0 disk</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After you know which local devices are available, in this case nvme0n1 and nvme1n1, you can now find the by-id, a unique name depending on the hardware serial number for each device.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>sh-4.4# ls -l /dev/disk/by-id/
+total 0
+lrwxrwxrwx. 1 root root 10 Mar 17 16:24 dm-name-coreos-luks-root-nocrypt -&gt; ../../dm-0
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC -&gt; ../../nvme0n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC -&gt; ../../nvme1n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533130333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -&gt; ../../nvme0n1
+lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533630333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -&gt; ../../nvme1n1</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Article that has utility for gathering /dev/disk/by-id for all OCP nodes with OCS label (cluster.ocs.openshift.io/openshift-storage='') <a href="https://access.redhat.com/solutions/4928841" class="bare">https://access.redhat.com/solutions/4928841</a>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_lso_cr_for_osd_pvs"><a class="anchor" href="#_create_lso_cr_for_osd_pvs"></a>Create LSO CR for OSD PVs</h3>
+<div class="paragraph">
+<p>The device paths you provide for the OSDs PVs <strong>can only be raw block devices</strong>. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data. The example is for one storage device on each of 3 OCP nodes with the OCS label. Use this command to verify that your OCP nodes do have an OCS label.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc get nodes -l cluster.ocs.openshift.io/openshift-storage=</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-block
+  namespace: local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+          - ""
+  storageClassDevices:
+    - storageClassName: localblock
+      volumeMode: Block
+      devicePaths:
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC   # &lt;-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS1F45C01D7E84FE3E9   # &lt;-- modify this line
+        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS136BC945B4ECB9AE4   # &lt;-- modify this line
+        ...</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc create -f block-storage.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_openshift_container_storage"><a class="anchor" href="#_installing_openshift_container_storage"></a>Installing OpenShift Container Storage</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_install_operator"><a class="anchor" href="#_install_operator"></a>Install Operator</h3>
+<div class="paragraph">
+<p>Create <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create Operator Group for OCS Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-storage-operatorgroup
+  namespace: openshift-storage
+spec:
+  targetNamespaces:
+  - openshift-storage
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Subscribe to OCS Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.5"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_cluster"><a class="anchor" href="#_create_cluster"></a>Create Cluster</h3>
+<div class="paragraph">
+<p>As described above this method of deployment does not require initial deployment to have OCP node counts in multiples of 3 or adding nodes in multiples of 3.</p>
+</div>
+<div class="paragraph">
+<p>Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, &#8230;&#8203;). There must be a minimum of 3 OCP nodes with storage devices.</p>
+</div>
+<div class="paragraph">
+<p>The only modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., 5 servers with 4 disks each count = 20) that you want to use for your OCS cluster.</p>
+</div>
+<div class="paragraph">
+<p>Example Storage Cluster CR:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 20  # &lt;-- modify count to number of disks
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "100Mi"
+        storageClassName: localblock
+        volumeMode: Block
+    name: ocs-deviceset
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+    portable: false
+    replica: 1
+    resources:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "2"
+        memory: "5Gi"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc create -f storagecluster.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_verifying_the_installation"><a class="anchor" href="#_verifying_the_installation"></a>Verifying the Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Deploy the Rook-Ceph toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Establish a remote shell to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run <code>ceph status</code> and <code>ceph osd tree</code> to see that status of the Ceph cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>sh-4.4# ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>sh-4.4# ceph osd tree</code></pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_test_cephrbd_pvc_and_cephfs_pvc"><a class="anchor" href="#_create_test_cephrbd_pvc_and_cephfs_pvc"></a>Create test CephRBD PVC and CephFS PVC</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rbd-pvc
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate new PVC is created.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc get pvc | grep rbd-pvc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: cephfs-pvc
+spec:
+  accessModes:
+  - ReadWriteMany
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: ocs-storagecluster-cephfs
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate new PVC is created.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc get pvc | grep cephfs-pvc</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_upgrade_ocs_version_major_version"><a class="anchor" href="#_upgrade_ocs_version_major_version"></a>Upgrade OCS version (major version)</h3>
+<div class="paragraph">
+<p>Validate current version of OCS.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc get csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                Succeeded</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify there is a new OCS stable channel.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc describe packagemanifests ocs -n openshift-marketplace |grep stable-</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>    Name:         stable-4.3
+    Name:         stable-4.4
+    Name:           stable-4.5
+  Default Channel:  stable-4.5</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply subscription with new stable-4.5 channel.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.5"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate subscription is updating.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>watch oc get csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                           Replacing
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate new version of OCS.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>oc get csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Example output.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code>NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Succeeded</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

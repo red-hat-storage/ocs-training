@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenShift Container Storage (OCS) 4.4 Disconnected Installation - Development Preview :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-disconnected-install.html">
+    <meta name="generator" content="Antora 2.3.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-disconnected-install.html">Disconnected env install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs-localdevice-blog.html">Local disk install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="device-replacement.html">Live disk replacement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">OCS Installation and Configuration</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-disconnected-install.html">Disconnected env install</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-disconnected-install.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">OpenShift Container Storage (OCS) 4.4 Disconnected Installation - Development Preview</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document is to supplement OpenShift Container Platform (OCP)
+documentation for installing the OpenShift Container Storage (OCS)
+service in a air-gap disconnected or proxy environment. Reference
+official OCP documentation
+<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/operators/olm-restricted-networks">here</a>.</p>
+</div>
+<div class="paragraph">
+<p><strong>Development Preview releases are meant for customers who are willing to
+evaluate new products or releases of products in a early stage of
+product development. In this case, OCS 4.4 <code>connected</code> is GA and
+supported, but OCS 4.4 <code>disconnected</code> is not yet released or supported.</strong></p>
+</div>
+<div class="paragraph">
+<p>This is a live document to be used in various environments and
+configurations. If you find any mistakes or missing instructions, please
+add an <a href="https://github.com/red-hat-storage/ocs-training/issues">Issue</a> or
+contact Annette Clewett (<a href="mailto:aclewett@redhat.com">aclewett@redhat.com</a>) and JC Lopez
+(<a href="mailto:jelopez@redhat.com">jelopez@redhat.com</a>) via email.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In a disconnected OpenShift environment there is no access to the OLM
+catalog and the Red Hat image registries. In order to install OCS you
+need to do 2 things:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Provide catalogs that contain OCS, Local Storage Operator (LSO), and
+lib-bucket-provisioner CSV (Cluster Service Version).</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This can be done using the command <code>oc adm catalog build</code>. This
+command goes over a given catalog (e.g. redhat-operators) and builds an
+olm catalog image and then pushes it to the mirror registry.</p>
+</li>
+<li>
+<p>Given <code>lib-bucket-provisioner</code> is currently a dependency for OCS
+installation, you will need to build a custom catalog image for this
+Community operator. Future versions of OCS will not need
+lib-bucket-provisioner.</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Mirror all images that are required by OCS to a mirror registry
+running on a machine that has access to the Internet. Once the mirror
+registry has been updated, transfer the content of the mirror registry
+to a registry that can be accessed from your OCP cluster.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>This is done using the command <code>oc adm catalog mirror</code>. This command
+goes over the CSVs in the catalog and copies all required images to the
+mirror registry.</p>
+</li>
+<li>
+<p>To work around the missing <code>relatedImages</code> in the OCS and
+lib-bucket-provisioner CSV, you will need to manually mirror required
+images which are not copied with <code>oc adm catalog mirror</code>. This is done
+using <code>oc image mirror</code>.</p>
+</li>
+<li>
+<p>The <code>oc adm catalog mirror</code> step generates the
+<code>imageContentSourcePolicy.yaml</code> file to install in the cluster. This
+resource tells OCP the external registry mapping for each image in the
+mirror registry. Add additional mirroring mappings for the missing
+<code>relatedImages</code> for OCS and lib-bucket-provisioner before applying
+`imageContentSourcePolicy.yaml`in the cluster.</p>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>These requirements need to be met before proceeding. 1. An OCP 4.3 or
+higher disconnected cluster is already installed and a mirror registry
+exists on a bastion host
+(<a href="https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html/installing/installation-configuration#installing-restricted-networks-preparations">see
+here</a>).</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p>The oc client
+<a href="https://mirror.openshift.com/pub/openshift-v4/clients/ocp/stable-4.4/">version
+4.4</a> is installed and logged into the cluster as the cluster-admin role.</p>
+</li>
+<li>
+<p>Export env vars (fill the correct details for your setup).</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>export AUTH_FILE="&lt;location_of_auth.json&gt;"
+export MIRROR_REGISTRY_DNS="&lt;registry_host_name&gt;:&lt;port&gt;"</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="4">
+<li>
+<p>Create your auth file.</p>
+<div class="ulist">
+<ul>
+<li>
+<p>The location of the auth.json file generated when you use podman or
+docker to login to registries using podman. The auth file is located
+either in your home directory under .docker or
+/run/user/your_uid/containers/auth.json or
+/var/run/containers/your_uid/auth.json.</p>
+</li>
+<li>
+<p>Get your unique redhat registry
+<a href="https://cloud.redhat.com/openshift/install/pull-secret">pull secret</a> and
+paste it to <code>${AUTH_FILE}</code></p>
+</li>
+<li>
+<p>Podman login to the mirror registry and store the credentials in
+<code>${AUTH_FILE}</code></p>
+<div class="literalblock">
+<div class="content">
+<pre>podman login ${MIRROR_REGISTRY_DNS} --tls-verify=false --authfile ${AUTH_FILE}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should eventually get something similar to this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-json hljs" data-lang="json">{
+  "auths": {
+      "cloud.openshift.com": {
+          "auth": "*****************",
+          "email": "user@redhat.com"
+      },
+      "quay.io": {
+          "auth": "*****************",
+          "email": "user@redhat.com"
+      },
+      "registry.connect.redhat.com": {
+          "auth": "*****************",
+          "email": "user@redhat.com"
+      },
+      "registry.redhat.io": {
+          "auth": "*****************",
+          "email": "user@redhat.com"
+      },
+      "&lt;your_registry&gt;": {
+          "auth": "*****************",
+      }
+  }
+}</code></pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_and_mirroring_standard_redhat_operator_catalog_image"><a class="anchor" href="#_building_and_mirroring_standard_redhat_operator_catalog_image"></a>Building and mirroring standard redhat-operator catalog image</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Cluster administrators can build a custom Operator catalog image to be
+used by Operator Lifecycle Manager (OLM) and push the image to a
+container image registry that supports Docker v2-2. For a OCP cluster on
+a restricted network, this registry must have access to
+registry.access.redhat.com, registry.redhat.io and quay.io during the
+build and mirroring process (such as the mirror registry created during
+the restricted network installation). - <strong>Build operators catalog for
+redhat-operators</strong><br>
+The tag of the <code>ose-operator-registry</code> in the <code>--from</code> flag should match
+the major and minor versions of the OCP cluster (e.g., 4.4). If this is
+for an update of the redhat-operators catalog make sure to change the
+<code>ose-operator-registry</code> tag to latest version (e.g., v4.4 &#8594; v4.5).
+<code>oc adm catalog build --appregistry-org redhat-operators --from=registry.redhat.io/openshift4/ose-operator-registry:v4.4 --to=${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 --registry-config=${AUTH_FILE} --filter-by-os="linux/amd64" --insecure</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mirror the redhat-operators catalog</strong><br>
+This is a long operation and could take 1-5 hours. It requires 60-70 GB
+of disk space on the bastion (the mirror machine).</p>
+<div class="literalblock">
+<div class="content">
+<pre>oc adm catalog mirror ${MIRROR_REGISTRY_DNS}/olm/redhat-operators:v1 ${MIRROR_REGISTRY_DNS}  --insecure --registry-config=${AUTH_FILE}</pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Disable the default OperatorSources by adding
+disableAllDefaultSources: true to the spec</strong></p>
+<div class="literalblock">
+<div class="content">
+<pre>oc patch OperatorHub cluster --type json -p '[{"op": "add", "path": "/spec/disableAllDefaultSources", "value": true}]'</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_building_and_mirroring_custom_catalog_image_for_specific_operators_optional"><a class="anchor" href="#_building_and_mirroring_custom_catalog_image_for_specific_operators_optional"></a>Building and mirroring custom catalog image for specific operators (optional)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This method, described
+<a href="https://github.com/arvin-a/openshift-disconnected-operators">here</a>, is
+very useful for creating a custom redhat-operators catalog that only
+includes the operators you need to install in your OCP cluster. The
+instructions would replace using <code>oc adm catalog build</code> and
+<code>oc adm catalog mirror</code> in the previous section.</p>
+</div>
+<div class="paragraph">
+<p>In the case of installing OCS, this would be the ocs-operator and
+local-storage-operator that would go in your <code>offline-operator-list</code>.
+Example below for entries in this file:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>local-storage-operator
+ocs-operator</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_ocs_version_4_4_0_instructions"><a class="anchor" href="#_ocs_version_4_4_0_instructions"></a>OCS version 4.4.0 instructions</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For OCS 4.4.0, installing in a disconnected or offline environment is a
+tech preview feature, hence a few more manual steps needed. Future
+versions of OCS should not need these additional steps to properly
+install.</p>
+</div>
+<div class="sect2">
+<h3 id="_mirroring_missing_images"><a class="anchor" href="#_mirroring_missing_images"></a>Mirroring missing images</h3>
+<div class="paragraph">
+<p>In OCS version 4.4.0 many of the <code>relatedImages</code> are detailed in the
+CSV, ocs-operator.v4.4.0.clusterserviceversion.yaml. Even so you still
+need to add a few missing images that are not yet in the OCS 4.4 CSV
+<code>relatedImages</code> section. Below is an example of a mapping file for
+OCS-4.4.0 that includes the missing images for OCS 4.4.0.</p>
+</div>
+<div class="paragraph">
+<p>Save content below to mapping-missing.txt:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>registry.redhat.io/openshift4/ose-csi-external-resizer-rhel7@sha256:e7302652fe3f698f8211742d08b2dcea9d77925de458eb30c20789e12ee7ae33=&lt;your_registry&gt;/openshift4/ose-csi-external-resizer-rhel7
+registry.redhat.io/ocs4/ocs-rhel8-operator@sha256:78b97049b194ebf4f72e29ac83b0d4f8aaa5659970691ff459bf19cfd661e93a=&lt;your_registry&gt;/ocs4/ocs-rhel8-operator
+quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105=&lt;your_registry&gt;/noobaa/pause
+quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d=&lt;your_registry&gt;/noobaa/lib-bucket-catalog
+registry.redhat.io/ocs4/ocs-must-gather-rhel8@sha256:823e0fb90bb272997746eb4923463cef597cc74818cd9050f791b64df4f2c9b2=&lt;your_registry&gt;/ocs4/ocs-must-gather-rhel8</pre>
+</div>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Mirror the images in <code>mapping-missing.txt</code></strong></p>
+<div class="literalblock">
+<div class="content">
+<pre>oc image mirror -f mapping-missing.txt --insecure --registry-config=${AUTH_FILE}</pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Validate imageContentSourcePolicy</strong><br>
+After <code>oc adm catalog mirror</code> is completed it will create the
+<code>imageContentSourcePolicy.yaml</code> file. Check the content of this file for
+the mirrors mapping shown below. Add any missing entries to the end of
+the <code>imageContentSourcePolicy.yaml</code> file.</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  repositoryDigestMirrors:
+  - mirrors:
+    - &lt;your_registry&gt;/ocs4
+    source: registry.redhat.io/ocs4
+  - mirrors:
+    - &lt;your_registry&gt;/rhceph
+    source: registry.redhat.io/rhceph
+  - mirrors:
+    - &lt;your_registry&gt;/noobaa
+    source: quay.io/noobaa
+  - mirrors:
+    - &lt;your_registry&gt;/openshift4
+    source: registry.redhat.io/openshift4
+  - mirrors:
+    - &lt;your_registry&gt;/rhscl
+    source: registry.redhat.io/rhscl</code></pre>
+</div>
+</div>
+</li>
+<li>
+<p><strong>Apply the <code>imageContentSourcePolicy.yaml</code> file to the cluster</strong><br>
+(the file is generated by <code>oc adm catalog mirror</code> and thhe output dir is
+usually <code>./[catalog image name]-manifests</code>)</p>
+<div class="literalblock">
+<div class="content">
+<pre>oc apply -f ./[output dir]/imageContentSourcePolicy.yaml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Once the Image Content Source Policy is updated all nodes
+(master, infra and workers) in the cluster will have to be updated and
+rebooted. <strong>This process is automatically handled through the Machine
+Config Pool operator and will take at about 15 minutes although the
+exact elapsed time will vary based on the number of nodes in your
+OpenShift cluster.</strong> You can monitor the update process via the
+<code>oc get mcp</code> command or the <code>oc get node</code> command.</p>
+</div>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_the_catalogsource_for_lib_bucket_provisioner"><a class="anchor" href="#_creating_the_catalogsource_for_lib_bucket_provisioner"></a>Creating the CatalogSource for lib-bucket-provisioner</h3>
+<div class="paragraph">
+<p>OCS version 4.4 is dependent on lib-bucket-provisioner which is included
+in the community-operators catalog. <strong><em>If the community-operators catalog
+is not created, it is necessary to create a custom CatalogSource for the
+lib-bucket-provisioner.</em></strong></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Create Custom CatalogSource for lib-bucket-provisioner</strong><br>
+Create a CatalogSource object that references the catalog image for
+lib-bucket-provisioner. Save it as the lib-bucket-catalogsource.yaml
+file:</p>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: lib-bucket-catalogsource
+  namespace: openshift-marketplace
+spec:
+  displayName: lib-bucket-provisioner
+  icon:
+    base64data: PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4=
+    mediatype: image/svg+xml
+  image: quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d
+  publisher: Red Hat
+  sourceType: grpc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the catalogsource:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc apply -f lib-bucket-catalogsource.yaml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify catalogsource and pod are created:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc get catalogsource,pod -n openshift-marketplace | grep lib-bucket</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_creating_the_catalogsource_for_redhat_operators"><a class="anchor" href="#_creating_the_catalogsource_for_redhat_operators"></a>Creating the CatalogSource for redhat-operators</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Create a CatalogSource object that references the catalog image for
+redhat-operators. Modify the following to use and save it as a
+redhat-operator-catalogsource.yaml file:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: lib-bucket-catalogsource
+  namespace: openshift-marketplace
+spec:
+  displayName: lib-bucket-provisioner
+  icon:
+    base64data: PHN2ZyBpZD0iTGF5ZXJfMSIgZGF0YS1uYW1lPSJMYXllciAxIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxOTIgMTQ1Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6I2UwMDt9PC9zdHlsZT48L2RlZnM+PHRpdGxlPlJlZEhhdC1Mb2dvLUhhdC1Db2xvcjwvdGl0bGU+PHBhdGggZD0iTTE1Ny43Nyw2Mi42MWExNCwxNCwwLDAsMSwuMzEsMy40MmMwLDE0Ljg4LTE4LjEsMTcuNDYtMzAuNjEsMTcuNDZDNzguODMsODMuNDksNDIuNTMsNTMuMjYsNDIuNTMsNDRhNi40Myw2LjQzLDAsMCwxLC4yMi0xLjk0bC0zLjY2LDkuMDZhMTguNDUsMTguNDUsMCwwLDAtMS41MSw3LjMzYzAsMTguMTEsNDEsNDUuNDgsODcuNzQsNDUuNDgsMjAuNjksMCwzNi40My03Ljc2LDM2LjQzLTIxLjc3LDAtMS4wOCwwLTEuOTQtMS43My0xMC4xM1oiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik0xMjcuNDcsODMuNDljMTIuNTEsMCwzMC42MS0yLjU4LDMwLjYxLTE3LjQ2YTE0LDE0LDAsMCwwLS4zMS0zLjQybC03LjQ1LTMyLjM2Yy0xLjcyLTcuMTItMy4yMy0xMC4zNS0xNS43My0xNi42QzEyNC44OSw4LjY5LDEwMy43Ni41LDk3LjUxLjUsOTEuNjkuNSw5MCw4LDgzLjA2LDhjLTYuNjgsMC0xMS42NC01LjYtMTcuODktNS42LTYsMC05LjkxLDQuMDktMTIuOTMsMTIuNSwwLDAtOC40MSwyMy43Mi05LjQ5LDI3LjE2QTYuNDMsNi40MywwLDAsMCw0Mi41Myw0NGMwLDkuMjIsMzYuMywzOS40NSw4NC45NCwzOS40NU0xNjAsNzIuMDdjMS43Myw4LjE5LDEuNzMsOS4wNSwxLjczLDEwLjEzLDAsMTQtMTUuNzQsMjEuNzctMzYuNDMsMjEuNzdDNzguNTQsMTA0LDM3LjU4LDc2LjYsMzcuNTgsNTguNDlhMTguNDUsMTguNDUsMCwwLDEsMS41MS03LjMzQzIyLjI3LDUyLC41LDU1LC41LDc0LjIyYzAsMzEuNDgsNzQuNTksNzAuMjgsMTMzLjY1LDcwLjI4LDQ1LjI4LDAsNTYuNy0yMC40OCw1Ni43LTM2LjY1LDAtMTIuNzItMTEtMjcuMTYtMzAuODMtMzUuNzgiLz48L3N2Zz4=
+    mediatype: image/svg+xml
+  image: quay.io/noobaa/lib-bucket-catalog@sha256:b9c9431735cf34017b4ecb2b334c3956b2a2322ce31ac88b29b1e4faf6c7fe7d
+  publisher: Red Hat
+  sourceType: grpc</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the catalogsource:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc apply -f redhat-operator-catalogsource.yaml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify catalogsource
+and pod are created:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc get catalogsource,pod -n openshift-marketplace | grep redhat-operators</pre>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_updating_redhat_operator_catalogsource"><a class="anchor" href="#_updating_redhat_operator_catalogsource"></a>Updating redhat-operator CatalogSource</h3>
+<div class="paragraph">
+<p>The update process to build and mirror the redhat-operators catalog
+image is exactly the same as creating the initial catalog image as
+detailed above in this article. Make sure to modify the
+ose-operator-registry tag before doing the build and mirror operation
+(e.g., v4.4 &#8594; v4.5). Best practice is to use the same image tag, v1,
+for the new redhat-operators image and then restart the redhat-operator
+pod to get the new image.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc delete $(oc get pod -n openshift-marketplace -o name | grep redhat-operators) -n openshift-marketplace</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate new redhat-operator pod is running</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc get pod -n openshift-marketplace | grep redhat-operators</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_installing_ocs_using_operatorhub"><a class="anchor" href="#_installing_ocs_using_operatorhub"></a>Installing OCS using OperatorHub</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><strong><em>OperatorHub</em></strong> in the OCP console UI should now present all of the operators in the redhat-operator catalog
+as well as the lib-bucket-provisioner operator. You can now install OCS
+4.4 using the
+<a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.4/html/deploying_openshift_container_storage/deploying-openshift-container-storage-on-openshift-container-platform_rhocs">Deployment Guide</a>.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>The lib-bucket-provisioner CSV and Deployment needs to be edited
+during Installation</strong><br>
+Because the CSV,
+lib-bucket-provisioner.v1.0.0.clusterserviceversion.yaml, does not use a
+sha for pulling images, quay.io/noobaa/pause will need to be replaced
+with
+quay.io/noobaa/pause@sha256:b31bfb4d0213f254d361e0079deaaebefa4f82ba7aa76ef82e90b4935ad5b105.
+After the deployment of OCS, edit the lib-bucket-provisioner CSV first
+with this image@sha. Next, edit the lib-bucket-provisioner deployment
+and replace quay.io/noobaa/pause with this image@sha if not already
+correct.</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

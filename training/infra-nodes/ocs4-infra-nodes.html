@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Install Openshift Container Storage (OCS) on OpenShift infrastructure nodes :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/infra-nodes/ocs4-infra-nodes.html">
+    <meta name="generator" content="Antora 2.3.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/ocs4-disconnected-install.html">Disconnected env install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/ocs-localdevice-blog.html">Local disk install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/device-replacement.html">Live disk replacement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4/ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">OCS Installation and Configuration</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-infra-nodes.html">Deploying on Infra nodes</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/infra-nodes/pages/ocs4-infra-nodes.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Install Openshift Container Storage (OCS) on OpenShift infrastructure nodes</h1>
+<div class="sect1">
+<h2 id="_why_use_infrastructure_nodes"><a class="anchor" href="#_why_use_infrastructure_nodes"></a>Why use Infrastructure nodes?</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Using Infrastructure nodes to schedule OpenShift Container Storage (OCS)
+resources will save on OpenShift Container Platform (OCP) subscription
+costs. Any OCP node that has a <code>infra</code> node-role label will only require
+OCS subscription but no OCP subscription. # Background Currently the
+Machine API cannot handle the creation of nodes carrying only the
+<code>node-role.kubernetes.io/infra</code> node-role label. Nodes created with the
+Machine API can only have node-roles added along with the default
+<code>node-role.kubernetes.io/worker</code>.</p>
+</div>
+<div class="paragraph">
+<p>A common approach is desirable for consistency across environments, both
+those with and without Machine API support (reference section below for
+manual configuration of <code>infa</code> nodes). Because of this, it is highly
+recommended in all cases to have nodes with the dual <code>worker/infra</code>
+node-role or label. # Anatomy of an Infrastructure node Infrastructure
+nodes for use with OCS have a few attributes. The <code>infra</code> node-role
+label is required to ensure the node does not consume OCP entitlements.
+Effectively, the <code>infra</code> node-role label is responsible for ensuring
+only OCS entitlements are necessary for the nodes running OCS.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Labeled with <code>node-role.kubernetes.io/infra</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Adding a OCS taint with a NoSchedule effect is also required so that the
+<code>infra</code> node will only schedule OCS resources.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Tainted with <code>node.ocs.openshift.io/storage="true"</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The label identifies the OCP node as a <code>infra</code> node so that OCP
+subscription cost is not applied. The taint prevents non-OCS resources
+to be scheduled on the tainted nodes. If using local storage devices for
+OCS then a toleration will need to be added to allow
+<code>Local Storage Operator</code> (LSO) resources to schedule on the <code>infra</code>
+nodes. Reference section below for how this is done.</p>
+</div>
+<div class="paragraph">
+<p>Example of the taint and labels required on infrastructure node that
+will be used to run OCS services: <sub>~</sub> spec: taints: - effect: NoSchedule
+key: node.ocs.openshift.io/storage value: ``true'' metadata:
+creationTimestamp: null labels: node-role.kubernetes.io/worker: ""
+node-role.kubernetes.io/infra: ""
+cluster.ocs.openshift.io/openshift-storage: "" <sub>~</sub> # Machine sets for
+creating Infrastructure nodes If the Machine API is supported in the
+environment, then labels should be added to the templates for the
+Machine Sets that will be provisioning the infrastructure nodes. Avoid
+the anti-pattern of adding labels manually to nodes created by the
+machine API. Doing so is analogous to adding labels to pods created by a
+deployment. In both cases, when the pod/node fails, the replacement
+pod/node will not have the appropriate labels.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+In EC2 environments, you will want three machine sets, each
+configured to provision infrastructure nodes in a distinct availability
+zone (i.e, us-east-2a, us-east-2b, us-east-2c). Currently OCS does not
+support deploying in more than 3 availability zones.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Example Machine Set template that creates nodes with the appropriate
+taint and labels required for infrastructure nodes that will be used to
+run OCS services:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        machine.openshift.io/cluster-api-cluster: kb-s25vf
+        machine.openshift.io/cluster-api-machine-role: worker
+        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machineset: kb-s25vf-infra-us-west-2a
+    spec:
+      taints:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        value: "true"
+      metadata:
+        creationTimestamp: null
+        labels:
+          node-role.kubernetes.io/infra: ""
+          cluster.ocs.openshift.io/openshift-storage: ""</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_manual_creation_of_infrastructure_nodes"><a class="anchor" href="#_manual_creation_of_infrastructure_nodes"></a>Manual creation of Infrastructure nodes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Only when the Machine APi is not supported in the environment should
+labels be directly applied to nodes. Manual creation will require that
+at least 3 OCP worker nodes are available to schedule OCS services and
+that these nodes have sufficient CPU and memory resources. To avoid the
+OCP subscription cost the following is required:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc label node &lt;node&gt; node-role.kubernetes.io/infra=""
+oc label node &lt;node&gt; cluster.ocs.openshift.io/openshift-storage=""</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Adding a NoSchedule OCS taint is also required so that the <code>infra</code> node
+will only schedule OCS resources and repel any other non-OCS workloads.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc adm taint node &lt;node&gt; node.ocs.openshift.io/storage="true":NoSchedule</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_warning_do_not_remove_worker_node_role"><a class="anchor" href="#_warning_do_not_remove_worker_node_role"></a>Warning: Do not remove worker node-role</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The removal of the <code>worker</code> node-role is not recommended. If already
+removed, it should be added again to each <code>infra</code> node. Adding a <code>infra</code>
+node-role and OCS taint is sufficient to conform to entitlement
+exemption requirements, and it is not necessary to remove the <code>worker</code>
+node-role. In fact, removing the <code>worker</code> node-role from <code>infra</code> nodes
+can cause issues unless changes are made both to the OpenShift scheduler
+and to <code>MachineConfig</code> resources.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_toleration_for_local_storage_operator"><a class="anchor" href="#_toleration_for_local_storage_operator"></a>Toleration for Local Storage Operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When local storage devices are used for creating the OCS cluster (i.e.,
+AWS i3en.3xlarge instance type) then LSO will need to installed before
+OCS can be deployed. In order to allow the LSO pods to schedule on the
+<code>infra</code> nodes with the OCS NoSchedule taint, a toleration has to be
+added to the <code>LocalVolume</code> custom resource file.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example with the toleration
+<code>node.ocs.openshift.io/storage=true</code> added.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-block
+  namespace: local-storage
+  labels:
+    app: ocs-storagecluster
+spec:
+  tolerations:
+  - key: "node.ocs.openshift.io/storage"
+    value: "true"
+    effect: NoSchedule
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: In
+            values:
+              - ''
+  storageClassDevices:
+    - storageClassName: localblock
+      volumeMode: Block
+      devicePaths:
+        ...</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will allow LSO pods to schedule and PVs to be created from devices
+listed under <code>devicePaths:</code>. The recommended practice is to use
+/dev/disk/by-id/ to identify the storage devices that will be used for
+OCS.</p>
+</div>
+</div>
+</div>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

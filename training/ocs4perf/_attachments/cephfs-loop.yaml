@@ -1,0 +1,68 @@
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: my-rwx-storage
+spec: {}
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-cephfs
+  namespace: my-rwx-storage
+spec:
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 20Gi
+  storageClassName: ocs-storagecluster-cephfs
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-cephrbd
+  namespace: my-rwx-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Mi
+  storageClassName: ocs-storagecluster-ceph-rbd
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch1
+  namespace: my-rwx-storage
+  labels:
+    app: batch1
+spec:
+  template:
+    metadata:
+      labels:
+        app: batch1
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: batch1
+        image: amazon/aws-cli:latest
+        command: ["sh"]
+        args:
+          - '-c'
+          - 'while true; do echo "Creating temporary file"; export mystamp=$(date +%Y%m%d_%H%M%S); dd if=/dev/urandom of=/mnt/file_${mystamp} bs=1M count=1; echo "Copying temporary file"; cp /mnt/file_${mystamp} /tmp/file_${mystamp}; echo "Going to sleep"; sleep 60; echo "Removing temporary file"; rm /mnt/file_${mystamp}; done'
+        volumeMounts:
+        - name: tmp-store
+          mountPath: /tmp
+        - name: tmp-file
+          mountPath: /mnt
+      volumes:
+      - name: tmp-store
+        persistentVolumeClaim:
+          claimName: pvc-cephfs
+          readOnly: false
+      - name: tmp-file
+        persistentVolumeClaim:
+          claimName: pvc-cephrbd
+          readOnly: false

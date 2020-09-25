@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenShift Container Storage: Replacing a Drive :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/device-replacement.html">
+    <meta name="generator" content="Antora 2.3.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-disconnected-install.html">Disconnected env install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs-localdevice-blog.html">Local disk install</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="device-replacement.html">Live disk replacement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">OCS Installation and Configuration</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="device-replacement.html">Live disk replacement</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/device-replacement.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">OpenShift Container Storage: Replacing a Drive</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>This process should be followed when an OSD <strong>Pod</strong> is in an <code>Error</code> or
+<code>CrashLoopBackOff</code> state and the root cause is a failed underlying
+storage device. This process can also be used to replace a healthy drive
+or a drive that is intermittently in an <code>Error</code> state.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_removing_failed_osd_from_ceph_cluster"><a class="anchor" href="#_removing_failed_osd_from_ceph_cluster"></a>Removing failed OSD from Ceph cluster</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The first step is to identify the OCP node that has the OSD scheduled
+on it that is to be replaced. Make sure to record the OCP node name for
+use in future step. In this example, <code>rook-ceph-osd-0-6d77d6c7c6-m8xj6</code>
+needs to be replaced and <code>compute-2</code> is the OCP node on which the OSD is
+scheduled. If the OSD to be replaced is currently healthy, the status of
+the pod will be Running.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage pods -l app=rook-ceph-osd -o wide</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output:.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>rook-ceph-osd-0-6d77d6c7c6-m8xj6 0/1
+CrashLoopBackOff 0 24h 10.129.0.16 compute-2
+rook-ceph-osd-1-85d99fb95f-2svc7 1/1 Running 0 24h 10.128.2.24 compute-0
+rook-ceph-osd-2-6c66cdb977-jp542 1/1 Running 0 24h 10.130.0.18 compute-1</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The OSD deployment needs to be scaled down so the OSD pod will be
+deleted or terminated.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># osd_id_to_remove=0
+# oc scale -n openshift-storage deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>deployment.extensions/rook-ceph-osd-0 scaled</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Verify that the rook-ceph-osd pod is terminated.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage pods -l ceph-osd-id=${osd_id_to_remove}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The pod should be deleted.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>No resources found in openshift-storage namespace.</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The following commands will remove a OSD from the Ceph cluster so a
+new OSD can be added.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p><strong>Change OSD_ID_TO_REMOVE to the OSD that was terminated.</strong> In this
+example, OSD <code>0'' is to be removed. The OSD ID is the integer in the
+pod name immediately after the </code>rook-ceph-osd-'' prefix.</p>
+</div>
+<div class="paragraph">
+<p>Make sure any prior removal jobs are deleted. For example,
+<code>oc delete job ocs-osd-removal-0</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>A job will be started to remove the OSD. The job should complete within
+several seconds. To view the results of the job, retrieve the logs of
+the pod associated with the job.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc logs -n openshift-storage ocs-osd-removal-${osd_id_to_remove}-&lt;pod-suffix&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>++ grep `osd.0' ++ ceph osd tree ++ awk `\{print
+$5}'
+* osd_status=down OSD 0 is down. Proceeding to mark out and purge
+* [[ down == ]]
+* echo `OSD 0 is down. Proceeding to mark out and purge'
+* ceph osd out osd.0 marked out osd.0.
+* ceph osd purge osd.0 –force –yes-i-really-mean-it purged osd.0</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_delete_pvc_resources_associated_with_failed_osd"><a class="anchor" href="#_delete_pvc_resources_associated_with_failed_osd"></a>Delete PVC resources associated with failed OSD</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First the <strong>PVC</strong> must be identified that is associated with the OSD
+that was terminated and then purged from the Ceph cluster in the prior
+section.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage -o yaml deployment rook-ceph-osd-${osd_id_to_remove} | grep ceph.rook.io/pvc</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68
+ceph.rook.io/pvc: ocs-deviceset-0-0-nvs68</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Now identify the <strong>PV</strong> associated with the <strong>PVC</strong>. Make sure to use your
+PVC name identified in prior step.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage pvc ocs-deviceset-0-0-nvs68</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME STATUS VOLUME CAPACITY ACCESS MODES
+STORAGECLASS AGE ocs-deviceset-0-0-nvs68 Bound local-pv-d9c5cbd6 100Gi
+RWO localblock 24h</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Now the storage device name needs to be identified. Make sure to use
+your PV name identified in prior step. Record the device name (i.e.,
+sdb).</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get pv local-pv-d9c5cbd6 -o yaml | grep path</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>path: /mnt/local-storage/localblock/sdb</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The next step is to identify the <code>prepare-pod</code> associated with the
+removed OSD. Make sure to use your PVC name identified in prior step.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc describe -n openshift-storage pvc ocs-deviceset-0-0-nvs68 | grep Mounted</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Mounted By:
+rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This <code>osd-prepare</code> pod must be deleted before the associated <strong>PVC</strong> can
+be removed.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc delete -n openshift-storage pod rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>pod "rook-ceph-osd-prepare-ocs-deviceset-0-0-nvs68-zblp7" deleted</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Now the <strong>PVC</strong> associated with the removed OSD can be deleted.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc delete -n openshift-storage pvc ocs-deviceset-0-0-nvs68</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>persistentvolumeclaim ``ocs-deviceset-0-0-nvs68''
+deleted</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the <strong>PVC</strong> associated with the failed drive is deleted,
+it is time to replace the failed drive.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_replace_drive_and_create_new_pv"><a class="anchor" href="#_replace_drive_and_create_new_pv"></a>Replace drive and create new PV</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>First step is to login to the OCP node with the storage drive to be
+replaced and record the <code>/dev/disk/by-id/{id}</code>. In this example the OCP
+node is <code>compute-2</code>. To login to correct OCP node use SSH or
+<code>oc debug node/&lt;NodeName&gt;</code>.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc debug node/compute-2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>Starting pod/compute-2-debug … To use host binaries, run `chroot /host`
+Pod IP: 10.70.56.66 If you don’t see a command prompt, try pressing
+enter. sh-4.2# chroot /host</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the device name identified earlier, <code>sdb</code> in this case, record the
+<code>/dev/disk/by-id/{id}</code> for use in the next step.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.4# ls -alh /mnt/local-storage/localblock</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>total 0 drwxr-xr-x. 2 root root 17 Apr 8 23:03 .
+drwxr-xr-x. 3 root root 24 Apr 8 23:03 .. lrwxrwxrwx. 1 root root 54 Apr
+8 23:03 sdb -&gt; /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Next step is to comment out this drive in the <code>localvolume</code> CR and
+apply the CR again. Find the name of the CR.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n local-storage localvolume</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME AGE local-block 25h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Edit <strong>LocalVolume</strong> CR and remove or comment out failed device
+<code>/dev/disk/by-id/{id}</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc edit -n local-storage localvolume local-block</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[…] storageClassDevices:
+* devicePaths:
+** /dev/disk/by-id/scsi-36000c29346bca85f723c4c1f268b5630
+** /dev/disk/by-id/scsi-36000c29134dfcfaf2dfeeb9f98622786 # -
+/dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237 storageClassName:
+localblock volumeMode: Block […]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make sure to save the changes after editing using :wq!.
+. Now the symlink associated with the drive to be removed can be
+deleted. Login to OCP node with failed device and remove the old
+symlink.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc debug node/compute-2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="paragraph">
+<p>Starting pod/compute-2-debug … To use host binaries, run <code>chroot /host</code>
+Pod IP: 10.70.56.66 If you don’t see a command prompt, try pressing
+enter. sh-4.2# chroot /host</p>
+</div>
+<div class="paragraph">
+<p>Identify the old <code>symlink</code> for the failed device name. In this example
+the failed device name is <code>sdb</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.4# ls -alh /mnt/local-storage/localblock</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>total 0
+drwxr-xr-x. 2 root root 28 Apr 10 00:42 .
+drwxr-xr-x. 3 root root 24 Apr  8 23:03 ..
+lrwxrwxrwx. 1 root root 54 Apr  8 23:03 sdb -&gt; /dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Remove the <code>symlink</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.4# rm /mnt/local-storage/localblock/sdb</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate the <code>symlink</code> is removed.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.4# ls -alh /mnt/local-storage/localblock</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>total 0 drwxr-xr-x. 2 root root 17 Apr 10 00:56 .
+drwxr-xr-x. 3 root root 24 Apr 8 23:03 .. +</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For new deployments of OCS 4.5 or greater LVM is not in use,
+ceph-volume <code>raw</code> mode is in play instead. Therefore, additional
+validation is not needed and you can proceed to the next step.</p>
+</div>
+<div class="paragraph">
+<p>For OCS 4.4 and if OCS has been upgraded to OCS 4.5 from a prior
+version, then both /dev/mapper and /dev/ should be checked to see if
+there are orphans related to ceph before moving on. Use the results of
+<code>vgdisplay</code> to find these orphans. If there is anything in /dev/mapper
+with <code>ceph</code> in the name, that is not from the list of VG Names, then
+dmsetup remove it. Same thing under /dev/ceph-*, remove anything with
+<code>ceph</code> in the name that is not from the list of VG Names.
+. Now delete the PV associated with the PVC already removed.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc delete pv local-pv-d9c5cbd6</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>persistentvolume ``local-pv-d9c5cbd6'' deleted</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Replace drive with new drive.</p>
+</li>
+<li>
+<p>Log back into the correct OCP node and identify the device name for
+the new drive. The device name could be the same as the old drive (i.e.,
+sdb) but the <code>by-id</code> should have changed unless you are just reseating
+the same drive.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.4# lsblk</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME MAJ:MIN RM SIZE RO TYPE MOUNTPOINT sda 8:0 0
+60G 0 disk |-sda1 8:1 0 384M 0 part /boot |-sda2 8:2 0 127M 0 part
+/boot/efi |-sda3 8:3 0 1M 0 part
+`-sda4                         8:4    0 59.5G  0 part`-coreos-luks-root-nocrypt
+253:0 0 59.5G 0 dm /sysroot sdb 8:16 0 100G 0 disk</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now identify the
+<code>/dev/disk/by-id/{id}</code> for the new drive and record for use in the next
+step. In some case it may be difficult to identify the new <code>by-id</code>.
+Compare the output from these two commands, <code>ls -l /dev/disk/by-id/</code> and
+<code>ls -alh /mnt/local-storage/localblock</code> to find the new <code>by-id</code>. In this
+case we know it is device <code>sdb</code> from the results of <code>lsblk</code> above.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>sh-4.2# ls -alh /dev/disk/by-id | grep sdb</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>lrwxrwxrwx. 1 root root 9 Apr 9 20:45
+scsi-36000c29f5c9638dec9f19b220fbe36b1 -&gt; ../../sdb …</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>After the new <code>/dev/disk/by-id/{id}</code> is available a new disk entry can
+be added to the <strong>LocalVolume</strong> CR.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n local-storage localvolume</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME AGE local-block 25h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Edit <strong>LocalVolume</strong> CR and add the new <code>/dev/disk/by-id/{id}</code>. In this
+example the new device is
+<code>/dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc edit -n local-storage localvolume local-block</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>[…] storageClassDevices:
+* devicePaths:
+** /dev/disk/by-id/scsi-36000c29346bca85f723c4c1f268b5630
+** /dev/disk/by-id/scsi-36000c29134dfcfaf2dfeeb9f98622786 # -
+/dev/disk/by-id/scsi-36000c2962b2f613ba1f8f4c5cf952237
+** /dev/disk/by-id/scsi-36000c29f5c9638dec9f19b220fbe36b1
+storageClassName: localblock volumeMode: Block […]</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Make sure to save
+the changes after editing using :wq!.
+. Validate that there is a new <code>Available</code> <strong>PV</strong> of correct size.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get pv | grep 100Gi</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>local-pv-3e8964d3 100Gi RWO Delete Bound
+openshift-storage/ocs-deviceset-2-0-79j94 localblock 25h
+local-pv-414755e0 100Gi RWO Delete Bound
+openshift-storage/ocs-deviceset-1-0-959rp localblock 25h
+local-pv-b481410 100Gi RWO Delete Available</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_new_osd_for_new_device"><a class="anchor" href="#_create_new_osd_for_new_device"></a>Create new OSD for new device</h2>
+<div class="sectionbody">
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>The OSD deployment that was scaled to zero at the start of this
+process now needs to be removed to allow a new deployment to be created.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># osd_id_to_remove=0
+# oc delete -n openshift-storage deployment rook-ceph-osd-${osd_id_to_remove}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>deployment.extensions/rook-ceph-osd-0 deleteed</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Now that the all associated OCP and Ceph resources for the failed
+device are deleted or removed, the new OSD can be deployed. This is done
+by restarting the <code>rook-ceph-operator</code> to force the CephCluster
+reconciliation.</p>
+</li>
+</ol>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage pod -l app=rook-ceph-operator</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME READY STATUS RESTARTS AGE
+rook-ceph-operator-6f74fb5bff-2d982 1/1 Running 0 1d20h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now delete the <code>rook-ceph-operator</code>.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc delete -n openshift-storage pod rook-ceph-operator-6f74fb5bff-2d982</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>pod ``rook-ceph-operator-6f74fb5bff-2d982''
+deleted</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now validate the <code>rook-ceph-operator</code> <strong>Pod</strong> is restarted.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get
+-n openshift-storage pod -l app=rook-ceph-operator</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>NAME READY STATUS RESTARTS AGE
+rook-ceph-operator-6f74fb5bff-7mvrq 1/1 Running 0 66s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Creation of the new OSD may take several minutes after the operator
+starts.
+. Last step is to validate there is a new OSD in a <code>Running</code> state.</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre># oc get -n openshift-storage pods -l app=rook-ceph-osd</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Example output.</strong></p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>rook-ceph-osd-0-5f7f4747d4-snshw 1/1 Running 0
+4m47s rook-ceph-osd-1-85d99fb95f-2svc7 1/1 Running 0 1d20h
+rook-ceph-osd-2-6c66cdb977-jp542 1/1 Running 0 1d20h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There now is a OSD that was redeployed with a similar name,
+<code>rook-ceph-osd-0</code>.</p>
+</div>
+</div>
+</div>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

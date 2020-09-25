@@ -1,0 +1,214 @@
+---
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: CLUSTERID
+    machine.openshift.io/cluster-api-machine-role: workerocs
+    machine.openshift.io/cluster-api-machine-type: workerocs
+  name: CLUSTERID-workerocs-us-east-1a
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: CLUSTERID
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1a
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        machine.openshift.io/cluster-api-cluster: CLUSTERID
+        machine.openshift.io/cluster-api-machine-role: workerocs
+        machine.openshift.io/cluster-api-machine-type: workerocs
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1a
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          role: storage-node
+          node-role.kubernetes.io/worker: ""
+          cluster.ocs.openshift.io/openshift-storage: ""
+      providerSpec:
+        value:
+          ami:
+            id: ami-0543fbfb4749f3c3b
+          apiVersion: awsproviderconfig.openshift.io/v1beta1
+          blockDevices:
+          - ebs:
+              iops: 0
+              volumeSize: 120
+              volumeType: gp2
+          credentialsSecret:
+            name: aws-cloud-credentials
+          deviceIndex: 0
+          iamInstanceProfile:
+            id: CLUSTERID-worker-profile
+          instanceType: m5.4xlarge
+          kind: AWSMachineProviderConfig
+          metadata:
+            creationTimestamp: null
+          placement:
+            availabilityZone: us-east-1a
+            region: us-east-1
+          publicIp: null
+          securityGroups:
+          - filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-worker-sg
+          subnet:
+            filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-private-us-east-1a
+          tags:
+          - name: kubernetes.io/cluster/CLUSTERID
+            value: owned
+          userDataSecret:
+            name: worker-user-data
+      versions:
+        kubelet: ""
+---
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: CLUSTERID
+    machine.openshift.io/cluster-api-machine-role: workerocs
+    machine.openshift.io/cluster-api-machine-type: workerocs
+  name: CLUSTERID-workerocs-us-east-1b
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: CLUSTERID
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1b
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        machine.openshift.io/cluster-api-cluster: CLUSTERID
+        machine.openshift.io/cluster-api-machine-role: workerocs
+        machine.openshift.io/cluster-api-machine-type: workerocs
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1b
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          role: storage-node
+          node-role.kubernetes.io/worker: ""
+          cluster.ocs.openshift.io/openshift-storage: ""
+      providerSpec:
+        value:
+          ami:
+            id: ami-0543fbfb4749f3c3b
+          apiVersion: awsproviderconfig.openshift.io/v1beta1
+          blockDevices:
+          - ebs:
+              iops: 0
+              volumeSize: 120
+              volumeType: gp2
+          credentialsSecret:
+            name: aws-cloud-credentials
+          deviceIndex: 0
+          iamInstanceProfile:
+            id: CLUSTERID-worker-profile
+          instanceType: m5.4xlarge
+          kind: AWSMachineProviderConfig
+          metadata:
+            creationTimestamp: null
+          placement:
+            availabilityZone: us-east-1b
+            region: us-east-1
+          publicIp: null
+          securityGroups:
+          - filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-worker-sg
+          subnet:
+            filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-private-us-east-1b
+          tags:
+          - name: kubernetes.io/cluster/CLUSTERID
+            value: owned
+          userDataSecret:
+            name: worker-user-data
+      versions:
+        kubelet: ""
+---
+apiVersion: machine.openshift.io/v1beta1
+kind: MachineSet
+metadata:
+  labels:
+    machine.openshift.io/cluster-api-cluster: CLUSTERID
+    machine.openshift.io/cluster-api-machine-role: workerocs
+    machine.openshift.io/cluster-api-machine-type: workerocs
+  name: CLUSTERID-workerocs-us-east-1c
+  namespace: openshift-machine-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      machine.openshift.io/cluster-api-cluster: CLUSTERID
+      machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1c
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        machine.openshift.io/cluster-api-cluster: CLUSTERID
+        machine.openshift.io/cluster-api-machine-role: workerocs
+        machine.openshift.io/cluster-api-machine-type: workerocs
+        machine.openshift.io/cluster-api-machineset: CLUSTERID-workerocs-us-east-1c
+    spec:
+      metadata:
+        creationTimestamp: null
+        labels:
+          role: storage-node
+          node-role.kubernetes.io/worker: ""
+          cluster.ocs.openshift.io/openshift-storage: ""
+      providerSpec:
+        value:
+          ami:
+            id: ami-0543fbfb4749f3c3b
+          apiVersion: awsproviderconfig.openshift.io/v1beta1
+          blockDevices:
+          - ebs:
+              iops: 0
+              volumeSize: 120
+              volumeType: gp2
+          credentialsSecret:
+            name: aws-cloud-credentials
+          deviceIndex: 0
+          iamInstanceProfile:
+            id: CLUSTERID-worker-profile
+          instanceType: m5.4xlarge
+          kind: AWSMachineProviderConfig
+          metadata:
+            creationTimestamp: null
+          placement:
+            availabilityZone: us-east-1c
+            region: us-east-1
+          publicIp: null
+          securityGroups:
+          - filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-worker-sg
+          subnet:
+            filters:
+            - name: tag:Name
+              values:
+              - CLUSTERID-private-us-east-1c
+          tags:
+          - name: kubernetes.io/cluster/CLUSTERID
+            value: owned
+          userDataSecret:
+            name: worker-user-data
+      versions:
+        kubelet: ""
+---
