@@ -305,6 +305,7 @@ HEALTH_OK
 .Example output
 ----
 4 osds: 4 up (since 2m), 4 in (since 46s); epoch: e105
+----
 
 [source,role="execute"]
 ----
