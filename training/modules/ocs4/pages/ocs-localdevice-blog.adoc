@@ -9,11 +9,11 @@
 
 == Overview
 
-Building high performance storage services for OpenShift requires taking a holistic look at the overall architecture of the software defined storage stack. Eliminating unnecessary layers can pay dividends, and this is why we've been working hard to get OpenShift Container Storage as close to the hardware as possible. In VMware environments, this translates to local disks surfaced as VMDKs, as RDMs, or with DirectPath I/O. In Amazon EC2, this translates to instance storage or local storage in the form of SSDs or NVMe SSDs. Also, the same methodology detailed in this article can be used for Bare Metal servers with physical disks.
+Building high performance storage services for OpenShift requires taking a holistic look at the overall architecture of the software defined storage stack. Eliminating unnecessary layers can pay dividends, and this is why we've been working hard to get OpenShift Container Storage as close to the hardware as possible. In VMware environments, this translates to local disks surfaced as VMDKs, as RDMs, or with DirectPath I/O. In Amazon EC2, this translates to instance storage or local storage in the form of SSD or NVMe devices. Also, the same methodology detailed in this article can be used for Bare Metal servers with physical disks.
 
 [IMPORTANT]
 ====
-Installing OpenShift Container Storage Amazon EC2 using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+Installing OpenShift Container Storage using AWS EC2 instance storage (SSD or NVMe) is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 ====
 
 == Installing OpenShift Container Storage Operator using Operator Hub
