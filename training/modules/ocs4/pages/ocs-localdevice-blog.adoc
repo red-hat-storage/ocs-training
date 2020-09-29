@@ -9,11 +9,11 @@
 
 == Overview
 
-Building high performance storage services for OpenShift requires taking a holistic look at the overall architecture of the software defined storage stack. Eliminating unnecessary layers can pay dividends, and this is why we've been working hard to get OpenShift Container Storage as close to the hardware as possible.  Prior to 4.3, the only storage OCS could consume were persistent volumes from either the Amazon Web Services Elastic Block Storage provisioner or the vSphere Volume provisioner. This blog post will detail a new feature that will be in Technology Preview for our 4.3 release of OCS, local storage devices. In VMware environments, this translates to local disks surfaced as VMDKs, as RDMs, or with DirectPath I/O. In Amazon EC2, this translates to instance storage, and we are really excited with what we are seeing with both I3 and I3en instance families. We've put together this post so that folks like you could walk through how to setup OCS using instance storage in EC2, and familiarize themselves with this powerful new feature.
+Building high performance storage services for OpenShift requires taking a holistic look at the overall architecture of the software defined storage stack. Eliminating unnecessary layers can pay dividends, and this is why we've been working hard to get OpenShift Container Storage as close to the hardware as possible. In VMware environments, this translates to local disks surfaced as VMDKs, as RDMs, or with DirectPath I/O. In Amazon EC2, this translates to instance storage or local storage in the form of SSDs or NVMe SSDs. Also, the same methodology detailed in this article can be used for Bare Metal servers with physical disks.
 
 [IMPORTANT]
 ====
-Installing OpenShift Container Storage on bare metal, Amazon EC2, and VMware using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
+Installing OpenShift Container Storage Amazon EC2 using local storage operator is a Technology Preview feature. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 ====
 
 == Installing OpenShift Container Storage Operator using Operator Hub
@@ -69,15 +69,14 @@ watch oc -n openshift-storage get csv
 .Example output:
 ----
 NAME                            DISPLAY                       VERSION        REPLACES   PHASE
-lib-bucket-provisioner.v1.0.0   lib-bucket-provisioner        1.0.0                     Succeeded
-ocs-operator.v4.3.0             OpenShift Container Storage   4.3.0                     Succeeded
+ocs-operator.v4.5.0             OpenShift Container Storage   4.5.0                     Succeeded
 ----
 
 You can exit by pressing kbd:[Ctrl+C]
 
 The resource `csv` is a shortened word for `clusterserviceversions.operators.coreos.com`.
 
-.Please wait until both operators `PHASE` changes to `Succeeded`
+.Please wait until the operator `PHASE` changes to `Succeeded`
 CAUTION: Reaching this state can take several minutes.
 
 You will now also see operator pods have been started in the `openshift-storage` namespace:
@@ -89,7 +88,6 @@ oc -n openshift-storage get pods
 .Example output:
 ----
 NAME                                      READY   STATUS    RESTARTS   AGE
-lib-bucket-provisioner-55f74d96f6-mkrz2   1/1     Running   0          3m48s
 noobaa-operator-68c8fbdff5-kgxxt          1/1     Running   0          3m41s
 ocs-operator-78d98758db-dwc8h             1/1     Running   0          3m41s
 rook-ceph-operator-55cb44fcfc-wxppc       1/1     Running   0          3m41s
@@ -347,7 +345,7 @@ The next sections will detail how to create and validate the OCS *StorageCluster
 For Amazon EC2 instance that have local storage devices (e.g., i3.4xlarge) we need to create a *StorageCluster* Custom Resource (CR) that will use the `localblock` *StorageClass* and 3 of the 6 *PVs* created in the previous section.
 
 [source,yaml]
-.StorageCluster CR cluster-service-AWS.yaml using `gp2` and `localblock` storageclasses:
+.StorageCluster CR cluster-service-AWS.yaml using `localblock` storageclass:
 ----
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -356,17 +354,9 @@ metadata:
   namespace: openshift-storage
 spec:
   manageNodes: false
-  monPVCTemplate:
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
-      storageClassName: gp2
-      volumeMode: Filesystem
+  monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 1
+  - count: 1   # <-- modify count to to desired value
     dataPVCTemplate:
       spec:
         accessModes:
@@ -420,7 +410,6 @@ pod/csi-rbdplugin-bzpb2                                               3/3     Ru
 pod/csi-rbdplugin-provisioner-8569698c9b-hdzgh                        5/5     Running     0          7m49s
 pod/csi-rbdplugin-provisioner-8569698c9b-ll9wm                        5/5     Running     0          7m49s
 pod/csi-rbdplugin-tf68q                                               3/3     Running     0          7m50s
-pod/lib-bucket-provisioner-55f74d96f6-mkrz2                           1/1     Running     0          162m
 pod/noobaa-core-0                                                     1/1     Running     0          3m37s
 pod/noobaa-db-0                                                       1/1     Running     0          3m37s
 pod/noobaa-endpoint-679dfc8669-2cxt5                                  1/1     Running     0          2m12s
@@ -571,7 +560,7 @@ local-pv-31021a83   1769Gi     RWO            Delete           Available        
 Now there are 3 more `Available` *PVs* to add to our *StorageCluster*. To do the expansion the only modification to the StorageCluster CR is to modify the `count` for *storageDeviceSets* from `1` to `2`.
 
 [source,yaml]
-.StorageCluster CR cluster-service-AWS-expand.yaml using `gp2` and `localblock` storageclasses:
+.StorageCluster CR cluster-service-AWS-expand.yaml using `localblock` storageclass:
 ----
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
@@ -580,17 +569,9 @@ metadata:
   namespace: openshift-storage
 spec:
   manageNodes: false
-  monPVCTemplate:
-    spec:
-      accessModes:
-      - ReadWriteOnce
-      resources:
-        requests:
-          storage: 10Gi
-      storageClassName: gp2
-      volumeMode: Filesystem
+  monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 2   # <-- modify count to 2
+  - count: 2   # <-- modify count to to desired value
     dataPVCTemplate:
       spec:
         accessModes:
@@ -654,26 +635,6 @@ You can either patch the `OCSInitialization ocsinit` using the following command
 oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ----
 
-Or you can edit the `OCSInitialization ocsinit` to toggle the `enableCephTools` parameter to *true* using the following command line:
-
-[source,role="execute"]
-----
-oc edit OCSInitialization ocsinit
-----
-
-The `spec` item must be set to the following value:
-
-[source,role="execute"]
-----
-spec:
-  enableCephTools: true
-----
-
-[IMPORTANT]
-====
-Toggling the value from `true` to `false` will terminate any running *toolbox* pod immediately.
-====
-
 After the `rook-ceph-tools` *Pod* is `Running` you can access the toolbox like this:
 
 [source,role="execute"]
@@ -712,6 +673,11 @@ sh-4.2# ceph status
     mgr: a(active, since 42m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
     osd: 6 osds: 6 up (since 22m), 6 in (since 22m)
+
+  task status:
+        scrub status:
+            mds.ocs-storagecluster-cephfilesystem-a: idle
+            mds.ocs-storagecluster-cephfilesystem-b: idle
 
   data:
     pools:   3 pools, 136 pgs
