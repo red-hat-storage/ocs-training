@@ -391,6 +391,14 @@ metadata:
   namespace: openshift-storage
 spec:
   manageNodes: false
+  resources:
+    mds:
+      limits:
+        cpu: "3"
+        memory: "8Gi"
+      requests:
+        cpu: "3"
+        memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
   - count: 1   # &lt;-- modify count to to desired value
@@ -400,14 +408,20 @@ spec:
         - ReadWriteOnce
         resources:
           requests:
-            storage: 1
+            storage: "100Mi"
         storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
     portable: false
     replica: 3
-    resources: {}</pre>
+    resources:
+      limits:
+        cpu: "2"
+        memory: "5Gi"
+      requests:
+        cpu: "2"
+        memory: "5Gi"</pre>
 </div>
 </div>
 <div class="literalblock">
