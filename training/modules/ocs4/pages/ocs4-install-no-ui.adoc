@@ -230,7 +230,7 @@ spec:
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 1   # <-- modify count to to desired value
+  - count: 1   # <-- modify count to desired value
     dataPVCTemplate:
       spec:
         accessModes:
