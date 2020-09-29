@@ -33,7 +33,7 @@ As a starting point we recommend to display and keep at hand a complete list of 
 
 [source,role="execute"]
 ----
-$ oc get pods
+# oc get pods
 ----
 .Running pods
 ----
@@ -85,8 +85,8 @@ Before you can downsize your cluster you need to validate how many `storageDevic
 The following command will provide you with the current number of `storageDeviceSets` configured in your cluster:
 [source,role="execute"]
 ----
-$ deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}')
-$ echo ${deviceset}
+# deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}')
+# echo ${deviceset}
 ----
 .Example output
 ----
@@ -99,15 +99,15 @@ Start a Ceph toolbox pod to verify the health of your internal Ceph cluster.
 
 [source,role="execute"]
 ----
-$ oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+# oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ----
 
 Verify the status of your cluster.
 
 [source,role="execute"]
 ----
-$ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
+# TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 ----
 .Example output
 ----
@@ -120,15 +120,15 @@ HEALTH_OK
 
 [source,role="execute"]
 ----
-$ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
+# oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
 ----
 
 **Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`. See thee example below.
 
 [source,role="execute"]
 ----
-$ newset=$((deviceset - 1))
-$ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"
+# newset=$((deviceset - 1))
+# oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"
 ----
 .Example output
 ----
@@ -139,7 +139,7 @@ Verify the `storagecluster` object has been updated. In the example below we go 
 
 [source,role="execute"]
 ----
-$ oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}'
+# oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}'
 ----
 .Example output
 ----
@@ -151,7 +151,7 @@ Before you can proceed you have to identify the `storageDeviceSets` that are to 
 
 [source,role="execute"]
 ----
-$ oc get job.batch -n openshift-storage | grep prepare
+# oc get job.batch -n openshift-storage | grep prepare
 ----
 .Example output
 ----
@@ -169,7 +169,7 @@ We recommend that you shrink your cluster by removing the higher OSD IDs that ar
 
 [source,role="execute"]
 ----
-$ oc get pods | grep osd | grep -v prepare
+# oc get pods | grep osd | grep -v prepare
 ----
 .Example output
 ----
@@ -185,7 +185,7 @@ In the example above, the first `storageDeviceSets` correspond to OSDs 0 through
 
 [source,role="execute"]
 ----
-$ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels['ceph\.rook\.io\/pvc']}"
+# oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels['ceph\.rook\.io\/pvc']}"
 ----
 .Example output
 ----
@@ -208,8 +208,8 @@ You **MUST** remove each OSD, ONE AT A TIME, using the following set of commands
 
 [source,role="execute"]
 ----
-$ osd_id_to_remove=5
-$ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
+# osd_id_to_remove=5
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
 ----
 .Example output
 ----
@@ -220,7 +220,7 @@ Verify OSD pod has been terminated
 
 [source,role="execute"]
 ----
-$ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
+# oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
 ----
 
 Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster.
@@ -229,7 +229,7 @@ Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster
 
 [source,role="execute"]
 ----
-$ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 ----
 .Example output
 ----
@@ -241,8 +241,8 @@ Check cluster status and wait until the status is `HEALTH_OK`
 
 [source,role="execute"]
 ----
-$ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
+# TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 ----
 .Example output
 ----
@@ -253,7 +253,7 @@ Check the number of OSDs in the Ceph cluster has decreased.
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 ----
 .Example output
 ----
@@ -271,8 +271,8 @@ Here are the commands for this example after the first OSD (5) is removed and pu
 
 [source,role="execute"]
 ----
-$ osd_id_to_remove=4
-$ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
+# osd_id_to_remove=4
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
 ----
 .Example output
 ----
@@ -281,8 +281,8 @@ deployment.apps/rook-ceph-osd-4 scaled
 
 [source,role="execute"]
 ----
-$ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
-$ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+# oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 ----
 .Example output
 ----
@@ -291,7 +291,7 @@ job.batch/ocs-osd-removal-4 created
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 ----
 .Example output
 ----
@@ -300,7 +300,7 @@ HEALTH_OK
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 ----
 .Example output
 ----
@@ -308,8 +308,8 @@ $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 
 [source,role="execute"]
 ----
-$ osd_id_to_remove=3
-$ oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
+# osd_id_to_remove=3
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage
 ----
 .Example output
 ----
@@ -317,8 +317,8 @@ deployment.apps/rook-ceph-osd-3 scaled
 
 [source,role="execute"]
 ----
-$ oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
-$ oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+# oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
 ----
 .Example output
 ----
@@ -327,7 +327,7 @@ job.batch/ocs-osd-removal-3 created
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 ----
 .Example output
 ----
@@ -336,7 +336,7 @@ HEALTH_WARN too many PGs per OSD (288 > max 250)
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 ----
 .Example output
 ----
@@ -366,7 +366,7 @@ Now that the deployments have been removed we will clean up the prepare jobs tha
 
 [source,role="execute"]
 ----
-$ oc get job -n openshift-storage | grep prepare
+# oc get job -n openshift-storage | grep prepare
 ----
 .Example output
 ----
@@ -382,7 +382,7 @@ Remove only the jobs corresponding to the `storageDeviceSets` we have removed.
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg
+# oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg
 ----
 .Example output
 ----
@@ -391,7 +391,7 @@ job.batch "rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg" deleted
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk
+# oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk
 ----
 .Example output
 ----
@@ -400,7 +400,7 @@ job.batch "rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk" deleted
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4
+# oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4
 ----
 .Example output
 ----
@@ -413,7 +413,7 @@ List all PVCs created for the OSDs in the cluster.
 
 [source,role="execute"]
 ----
-$ oc get pvc -n openshift-storage| grep deviceset
+# oc get pvc -n openshift-storage| grep deviceset
 ----
 .Example output
 ----
@@ -429,7 +429,7 @@ Then delete only the PVCs corresponding to the OSDs we have removed.
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage pvc ocs-deviceset-2-data-1-r7dwg
+# oc delete -n openshift-storage pvc ocs-deviceset-2-data-1-r7dwg
 ----
 .Example output
 ----
@@ -438,7 +438,7 @@ persistentvolumeclaim "ocs-deviceset-2-data-1-r7dwg" deleted
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage pvc ocs-deviceset-1-data-1-jv2qk
+# oc delete -n openshift-storage pvc ocs-deviceset-1-data-1-jv2qk
 ----
 .Example output
 ----
@@ -447,7 +447,7 @@ persistentvolumeclaim "ocs-deviceset-1-data-1-jv2qk" deleted
 
 [source,role="execute"]
 ----
-$ oc delete -n openshift-storage pvc ocs-deviceset-0-data-1-q72z4
+# oc delete -n openshift-storage pvc ocs-deviceset-0-data-1-q72z4
 ----
 .Example output
 ----
@@ -459,7 +459,7 @@ Verify the physical volumes that were dynamically provisioned for the OSDs we re
 
 [source,role="execute"]
 ----
-$ oc get pvc -n openshift-storage| grep deviceset
+# oc get pvc -n openshift-storage| grep deviceset
 ----
 .Example output
 ----
@@ -470,7 +470,7 @@ ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b
 
 [source,role="execute"]
 ----
-$ oc get pv | grep deviceset | awk '{ print ($1,$2,$6,$7) }'
+# oc get pv | grep deviceset | awk '{ print ($1,$2,$6,$7) }'
 ----
 .Example output
 ----
@@ -483,7 +483,7 @@ Delete the OSD removal jobs.
 
 [source,role="execute"]
 ----
-$ oc get job -n openshift-storage | grep removal
+# oc get job -n openshift-storage | grep removal
 ----
 .Example output
 ----
@@ -494,7 +494,7 @@ ocs-osd-removal-5                                    1/1           7s         10
 
 [source,role="execute"]
 ----
-$ for i in 5 4 3; do oc delete -n openshift-storage job ocs-osd-removal-${i}; done
+# for i in 5 4 3; do oc delete -n openshift-storage job ocs-osd-removal-${i}; done
 ----
 .Example output
 ----
@@ -509,7 +509,7 @@ Verify no unnecessary pod was leftover (osd-prepare job, rook-ceph-osd pod, osd-
 
 [source,role="execute"]
 ----
-$ oc get pods -n openshift-storage
+# oc get pods -n openshift-storage
 ----
 .Example output
 ----
@@ -558,8 +558,8 @@ As an example, let's expand the same OCS cluster we just downsized to 3 OSDs and
 
 [source,role="execute"]
 ----
-$ newset=2
-$ oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"
+# newset=2
+# oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"
 ----
 .Example output
 ----
@@ -568,7 +568,7 @@ storagecluster.ocs.openshift.io/ocs-storagecluster patched
 
 [source,role="execute"]
 ----
-$ oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storageDeviceSets[0].count'
+# oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storageDeviceSets[0].count'
 ----
 .Example output
 ----
@@ -577,7 +577,7 @@ $ oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storag
 
 [source,role="execute"]
 ----
-$ oc get pods -n openshift-storage | grep osd
+# oc get pods -n openshift-storage | grep osd
 ----
 .Example output
 ----
@@ -597,7 +597,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-s469h-kjgdf          0/1     Comple
 
 [source,role="execute"]
 ----
-$ oc get pvc -n openshift-storage
+# oc get pvc -n openshift-storage
 ----
 .Example output
 ----
@@ -616,7 +616,7 @@ rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 ----
 .Example output
 ----
@@ -625,7 +625,7 @@ $ oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat
 
 [source,role="execute"]
 ----
-$ oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health
 ----
 .Example output
 ----
