@@ -85,7 +85,7 @@ Before you can downsize your cluster you need to validate how many `storageDevic
 The following command will provide you with the current number of `storageDeviceSets` configured in your cluster:
 [source,role="execute"]
 ----
-$ deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath="{.items[0].spec.storageDeviceSets[0].count}")
+$ deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}')
 $ echo ${deviceset}
 ----
 .Example output
@@ -139,7 +139,7 @@ Verify the `storagecluster` object has been updated. In the example below we go 
 
 [source,role="execute"]
 ----
-$ oc get storagecluster -n openshift-storage -o jsonpath="{.items[0].spec.storageDeviceSets[0].count}"
+$ oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}'
 ----
 .Example output
 ----
@@ -185,7 +185,7 @@ In the example above, the first `storageDeviceSets` correspond to OSDs 0 through
 
 [source,role="execute"]
 ----
-$ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels["ceph\.rook\.io\/pvc"]}"
+$ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels['ceph\.rook\.io\/pvc']}"
 ----
 .Example output
 ----
