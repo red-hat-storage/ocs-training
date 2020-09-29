@@ -7,7 +7,7 @@ content:
   sources:
   # - url: https://github.com/red-hat-storage/ocs-training.git
   - url: .
-    branches: [antora]
+    branches: [HEAD]
     start_paths: [training]
     edit_url: '{web_url}/edit/{refname}/{path}'
 ui:
