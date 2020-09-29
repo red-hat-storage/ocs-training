@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>How to Downsize a Red Hat OpenShift Container Storage 4.X Internal Cluster :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-cluster-downsize.html">
+    <meta name="generator" content="Antora 2.3.3">
+    <link rel="stylesheet" href="../../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-disconnected-install.html">Disconnected env install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs-localdevice-blog.html">Local disk install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="device-replacement.html">Live disk replacement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <span class="title">OCS Installation and Configuration</span>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-cluster-downsize.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">How to Downsize a Red Hat OpenShift Container Storage 4.X Internal Cluster</h1>
+<div class="sect1">
+<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This document is to supplement the OpenShift Container Storage (OCS) documentation for versions 4.4 or higher and provide instructions for downsizing a previously deployed internal mode cluster. It is not clear at this point when this procedure will be officially documented nor when it will be automated via the <code>rook-ceph</code> operator.</p>
+</div>
+<div class="paragraph">
+<p>This document currently details the step for a dynamically provisioned OCS cluster through the <code>gp2</code> (AWS) or <code>thin</code> (VMWare) storage class for the supported OSD device sizes.</p>
+</div>
+<div class="paragraph">
+<p>This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please feel free to to submit a PR or or create a GitHub issue.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>2. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by removing OSDs or MONs but this functionality is not documented for OCS. The purpose of this document is to detail the steps required to safely reduce the number of OSDs in an OCS internal cluster. Such a situation may be faced when an application is migrated or removed from the cluster and the OCP administrator would like to reduce the number of resources used by the OCS cluster (i.e., <code>AWS EBS gp2</code> persistent volumes, CPU, and RAM consumed by OSDs that are no longer needed).</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>3. Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>These requirements need to be met before proceeding:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An OCS 4.4 or higher internal cluster</p>
+</li>
+<li>
+<p>The OCS cluster is healthy and all data is protected</p>
+</li>
+<li>
+<p>The OCS cluster contains 6 or more OSDs</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_procedure"><a class="anchor" href="#_procedure"></a>4. Procedure</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_identify_existing_storagedevicesets"><a class="anchor" href="#_identify_existing_storagedevicesets"></a>4.1. Identify Existing storageDeviceSets</h3>
+<div class="paragraph">
+<p>As a starting point we recommend to display and keep at hand a complete list of the pods running in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Running pods</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-chl65                                            3/3     Running     0          10m
+csi-cephfsplugin-dlp66                                            3/3     Running     0          10m
+csi-cephfsplugin-provisioner-6bc8b8cdd9-9ngpk                     5/5     Running     0          10m
+csi-cephfsplugin-provisioner-6bc8b8cdd9-lb26q                     5/5     Running     0          10m
+csi-cephfsplugin-vknsv                                            3/3     Running     0          10m
+csi-rbdplugin-7lkxd                                               3/3     Running     0          10m
+csi-rbdplugin-pqllf                                               3/3     Running     0          10m
+csi-rbdplugin-provisioner-6b9f9f5bf-6fpsq                         5/5     Running     0          10m
+csi-rbdplugin-provisioner-6b9f9f5bf-zrq6f                         5/5     Running     0          10m
+csi-rbdplugin-tdt7z                                               3/3     Running     0          10m
+noobaa-core-0                                                     1/1     Running     0          6m40s
+noobaa-db-0                                                       1/1     Running     0          6m40s
+noobaa-endpoint-5dbcd54d4f-f74h7                                  1/1     Running     0          4m58s
+noobaa-operator-6c57586b78-48j4r                                  1/1     Running     0          11m
+ocs-operator-748d9d4469-hhhwk                                     1/1     Running     0          11m
+rook-ceph-crashcollector-ip-10-0-129-185-c647fffb5-47r5n          1/1     Running     0          7m42s
+rook-ceph-crashcollector-ip-10-0-187-112-b7bddbdc7-69wqv          1/1     Running     0          8m11s
+rook-ceph-crashcollector-ip-10-0-207-213-6f5f89698-k2crd          1/1     Running     0          8m27s
+rook-ceph-drain-canary-638c3cea6f3692016381c125ab06a1e5-bdmbjvg   1/1     Running     0          6m49s
+rook-ceph-drain-canary-8fa99b779e22a9c5b3fe8f57e15a6416-5d94pfg   1/1     Running     0          6m42s
+rook-ceph-drain-canary-de7548f9e9ade4c10e0196400c94bc96-692vxxd   1/1     Running     0          6m50s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-d896d595q8zpd   1/1     Running     0          6m27s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7d4594f45zdk7   1/1     Running     0          6m27s
+rook-ceph-mgr-a-64fb7ff7c7-d7pzl                                  1/1     Running     0          7m24s
+rook-ceph-mon-a-7754ccb656-t9zmh                                  1/1     Running     0          8m27s
+rook-ceph-mon-b-6c6f9ccfd-cwbrl                                   1/1     Running     0          8m12s
+rook-ceph-mon-c-86b75675f4-zfrnz                                  1/1     Running     0          7m42s
+rook-ceph-operator-f44596d6-lh4zq                                 1/1     Running     0          11m
+rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          6m49s
+rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          6m51s
+rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          6m42s
+rook-ceph-osd-3-cb4b7bb9c-9zncq                                   1/1     Running     0          3m11s
+rook-ceph-osd-4-75c8d6894-fp9wb                                   1/1     Running     0          3m10s
+rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Running     0          3m9s
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx-577f8          0/1     Completed   0          7m20s
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4-4xqhv          0/1     Completed   0          3m44s
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          7m19s
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk-lpd27          0/1     Completed   0          3m42s
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          7m19s
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Completed   0          3m40s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Before you can downsize your cluster you need to validate how many <code>storageDeviceSets</code> have been deployed so you can adjust the value properly. Each <code>storageDeviceSets</code> requires 3 OSDs deployed on 3 unique OCP nodes and the minimum number in a cluster is 1.</p>
+</div>
+<div class="paragraph">
+<p>The following command will provide you with the current number of <code>storageDeviceSets</code> configured in your cluster:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}')
+# echo ${deviceset}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> If the <code>count</code> of storage <code>storageDeviceSets</code> is <code>1</code> do <strong>NOT</strong> proceed as this will result in a total data loss in your OCS cluster.</p>
+</div>
+<div class="paragraph">
+<p>Start a Ceph toolbox pod to verify the health of your internal Ceph cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of your cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>HEALTH_OK</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> If the status of the cluster is not HEALTH_OK, address any issue prior to proceeding.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_decrease_storagedevicesets_count"><a class="anchor" href="#_decrease_storagedevicesets_count"></a>4.2. Decrease storageDeviceSets Count</h3>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Make <code>{n}</code> as <code>${deviceset} - 1</code>. In this example <code>{n}</code> will be a value of <code>1</code>. See thee example below.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># newset=$((deviceset - 1))
+# oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>storagecluster.ocs.openshift.io/ocs-storagecluster patched</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the <code>storagecluster</code> object has been updated. In the example below we go from 2 to 1 <code>storageDeviceSets</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get storagecluster -n openshift-storage -o jsonpath='{.items[0].spec.storageDeviceSets[0].count}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>1</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_take_note_of_existing_storagedevicesets_and_osds"><a class="anchor" href="#_take_note_of_existing_storagedevicesets_and_osds"></a>4.3. Take Note of Existing storageDeviceSets and OSDs</h3>
+<div class="paragraph">
+<p>Before you can proceed you have to identify the <code>storageDeviceSets</code> that are to be removed from your cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get job.batch -n openshift-storage | grep prepare</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        44m
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4   1/1           32s        40m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj   1/1           27s        44m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk   1/1           32s        40m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        44m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Each <code>storageDeviceSets</code> has 3 jobs, one per replica. The rank of the <code>storageDeviceSets</code> is materialized by the value after <code>data</code>. If we look at the job <code>xxx-deviceset-0-data-0-yyy</code> it means the job is for the first replica (<strong><code>deviceset-0</code></strong>) for the first rank (<strong><code>data-0</code></strong>).</p>
+</div>
+<div class="paragraph">
+<p>We recommend that you shrink your cluster by removing the higher OSD IDs that are deployed for the higher rank <code>storageDeviceSets</code>. To identify the correct OSDs, verify which OSDs have been deployed with the following command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage | grep osd | grep -v prepare</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          49m
+rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          49m
+rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          49m
+rook-ceph-osd-3-cb4b7bb9c-9zncq                                   1/1     Running     0          46m
+rook-ceph-osd-4-75c8d6894-fp9wb                                   1/1     Running     0          46m
+rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Running     0          46m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example above, the first <code>storageDeviceSets</code> correspond to OSDs 0 through 2 while the second <code>storageDeviceSets</code> correspond to OSDs 3 through 5. You can verify which <code>storageDeviceSets</code> is being used by each OSD using the following command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels['ceph\.rook\.io\/pvc']}"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ocs-deviceset-1-data-1-jv2qk</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>From the example above the following objects will be removed from the cluster:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OSD with id 5</p>
+</li>
+<li>
+<p>OSD with id 4</p>
+</li>
+<li>
+<p>OSD with id 3</p>
+</li>
+<li>
+<p>DeviceSet with id ocs-deviceset-2-data-1</p>
+</li>
+<li>
+<p>DeviceSet with id ocs-deviceset-1-data-1</p>
+</li>
+<li>
+<p>DeviceSet with id ocs-deviceset-0-data-1</p>
+</li>
+</ul>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_osds_from_the_ceph_cluster"><a class="anchor" href="#_remove_osds_from_the_ceph_cluster"></a>4.4. Remove OSDs from the Ceph Cluster</h3>
+<div class="paragraph">
+<p>You <strong>MUST</strong> remove each OSD, ONE AT A TIME, using the following set of commands. Make sure the cluster reaches <code>HEALTH_OK</code> status before removing the next OSD.</p>
+</div>
+<div class="sect3">
+<h4 id="_step_1_scale_down_osd_deployment"><a class="anchor" href="#_step_1_scale_down_osd_deployment"></a>4.4.1. Step 1 - Scale down OSD deployment</h4>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># osd_id_to_remove=5
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>deployment.apps/rook-ceph-osd-5 scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify OSD pod has been terminated.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_step_2_removed_osd_from_ceph_cluster"><a class="anchor" href="#_step_2_removed_osd_from_ceph_cluster"></a>4.4.2. Step 2 - Removed OSD from Ceph cluster</h4>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch/ocs-osd-removal-5 created</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_step_3_check_cluster_status_and_data_protection"><a class="anchor" href="#_step_3_check_cluster_status_and_data_protection"></a>4.4.3. Step 3 - Check Cluster Status and Data Protection</h4>
+<div class="paragraph">
+<p>Check cluster status and wait until the status is <code>HEALTH_OK</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+# oc exec -n openshift-storage ${TOOLS_POD} -- ceph health</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>HEALTH_OK</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check the number of OSDs in the Ceph cluster has decreased.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>5 osds: 5 up (since 3m), 5 in (since 95s); epoch: e85</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can now proceed with the next OSD removal, Step 1, 2 and 3 of this chapter (Remove OSDs from the Ceph Cluster). Simply update the <code>osd_id_to_remove=</code> command in Step 1 to match the OSD id.</p>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> In our test environment we repeated Step 1, 2 and 3 with the following values:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>osd_id_to_remove=4</code></p>
+</li>
+<li>
+<p><code>osd_id_to_remove=3</code></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Here are the commands for this example after the first OSD (5) is removed and purged from Ceph.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># osd_id_to_remove=4
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>deployment.apps/rook-ceph-osd-4 scaled</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch/ocs-osd-removal-4 created</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph health</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>HEALTH_OK</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>4 osds: 4 up (since 2m), 4 in (since 46s); epoch: e105</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># osd_id_to_remove=3
+# oc scale deployment rook-ceph-osd-${osd_id_to_remove} --replicas=0 -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>deployment.apps/rook-ceph-osd-3 scaled</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch/ocs-osd-removal-3 created</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph health</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>HEALTH_WARN too many PGs per OSD (288 &gt; max 250)</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>3 osds: 3 up (since 99s), 3 in (since 53s); epoch: e120</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Although the status of the cluster is not <code>HEALTH_OK</code> in the above example no warning or error is reported regarding the protection of the data itself.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_osd_deployment_objects"><a class="anchor" href="#_remove_osd_deployment_objects"></a>4.5. Remove OSD Deployment Objects</h3>
+<div class="paragraph">
+<p>Now that the OSDs have been removed from the Ceph cluster and the OSD pods have been removed from the OCP cluster we will remove the deployment object for each OSD we have removed.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for i in 5 4 3; do oc delete -n openshift-storage deployment.apps/rook-ceph-osd-${i}; done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>deployment.apps "rook-ceph-osd-5" deleted
+deployment.apps "rook-ceph-osd-4" deleted
+deployment.apps "rook-ceph-osd-3" deleted</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_prepare_jobs"><a class="anchor" href="#_remove_prepare_jobs"></a>4.6. Remove Prepare Jobs</h3>
+<div class="paragraph">
+<p>Now that the deployments have been removed we will clean up the prepare jobs that were responsible for preparing the storage devices for the OSDs that no longer exist.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get job -n openshift-storage | grep prepare</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        162m
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4   1/1           32s        159m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj   1/1           27s        162m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk   1/1           32s        158m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        162m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        158m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Remove only the jobs corresponding to the <code>storageDeviceSets</code> we have removed.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg" deleted</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk" deleted</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage job rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4" deleted</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_remove_persistent_volume_claims"><a class="anchor" href="#_remove_persistent_volume_claims"></a>4.7. Remove Persistent Volume Claims</h3>
+<div class="paragraph">
+<p>List all PVCs created for the OSDs in the cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pvc -n openshift-storage| grep deviceset</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           165m
+ocs-deviceset-0-data-1-q72z4   Bound    pvc-36e0a5f7-9ef3-49e6-99d5-68c791870e61   2Ti        RWO            gp2                           162m
+ocs-deviceset-1-data-0-bmpzj   Bound    pvc-fe3806cc-92f9-4382-8dad-026edae39906   2Ti        RWO            gp2                           165m
+ocs-deviceset-1-data-1-jv2qk   Bound    pvc-fbd93d58-eb56-4ac1-b987-91a3983b9e00   2Ti        RWO            gp2                           162m
+ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           165m
+ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41   2Ti        RWO            gp2                           162m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then delete only the PVCs corresponding to the OSDs we have removed.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage pvc ocs-deviceset-2-data-1-r7dwg</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>persistentvolumeclaim "ocs-deviceset-2-data-1-r7dwg" deleted</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage pvc ocs-deviceset-1-data-1-jv2qk</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>persistentvolumeclaim "ocs-deviceset-1-data-1-jv2qk" deleted</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc delete -n openshift-storage pvc ocs-deviceset-0-data-1-q72z4</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>persistentvolumeclaim "ocs-deviceset-0-data-1-q72z4" deleted</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_final_cleanup"><a class="anchor" href="#_final_cleanup"></a>4.8. Final Cleanup</h3>
+<div class="paragraph">
+<p>Verify the physical volumes that were dynamically provisioned for the OSDs we removed have been deleted.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pvc -n openshift-storage| grep deviceset</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           169m
+ocs-deviceset-1-data-0-bmpzj   Bound    pvc-fe3806cc-92f9-4382-8dad-026edae39906   2Ti        RWO            gp2                           169m
+ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           169m</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pv | grep deviceset | awk '{ print ($1,$2,$6,$7) }'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c 2Ti openshift-storage/ocs-deviceset-0-data-0-hwzhx gp2
+pvc-f523ea66-6c0b-4c00-b618-a66129af563b 2Ti openshift-storage/ocs-deviceset-2-data-0-d6tch gp2
+pvc-fe3806cc-92f9-4382-8dad-026edae39906 2Ti openshift-storage/ocs-deviceset-1-data-0-bmpzj gp2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Delete the OSD removal jobs.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get job -n openshift-storage | grep removal</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ocs-osd-removal-3                                    1/1           6s         96m
+ocs-osd-removal-4                                    1/1           6s         99m
+ocs-osd-removal-5                                    1/1           7s         105m</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># for i in 5 4 3; do oc delete -n openshift-storage job ocs-osd-removal-${i}; done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>job.batch "ocs-osd-removal-5" deleted
+job.batch "ocs-osd-removal-4" deleted
+job.batch "ocs-osd-removal-3" deleted</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Note:</strong> Adapt the <code>for</code> loop arguments to match your OSD ids.</p>
+</div>
+<div class="paragraph">
+<p>Verify no unnecessary pod was leftover (osd-prepare job, rook-ceph-osd pod, osd-removal job, &#8230;&#8203;).</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-chl65                                            3/3     Running     0          3h1m
+csi-cephfsplugin-dlp66                                            3/3     Running     0          3h1m
+csi-cephfsplugin-provisioner-6bc8b8cdd9-9ngpk                     5/5     Running     0          3h1m
+csi-cephfsplugin-provisioner-6bc8b8cdd9-lb26q                     5/5     Running     0          3h1m
+csi-cephfsplugin-vknsv                                            3/3     Running     0          3h1m
+csi-rbdplugin-7lkxd                                               3/3     Running     0          3h1m
+csi-rbdplugin-pqllf                                               3/3     Running     0          3h1m
+csi-rbdplugin-provisioner-6b9f9f5bf-6fpsq                         5/5     Running     0          3h1m
+csi-rbdplugin-provisioner-6b9f9f5bf-zrq6f                         5/5     Running     0          3h1m
+csi-rbdplugin-tdt7z                                               3/3     Running     0          3h1m
+noobaa-core-0                                                     1/1     Running     0          178m
+noobaa-db-0                                                       1/1     Running     0          178m
+noobaa-endpoint-5dbcd54d4f-f74h7                                  1/1     Running     0          176m
+noobaa-operator-6c57586b78-48j4r                                  1/1     Running     0          3h2m
+ocs-operator-748d9d4469-hhhwk                                     1/1     Running     0          3h2m
+rook-ceph-crashcollector-ip-10-0-129-185-c647fffb5-47r5n          1/1     Running     0          179m
+rook-ceph-crashcollector-ip-10-0-187-112-b7bddbdc7-69wqv          1/1     Running     0          179m
+rook-ceph-crashcollector-ip-10-0-207-213-6f5f89698-k2crd          1/1     Running     0          3h
+rook-ceph-drain-canary-638c3cea6f3692016381c125ab06a1e5-bdmbjvg   1/1     Running     0          178m
+rook-ceph-drain-canary-8fa99b779e22a9c5b3fe8f57e15a6416-5d94pfg   1/1     Running     0          178m
+rook-ceph-drain-canary-de7548f9e9ade4c10e0196400c94bc96-692vxxd   1/1     Running     0          178m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-d896d595q8zpd   1/1     Running     0          178m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7d4594f45zdk7   1/1     Running     0          178m
+rook-ceph-mgr-a-64fb7ff7c7-d7pzl                                  1/1     Running     0          179m
+rook-ceph-mon-a-7754ccb656-t9zmh                                  1/1     Running     0          3h
+rook-ceph-mon-b-6c6f9ccfd-cwbrl                                   1/1     Running     0          179m
+rook-ceph-mon-c-86b75675f4-zfrnz                                  1/1     Running     0          179m
+rook-ceph-operator-f44596d6-lh4zq                                 1/1     Running     0          3h2m
+rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          178m
+rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          178m
+rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          178m
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx-577f8          0/1     Completed   0          179m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          179m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          179m
+rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Running     0          171m</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_cluster_re_expansion_example"><a class="anchor" href="#_cluster_re_expansion_example"></a>4.9. Cluster Re-Expansion Example</h3>
+<div class="paragraph">
+<p>You can easily expand the capacity of an existing cluster via the CLI through the update of the <code>storageDeviceSets</code> count in the <code>storagecluster</code> object in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="paragraph">
+<p>As an example, let&#8217;s expand the same OCS cluster we just downsized to 3 OSDs and bring it back to its original size (6 OSDs).</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># newset=2
+# oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch "[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": ${newset} }]"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>storagecluster.ocs.openshift.io/ocs-storagecluster patched</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storageDeviceSets[0].count'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>2</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods -n openshift-storage | grep osd</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          3h3m
+rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          3h3m
+rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          3h3m
+rook-ceph-osd-3-5967bdf767-2ffcr                                  1/1     Running     0          50s
+rook-ceph-osd-4-f7dcc6c7f-zd6tx                                   1/1     Running     0          48s
+rook-ceph-osd-5-99885889b-z8x95                                   1/1     Running     0          46s
+rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx-577f8          0/1     Completed   0          3h4m
+rook-ceph-osd-prepare-ocs-deviceset-0-data-1-hwwr7-ntm4w          0/1     Completed   0          78s
+rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          3h4m
+rook-ceph-osd-prepare-ocs-deviceset-1-data-1-zdttb-mb5fx          0/1     Completed   0          77s
+rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          3h4m
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-s469h-kjgdf          0/1     Completed   0          75s</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+db-noobaa-db-0                 Bound    pvc-a45d2583-9ec1-4640-b2c9-8cb0d24be7f4   50Gi       RWO            ocs-storagecluster-ceph-rbd   3h4m
+ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           3h4m
+ocs-deviceset-0-data-1-hwwr7   Bound    pvc-db64ec09-81c7-4e53-b91d-f089607a4824   2Ti        RWO            gp2                           101s
+ocs-deviceset-1-data-0-bmpzj   Bound    pvc-fe3806cc-92f9-4382-8dad-026edae39906   2Ti        RWO            gp2                           3h4m
+ocs-deviceset-1-data-1-zdttb   Bound    pvc-21243378-5c7a-4df8-8605-d49559a4b01b   2Ti        RWO            gp2                           100s
+ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           3h4m
+ocs-deviceset-2-data-1-s469h   Bound    pvc-64a6d4db-ce5c-4a5c-87b2-3bcde59c902f   2Ti        RWO            gp2                           98s
+rook-ceph-mon-a                Bound    pvc-d4977e7f-8770-45de-bc12-9c213e3d0766   10Gi       RWO            gp2                           3h6m
+rook-ceph-mon-b                Bound    pvc-2df867fc-38ff-4cb1-93fd-b3281f6c5fa2   10Gi       RWO            gp2                           3h6m
+rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b   10Gi       RWO            gp2                           3h6m</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph osd stat</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>6 osds: 6 up (since 75s), 6 in (since 75s); epoch: e161</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc exec -n openshift-storage ${TOOLS_POD} -- ceph health</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>HEALTH_OK</pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Et voilà!</strong></p>
+</div>
+</div>
+</div>
+</div>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
