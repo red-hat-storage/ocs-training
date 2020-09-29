@@ -1,4 +1,4 @@
-= How to Downsize Red Hat OpenShift Container Storage 4.X Internal Cluster
+= How to Downsize a Red Hat OpenShift Container Storage 4.X Internal Cluster
 // :toc: right
 // :toclevels: 3
 :icons: font
@@ -14,7 +14,7 @@ This document is to supplement the OpenShift Container Storage (OCS) documentati
 
 This document currently details the step for a dynamically provisioned OCS cluster through the `gp2` (AWS) or `thin` (VMWare) storage class regardless of the OSD device size.
 
-This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please feel free to comment on this KCS or contact Annette Clewett (aclewett@redhat.com) and JC Lopez (jelopez@redhat.com) via email.
+This is a live document to be used in various environments and configurations. If you find any mistakes or missing instructions, please feel free to to submit a PR or or create a GitHub issue.
 
 == Overview
 Red Hat Ceph Storage offers the ability to safely shrink an existing cluster by removing OSDs or MONs but this functionality is not documented for OCS. The purpose of this document is to detail the steps required to safely reduce the number of OSDs in an OCS internal cluster. Such a situation may be faced when an application is migrated or removed from the cluster and the OCP administrator would like to reduce the number of resources used by the OCS cluster (`gp2` persistent volumes, CPU, and RAM consumed by OSDs that are no longer needed).
@@ -85,7 +85,7 @@ Before you can downsize your cluster you need to validate how many `storageDevic
 The following command will provide you with the current number of `storageDeviceSets` configured in your cluster:
 [source,role="execute"]
 ----
-$ deviceset=$(oc get storagecluster -o json | jq '.items[0].spec.storageDeviceSets[0].count')
+$ deviceset=$(oc get storagecluster -n openshift-storage -o jsonpath="{.items[0].spec.storageDeviceSets[0].count}")
 $ echo ${deviceset}
 ----
 .Example output
@@ -139,7 +139,7 @@ Verify the `storagecluster` object has been updated. In the example below we go 
 
 [source,role="execute"]
 ----
-$ oc get storagecluster -n openshift-storage -o json | jq '.items[0].spec.storageDeviceSets[0].count'
+$ oc get storagecluster -n openshift-storage -o jsonpath="{.items[0].spec.storageDeviceSets[0].count}"
 ----
 .Example output
 ----
@@ -185,7 +185,7 @@ In the example above, the first `storageDeviceSets` correspond to OSDs 0 through
 
 [source,role="execute"]
 ----
-$ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o json | jq -r '.metadata.labels["ceph.rook.io/pvc"]'
+$ oc get pod rook-ceph-osd-5-7b4f4c6785-kgwb4 -n openshift-storage -o jsonpath="{.metadata.labels["ceph\.rook\.io\/pvc"]}"
 ----
 .Example output
 ----
