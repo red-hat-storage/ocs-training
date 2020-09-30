@@ -721,6 +721,269 @@ rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
         modify_timestamp: Thu Jan  9 22:36:51 2020
 ----
 
+=== Expand RBD based PVCs
+
+OpenShift Container 4.5 and later versions let you expand an existing PVC based on
+the `ocs-storagecluster-ceph-rbd` storage class. This chapter walks you through the
+steps to perform a PVC expansion.
+
+We will first artificially fill up the PVC used by the application you have just
+created.
+
+[source,role="execute"]
+----
+# oc rsh -n my-database-app postgresql-1-p62vw
+sh-4.2$ df
+----
+.Example output
+----
+Filesystem                           1K-blocks     Used Available Use% Mounted on
+overlay                              125277164 12004092 113273072  10% /
+tmpfs                                    65536        0     65536   0% /dev
+tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
+shm                                      65536        8     65528   1% /dev/shm
+tmpfs                                 32571336    10444  32560892   1% /etc/passwd
+/dev/mapper/coreos-luks-root-nocrypt 125277164 12004092 113273072  10% /etc/hosts
+/dev/rbd1                              5095040    66968   5011688   2% /var/lib/pgsql/data
+tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                 32571336        0  32571336   0% /proc/acpi
+tmpfs                                 32571336        0  32571336   0% /proc/scsi
+tmpfs                                 32571336        0  32571336   0% /sys/firmware
+----
+
+As observed in the output above the RBD backed PVC, the device named `/dev/rbd`
+is mounted as `/var/lib/pgsql/data`. This is the directory we will artificially fill up.
+
+[source,role="execute"]
+----
+sh-4.2$ dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850
+----
+.Example output
+----
+3850+0 records in
+3850+0 records out
+4037017600 bytes (4.0 GB) copied, 13.6446 s, 296 MB/s
+----
+
+Let's verify the volume mounted has increased.
+[source,role="execute"]
+----
+sh-4.2$ df
+----
+.Example output
+----
+Filesystem                           1K-blocks     Used Available Use% Mounted on
+overlay                              125277164 12028616 113248548  10% /
+tmpfs                                    65536        0     65536   0% /dev
+tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
+shm                                      65536        8     65528   1% /dev/shm
+tmpfs                                 32571336    10444  32560892   1% /etc/passwd
+/dev/mapper/coreos-luks-root-nocrypt 125277164 12028616 113248548  10% /etc/hosts
+/dev/rbd1                              5095040  4009372   1069284  79% /var/lib/pgsql/data
+tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                 32571336        0  32571336   0% /proc/acpi
+tmpfs                                 32571336        0  32571336   0% /proc/scsi
+tmpfs                                 32571336        0  32571336   0% /sys/firmware
+----
+
+As observed in the output above the filesystem usage for `/var/lib/pgsql/data`
+has increased up to 79%. By default OCP will generate an alert when a PVC
+crosses the 75% full threshold.
+
+Now exit the pod.
+
+[source,role="execute"]
+----
+sh-4.2$ exit
+----
+
+Let's verify an alert has appeared in the OCP event log.
+
+.OpenShift Container Platform Events
+image::OCS-PVCResize-pvcnearfull-alert.png[PVC nearfull alert]
+
+==== Expand applying a modified PVC YAML file
+
+To expand a PVC we simply need to change the actual amount of storage that is 
+requested. This can easily be performed by exporting the PVC specfications 
+with the following command:
+
+[source,role="execute"]
+----
+# oc get pvc postgresql -n my-database-app --export -o yaml >pvc.yaml
+----
+
+In the file `pvc.yaml` that was created, search for the following section using 
+your favorite editor.
+
+.Example output
+----
+[truncated]
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+  volumeMode: Filesystem
+  volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+status: {}
+----
+
+Edit `storage: 5Gi` and replace it with `storage: 10Gi`. The resulting section
+in your file should look like the output below.
+
+.Example output
+----
+[truncated]
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+  volumeMode: Filesystem
+  volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+status: {}
+----
+
+Now you can apply your updated PVC specifications using the following
+command:
+
+[source,role="execute"]
+----
+# oc apply -f pvc.yaml -n my-database-app
+----
+.Example output
+----
+Warning: oc apply should be used on resource created by either oc create --save-config or oc apply
+persistentvolumeclaim/postgresql configured
+----
+
+You can visualize the progress of the expansion of the PVC using the following command:
+
+[source,role="execute"]
+----
+# oc describe persistentvolumeclaim postgresql -n my-database-app
+----
+.Example output
+----
+[truncated]
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      10Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    postgresql-1-p62vw
+Events:
+  Type     Reason                      Age   From                                                                                                                Message
+  ----     ------                      ----  ----                                                                                                                -------
+  Normal   ExternalProvisioning        120m  persistentvolume-controller                                                                                         waiting for a volume to be created, either by external provisioner "openshift-storage.rbd.csi.ceph.com" or manually created by system administrator
+  Normal   Provisioning                120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  External provisioner is provisioning volume for claim "my-database-app/postgresql"
+  Normal   ProvisioningSucceeded       120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  Successfully provisioned volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+  Warning  ExternalExpanding           65s   volume_expand                                                                                                       Ignoring the PVC: didn't find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
+  Normal   Resizing                    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 External resizer is resizing volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+  Normal   FileSystemResizeRequired    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 Require file system resize of volume on node
+  Normal   FileSystemResizeSuccessful  23s   kubelet, ip-10-0-199-224.us-east-2.compute.internal                                                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6"
+----
+
+NOTE: The expansion process commonly  takes over 30 seconds to complete and is based on
+the workload of your pod. This is due to the fact that the expansion requires the
+resizing of the underlying RBD image (pretty fast) while also requiring the resize
+of the filesystem that sits on top of the block device. To perform the latter
+the filesystem must be quiesced to be safely expanded. In the example above you
+can see that the filesystem expansion took approximatively 40 seconds while the
+RBD resizing took less than a second.
+
+WARNING: Repeat the command above until the `FileSystemResizeSuccessful` message is displayed.
+
+CAUTION: Reducing the size of a PVC is NOT supported.
+
+Another way to check on the expansion of the PVC is to simply display the PVC
+information using the following command:
+
+[source,role="execute"]
+----
+# oc get pvc -n my-database-app
+----
+.Example output
+----
+NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m
+----
+
+NOTE: The capacity column will reflect the new requested size when the expansion process is complete.
+
+Another method to check on the expansion of the PVC is to go through two specific fields of 
+the PVC object via the CLI.
+
+The current allocated size for the PVC can be checked this way:
+[source,role="execute"]
+----
+# echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')
+----
+.Example output
+----
+10Gi
+----
+
+The requested size for the PVC can be checked this way:
+[source,role="execute"]
+----
+# echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')
+----
+.Example output
+----
+10Gi
+----
+
+NOTE: When both fields report the same value, the expansion was successful.
+
+==== Expand via `oc patch` command
+
+Another method to expand a PVC through the CLI is to use the following command:
+
+[source,role="execute"]
+----
+# oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'
+----
+
+NOTE: Simply adapt the size of the command above (`nnGi`) to reflect the new size needed.
+
+==== Expand via the UI
+
+The last method available to expand a PVC is to do so through the UI. Proceed as
+follow:
+
+Fierst step is to select the project to which the PVC belongs to.
+
+.Select the appropriate project
+image::OCS-PVCResize-select-project.png[Select project]
+
+Choose `Expand PVC` from the contextual menu.
+
+.Choose Expand from menu
+image::OCS-PVCResize-choose-expand-menu.png[Choose expand from the contextual menu]
+
+In the dialog box that appears enter the new capacity for the PVC.
+
+CAUTION: You can NOT reduce the size of a PVC.
+
+.Enter the new size for the PVC
+image::OCS-PVCResize-enter-new-size.png[Enter new size]
+
+Navigate back to the list of PVC for your project.
+
+.Navigate back to the list of PVCs
+image::OCS-PVCResize-goback-to-pvc-list.png[Go back to PVC list]
+
+You now simply have to wait for the expansion to complete and for the new
+size to be reflected in the UI.
+
+.Wait for the expansion to complete
+image::OCS-PVCResize-verify-resize-worked.png[Wait for expansion]
+
 == Create a new OCP application deployment using CephFS volume
 
 In this section the `ocs-storagecluster-cephfs` *Storage Class* will be used
@@ -926,6 +1189,53 @@ image::uploader_screen_upload.png[]
 
 Once done click *_List uploaded files_* to see the list of all currently
 uploaded files.
+
+=== Expand CephFS based PVCs
+
+OpenShift Container 4.5 and later versions let you expand an existing PVC based on
+the `ocs-storagecluster-cephfs` storage class. This chapter walks you through the
+steps to perform a PVC expansion through the CLI.
+
+NOTE: All the other methods described for expanding a RBD based PVC are also
+available.
+
+[source,role="execute"]
+----
+# oc patch pvc my-shared-storage -n my-shared-storage --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "5Gi" }]'
+----
+.Example output
+----
+persistentvolumeclaim/my-shared-storage patched
+----
+
+Now let's verify the RWX PVC has been expanded.
+
+[source,role="execute"]
+----
+# echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')
+----
+.Example output
+----
+5Gi
+----
+
+[source,role="execute"]
+----
+# echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')
+----
+.Example output
+----
+5Gi
+----
+
+NOTE: Repeat both commands until output values are identical.
+
+NOTE: CephFS based RWX PVC resizing, as opposed to RBD based ones, is almost
+instantaneous. This is due to the fact that resizing such PVC does not
+involved resizing a filesystem but simply involves updating a quota for
+the mounted filesystem.
+
+CAUTION: Reducing the size of a PVC is NOT supported.
 
 == Using OCS for Prometheus Metrics
 
