@@ -203,6 +203,14 @@ metadata:
   namespace: openshift-storage
 spec:
   manageNodes: false
+  resources:
+    mds: 
+      limits: 
+        cpu: "3"
+        memory: "8Gi"
+      requests: 
+        cpu: "3"
+        memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
   - count: 20  # <-- modify count to number of disks
