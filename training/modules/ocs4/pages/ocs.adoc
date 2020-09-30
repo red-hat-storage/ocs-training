@@ -732,8 +732,8 @@ created.
 
 [source,role="execute"]
 ----
-# oc rsh -n my-database-app postgresql-1-p62vw
-sh-4.2$ df
+oc rsh -n my-database-app postgresql-1-p62vw
+df
 ----
 .Example output
 ----
@@ -756,7 +756,7 @@ is mounted as `/var/lib/pgsql/data`. This is the directory we will artificially 
 
 [source,role="execute"]
 ----
-sh-4.2$ dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850
+dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850
 ----
 .Example output
 ----
@@ -768,7 +768,7 @@ sh-4.2$ dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850
 Let's verify the volume mounted has increased.
 [source,role="execute"]
 ----
-sh-4.2$ df
+df
 ----
 .Example output
 ----
@@ -794,7 +794,7 @@ Now exit the pod.
 
 [source,role="execute"]
 ----
-sh-4.2$ exit
+exit
 ----
 
 Let's verify an alert has appeared in the OCP event log.
@@ -810,7 +810,7 @@ with the following command:
 
 [source,role="execute"]
 ----
-# oc get pvc postgresql -n my-database-app --export -o yaml >pvc.yaml
+oc get pvc postgresql -n my-database-app --export -o yaml >pvc.yaml
 ----
 
 In the file `pvc.yaml` that was created, search for the following section using 
@@ -854,7 +854,7 @@ command:
 
 [source,role="execute"]
 ----
-# oc apply -f pvc.yaml -n my-database-app
+oc apply -f pvc.yaml -n my-database-app
 ----
 .Example output
 ----
@@ -866,7 +866,7 @@ You can visualize the progress of the expansion of the PVC using the following c
 
 [source,role="execute"]
 ----
-# oc describe persistentvolumeclaim postgresql -n my-database-app
+oc describe persistentvolumeclaim postgresql -n my-database-app
 ----
 .Example output
 ----
@@ -905,7 +905,7 @@ information using the following command:
 
 [source,role="execute"]
 ----
-# oc get pvc -n my-database-app
+oc get pvc -n my-database-app
 ----
 .Example output
 ----
@@ -921,7 +921,7 @@ the PVC object via the CLI.
 The current allocated size for the PVC can be checked this way:
 [source,role="execute"]
 ----
-# echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')
+echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')
 ----
 .Example output
 ----
@@ -931,7 +931,7 @@ The current allocated size for the PVC can be checked this way:
 The requested size for the PVC can be checked this way:
 [source,role="execute"]
 ----
-# echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')
+echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')
 ----
 .Example output
 ----
@@ -946,7 +946,7 @@ Another method to expand a PVC through the CLI is to use the following command:
 
 [source,role="execute"]
 ----
-# oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'
+oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'
 ----
 
 NOTE: Simply adapt the size of the command above (`nnGi`) to reflect the new size needed.
@@ -1201,7 +1201,7 @@ available.
 
 [source,role="execute"]
 ----
-# oc patch pvc my-shared-storage -n my-shared-storage --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "5Gi" }]'
+oc patch pvc my-shared-storage -n my-shared-storage --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "5Gi" }]'
 ----
 .Example output
 ----
@@ -1212,7 +1212,7 @@ Now let's verify the RWX PVC has been expanded.
 
 [source,role="execute"]
 ----
-# echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')
+echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')
 ----
 .Example output
 ----
@@ -1221,7 +1221,7 @@ Now let's verify the RWX PVC has been expanded.
 
 [source,role="execute"]
 ----
-# echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')
+echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')
 ----
 .Example output
 ----
