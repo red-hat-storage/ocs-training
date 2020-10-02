@@ -22,7 +22,7 @@ a persistent storage solution for OCP workloads.
 * Validate deployment of containerized Ceph and MCG
 * Deploy the Rook toolbox to run Ceph and RADOS commands
 * Create a Read-Write-Once (RWO) application using Ceph RBD PVC
-* Creating a Read-Write-Many (RWX) application using CephFS PVC
+* Create a Read-Write-Many (RWX) application using CephFS PVC
 * Use OCS for Prometheus and AlertManager storage
 * Use the MCG to create a bucket and use in an application
 * Add more storage to the Ceph cluster
