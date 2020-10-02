@@ -18,8 +18,8 @@ a persistent storage solution for OCP workloads.
 
 === In this Lab you will learn
 
-* Configure and deploy containerized Ceph and MCG (Noobaa)
-* Validate deployment of containerized Ceph and MCG (Noobaa)
+* Configure and deploy containerized Ceph and MCG
+* Validate deployment of containerized Ceph and MCG
 * Deploy the Rook toolbox to run Ceph and RADOS commands
 * Create a Read-Write-Once (RWO) application using Ceph RBD PVC
 * Creating a Read-Write-Many (RWX) application using CephFS PVC
