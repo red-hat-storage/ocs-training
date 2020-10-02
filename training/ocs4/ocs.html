@@ -1169,6 +1169,405 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
 </div>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_expand_rbd_based_pvcs"><a class="anchor" href="#_expand_rbd_based_pvcs"></a>3.2. Expand RBD based PVCs</h3>
+<div class="paragraph">
+<p>OpenShift Container 4.5 and later versions let you expand an existing PVC based on
+the <code>ocs-storagecluster-ceph-rbd</code> storage class. This chapter walks you through the
+steps to perform a PVC expansion.</p>
+</div>
+<div class="paragraph">
+<p>We will first artificially fill up the PVC used by the application you have just
+created.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app postgresql-1-p62vw
+df</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
+overlay                              125277164 12004092 113273072  10% /
+tmpfs                                    65536        0     65536   0% /dev
+tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
+shm                                      65536        8     65528   1% /dev/shm
+tmpfs                                 32571336    10444  32560892   1% /etc/passwd
+/dev/mapper/coreos-luks-root-nocrypt 125277164 12004092 113273072  10% /etc/hosts
+/dev/rbd1                              5095040    66968   5011688   2% /var/lib/pgsql/data
+tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                 32571336        0  32571336   0% /proc/acpi
+tmpfs                                 32571336        0  32571336   0% /proc/scsi
+tmpfs                                 32571336        0  32571336   0% /sys/firmware</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As observed in the output above the RBD backed PVC, the device named <code>/dev/rbd</code>
+is mounted as <code>/var/lib/pgsql/data</code>. This is the directory we will artificially fill up.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">dd if=/dev/zero of=/var/lib/pgsql/data/fill.up bs=1M count=3850</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>3850+0 records in
+3850+0 records out
+4037017600 bytes (4.0 GB) copied, 13.6446 s, 296 MB/s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s verify the volume mounted has increased.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">df</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
+overlay                              125277164 12028616 113248548  10% /
+tmpfs                                    65536        0     65536   0% /dev
+tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
+shm                                      65536        8     65528   1% /dev/shm
+tmpfs                                 32571336    10444  32560892   1% /etc/passwd
+/dev/mapper/coreos-luks-root-nocrypt 125277164 12028616 113248548  10% /etc/hosts
+/dev/rbd1                              5095040  4009372   1069284  79% /var/lib/pgsql/data
+tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
+tmpfs                                 32571336        0  32571336   0% /proc/acpi
+tmpfs                                 32571336        0  32571336   0% /proc/scsi
+tmpfs                                 32571336        0  32571336   0% /sys/firmware</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>As observed in the output above the filesystem usage for <code>/var/lib/pgsql/data</code>
+has increased up to 79%. By default OCP will generate an alert when a PVC
+crosses the 75% full threshold.</p>
+</div>
+<div class="paragraph">
+<p>Now exit the pod.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">exit</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s verify an alert has appeared in the OCP event log.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-pvcnearfull-alert.png" alt="PVC nearfull alert">
+</div>
+<div class="title">Figure 14. OpenShift Container Platform Events</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_applying_a_modified_pvc_yaml_file"><a class="anchor" href="#_expand_applying_a_modified_pvc_yaml_file"></a>3.2.1. Expand applying a modified PVC YAML file</h4>
+<div class="paragraph">
+<p>To expand a PVC we simply need to change the actual amount of storage that is
+requested. This can easily be performed by exporting the PVC specfications
+with the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc postgresql -n my-database-app --export -o yaml &gt;pvc.yaml</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the file <code>pvc.yaml</code> that was created, search for the following section using
+your favorite editor.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>[truncated]
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+  volumeMode: Filesystem
+  volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+status: {}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Edit <code>storage: 5Gi</code> and replace it with <code>storage: 10Gi</code>. The resulting section
+in your file should look like the output below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>[truncated]
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: ocs-storagecluster-ceph-rbd
+  volumeMode: Filesystem
+  volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+status: {}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now you can apply your updated PVC specifications using the following
+command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f pvc.yaml -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Warning: oc apply should be used on resource created by either oc create --save-config or oc apply
+persistentvolumeclaim/postgresql configured</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can visualize the progress of the expansion of the PVC using the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe persistentvolumeclaim postgresql -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>[truncated]
+Finalizers:    [kubernetes.io/pvc-protection]
+Capacity:      10Gi
+Access Modes:  RWO
+VolumeMode:    Filesystem
+Mounted By:    postgresql-1-p62vw
+Events:
+  Type     Reason                      Age   From                                                                                                                Message
+  ----     ------                      ----  ----                                                                                                                -------
+  Normal   ExternalProvisioning        120m  persistentvolume-controller                                                                                         waiting for a volume to be created, either by external provisioner "openshift-storage.rbd.csi.ceph.com" or manually created by system administrator
+  Normal   Provisioning                120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  External provisioner is provisioning volume for claim "my-database-app/postgresql"
+  Normal   ProvisioningSucceeded       120m  openshift-storage.rbd.csi.ceph.com_csi-rbdplugin-provisioner-66f66699c8-gcm7t_3ce4b8bc-0894-4824-b23e-ed9bd46e7b41  Successfully provisioned volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+  Warning  ExternalExpanding           65s   volume_expand                                                                                                       Ignoring the PVC: didn't find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
+  Normal   Resizing                    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 External resizer is resizing volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
+  Normal   FileSystemResizeRequired    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 Require file system resize of volume on node
+  Normal   FileSystemResizeSuccessful  23s   kubelet, ip-10-0-199-224.us-east-2.compute.internal                                                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6"</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The expansion process commonly  takes over 30 seconds to complete and is based on
+the workload of your pod. This is due to the fact that the expansion requires the
+resizing of the underlying RBD image (pretty fast) while also requiring the resize
+of the filesystem that sits on top of the block device. To perform the latter
+the filesystem must be quiesced to be safely expanded. In the example above you
+can see that the filesystem expansion took approximatively 40 seconds while the
+RBD resizing took less than a second.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+Repeat the command above until the <code>FileSystemResizeSuccessful</code> message is displayed.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Reducing the size of a PVC is NOT supported.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Another way to check on the expansion of the PVC is to simply display the PVC
+information using the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The capacity column will reflect the new requested size when the expansion process is complete.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Another method to check on the expansion of the PVC is to go through two specific fields of
+the PVC object via the CLI.</p>
+</div>
+<div class="paragraph">
+<p>The current allocated size for the PVC can be checked this way:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>10Gi</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The requested size for the PVC can be checked this way:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>10Gi</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When both fields report the same value, the expansion was successful.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_via_oc_patch_command"><a class="anchor" href="#_expand_via_oc_patch_command"></a>3.2.2. Expand via <code>oc patch</code> command</h4>
+<div class="paragraph">
+<p>Another method to expand a PVC through the CLI is to use the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Simply adapt the size of the command above (<code>nnGi</code>) to reflect the new size needed.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_expand_via_the_ui"><a class="anchor" href="#_expand_via_the_ui"></a>3.2.3. Expand via the UI</h4>
+<div class="paragraph">
+<p>The last method available to expand a PVC is to do so through the UI. Proceed as
+follow:</p>
+</div>
+<div class="paragraph">
+<p>Fierst step is to select the project to which the PVC belongs to.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-select-project.png" alt="Select project">
+</div>
+<div class="title">Figure 15. Select the appropriate project</div>
+</div>
+<div class="paragraph">
+<p>Choose <code>Expand PVC</code> from the contextual menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-choose-expand-menu.png" alt="Choose expand from the contextual menu">
+</div>
+<div class="title">Figure 16. Choose Expand from menu</div>
+</div>
+<div class="paragraph">
+<p>In the dialog box that appears enter the new capacity for the PVC.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+You can NOT reduce the size of a PVC.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-enter-new-size.png" alt="Enter new size">
+</div>
+<div class="title">Figure 17. Enter the new size for the PVC</div>
+</div>
+<div class="paragraph">
+<p>Navigate back to the list of PVC for your project.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-goback-to-pvc-list.png" alt="Go back to PVC list">
+</div>
+<div class="title">Figure 18. Navigate back to the list of PVCs</div>
+</div>
+<div class="paragraph">
+<p>You now simply have to wait for the expansion to complete and for the new
+size to be reflected in the UI.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-PVCResize-verify-resize-worked.png" alt="Wait for expansion">
+</div>
+<div class="title">Figure 19. Wait for the expansion to complete</div>
+</div>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1430,11 +1829,107 @@ nothing.</p>
 <div class="content">
 <img src="_images/uploader_screen_upload.png" alt="uploader screen upload">
 </div>
-<div class="title">Figure 14. A simple PHP-based file upload tool</div>
+<div class="title">Figure 20. A simple PHP-based file upload tool</div>
 </div>
 <div class="paragraph">
 <p>Once done click <strong><em>List uploaded files</em></strong> to see the list of all currently
 uploaded files.</p>
+</div>
+<div class="sect2">
+<h3 id="_expand_cephfs_based_pvcs"><a class="anchor" href="#_expand_cephfs_based_pvcs"></a>4.1. Expand CephFS based PVCs</h3>
+<div class="paragraph">
+<p>OpenShift Container 4.5 and later versions let you expand an existing PVC based on
+the <code>ocs-storagecluster-cephfs</code> storage class. This chapter walks you through the
+steps to perform a PVC expansion through the CLI.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+All the other methods described for expanding a RBD based PVC are also
+available.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch pvc my-shared-storage -n my-shared-storage --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "5Gi" }]'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>persistentvolumeclaim/my-shared-storage patched</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let&#8217;s verify the RWX PVC has been expanded.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>5Gi</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>5Gi</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Repeat both commands until output values are identical.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+CephFS based RWX PVC resizing, as opposed to RBD based ones, is almost
+instantaneous. This is due to the fact that resizing such PVC does not
+involved resizing a filesystem but simply involves updating a quota for
+the mounted filesystem.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Reducing the size of a PVC is NOT supported.
+</td>
+</tr>
+</table>
+</div>
 </div>
 </div>
 </div>
@@ -2279,7 +2774,7 @@ reach the OCS storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 15. Add Capacity dialog</div>
+<div class="title">Figure 21. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
 <p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will be three times as much as you see in the <code>Raw Capacity</code> field, because OCS uses a replica count of
@@ -2486,7 +2981,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Monitoring Menu">
 </div>
-<div class="title">Figure 16. OCP Monitoring Menu</div>
+<div class="title">Figure 22. OCP Monitoring Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -2495,7 +2990,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 17. OCP Alerting Homepage</div>
+<div class="title">Figure 23. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window by state. To do so you must
@@ -2552,7 +3047,7 @@ You need at least one state highlighted.
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 18. OCP Alerting Status Filtering</div>
+<div class="title">Figure 24. OCP Alerting Status Filtering</div>
 </div>
 <div class="paragraph">
 <p>As illustrated below, you can also filter alerts by name using the <strong>Filter</strong>
@@ -2563,7 +3058,7 @@ of alerts.</p>
 <div class="content">
 <img src="_images/metrics-alertingnamefilter.png" alt="OCP Alert Name Filtering">
 </div>
-<div class="title">Figure 19. OCP Alerting Name Filtering</div>
+<div class="title">Figure 25. OCP Alerting Name Filtering</div>
 </div>
 <div class="paragraph">
 <p>Through the 3 dot icon on the right hand side of each alert line you have
@@ -2574,7 +3069,7 @@ the alert.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 20. OCP Alert Contextual Menu</div>
+<div class="title">Figure 26. OCP Alert Contextual Menu</div>
 </div>
 <div class="paragraph">
 <p>If you select <code>View Alerting Rule</code> you will get access to the details of the
@@ -2585,7 +3080,7 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 21. OCP Alert Detail Display</div>
+<div class="title">Figure 27. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2611,7 +3106,7 @@ execute the alert and to test updates to the alert.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 22. OCP Metrics Menu</div>
+<div class="title">Figure 28. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -2620,7 +3115,7 @@ execute the alert and to test updates to the alert.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 23. OCP UI Metrics Homepage</div>
+<div class="title">Figure 29. OCP UI Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search
@@ -2637,7 +3132,7 @@ complex using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 24. Simple Ceph Query</div>
+<div class="title">Figure 30. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -2646,7 +3141,7 @@ complex using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 25. Simple Ceph Graph</div>
+<div class="title">Figure 31. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -2657,7 +3152,7 @@ you are done typing, simply hit <code>[Enter]</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 26. Complex Ceph Query</div>
+<div class="title">Figure 32. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -2666,7 +3161,7 @@ you are done typing, simply hit <code>[Enter]</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 27. Complex Ceph Graph</div>
+<div class="title">Figure 33. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -2677,7 +3172,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 28. Complex OCP Graph</div>
+<div class="title">Figure 34. Complex OCP Graph</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2848,7 +3343,7 @@ sudo mv oc /usr/bin</code></pre>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 29. Copy Login command menu entry</div>
+<div class="title">Figure 35. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be required to login to your Openshift cluster again.
@@ -2974,7 +3469,7 @@ outside of OCP 4.</p>
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 30. Ceph Project History</div>
+<div class="title">Figure 36. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -2993,7 +3488,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 31. Ceph Architecture</div>
+<div class="title">Figure 37. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -3092,7 +3587,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 32. RADOS as it stands</div>
+<div class="title">Figure 38. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -3111,7 +3606,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 33. Different Storage Types Supported</div>
+<div class="title">Figure 39. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -3131,7 +3626,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 34. Application Native Object API</div>
+<div class="title">Figure 40. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -3158,7 +3653,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 35. kRBD Diagram</div>
+<div class="title">Figure 41. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -3173,7 +3668,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 36. librbd Diagram</div>
+<div class="title">Figure 42. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -3188,7 +3683,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 37. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 43. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -3207,7 +3702,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 38. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 44. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -3285,7 +3780,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 39. Pools and PGs</div>
+<div class="title">Figure 45. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -3316,7 +3811,7 @@ where its PGs are created. A Placement Group or PG belongs to only one pool.</p>
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 40. Ceph Data Protection</div>
+<div class="title">Figure 46. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -3360,7 +3855,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 41. Data Distribution</div>
+<div class="title">Figure 47. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
