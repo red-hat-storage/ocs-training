@@ -16,13 +16,13 @@ interested in learning how to deploy and manage OpenShift Container Storage
 4.x and the OCS operator to deploy Ceph and the Multi-Cloud-Gateway (MCG) as
 a persistent storage solution for OCP workloads.
 
-=== In this lab you will learn how to
+=== In this Lab you will learn
 
-* Configure and deploy containerized Ceph and NooBaa
-* Validate deployment of containerized Ceph and NooBaa
+* Configure and deploy containerized Ceph and MCG (Noobaa)
+* Validate deployment of containerized Ceph and MCG (Noobaa)
 * Deploy the Rook toolbox to run Ceph and RADOS commands
-* Creating a Read-Write-Once (RWO) PVC that is based on Ceph RBDs
-* Creating a Read-Write-Many (RWX) PVC that is based on CephFS
+* Create a Read-Write-Once (RWO) application using Ceph RBD PVC
+* Creating a Read-Write-Many (RWX) application using CephFS PVC
 * Use OCS for Prometheus and AlertManager storage
 * Use the MCG to create a bucket and use in an application
 * Add more storage to the Ceph cluster
