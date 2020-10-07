@@ -1,0 +1,212 @@
+= Enable use of the RGW on an OCS internal deployment
+// :toc: right
+// :toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+Depending on the infrastructure where you deploy OCS, the RGW may or may not be deployed. It is not deployed where MCG has the ability to provision directly an ObjectStore to use as a backing store. For example, RGW is not deployed when OCP/OCS runs on AWS, as in this case MCG will just provision directly an AWS S3 bucket. +
+
+But there may be cases when you want to specifically use the RGW, like to make use of the Ceph bucket notifications feature. +
+The following steps will show you how to do this deployment manually.
+
+== Status verification
+
+First, make sure that the RGW is not already deployed. You can do this with the following command:
+
+[source, execute]
+----
+oc get -n openshift-storage CephObjectStore
+----
+
+This should return nothing. Otherwise you already have an ObjectStore, and therefore an active RGW. In this case you can directly go to the Service and Route steps to gain access to it.
+
+== Creating the CephObjectStore
+
+The CephObjectStore can be deployed with this YAML file (`oc apply -f cephobjectstore.yaml`):
+
+.cephobjectstore.yaml
+[source, yaml]
+----
+---
+apiVersion: ceph.rook.io/v1
+kind: CephObjectStore
+metadata:
+  name: s3a
+  namespace: openshift-storage
+spec:
+  dataPool:
+    crushRoot: ""
+    deviceClass: ""
+    erasureCoded:
+      algorithm: ""
+      codingChunks: 0
+      dataChunks: 0
+    failureDomain: zone
+    replicated:
+      size: 3
+  gateway:
+    allNodes: false
+    instances: 1
+    placement:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+          - matchExpressions:
+            - key: cluster.ocs.openshift.io/openshift-storage
+              operator: Exists
+      podAntiAffinity:
+        preferredDuringSchedulingIgnoredDuringExecution:
+        - podAffinityTerm:
+            labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - rook-ceph-rgw
+            topologyKey: kubernetes.io/hostname
+          weight: 100
+      tolerations:
+      - effect: NoSchedule
+        key: node.ocs.openshift.io/storage
+        operator: Equal
+        value: "true"
+    port: 80
+    resources:
+      limits:
+        cpu: "2"
+        memory: 4Gi
+      requests:
+        cpu: "1"
+        memory: 4Gi
+    securePort: 0
+    sslCertificateRef: ""
+  metadataPool:
+    crushRoot: ""
+    deviceClass: ""
+    erasureCoded:
+      algorithm: ""
+      codingChunks: 0
+      dataChunks: 0
+    failureDomain: zone
+    replicated:
+      size: 3
+----
+
+_Note_: the parameters you may want to change are:
+
+- `name`: you can change it but make sure to adapt the other files that follow.
+- `failureDomain`: default is `zone` for AWS. You may want to adapt for other infrastructures.
+- `instances`: if you want more than one RGW. In this case, make sure to put some load-balancing in front.
+
+== Create the Service and the Route
+
+To access the RGW, you'll need of course at least a Service (for access within the OCP cluster), and a Route if you want to access it from anywhere. So you can apply one or both of those files:
+
+.service.yaml
+[source, yaml]
+----
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: rook-ceph-rgw-ocs-storagecluster-cephobjectstore
+  namespace: openshift-storage
+  labels:
+    app: rook-ceph-rgw
+    ceph_daemon_id: s3a
+    rgw: s3a
+    rook_cluster: openshift-storage
+    rook_object_store: s3a
+spec:
+  ports:
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+  selector:
+    app: rook-ceph-rgw
+    ceph_daemon_id: s3a
+    rgw: s3a
+    rook_cluster: openshift-storage
+    rook_object_store: s3a
+  type: ClusterIP
+  sessionAffinity: None
+----
+
+.route.yaml
+[source, yaml]
+----
+---
+kind: Route
+apiVersion: route.openshift.io/v1
+metadata:
+  name: rgw
+  namespace: openshift-storage
+  labels:
+    app: rook-ceph-rgw
+    ceph_daemon_id: s3a
+    rgw: s3a
+    rook_cluster: openshift-storage
+    rook_object_store: s3a
+spec:
+  to:
+    kind: Service
+    name: rook-ceph-rgw-s3a
+    weight: 100
+  port:
+    targetPort: http
+  wildcardPolicy: None
+----
+
+The Service or the Route you have created are the endpoints that you can use in your application or code that connects to Object Storage.
+
+== Ceph toolbox
+
+As the Ceph dashboard is not available with OCS for an internal deployment, you have to interact direcly with the RGW to create S3 users who will then be able to connect using the S3 API (through s3cmd, boto3 library, any S3-compatible tool...). +
+
+To create a S3 user, first start a Ceph toolbox to use the radosgw-admin utility using the following command:
+
+[source, execute]
+----
+ oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+----
+
+== Create a S3 user
+
+=== Method 1
+To create a new S3 user interactively, log into the Ceph toolbox using the command below:
+
+[source, execute]
+----
+oc rsh -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}')
+----
+
+Create a S3 user using the following command:
+[source, execute]
+----
+radosgw-admin user create --display-name="Your user" --uid=your-user
+----
+
+The output of the command will give you all the details for the newly create user, especially this part:
+
+[source, json]
+----
+{
+  "user": "your-user",
+  "access_key": "XXXXXXXXXXXXXXXX",
+  "secret_key": "XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+}
+----
+
+=== Method 2
+
+To be honest, it's the same as the previous one, but in one line...
+[source, execute]
+----
+oc exec -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}') -- radosgw-admin user create --uid="<user-name>" --display-name="<Display Name>"
+----
+
