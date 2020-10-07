@@ -1,4 +1,4 @@
-= Enable the RGW on an OCS internal deployment
+= Enable use of the RGW on an OCS internal deployment
 // :toc: right
 // :toclevels: 3
 :icons: font
