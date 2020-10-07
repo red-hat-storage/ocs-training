@@ -1,6 +1,16 @@
 = Enable the RGW on an OCS internal deployment
+// :toc: right
+// :toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
-Depending on the infrastructuire where you deploy OCS, the RGW may or may not be deployed. Typically, it is not deployed in Cloud environments. +
+Depending on the infrastructure where you deploy OCS, the RGW may or may not be deployed. It is not deployed where MCG has the ability to provision directly an ObjectStore to use as a backing store. For example, RGW is not deployed when OCP/OCS runs on AWS, as in this case MCG will just provision directly an AWS S3 bucket. +
+
+But there may be cases when you want to specifically use the RGW, like to make use of the Ceph bucket notifications feature. +
 The following steps will show you how to do this deployment manually.
 
 == Status verification
@@ -158,7 +168,7 @@ The Service or the Route you have created are the endpoints that you can use in 
 
 As the Ceph dashboard is not available with OCS for an internal deployment, you have to interact direcly with the RGW to create S3 users who will then be able to connect using the S3 API (through s3cmd, boto3 library, any S3-compatible tool...). +
 
-To create a user you can directly query the Ceph API, or use radosgw-admin. The easiest way to do that is to deploy the Ceph toolbox. This is easily done with this command: 
+To create a S3 user, first start a Ceph toolbox to use the radosgw-admin utility using the following command:
 
 [source, execute]
 ----
@@ -168,13 +178,14 @@ To create a user you can directly query the Ceph API, or use radosgw-admin. The 
 == Create a S3 user
 
 === Method 1
-To create a new S3 user interactively, you can log into the Ceph toolbox like this (or go to the Terminal tab of the toolbox pod in the OCP UI):
+To create a new S3 user interactively, log into the Ceph toolbox using the command below:
 
 [source, execute]
 ----
-oc rsh -n openshift-storage `oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}'`
+oc rsh -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}')
 ----
-and then create the user with:
+
+Create a S3 user using the following command:
 [source, execute]
 ----
 radosgw-admin user create --display-name="Your user" --uid=your-user
@@ -196,6 +207,6 @@ The output of the command will give you all the details for the newly create use
 To be honest, it's the same as the previous one, but in one line...
 [source, execute]
 ----
-oc exec -n openshift-storage `oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}'` -- radosgw-admin user create --uid="<user-name>" --display-name="<Display Name>"
+oc exec -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}') -- radosgw-admin user create --uid="<user-name>" --display-name="<Display Name>"
 ----
 
