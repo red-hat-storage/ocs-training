@@ -1611,14 +1611,11 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
     * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
-    * This image will be deployed in deployment config "file-uploader"
-    * Ports 8080/tcp, 8443/tcp will be load balanced by service "file-uploader"
-      * Other containers can access this service through the hostname "file-uploader"
 
 --&gt; Creating resources ...
     imagestream.image.openshift.io "file-uploader" created
     buildconfig.build.openshift.io "file-uploader" created
-    deploymentconfig.apps.openshift.io "file-uploader" created
+    deployment.apps "file-uploader" created
     service "file-uploader" created
 --&gt; Success
     Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
@@ -1703,7 +1700,7 @@ scale to 3 instances for high availability:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 dc/file-uploader -n my-shared-storage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 deployment/file-uploader -n my-shared-storage</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
