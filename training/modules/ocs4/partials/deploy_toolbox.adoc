@@ -1,0 +1,12 @@
+
+=== Using the Rook-Ceph toolbox to check on the Ceph backing storage
+
+Since the Rook-Ceph *toolbox* is not shipped with OCS, we need to deploy it
+manually.
+
+You can patch the `OCSInitialization ocsinit` using the following command line:
+
+[source,role="execute"]
+----
+oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+----
