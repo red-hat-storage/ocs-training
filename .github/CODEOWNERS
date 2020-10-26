@@ -1,9 +1,9 @@
 # These owners will be the default owners for everything in
 # the repo. Unless a later match takes precedence,
-# @global-owner1 and @global-owner2 will be requested for
+# These people will be requested for
 # review when someone opens a pull request.
-*       @netzzer @jeanchlopez @mulbc
+*       @netzzer @jeanchlopez @mulbc @mid998
 
-training/modules/ocs4 @netzzer @jeanchlopez @mulbc
 training/modules/infra-nodes @mmgaggle @netzzer
 training/modules/ocs4perf @netzzer @jeanchlopez
+training/modules/ocs4/pages/ocs4-enable-rgw.adoc @guimou

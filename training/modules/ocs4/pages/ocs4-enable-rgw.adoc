@@ -164,16 +164,17 @@ spec:
 
 The Service or the Route you have created are the endpoints that you can use in your application or code that connects to Object Storage.
 
-== Ceph toolbox
+// == Ceph toolbox
 
-As the Ceph dashboard is not available with OCS for an internal deployment, you have to interact direcly with the RGW to create S3 users who will then be able to connect using the S3 API (through s3cmd, boto3 library, any S3-compatible tool...). +
+// As the Ceph dashboard is not available with OCS for an internal deployment, you have to interact direcly with the RGW to create S3 users who will then be able to connect using the S3 API (through s3cmd, boto3 library, any S3-compatible tool...). +
 
-To create a S3 user, first start a Ceph toolbox to use the radosgw-admin utility using the following command:
+// To create a S3 user, first start a Ceph toolbox to use the radosgw-admin utility using the following command:
 
-[source, execute]
-----
- oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
-----
+// [source, execute]
+// ----
+//  oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+// ----
+include::partial$deploy_toolbox.adoc[]
 
 == Create a S3 user
 
