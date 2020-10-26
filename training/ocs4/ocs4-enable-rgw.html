@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Enable use of the RGW on an OCS internal deployment :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-enable-rgw.html">
-    <meta name="generator" content="Antora 2.3.3">
+    <meta name="generator" content="Antora 2.3.4">
     <link rel="stylesheet" href="../../_/css/site.css">
   </head>
   <body class="article">
@@ -320,29 +320,28 @@ spec:
 <div class="paragraph">
 <p>The Service or the Route you have created are the endpoints that you can use in your application or code that connects to Object Storage.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_ceph_toolbox"><a class="anchor" href="#_ceph_toolbox"></a>4. Ceph toolbox</h2>
-<div class="sectionbody">
+<div class="sect2">
+<h3 id="_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"><a class="anchor" href="#_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"></a>3.1. Using the Rook-Ceph toolbox to check on the Ceph backing storage</h3>
 <div class="paragraph">
-<p>As the Ceph dashboard is not available with OCS for an internal deployment, you have to interact direcly with the RGW to create S3 users who will then be able to connect using the S3 API (through s3cmd, boto3 library, any S3-compatible tool&#8230;&#8203;).<br></p>
+<p>Since the Rook-Ceph <strong>toolbox</strong> is not shipped with OCS, we need to deploy it
+manually.</p>
 </div>
 <div class="paragraph">
-<p>To create a S3 user, first start a Ceph toolbox to use the radosgw-admin utility using the following command:</p>
+<p>You can patch the <code>OCSInitialization ocsinit</code> using the following command line:</p>
 </div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-execute hljs" data-lang="execute"> oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_a_s3_user"><a class="anchor" href="#_create_a_s3_user"></a>5. Create a S3 user</h2>
+<h2 id="_create_a_s3_user"><a class="anchor" href="#_create_a_s3_user"></a>4. Create a S3 user</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_method_1"><a class="anchor" href="#_method_1"></a>5.1. Method 1</h3>
+<h3 id="_method_1"><a class="anchor" href="#_method_1"></a>4.1. Method 1</h3>
 <div class="paragraph">
 <p>To create a new S3 user interactively, log into the Ceph toolbox using the command below:</p>
 </div>
@@ -373,7 +372,7 @@ spec:
 </div>
 </div>
 <div class="sect2">
-<h3 id="_method_2"><a class="anchor" href="#_method_2"></a>5.2. Method 2</h3>
+<h3 id="_method_2"><a class="anchor" href="#_method_2"></a>4.2. Method 2</h3>
 <div class="paragraph">
 <p>To be honest, it&#8217;s the same as the previous one, but in one line&#8230;&#8203;</p>
 </div>
