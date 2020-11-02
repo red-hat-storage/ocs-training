@@ -1700,7 +1700,7 @@ scale to 3 instances for high availability:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 deployment/file-uploader -n my-shared-storage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 deploymentconfig/file-uploader -n my-shared-storage</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1738,7 +1738,7 @@ the <code>oc set volume</code> command. Execute the following</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc set volume deployment/file-uploader --add --name=my-shared-storage \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc set volume deploymentconfig/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
