@@ -155,7 +155,7 @@ spec:
 oc create -f block-storage.yaml
 ....
 
-After the `localvolume` resource is created check that `Available` *PVs* are created for each device with a `by-id` in the `localvolume.yaml` file.
+After the `localvolume` resource is created check that `Available` *PVs* are created for each device with a `by-id` in the `localvolume.yaml` file. It can take a few minutes until all disks appear as PVs while the Local Storage Operator is preparing the disks.
 
 ====
 
@@ -229,7 +229,7 @@ spec:
 oc create -f localvolumeset.yaml
 ....
 
-After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP nodes with the OCS label.
+After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP nodes with the OCS label. It can take a few minutes until all disks appear as PVs while the Local Storage Operator is preparing the disks.
 
 ====
 
