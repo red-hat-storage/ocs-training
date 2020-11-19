@@ -1,4 +1,4 @@
-= Install OCS without t
+= Install OCS without the Openshift Web UI
 :icons: font
 :source-highlighter: highlightjs
 :highlightjs-languages: yaml
