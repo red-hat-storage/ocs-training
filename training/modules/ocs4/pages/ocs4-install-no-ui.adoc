@@ -66,7 +66,7 @@ To label the nodes use the following command:
 oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
 ....
 
-NOTE: Make sure to label OCP nodes in 3 different AWS availability zones if OCS installation is on AWS. For most other infrastructures (VMware, bare metal, etc.) rack labels are added to create 3 different zones (rack0, rack1, rack2) when the `StorageCluster` is created. 
+NOTE: Make sure to label OCP nodes in 3 different AWS availability zones if OCS installation is on AWS. For most other infrastructures (VMware, bare metal, etc.) rack labels are added to create 3 different zones (rack0, rack1, rack2) when the `StorageCluster` is created.
 
 === Manual Method to create Persistent Volumes
 
@@ -109,7 +109,7 @@ Article that has utility for gathering /dev/disk/by-id for all OCP nodes
 with OCS label (cluster.ocs.openshift.io/openshift-storage)
 https://access.redhat.com/solutions/4928841.
 
-The next step is to create the `LocalVolume` resource using the `by-id` for each OCP node with OCS label. In this case there is one device per node and the `by-id` is added manually under `devicePaths:` in the `localvolume.yaml file`. 
+The next step is to create the `LocalVolume` resource using the `by-id` for each OCP node with OCS label. In this case there is one device per node and the `by-id` is added manually under `devicePaths:` in the `localvolume.yaml file`.
 
 ....
 apiVersion: local.storage.openshift.io/v1
@@ -157,7 +157,7 @@ spec:
   nodeSelector:
     nodeSelectorTerms:
       - matchExpressions:
-        - key: 
+        - key: cluster.ocs.openshift.io/openshift-storage
           operator: In
           values:
             - ""
@@ -168,7 +168,7 @@ After this resource is created you should see a new `localvolumediscoveries` res
 
 ==== Create LocalVolumeSet
 
-The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data. 
+The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data.
 
 Use this file `localvolumeset.yaml` to create the `LocalVolumeSet`. Configure the parameters with comments to meet the needs of your environment. If not required, the parameters with comments can be deleted.
 
@@ -191,7 +191,7 @@ spec:
   maxDeviceCount: 1  # <-- Maximum number of devices per node to be used
   deviceInclusionSpec:
     deviceTypes:
-      - disk  
+      - disk
       - part   # <-- Remove this if not using partitions
     deviceMechanicalProperty:
       - NonRotational
@@ -205,7 +205,7 @@ oc create -f localvolumeset.yaml
 
 After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP nodes with the OCS label.
 
-== Installing OpenShift Container Storage 
+== Installing OpenShift Container Storage
 
 These instructions are used after OCS is generally available (GA). If you have a need to install pre-release OCS different instructions are required as well as access to pre-release entitled registries.
 
