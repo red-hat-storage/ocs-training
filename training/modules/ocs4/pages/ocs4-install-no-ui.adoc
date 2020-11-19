@@ -82,6 +82,9 @@ CAUTION: Make sure to label OCP nodes in 3 different AWS availability zones if O
 
 This is the manual method of creating `PVs` for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.
 
+.Click me for the manual method
+[%collapsible]
+====
 You will need to know the device names on the nodes labeled for
 OCS. You can access the nodes using `oc debug node` and issuing the
 `lsblk` command after `chroot`.
@@ -154,9 +157,16 @@ oc create -f block-storage.yaml
 
 After the `localvolume` resource is created check that `Available` *PVs* are created for each device with a `by-id` in the `localvolume.yaml` file.
 
+====
+
+
 === Auto Discovering Devices and creating Persistent Volumes
 
 This is the method available starting with OCS v4.6 and LSO v4.6.
+
+.Click me for the automatic way if you have OCP 4.6 or newer
+[%collapsible]
+====
 
 Local Storage Operator v4.6 supports discovery of devices on OCP nodes with the OCS label `cluster.ocs.openshift.io/openshift-storage=""`. Create the `LocalVolumeDiscovery` resource using this file after the OCP nodes are labeled with the OCS label.
 
@@ -220,6 +230,8 @@ oc create -f localvolumeset.yaml
 ....
 
 After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP nodes with the OCS label.
+
+====
 
 == Installing OpenShift Container Storage
 
