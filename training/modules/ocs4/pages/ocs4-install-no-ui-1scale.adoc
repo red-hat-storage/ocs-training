@@ -174,7 +174,7 @@ EOF
 
 After this resource is created you should see a new `localvolumediscoveries` resource and there will be a `localvolumediscoveryresults` for each OCP node labeled with the OCS label. Each `localvolumediscoveryresults` will have the detail for each disk on the node including the `by-id`, size and type of disk.
 
-=== Create LocalVolumeSet
+==== Create LocalVolumeSet
 
 The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data. 
 
