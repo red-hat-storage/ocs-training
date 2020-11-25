@@ -1,6 +1,4 @@
-# 1+ scaling with OCS using local storage
-
-= Install OCS without the Openshift Web UI
+= 1+ scaling with OCS using local storage
 
 == Overview
 
