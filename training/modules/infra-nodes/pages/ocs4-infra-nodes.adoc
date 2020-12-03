@@ -64,8 +64,8 @@ run OCS services:
       creationTimestamp: null
       labels:
         machine.openshift.io/cluster-api-cluster: kb-s25vf
-        machine.openshift.io/cluster-api-machine-role: worker
-        machine.openshift.io/cluster-api-machine-type: worker
+        machine.openshift.io/cluster-api-machine-role: infra
+        machine.openshift.io/cluster-api-machine-type: infra
         machine.openshift.io/cluster-api-machineset: kb-s25vf-infra-us-west-2a
     spec:
       taints:
