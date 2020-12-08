@@ -285,7 +285,7 @@ with OCS label (cluster.ocs.openshift.io/openshift-storage)
 kind: LocalVolume
 metadata:
   name: local-block
-  namespace: local-storage
+  namespace: openshift-local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
@@ -356,6 +356,7 @@ EOF</code></pre>
 kind: LocalVolumeSet
 metadata:
   name: local-block
+  namespace: openshift-local-storage
 spec:
   nodeSelector:
     nodeSelectorTerms:
