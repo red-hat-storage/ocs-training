@@ -1,78 +1,88 @@
-# 1+ scaling with OCS using local storage
+= 1+ scaling with OCS using local storage
 
-## Overview
+== Overview
 
-OpenShift Container Platform has been verified to work in conjunction with https://docs.openshift.com/container-platform/4.3/storage/persistent_storage/persistent-storage-local.html[local storage] devices and OpenShift Container Storage on AWS EC2, VMware, and Bare Metal hosts.
+OpenShift Container Platform has been verified to work in conjunction
+with
+https://docs.openshift.com/container-platform/4.6/storage/persistent_storage/persistent-storage-local.html[local
+storage] devices and OpenShift Container Storage (OCS) on AWS EC2, VMware, Azure and
+Bare Metal hosts. These instructions require that you have the ability to install version 4.6 for both OCS and the Local Storage Operator (LSO).
 
-In addition, using the method detailed in this document, you can use 1+ scaling for adding new storage nodes (vs 3+ scaling or needing to add 3 nodes to expand cluster horizontal). This method also allows starting with a number of OCP nodes that does not need to be a multiple of 3 (i.e., 3, 6, 9 ...). You will still need a minimum of 3 nodes and these nodes need to meet the OCS CPU and Mem requirements. The difference is that the initial number of nodes to not need to be multiple of 3 (3, 4, 5, ...) as documented in the official OCS documentation.
+In addition, using the method detailed in this document, you can use 1+ scaling for adding new storage nodes (vs 3+ scaling or needing to add 3 nodes to expand cluster horizontal). This method also allows starting with a number of OCP nodes that does not need to be a multiple of 3 (i.e., 3, 6, 9 …​). You will still need a minimum of 3 nodes and these nodes need to meet the OCS CPU and Mem requirements. The difference is that the initial number of nodes do not need to be multiple of 3 (3, 4, 5, …​) as documented in the official OCS documentation.
 
-## Installing the Local Storage Operator
+== Installing the Local Storage Operator v4.6
 
-First, you will need to create a namespace for the Local Storage Operator. A self descriptive 'local-storage' namespace is recommended.
+First, you will need to create a namespace for the Local Storage
+Operator. A self descriptive `openshift-local-storage' namespace is recommended.
 
-```
+....
 cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: local-storage
+  name: openshift-local-storage
 spec: {}
 EOF
-```
+....
 
-Next, you will need to install the Local Storage Operator. This can be done via the following commands, or through the OpenShift Console. If you choose to install the Local Storage Operator from the OpenShift Console, ensure that you install it into the `local-storage` namespace you created in the previous step.
+Create Operator Group for Local Storage Operator.
 
-Create Operator Group for Local Storage Operator:
-```
+....
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
-  annotations:
-    olm.providedAPIs: LocalVolume.v1.local.storage.openshift.io
-  name: local-storage
-  namespace: local-storage
+  name: local-operator-group
+  namespace: openshift-local-storage
 spec:
   targetNamespaces:
-  - local-storage
+    - openshift-local-storage
 EOF
-```
+....
 
-Subscribe to Local Storage Operator:
-```
+Subscribe to Local Storage Operator.
+
+....
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
   name: local-storage-operator
-  namespace: local-storage
+  namespace: openshift-local-storage
 spec:
-  channel: "4.5"
+  channel: "4.6"
   installPlanApproval: Automatic
   name: local-storage-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-```
+....
 
-### Preparing Nodes
+=== Preparing Nodes
 
-You will need to add the OCS label to each OCP node. The OCS operator looks for this label to know which nodes can be scheduling targets for OCS components. Later we will configure the Local Storage Operator to create PVs from storage devices on nodes with this label. You must have a minimum of three labeled worker nodes. To label the nodes use the following command:
+You will need to add the OCS label to each OCP node that has storage devices. The OCS operator looks for this label to know which nodes can be scheduling targets for OCS components. Later we will configure Local Storage Operator `Custom Resources` to create PVs from storage devices on nodes with this label. You must have a minimum of three labeled nodes with the same number of devices or disks and similar performance capability. Only SSDs or NVMe devices can be used for OCS.
 
-```
+To label the nodes use the following command:
+
+....
 oc label node <NodeName> cluster.ocs.openshift.io/openshift-storage=''
-```
+....
 
-You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, ...).
+You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, …​).
 
-```
+....
 oc label node <NodeName> topology.rook.io/rack=rack0
-```
+....
 
-### Finding Device Names
-Next, you will need to know the device names on the nodes labeled for OCS. You can access the nodes using `oc debug node` and issuing the `lsblk` command after `chroot`.
+=== Manual Method to create Persistent Volumes
 
-```
+This is the manual method of creating `PVs` for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.
+
+You will need to know the device names on the nodes labeled for
+OCS. You can access the nodes using `oc debug node` and issuing the
+`lsblk` command after `chroot`.
+
+....
 $ oc debug node/<node_name>
 
 sh-4.4# chroot /host
@@ -86,10 +96,12 @@ nvme0n1                      259:0    0   120G  0 disk
   `-coreos-luks-root-nocrypt 253:0    0 119.5G  0 dm   /sysroot
 nvme1n1                      259:5    0  1000G  0 disk
 nvme2n1                      259:6    0  1000G  0 disk
-```
-After you know which local devices are available, in this case nvme0n1 and nvme1n1, you can now find the by-id, a unique name depending on the hardware serial number for each device.
+....
 
-```
+After you know which local devices are available, in this case nvme0n1
+and nvme1n1. You can now find the `by-id`, a unique name created using the hardware serial number for each device.
+
+....
 sh-4.4# ls -l /dev/disk/by-id/
 total 0
 lrwxrwxrwx. 1 root root 10 Mar 17 16:24 dm-name-coreos-luks-root-nocrypt -> ../../dm-0
@@ -97,19 +109,15 @@ lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AW
 lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC -> ../../nvme1n1
 lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533130333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -> ../../nvme0n1
 lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533630333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -> ../../nvme1n1
-```
+....
 
-Article that has utility for gathering /dev/disk/by-id for all OCP nodes with OCS label (cluster.ocs.openshift.io/openshift-storage='') https://access.redhat.com/solutions/4928841.
+Article that has utility for gathering /dev/disk/by-id for all OCP nodes
+with OCS label (cluster.ocs.openshift.io/openshift-storage)
+https://access.redhat.com/solutions/4928841.
 
-### Create LSO CR for OSD PVs
+The next step is to create the `LocalVolume` resource using the `by-id` for each OCP node with OCS label. In this case there is one device per node and the `by-id` is added manually under `devicePaths:` in the `localvolume.yaml file`. 
 
-The device paths you provide for the OSDs PVs *can only be raw block devices*. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data. The example is for one storage device on each of 3 OCP nodes with the OCS label. Use this command to verify that your OCP nodes do have an OCS label.
-
-```
-oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
-```
-
-```
+....
 apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
@@ -130,19 +138,88 @@ spec:
         - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC   # <-- modify this line
         - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS1F45C01D7E84FE3E9   # <-- modify this line
         - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS136BC945B4ECB9AE4   # <-- modify this line
-        ...
-```
+....
 
-```
+....
 oc create -f block-storage.yaml
-```
+....
 
-## Installing OpenShift Container Storage
+After the `localvolume` resource is created check that `Available` *PVs* are created for each device with a `by-id` in the `localvolume.yaml` file.
 
-### Install Operator
+=== Auto Discovering Devices and creating Persistent Volumes
+
+This is the method available starting with OCS v4.6 and LSO v4.6.
+
+Local Storage Operator v4.6 supports discovery of devices on OCP nodes with the OCS label `cluster.ocs.openshift.io/openshift-storage=""`. Create the `LocalVolumeDiscovery` resource using this file after the OCP nodes are labeled with the OCS label.
+
+....
+cat <<EOF | oc apply -f -
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeDiscovery
+metadata:
+  name: auto-discover-devices
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+        - key: 
+          operator: In
+          values:
+            - ""
+EOF
+....
+
+After this resource is created you should see a new `localvolumediscoveries` resource and there will be a `localvolumediscoveryresults` for each OCP node labeled with the OCS label. Each `localvolumediscoveryresults` will have the detail for each disk on the node including the `by-id`, size and type of disk.
+
+==== Create LocalVolumeSet
+
+The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data. 
+
+Use this file `localvolumeset.yaml` to create the `LocalVolumeSet`. Configure the parameters with comments to meet the needs of your environment. If not required, the parameters with comments can be deleted.
+
+....
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  name: local-block
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: In
+            values:
+              - ""
+  storageClassName: localblock
+  volumeMode: Block
+  fstype: ext4
+  maxDeviceCount: 1  # <-- Maximum number of devices per node to be used
+  deviceInclusionSpec:
+    deviceTypes:
+      - disk  
+      - part   # <-- Remove this if not using partitions
+    deviceMechanicalProperty:
+      - NonRotational
+      minSize: 0   # <-- Change if desire to limit the minimum size of disk used
+      maxSize: 0   # <-- Change if desire to limit the maximum size of disk used
+....
+
+....
+oc create -f localvolumeset.yaml
+....
+
+After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP nodes with the OCS label.
+
+== Installing OpenShift Container Storage 
+
+These instructions are used after OCS is generally available (GA). If you have a need to install pre-release OCS different instructions are required as well as access to pre-release entitled registries.
+
+=== Install Operator
 
 Create `openshift-storage` namespace.
-```
+
+....
 cat <<EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
@@ -152,10 +229,11 @@ metadata:
   name: openshift-storage
 spec: {}
 EOF
-```
+....
 
 Create Operator Group for OCS Operator.
-```
+
+....
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
@@ -166,10 +244,11 @@ spec:
   targetNamespaces:
   - openshift-storage
 EOF
-```
+....
 
 Subscribe to OCS Operator.
-```
+
+....
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -177,25 +256,23 @@ metadata:
   name: ocs-operator
   namespace: openshift-storage
 spec:
-  channel: "stable-4.5"
+  channel: "stable-4.6"
   installPlanApproval: Automatic
   name: ocs-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-```
+....
 
-### Create Cluster
+=== Create Cluster
 
 As described above this method of deployment does not require initial deployment to have OCP node counts in multiples of 3 or adding nodes in multiples of 3.
 
-Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, ...). There must be a minimum of 3 OCP nodes with storage devices.
+Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, …​). There must be a minimum of 3 OCP nodes with storage devices.
 
 The only modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., 5 servers with 4 disks each count = 20) that you want to use for your OCS cluster.
 
-Example Storage Cluster CR:
-
-```
+....
 apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
 metadata:
@@ -204,11 +281,11 @@ metadata:
 spec:
   manageNodes: false
   resources:
-    mds: 
-      limits: 
+    mds:
+      limits:
         cpu: "3"
         memory: "8Gi"
-      requests: 
+      requests:
         cpu: "3"
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
@@ -240,40 +317,41 @@ spec:
       requests:
         cpu: "2"
         memory: "5Gi"
-```
+....
 
-```
+....
 oc create -f storagecluster.yaml
-```
+....
 
-## Verifying the Installation
+== Verifying the Installation
 
 Deploy the Rook-Ceph toolbox pod.
 
-```
+....
 oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
-```
+....
 
 Establish a remote shell to the toolbox pod.
 
-```
+....
 TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
-```
+....
 
-Run `ceph status` and `ceph osd tree` to see that status of the Ceph cluster.
+Run `ceph status` and `ceph osd tree` to see that status of the Ceph
+cluster.
 
-```
+....
 sh-4.4# ceph status
-```
+....
 
-```
+....
 sh-4.4# ceph osd tree
-```
+....
 
-### Create test CephRBD PVC and CephFS PVC
+=== Create test CephRBD PVC and CephFS PVC
 
-```
+....
 cat <<EOF | oc apply -f -
 ---
 apiVersion: v1
@@ -288,14 +366,15 @@ spec:
       storage: 1Gi
   storageClassName: ocs-storagecluster-ceph-rbd
 EOF
-```
+....
+
 Validate new PVC is created.
 
-```
+....
 oc get pvc | grep rbd-pvc
-```
+....
 
-```
+....
 cat <<EOF | oc apply -f -
 ---
 apiVersion: v1
@@ -310,44 +389,46 @@ spec:
       storage: 1Gi
   storageClassName: ocs-storagecluster-cephfs
 EOF
-```
+....
+
 Validate new PVC is created.
 
-```
+....
 oc get pvc | grep cephfs-pvc
-```
+....
 
-### Upgrade OCS version (major version)
+=== Upgrade OCS version (major version)
 
 Validate current version of OCS.
 
-```
+....
 oc get csv -n openshift-storage
-```
+....
 
 Example output.
-```
+
+....
 NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                Succeeded
-```
+ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                Succeeded
+....
 
 Verify there is a new OCS stable channel.
 
-```
+....
 oc describe packagemanifests ocs -n openshift-marketplace |grep stable-
-```
+....
 
 Example output.
-```
-    Name:         stable-4.3
-    Name:         stable-4.4
+
+....
     Name:           stable-4.5
-  Default Channel:  stable-4.5
-```
+    Name:           stable-4.6
+  Default Channel:  stable-4.6
+....
 
-Apply subscription with new stable-4.5 channel.
+Apply subscription with new stable-4.6 channel.
 
-```
+....
 cat <<EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
@@ -355,36 +436,41 @@ metadata:
   name: ocs-operator
   namespace: openshift-storage
 spec:
-  channel: "stable-4.5"
+  channel: "stable-4.6"
   installPlanApproval: Automatic
   name: ocs-operator
   source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF
-```
+....
 
 Validate subscription is updating.
 
-```
+....
 watch oc get csv -n openshift-storage
-```
+....
 
 Example output.
-```
+
+....
 NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.4.2   OpenShift Container Storage   4.4.2                           Replacing
-ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Installing
-```
+ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                           Replacing
+ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0     ocs-operator.v4.5.2   Installing
+....
+
 Validate new version of OCS.
 
-```
+....
 oc get csv -n openshift-storage
-```
+....
 
 Example output.
-```
-NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0     ocs-operator.v4.4.2   Succeeded
-```
 
-Validate that all pods in openshift-storage are eventually in a running state after updating. Also verify that Ceph is healthy using instructions in prior section.
+....
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0     ocs-operator.v4.5.2   Succeeded
+....
+
+Validate that all pods in openshift-storage are eventually in a running
+state after updating. Also verify that Ceph is healthy using
+instructions in prior section.
