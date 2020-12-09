@@ -137,7 +137,7 @@
 <article class="doc">
 <h1 class="page">1+ scaling with OCS using local storage</h1>
 <div class="sect1">
-<h2 id="_overview"><a class="anchor" href="#_overview"></a>Overview</h2>
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>OpenShift Container Platform has been verified to work in conjunction
@@ -152,7 +152,7 @@ Bare Metal hosts. These instructions require that you have the ability to instal
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_the_local_storage_operator_v4_6"><a class="anchor" href="#_installing_the_local_storage_operator_v4_6"></a>Installing the Local Storage Operator v4.6</h2>
+<h2 id="_installing_the_local_storage_operator_v4_6"><a class="anchor" href="#_installing_the_local_storage_operator_v4_6"></a>2. Installing the Local Storage Operator v4.6</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>First, you will need to create a namespace for the Local Storage
@@ -160,7 +160,7 @@ Operator. A self descriptive `openshift-local-storage' namespace is recommended.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -174,7 +174,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -191,7 +191,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -207,7 +207,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_preparing_nodes"><a class="anchor" href="#_preparing_nodes"></a>Preparing Nodes</h3>
+<h3 id="_preparing_nodes"><a class="anchor" href="#_preparing_nodes"></a>2.1. Preparing Nodes</h3>
 <div class="paragraph">
 <p>You will need to add the OCS label to each OCP node that has storage devices. The OCS operator looks for this label to know which nodes can be scheduling targets for OCS components. Later we will configure Local Storage Operator <code>Custom Resources</code> to create PVs from storage devices on nodes with this label. You must have a minimum of three labeled nodes with the same number of devices or disks and similar performance capability. Only SSDs or NVMe devices can be used for OCS.</p>
 </div>
@@ -229,7 +229,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_manual_method_to_create_persistent_volumes"><a class="anchor" href="#_manual_method_to_create_persistent_volumes"></a>Manual Method to create Persistent Volumes</h3>
+<h3 id="_manual_method_to_create_persistent_volumes"><a class="anchor" href="#_manual_method_to_create_persistent_volumes"></a>2.2. Manual Method to create Persistent Volumes</h3>
 <div class="paragraph">
 <p>This is the manual method of creating <code>PVs</code> for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.</p>
 </div>
@@ -280,7 +280,7 @@ with OCS label (cluster.ocs.openshift.io/openshift-storage)
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>apiVersion: local.storage.openshift.io/v1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: local.storage.openshift.io/v1
 kind: LocalVolume
 metadata:
   name: local-block
@@ -312,7 +312,7 @@ spec:
 </div>
 </div>
 <div class="sect2">
-<h3 id="_auto_discovering_devices_and_creating_persistent_volumes"><a class="anchor" href="#_auto_discovering_devices_and_creating_persistent_volumes"></a>Auto Discovering Devices and creating Persistent Volumes</h3>
+<h3 id="_auto_discovering_devices_and_creating_persistent_volumes"><a class="anchor" href="#_auto_discovering_devices_and_creating_persistent_volumes"></a>2.3. Auto Discovering Devices and creating Persistent Volumes</h3>
 <div class="paragraph">
 <p>This is the method available starting with OCS v4.6 and LSO v4.6.</p>
 </div>
@@ -321,7 +321,7 @@ spec:
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: local.storage.openshift.io/v1alpha1
 kind: LocalVolumeDiscovery
 metadata:
@@ -342,7 +342,7 @@ EOF</code></pre>
 <p>After this resource is created you should see a new <code>localvolumediscoveries</code> resource and there will be a <code>localvolumediscoveryresults</code> for each OCP node labeled with the OCS label. Each <code>localvolumediscoveryresults</code> will have the detail for each disk on the node including the <code>by-id</code>, size and type of disk.</p>
 </div>
 <div class="sect3">
-<h4 id="_create_localvolumeset"><a class="anchor" href="#_create_localvolumeset"></a>Create LocalVolumeSet</h4>
+<h4 id="_create_localvolumeset"><a class="anchor" href="#_create_localvolumeset"></a>2.3.1. Create LocalVolumeSet</h4>
 <div class="paragraph">
 <p>The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data.</p>
 </div>
@@ -351,7 +351,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>apiVersion: local.storage.openshift.io/v1alpha1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: local.storage.openshift.io/v1alpha1
 kind: LocalVolumeSet
 metadata:
   name: local-block
@@ -391,19 +391,19 @@ spec:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_openshift_container_storage"><a class="anchor" href="#_installing_openshift_container_storage"></a>Installing OpenShift Container Storage</h2>
+<h2 id="_installing_openshift_container_storage"><a class="anchor" href="#_installing_openshift_container_storage"></a>3. Installing OpenShift Container Storage</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>These instructions are used after OCS is generally available (GA). If you have a need to install pre-release OCS different instructions are required as well as access to pre-release entitled registries.</p>
 </div>
 <div class="sect2">
-<h3 id="_install_operator"><a class="anchor" href="#_install_operator"></a>Install Operator</h3>
+<h3 id="_install_operator"><a class="anchor" href="#_install_operator"></a>3.1. Install Operator</h3>
 <div class="paragraph">
 <p>Create <code>openshift-storage</code> namespace.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: v1
 kind: Namespace
 metadata:
@@ -419,7 +419,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1
 kind: OperatorGroup
 metadata:
@@ -436,7 +436,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
@@ -453,7 +453,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_cluster"><a class="anchor" href="#_create_cluster"></a>Create Cluster</h3>
+<h3 id="_create_cluster"><a class="anchor" href="#_create_cluster"></a>3.2. Create Cluster</h3>
 <div class="paragraph">
 <p>As described above this method of deployment does not require initial deployment to have OCP node counts in multiples of 3 or adding nodes in multiples of 3.</p>
 </div>
@@ -465,7 +465,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>apiVersion: ocs.openshift.io/v1
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ocs.openshift.io/v1
 kind: StorageCluster
 metadata:
   name: ocs-storagecluster
@@ -520,7 +520,7 @@ spec:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_verifying_the_installation"><a class="anchor" href="#_verifying_the_installation"></a>Verifying the Installation</h2>
+<h2 id="_verifying_the_installation"><a class="anchor" href="#_verifying_the_installation"></a>4. Verifying the Installation</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Deploy the Rook-Ceph toolbox pod.</p>
@@ -554,10 +554,10 @@ cluster.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_test_cephrbd_pvc_and_cephfs_pvc"><a class="anchor" href="#_create_test_cephrbd_pvc_and_cephfs_pvc"></a>Create test CephRBD PVC and CephFS PVC</h3>
+<h3 id="_create_test_cephrbd_pvc_and_cephfs_pvc"><a class="anchor" href="#_create_test_cephrbd_pvc_and_cephfs_pvc"></a>4.1. Create test CephRBD PVC and CephFS PVC</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -583,7 +583,7 @@ EOF</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -609,7 +609,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_upgrade_ocs_version_major_version"><a class="anchor" href="#_upgrade_ocs_version_major_version"></a>Upgrade OCS version (major version)</h3>
+<h3 id="_upgrade_ocs_version_major_version"><a class="anchor" href="#_upgrade_ocs_version_major_version"></a>4.2. Upgrade OCS version (major version)</h3>
 <div class="paragraph">
 <p>Validate current version of OCS.</p>
 </div>
@@ -650,7 +650,7 @@ ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                Succeed
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code>cat &lt;&lt;EOF | oc apply -f -
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
