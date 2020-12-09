@@ -1,4 +1,10 @@
 = 1+ scaling with OCS using local storage
+:source-highlighter: highlightjs
+:highlightjs-languages: yaml
+:source-language: yaml
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
 
 == Overview
 
