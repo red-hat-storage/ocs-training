@@ -219,8 +219,8 @@ spec:
       - part   # <-- Remove this if not using partitions
     deviceMechanicalProperty:
       - NonRotational
-      minSize: 0   # <-- Change if desire to limit the minimum size of disk used
-      maxSize: 0   # <-- Change if desire to limit the maximum size of disk used
+    minSize: 0   # <-- Change if desire to limit the minimum size of disk used
+    maxSize: 0   # <-- Change if desire to limit the maximum size of disk used
 ....
 
 [source,shell]
