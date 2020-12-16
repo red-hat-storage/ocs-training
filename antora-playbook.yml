@@ -12,7 +12,7 @@ content:
     edit_url: '{web_url}/edit/{refname}/{path}'
 ui:
   bundle:
-    url: https://gitlab.com/antora/antora-ui-default/-/jobs/904187861/artifacts/raw/build/ui-bundle.zip
+    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
     snapshot: true
   supplemental_files: ui
 # output:
