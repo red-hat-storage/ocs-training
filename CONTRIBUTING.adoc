@@ -33,8 +33,21 @@ image::imgs/open-PR-long-2.png[]
 - Create a new branch in which you work. The branch name should include your name.
   * Including your name helps us in finding out if the branch can be recycled
 - Only work inside of your branch
-- *For Workloads* create a new folder in the scheme `ocs4<workload>` where workload should explain what your workload is about. Example: `ocs4metrics`
 - Write your content in ASCIIdoc format - respect the ASCIIdoc styling information below
+
+## Testing work locally
+
+To test your work locally before we deploy it to master, you can execute this command in the root of your Git project:
+
+[source]
+----
+podman run -v $PWD:/antora --rm -t antora/antora --cache-dir=./.cache/antora antora-playbook-local.yml    
+----
+
+This command should work the same way with `docker` too.
+
+Afterwards you will find a new folder `build`. Point your browser to build/site/index.html in this git repository to preview your changes.
+
 
 ## ASCIIdoc styling
 
@@ -44,8 +57,6 @@ It is best practice to copy this to the beginning of your workshop:
 
 ----
 = YOUR TITLE
-:toc: right
-:toclevels: 2
 :icons: font
 :source-language: bash
 :numbered:
@@ -133,9 +144,3 @@ Once you finished these steps, you can see that we successfully mounted the rwx 
 [green]*Instead DO this:*
 
 Once you finished these steps, you can see that we successfully mounted the *RWX PVC* inside of our toolbox *Pod*, while it is also still mounted on the registry *Pods*.
-
-### ASCIIdoc features and Github
-
-Github unfortunately does not support many ASCIIdoc features. Until we are deploying inside of Homeroom, your lab needs to look decent inside of Github!
-
-One of the features that Github lacks is `import:` to include another document inside of another document. It is up to you to verify that the ASCIIdoc you produce works on Github.
