@@ -15,7 +15,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
       - name: "Generate site using Antora in Docker"
-        run: docker run -v $PWD:/antora --rm -t antora/antora --cache-dir=./.cache/antora antora-playbook-local.yml
+        run: docker run -v $PWD:/antora --rm -t antora/antora --cache-dir=./.cache/antora antora-playbook.yml
       - name: "List folder"
         run: |
            ls -ltr $GITHUB_WORKSPACE/build/
