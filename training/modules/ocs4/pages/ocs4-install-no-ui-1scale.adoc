@@ -220,7 +220,7 @@ spec:
     deviceMechanicalProperty:
       - NonRotational
     #minSize: 0Ti   # <-- Uncomment and modify to limit the minimum size of disk used
-    #maxSize: 0Ti   # <-- Uncomment and modify to limit the minimum size of disk used
+    #maxSize: 0Ti   # <-- Uncomment and modify to limit the maximum size of disk used
 ....
 
 [source,shell]
