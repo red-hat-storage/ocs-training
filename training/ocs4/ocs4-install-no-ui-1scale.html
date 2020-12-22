@@ -202,7 +202,7 @@ spec:
   channel: "4.6"
   installPlanApproval: Automatic
   name: local-storage-operator
-  source: redhat-operators
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -232,7 +232,19 @@ EOF</code></pre>
 <div class="sect2">
 <h3 id="_manual_method_to_create_persistent_volumes"><a class="anchor" href="#_manual_method_to_create_persistent_volumes"></a>2.2. Manual Method to create Persistent Volumes</h3>
 <div class="paragraph">
-<p>This is the manual method of creating <code>PVs</code> for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.</p>
+<p>This is the manual method of creating <strong>PVs</strong> for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you use this section to create <strong>PVs</strong> skip <code>Auto Discovering Devices and creating Persistent Volumes</code> and proceed to installing OCS.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>You will need to know the device names on the nodes labeled for
@@ -447,7 +459,7 @@ spec:
   channel: "stable-4.6"
   installPlanApproval: Automatic
   name: ocs-operator
-  source: redhat-operators
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -483,7 +495,7 @@ spec:
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 20  # &lt;-- modify count to number of disks
+  - count: 20  # &lt;-- Modify count to number of disks
     dataPVCTemplate:
       spec:
         accessModes:
