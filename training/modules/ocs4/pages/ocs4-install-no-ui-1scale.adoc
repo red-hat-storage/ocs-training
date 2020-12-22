@@ -62,7 +62,7 @@ spec:
   channel: "4.6"
   installPlanApproval: Automatic
   name: local-storage-operator
-  source: redhat-operators
+  source: redhat-operators  # <-- Modify the name of the redhat-operators catalogsource if not default
   sourceNamespace: openshift-marketplace
 EOF
 ....
@@ -87,7 +87,9 @@ oc label node <NodeName> topology.rook.io/rack=rack0
 
 === Manual Method to create Persistent Volumes
 
-This is the manual method of creating `PVs` for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.
+This is the manual method of creating *PVs* for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.
+
+NOTE: If you use this section to create *PVs* skip `Auto Discovering Devices and creating Persistent Volumes` and proceed to installing OCS.
 
 You will need to know the device names on the nodes labeled for
 OCS. You can access the nodes using `oc debug node` and issuing the
@@ -281,7 +283,7 @@ spec:
   channel: "stable-4.6"
   installPlanApproval: Automatic
   name: ocs-operator
-  source: redhat-operators
+  source: redhat-operators  # <-- Modify the name of the redhat-operators catalogsource if not default
   sourceNamespace: openshift-marketplace
 EOF
 ....
@@ -313,7 +315,7 @@ spec:
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
   storageDeviceSets:
-  - count: 20  # <-- modify count to number of disks
+  - count: 20  # <-- Modify count to number of disks
     dataPVCTemplate:
       spec:
         accessModes:
