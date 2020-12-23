@@ -135,6 +135,9 @@
   <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-install-no-ui.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
 <article class="doc">
 <h1 class="page">Install OCS without the Openshift Web UI</h1>
 <div class="sect1">
@@ -384,10 +387,10 @@ spec:
   maxDeviceCount: 1  # &lt;-- Maximum number of devices per node to be used
   deviceInclusionSpec:
     deviceTypes:
-      - disk
-      - part   # &lt;-- Remove this if not using partitions
-    deviceMechanicalProperty:
-      - NonRotational
+    - disk
+    - part   # &lt;-- Remove this if not using partitions
+    deviceMechanicalProperties:
+    - NonRotational
     #minSize: 0Ti   # &lt;-- Uncomment and modify to limit the minimum size of disk used
     #maxSize: 0Ti   # &lt;-- Uncomment and modify to limit the maximum size of disk used</code></pre>
 </div>
@@ -711,9 +714,6 @@ instructions in prior section.</p>
 </div>
 </div>
 </article>
-<aside class="toc sidebar" data-title="Contents" data-levels="2">
-  <div class="toc-menu"></div>
-</aside>
   </div>
 </main>
 </div>
