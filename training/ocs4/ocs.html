@@ -155,10 +155,10 @@ a persistent storage solution for OCP workloads.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Configure and deploy containerized Ceph and NooBaa</p>
+<p>Configure and deploy containerized Ceph and MCG</p>
 </li>
 <li>
-<p>Validate deployment of containerized Ceph and NooBaa</p>
+<p>Validate deployment of containerized Ceph and MCG</p>
 </li>
 <li>
 <p>Deploy the Rook toolbox to run Ceph and RADOS commands</p>
@@ -237,7 +237,7 @@ ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f8
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machinesets -n openshift-machine-api | grep -v infra</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machinesets -n openshift-machine-api</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1029,6 +1029,17 @@ template. Search for <code>STORAGE_CLASS</code> in the downloaded content.</p>
 <div class="paragraph">
 <p>Make sure that you completed all previous sections so that you are ready to
 start the Rails + PostgreSQL <strong>Deployment</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Start by creating a new project:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then use the <code>rails-pgsql-persistent</code> template to create the new application.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2917,7 +2928,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
     mon: 3 daemons, quorum a,b,c (age 25m)
     mgr: a(active, since 24m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 6 osds: 6 up (since 38s), 6 in (since 38s)
+    osd: 6 osds: 6 up (since 38s), 6 in (since 38s) <i class="conum" data-value="1"></i><b>(1)</b>
 
   task status:
       scrub status:
@@ -2927,7 +2938,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
   data:
     pools:   3 pools, 192 pgs
     objects: 92 objects, 81 MiB
-    usage:   6.1 GiB used, 12 TiB / 12 TiB avail
+    usage:   6.1 GiB used, 12 TiB / 12 TiB avail <i class="conum" data-value="2"></i><b>(2)</b>
     pgs:     192 active+clean
 
   io:
@@ -2967,17 +2978,17 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
  -4        4.00000         zone us-east-2a
  -3        2.00000             host ocs-deviceset-gp2-0-data-0-9977n
   0   ssd  2.00000                 osd.0
--21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr
+-21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr <i class="conum" data-value="1"></i><b>(1)</b>
   4   ssd  2.00000                 osd.4
 -14        4.00000         zone us-east-2b
 -13        2.00000             host ocs-deviceset-gp2-1-data-0-nnmpv
   2   ssd  2.00000                 osd.2
--19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987
+-19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987 <i class="conum" data-value="1"></i><b>(1)</b>
   3   ssd  2.00000                 osd.3
 -10        4.00000         zone us-east-2c
  -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
   1   ssd  2.00000                 osd.1
--17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb
+-17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb <i class="conum" data-value="1"></i><b>(1)</b>
   5   ssd  2.00000                 osd.5</pre>
 </div>
 </div>
@@ -2985,7 +2996,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <table>
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>We now have additional hosts, which are extending the hosts in the respective zone</td>
+<td>We now have additional hosts, which are extending the storage in the respective zone.</td>
 </tr>
 </table>
 </div>
@@ -3591,25 +3602,21 @@ requests, to protect the data, to check the consistency and the integrity of
 the data through built-in mechanisms. The RADOS layer is composed of the
 following daemons:</p>
 </div>
-<div class="colist arabic">
-<table>
-<tr>
-<td><i class="conum" data-value="1"></i><b>1</b></td>
-<td>MONs or Monitors</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="2"></i><b>2</b></td>
-<td>OSDs or Object Storage Devices</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="3"></i><b>3</b></td>
-<td>MGRs or Managers</td>
-</tr>
-<tr>
-<td><i class="conum" data-value="4"></i><b>4</b></td>
-<td>MDSs or Meta Data Servers</td>
-</tr>
-</table>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>MONs or Monitors</p>
+</li>
+<li>
+<p>OSDs or Object Storage Devices</p>
+</li>
+<li>
+<p>MGRs or Managers</p>
+</li>
+<li>
+<p>MDSs or Meta Data Servers</p>
+</li>
+</ol>
 </div>
 <div class="paragraph">
 <div class="title"><strong><em>Monitors</em></strong></div>
