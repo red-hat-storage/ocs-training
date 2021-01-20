@@ -178,7 +178,7 @@ OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
 
 - An OCS *OperatorGroup*
 - An OCS *Subscription*
-- All other OCS resources (Operators, Ceph Pods, Noobaa Pods, StorageClasses)
+- All other OCS resources (Operators, Ceph Pods, NooBaa Pods, StorageClasses)
 
 Start with creating the `openshift-storage` namespace.
 
