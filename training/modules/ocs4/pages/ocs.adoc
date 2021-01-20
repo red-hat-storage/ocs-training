@@ -19,7 +19,7 @@ a persistent storage solution for OCP workloads.
 * Configure and deploy containerized Ceph and NooBaa
 * Validate deployment of containerized Ceph and NooBaa
 * Deploy the Rook toolbox to run Ceph and RADOS commands
-* Create an application using Read-Write-Once (RWO) PVC that is based on CephRBD
+* Create an application using Read-Write-Once (RWO) PVC that is based on Ceph RBD
 * Create an application using Read-Write-Many (RWX) PVC that is based on CephFS
 * Use OCS for Prometheus and AlertManager storage
 * Use the MCG to create a bucket and use in an application
