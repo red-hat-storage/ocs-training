@@ -652,7 +652,7 @@ at the end so your shell prompt appears right after the output).
 
 .Example output:
 ----
-rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com
+http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
 ----
 
 Copy your route (different than above) to a browser window to create articles.
