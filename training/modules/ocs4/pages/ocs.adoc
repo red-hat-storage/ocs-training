@@ -644,7 +644,7 @@ persistent storage on Ceph.
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="{.spec.host}"
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
 ----
 
 This will return a route similar to this one (careful: there is no line break
@@ -656,9 +656,6 @@ rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox9
 ----
 
 Copy your route (different than above) to a browser window to create articles.
-You will need to append `/articles` to the end.
-
-*Example*  http://<your_route>/articles
 
 Enter the `username` and `password` below to create articles and comments.
 The articles and comments are saved in a PostgreSQL database which stores its
