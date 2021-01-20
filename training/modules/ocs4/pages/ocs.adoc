@@ -19,7 +19,7 @@ a persistent storage solution for OCP workloads.
 * Configure and deploy containerized Ceph and MCG
 * Validate deployment of containerized Ceph and MCG
 * Deploy the Rook toolbox to run Ceph and RADOS commands
-* Create an application using Read-Write-Once (RWO) PVC that is based on CephRBD
+* Create an application using Read-Write-Once (RWO) PVC that is based on Ceph RBD
 * Create an application using Read-Write-Many (RWX) PVC that is based on CephFS
 * Use OCS for Prometheus and AlertManager storage
 * Use the MCG to create a bucket and use in an application
@@ -107,8 +107,7 @@ PHASE. The `NAME` of your machines will be different than shown below.
 
 .Example output:
 ----
-NAME                                                 PHASE     TYPE          REGION      ZONE
-         AGE
+NAME                                                 PHASE     TYPE          REGION      ZONE         AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a-g6cfz   Running   m5.4xlarge    us-east-2   us-east-2a   3m48s
 cluster-ocs4-8613-bc282-workerocs-us-east-2b-2zdgx   Running   m5.4xlarge    us-east-2   us-east-2b   3m48s
 cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s
@@ -179,7 +178,7 @@ OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
 
 - An OCS *OperatorGroup*
 - An OCS *Subscription*
-- All other OCS resources (Operators, Ceph Pods, Noobaa Pods, StorageClasses)
+- All other OCS resources (Operators, Ceph Pods, NooBaa Pods, StorageClasses)
 
 Start with creating the `openshift-storage` namespace.
 
@@ -654,7 +653,7 @@ persistent storage on Ceph.
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="{.spec.host}"
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
 ----
 
 This will return a route similar to this one (careful: there is no line break
@@ -662,13 +661,10 @@ at the end so your shell prompt appears right after the output).
 
 .Example output:
 ----
-rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com
+http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
 ----
 
 Copy your route (different than above) to a browser window to create articles.
-You will need to append `/articles` to the end.
-
-*Example*  http://<your_route>/articles
 
 Enter the `username` and `password` below to create articles and comments.
 The articles and comments are saved in a PostgreSQL database which stores its
@@ -1173,7 +1169,7 @@ oc scale --replicas=3 deploy/file-uploader -n my-shared-storage
 oc get pods -n my-shared-storage
 ----
 
-You should have 3 `file-uploader` *Pods* in a few minutes. Repeat command above
+You should have 3 `file-uploader` *Pods* in a few minutes. Repeat the command above
 until there are 3 `file-uploader` *Pods* in `Running` STATUS.
 
 [CAUTION]
@@ -1611,7 +1607,7 @@ You can get a more basic overview of the MCG status using the Object Service
 `Home` and select the `Overview` item. In the main view, select `Object
 Service` in the top navigation bar. This dashboard does not give you connection
 information for your S3 endpoint, but offers Graphs and runtime information
-about the usage of your S3 backend as well as a link to the MGC console.
+about the usage of your S3 backend as well as a link to the MCG console.
 
 === Creating an Object Bucket Claim
 
