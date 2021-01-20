@@ -151,23 +151,23 @@ interested in learning how to deploy and manage OpenShift Container Storage
 a persistent storage solution for OCP workloads.</p>
 </div>
 <div class="sect2">
-<h3 id="_in_this_lab_you_will_learn"><a class="anchor" href="#_in_this_lab_you_will_learn"></a>1.1. In this Lab you will learn</h3>
+<h3 id="_in_this_lab_you_will_learn_how_to"><a class="anchor" href="#_in_this_lab_you_will_learn_how_to"></a>1.1. In this lab you will learn how to</h3>
 <div class="ulist">
 <ul>
 <li>
-<p>Configure and deploy containerized Ceph and MCG</p>
+<p>Configure and deploy containerized Ceph and NooBaa</p>
 </li>
 <li>
-<p>Validate deployment of containerized Ceph and MCG</p>
+<p>Validate deployment of containerized Ceph and NooBaa</p>
 </li>
 <li>
 <p>Deploy the Rook toolbox to run Ceph and RADOS commands</p>
 </li>
 <li>
-<p>Create a Read-Write-Once (RWO) application using Ceph RBD PVC</p>
+<p>Create an application using Read-Write-Once (RWO) PVC that is based on Ceph RBD</p>
 </li>
 <li>
-<p>Create a Read-Write-Many (RWX) application using CephFS PVC</p>
+<p>Create an application using Read-Write-Many (RWX) PVC that is based on CephFS</p>
 </li>
 <li>
 <p>Use OCS for Prometheus and AlertManager storage</p>
@@ -177,6 +177,9 @@ a persistent storage solution for OCP workloads.</p>
 </li>
 <li>
 <p>Add more storage to the Ceph cluster</p>
+</li>
+<li>
+<p>Review OCS metrics and alerts</p>
 </li>
 <li>
 <p>Use must-gather to collect support information</p>
@@ -210,7 +213,7 @@ module.
 <h2 id="labexercises"><a class="anchor" href="#labexercises"></a>2. Deploy your storage backend using the OCS operator</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_scale_ocp_cluster_and_add_3_new_nodes"><a class="anchor" href="#_scale_ocp_cluster_and_add_3_new_nodes"></a>2.1. Scale OCP cluster and add 3 new nodes</h3>
+<h3 id="_scale_ocp_cluster_and_add_new_worker_nodes"><a class="anchor" href="#_scale_ocp_cluster_and_add_new_worker_nodes"></a>2.1. Scale OCP cluster and add new worker nodes</h3>
 <div class="paragraph">
 <p>In this section, you will first validate the OCP environment has 2 or 3 worker
 nodes before increasing the cluster size by additional 3 worker nodes for OCS
@@ -224,10 +227,9 @@ resources. The <code>NAME</code> of your OCP nodes will be different than shown 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   77m   v1.16.2
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   77m   v1.16.2
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.16.2</pre>
+<pre>NAME                                        STATUS   ROLES    AGE    VERSION
+ip-10-0-153-37.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3
+ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -235,22 +237,28 @@ ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   77m   v1.16.2</pr
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machinesets -n openshift-machine-api</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machinesets -n openshift-machine-api | grep -v infra</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will show you the existing <strong>machinesets</strong> used to create the 3 worker
-nodes in the cluster already. There is a <strong>machineset</strong> for each AWS AZ
-(us-east-1a, us-east-1b, us-east-1c). Your <strong>machinesets</strong> <code>NAME</code> will be
-different than below.</p>
+<p>This will show you the existing <strong>machinesets</strong> used to create the 2 or 3 worker
+nodes in the cluster already. There is a <strong>machineset</strong> for each of 3 AWS
+Availability Zones (AZ). Your <strong>machinesets</strong> <code>NAME</code> will be different than
+below. In the case of only 2 workers one of the <strong>machinesets</strong> will not have any
+machines (i.e., DESIRED=0) created.</p>
 </div>
 <div class="listingblock">
+<div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                       DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-worker-us-east-2a   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2b   1         1         1       1           86m
-cluster-ocs-0ec4-dgwqc-worker-us-east-2c   1         1         1       1           86m</pre>
+<pre>NAME                                        DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs4-8613-bc282-worker-us-east-2a   1         1         1       1           4d4h
+cluster-ocs4-8613-bc282-worker-us-east-2b   1         1         1       1           4d4h
+cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                             4d4h</pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Create new <strong>MachineSets</strong> that will in turn create storage-specific nodes for
+your OCP cluster in the AWS AZs:</p>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -271,8 +279,8 @@ echo $CLUSTERID</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Similar to the infrastructure nodes lab, create new <strong>MachineSets</strong> that will
-run storage-specific nodes for your OCP cluster:</p>
+<p>Similar to the infrastructure nodes lab, create new <strong>MachineSets</strong> that will run
+storage-specific nodes for your OCP cluster:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -288,22 +296,21 @@ run storage-specific nodes for your OCP cluster:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>The <strong>machines</strong> will be in <code>Provisioning</code> for sometime so repeat command above until they are
-in a <code>Running</code> STATE or go on to next step. The <code>NAME</code> of your <strong>machines</strong> will be different than
-shown below.</p>
+<p>They will be in <code>Provisioning</code> for sometime and eventually in a <code>Running</code>
+PHASE. The <code>NAME</code> of your machines will be different than shown below.</p>
 </div>
 <div class="listingblock">
+<div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                                STATE         TYPE         REGION      ZONE         AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a-cqvwj   Provisioned   m5.4xlarge   us-east-2   us-east-2a   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b-g5p5v   Provisioned   m5.4xlarge   us-east-2   us-east-2b   70s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c-rx4v8   Provisioned   m5.4xlarge   us-east-2   us-east-2c   70s</pre>
+<pre>NAME                                                 PHASE     TYPE          REGION      ZONE         AGE
+cluster-ocs4-8613-bc282-workerocs-us-east-2a-g6cfz   Running   m5.4xlarge    us-east-2   us-east-2a   3m48s
+cluster-ocs4-8613-bc282-workerocs-us-east-2b-2zdgx   Running   m5.4xlarge    us-east-2   us-east-2b   3m48s
+cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can see that the workerocs <strong>machines</strong> are using are also using the AWS
-EC2 instance type <code>m5.4xlarge</code>. The <code>m5.4xlarge</code> instance type follows our
-recommended instance sizing for OCS, 16 cpu and 64 GB mem.</p>
+<p>You can see that the workerocs <strong>machines</strong> are also using the AWS EC2 instance
+type <code>m5.4xlarge</code>. The <code>m5.4xlarge</code> instance type has 16 cpus and 64 GB memory.</p>
 </div>
 <div class="paragraph">
 <p>Now you want to see if our new <strong>machines</strong> are added to the OCP cluster.</p>
@@ -321,11 +328,12 @@ have an integer, in this case <code>1</code>, filled out for all rows and under 
 than shown below.</p>
 </div>
 <div class="listingblock">
+<div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           8m26s
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           8m25s</pre>
+<pre>NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           16m
+cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           16m
+cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           16m</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -343,17 +351,18 @@ nodes will be different than shown below.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   2m21s   v1.16.2
-ip-10-0-138-9.us-east-2.compute.internal     Ready    worker   128m    v1.16.2
-ip-10-0-150-39.us-east-2.compute.internal    Ready    worker   128m    v1.16.2
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   2m22s   v1.16.2
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   2m14s   v1.16.2
-ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.16.2</pre>
+<pre>NAME                                         STATUS   ROLES    AGE    VERSION
+ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   14m    v1.19.0+9f84db3
+ip-10-0-153-37.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
+ip-10-0-170-25.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
+ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   14m    v1.19.0+9f84db3
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.19.0+9f84db3</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Let&#8217;s check to make sure the new OCP nodes have the new OCS label.</p>
+<p>Let&#8217;s check to make sure the new OCP nodes have the OCS label. This label was
+added in the <code>workerocs</code> <strong>machinesets</strong> so every <strong>machine</strong> created using these
+<strong>machinesets</strong> will have this label.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -363,10 +372,10 @@ ip-10-0-170-49.us-east-2.compute.internal    Ready    worker   128m    v1.16.2</
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-131-209.us-east-2.compute.internal   Ready    worker   5m25s   v1.16.2
-ip-10-0-155-12.us-east-2.compute.internal    Ready    worker   5m26s   v1.16.2
-ip-10-0-162-215.us-east-2.compute.internal   Ready    worker   5m19s   v1.16.2</pre>
+<pre>NAME                                         STATUS   ROLES    AGE   VERSION
+ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   15m   v1.19.0+9f84db3
+ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   15m   v1.19.0+9f84db3
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.19.0+9f84db3</pre>
 </div>
 </div>
 </div>
@@ -379,13 +388,13 @@ OCS 4 using the OCS Operator in OperatorHub. The following will be installed:</p
 <div class="ulist">
 <ul>
 <li>
-<p>Groups and sources for the OCS operators</p>
+<p>An OCS <strong>OperatorGroup</strong></p>
 </li>
 <li>
-<p>An OCS subscription</p>
+<p>An OCS <strong>Subscription</strong></p>
 </li>
 <li>
-<p>All OCS resources (Operators, Ceph pods, Noobaa pods, StorageClasses)</p>
+<p>All other OCS resources (Operators, Ceph Pods, NooBaa Pods, StorageClasses)</p>
 </li>
 </ul>
 </div>
@@ -407,13 +416,31 @@ prometheus metrics and alerts for the OCP storage dashboards. To label the
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The creation of the <code>openshift-storage</code> namespace, and the monitoring
+label added to this namespace, can also be done during the OCS operator
+installation using the <strong>Openshift Web Console</strong>.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
-<p>Now switch over to your <strong>OpenShift Web Console</strong>. You can get your URL by issuing command below to get the OCP 4 <code>console</code> route.</p>
+<p>Now switch over to your <strong>Openshift Web Console</strong>. You can get your URL by
+issuing command below to get the OCP 4 <code>console</code> route.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get -n openshift-console route console</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>Copy the <strong>Openshift Web Console</strong> route to a browser tab and login using your cluster-admin username (i.e., kubadmin) and password.</p>
 </div>
 <div class="paragraph">
 <p>Once you are logged in, navigate to the <strong>Operators</strong> &#8594; <strong>OperatorHub</strong> menu.</p>
@@ -425,7 +452,7 @@ prometheus metrics and alerts for the OCP storage dashboards. To label the
 <div class="title">Figure 2. OCP OperatorHub</div>
 </div>
 <div class="paragraph">
-<p>Now type <code>container storage</code> in the <strong>Filter by <em>keyword&#8230;&#8203;</em></strong> box.</p>
+<p>Now type <code>openshift container storage</code> in the <strong>Filter by <em>keyword&#8230;&#8203;</em></strong> box.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -438,7 +465,7 @@ prometheus metrics and alerts for the OCP storage dashboards. To label the
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-OCP-OperatorHub-Install.png" alt="OCP OperatorHub Install">
+<img src="_images/OCS4-OCP4-OperatorHub-Install.png" alt="OCP OperatorHub Install">
 </div>
 <div class="title">Figure 4. OCP OperatorHub Install OpenShift Container Storage</div>
 </div>
@@ -447,25 +474,12 @@ prometheus metrics and alerts for the OCP storage dashboards. To label the
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-OCP-OperatorHub-Subscribe.png" alt="OCP OperatorHub Subscribe">
+<img src="_images/OCS4-OCP4-OperatorHub-Subscribe.png" alt="OCP OperatorHub Subscribe">
 </div>
 <div class="title">Figure 5. OCP Subscribe to OpenShift Container Storage</div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Do not change any configuration other than the namespace as shown
-above.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>Click <strong>Subscribe</strong>.</p>
+<p>Click <code>Install</code>.</p>
 </div>
 <div class="paragraph">
 <p>Now you can go back to your terminal window to check the progress of the
@@ -479,8 +493,8 @@ installation.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                            DISPLAY                       VERSION   NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.5.0   OpenShift Container Storage   4.5.0                Succeeded</pre>
+<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0                Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -516,10 +530,11 @@ namespace:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                     READY   STATUS    RESTARTS   AGE
-noobaa-operator-58d8fbb457-hg495         1/1     Running   0          2m6s
-ocs-operator-66c778887d-8qkqm            1/1     Running   0          2m6s
-rook-ceph-operator-98b4c45c9-zxlxz       1/1     Running   0          2m6s</pre>
+<pre>NAME                                   READY   STATUS    RESTARTS   AGE
+noobaa-operator-698746cd47-sp6w9       1/1     Running   0          108s
+ocs-metrics-exporter-78bc44687-pg4hk   1/1     Running   0          107s
+ocs-operator-6d99bc6787-d7m9d          1/1     Running   0          108s
+rook-ceph-operator-59f7fb95d6-sdjd8    1/1     Running   0          108s</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -527,56 +542,48 @@ rook-ceph-operator-98b4c45c9-zxlxz       1/1     Running   0          2m6s</pre>
 installation for OCS 4.</p>
 </div>
 <div class="paragraph">
-<p>Navigate to the <code>Operators</code> menu on the left and select <code>Installed
-Operators</code>. Make sure the selected project is set to <code>openshift-storage</code>.
-What you see, should be similar to the following example picture:</p>
+<p>Select <code>View Operator</code> in figure below to get to the OCS configuration screen.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCP4-installed-operators.png" alt="Openshift showing the installed operators in namespace openshift-storage">
+<img src="_images/OCS4-OCP4-View-Operator.png" alt="View Operator in openshift-storage namespacee">
 </div>
-<div class="title">Figure 6. Installed Operators in the openshift-storage namespace</div>
-</div>
-<div class="paragraph">
-<p>Click on <code>Openshift Container Storage Operator</code> to get to the OCS
-configuration screen.</p>
+<div class="title">Figure 6. View Operator in openshift-storage namespace</div>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-config-screen-all.png" alt="OCS configuration screen">
+<img src="_images/OCS4-OCP4-config-screen-all.png" alt="OCS configuration screen">
 </div>
 <div class="title">Figure 7. OCS configuration screen</div>
 </div>
 <div class="paragraph">
-<p>On the top of the OCS configuration screen, click on <code>Storage Cluster</code> and then click on <code>Create OCS Cluster Service</code>. If
-you do not see <code>Create OCS Cluster Service</code> refresh your browser window.</p>
+<p>On the top of the OCS configuration screen, scroll over to the right and click
+on <code>Storage Cluster</code> and then click on <code>Create Storage Cluster</code> to the far
+right. If you do not see <code>Create Storage Cluster</code> refresh your browser window.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-config-screen-storage-cluster.png" alt="OCS Create Storage Cluster">
+<img src="_images/OCS4-OCP4-config-screen-storage-cluster.png" alt="Create Storage Cluster">
 </div>
-<div class="title">Figure 8. OCS Create Storage Cluster</div>
+<div class="title">Figure 8. Create Storage Cluster</div>
 </div>
 <div class="paragraph">
-<p>A dialog box will come up next.</p>
+<p>The <code>Create Storage Cluster</code> screen will display.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-config-screen-partial.png" alt="OCS create a new storage cluster">
+<img src="_images/OCS4-config-screen-partial1.png" alt="Create Storage Cluster default settings">
 </div>
-<div class="title">Figure 9. OCS create a new storage cluster</div>
+<div class="title">Figure 9. Create Storage Cluster default settings</div>
 </div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-<strong>Make sure there are three workers in different availability zones selected.</strong>
-</td>
-</tr>
-</table>
+<div class="paragraph">
+<p>Leave the default selection of <code>Internal</code>, <code>gp2</code>, <code>2 TiB</code> and Encryption <code>Disabled</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-config-screen-partial2.png" alt="Create a new storage cluster">
+</div>
+<div class="title">Figure 10. Create a new storage cluster</div>
 </div>
 <div class="paragraph">
 <p>There should be 3 worker nodes already selected that had the OCS label
@@ -589,27 +596,6 @@ selected.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You will then need to select the size of your storage as shown below.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/OCS4-config-screen-osd-size.png" alt="OCS select storage size">
-</div>
-<div class="title">Figure 10. OCS select storage size</div>
-</div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-<strong>The size chosen for OCS Service Capacity will be used for all future storage expansions.</strong>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
 <p>Then click on the button <code>Create</code> below the dialog box with the 3 workers
 selected with a <code>checkmark</code>.</p>
 </div>
@@ -620,11 +606,11 @@ instances</code>.</p>
 </div>
 <div class="paragraph">
 <p>Please wait until all <strong>Pods</strong> are marked as <code>Running</code> in the CLI or until you
-see all instances shown below as <code>Ready</code> Status in the Web Console and matches the following diagram:</p>
+see all instances shown below as <code>Ready</code> Status in the Web Console as shown in the following diagram:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-finished-cluster-install.png" alt="OCS instance overview after cluster install is finished">
+<img src="_images/OCS4-OCP4-finished-cluster-install.png" alt="OCS instance overview after cluster install is finished">
 </div>
 <div class="title">Figure 11. OCS instance overview after cluster install is finished</div>
 </div>
@@ -636,55 +622,94 @@ see all instances shown below as <code>Ready</code> Status in the Web Console an
 <div class="listingblock">
 <div class="title">Output when the cluster installation is finished</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
-csi-cephfsplugin-6qvmf                                            3/3     Running     0          17m
-csi-cephfsplugin-8rqr5                                            3/3     Running     0          17m
-csi-cephfsplugin-ctr66                                            3/3     Running     0          17m
-csi-cephfsplugin-m7xfp                                            3/3     Running     0          17m
-csi-cephfsplugin-provisioner-65b59d9dc9-bb9c5                     5/5     Running     0          17m
-csi-cephfsplugin-provisioner-65b59d9dc9-tclkw                     5/5     Running     0          17m
-csi-cephfsplugin-wslm9                                            3/3     Running     0          17m
-csi-cephfsplugin-zt76r                                            3/3     Running     0          17m
-csi-rbdplugin-5dx5r                                               3/3     Running     0          17m
-csi-rbdplugin-5kg88                                               3/3     Running     0          17m
-csi-rbdplugin-g8tzm                                               3/3     Running     0          17m
-csi-rbdplugin-gn27b                                               3/3     Running     0          17m
-csi-rbdplugin-jrnh9                                               3/3     Running     0          17m
-csi-rbdplugin-provisioner-86c8bc888d-6xfbr                        5/5     Running     0          17m
-csi-rbdplugin-provisioner-86c8bc888d-ks6zv                        5/5     Running     0          17m
-csi-rbdplugin-x9nqb                                               3/3     Running     0          17m
-noobaa-core-0                                                     1/1     Running     0          14m
-noobaa-db-0                                                       1/1     Running     0          14m
-noobaa-endpoint-7f5fff7d49-554qs                                  1/1     Running     0          12m
-noobaa-operator-b77ccff86-4lvks                                   1/1     Running     0          93m
-ocs-operator-6dd9fd9d8d-8gpj5                                     1/1     Running     0          93m
-rook-ceph-crashcollector-ip-10-0-141-60-85445fcd84-4lcbv          1/1     Running     0          15m
-rook-ceph-crashcollector-ip-10-0-147-83-54cf7f47c9-msjgn          1/1     Running     0          16m
-rook-ceph-crashcollector-ip-10-0-166-106-9d874cdb4-cjrrt          1/1     Running     0          15m
-rook-ceph-drain-canary-69e8faf0c5145b285b2bef426fecc57e-66glnz5   1/1     Running     0          14m
-rook-ceph-drain-canary-930e025127d0657f5254c19f87943be3-bdx9sh6   1/1     Running     0          14m
-rook-ceph-drain-canary-cd3910173d92c098f7310ab3eb082fce-56j2pkd   1/1     Running     0          14m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-7646cc945x56v   1/1     Running     0          13m
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-58b5fd94rww7b   1/1     Running     0          13m
-rook-ceph-mgr-a-97f7f799b-d9fhk                                   1/1     Running     0          14m
-rook-ceph-mon-a-b5cd8d595-njmzk                                   1/1     Running     0          16m
-rook-ceph-mon-b-d89df794d-cpj6n                                   1/1     Running     0          15m
-rook-ceph-mon-c-5f989bbff-lc8b8                                   1/1     Running     0          15m
-rook-ceph-operator-599dbd974f-nm4nz                               1/1     Running     0          93m
-rook-ceph-osd-0-7795b7c779-glk4g                                  1/1     Running     0          14m
-rook-ceph-osd-1-7877cd76c5-dxxzg                                  1/1     Running     0          14m
-rook-ceph-osd-2-7544dc9db-vq7gj                                   1/1     Running     0          14m
-rook-ceph-osd-prepare-ocs-deviceset-0-0-wlsqw-bg5bl               0/1     Completed   0          14m
-rook-ceph-osd-prepare-ocs-deviceset-1-0-nxc46-p7s97               0/1     Completed   0          14m
-rook-ceph-osd-prepare-ocs-deviceset-2-0-qxd7g-h9hkb               0/1     Completed   0          14m</pre>
+<pre>NAME                                                              READY   STATUS      RESTART
+S   AGE
+csi-cephfsplugin-875xd                                            3/3     Running     0
+    23m
+csi-cephfsplugin-bncsj                                            3/3     Running     0
+    23m
+csi-cephfsplugin-hjv77                                            3/3     Running     0
+    23m
+csi-cephfsplugin-lch4m                                            3/3     Running     0
+    23m
+csi-cephfsplugin-provisioner-6cfdc4bfbb-cklxs                     6/6     Running     0
+    23m
+csi-cephfsplugin-provisioner-6cfdc4bfbb-krkq5                     6/6     Running     0
+    23m
+csi-cephfsplugin-wtp4v                                            3/3     Running     0
+    23m
+csi-rbdplugin-7clqf                                               3/3     Running     0
+    23m
+csi-rbdplugin-8nllt                                               3/3     Running     0
+    23m
+csi-rbdplugin-d267h                                               3/3     Running     0
+    23m
+csi-rbdplugin-provisioner-b46dd5c7-vd58q                          6/6     Running     0
+    23m
+csi-rbdplugin-provisioner-b46dd5c7-z8mx6                          6/6     Running     0
+    23m
+csi-rbdplugin-tdj8f                                               3/3     Running     0
+    23m
+csi-rbdplugin-wp65b                                               3/3     Running     0
+    23m
+noobaa-core-0                                                     1/1     Running     0
+    19m
+noobaa-db-0                                                       1/1     Running     0
+    19m
+noobaa-endpoint-86cc5df669-ffqj2                                  1/1     Running     0
+    16m
+noobaa-operator-698746cd47-sp6w9                                  1/1     Running     0
+    17h
+ocs-metrics-exporter-78bc44687-pg4hk                              1/1     Running     0
+    17h
+ocs-operator-6d99bc6787-d7m9d                                     1/1     Running     0
+    17h
+rook-ceph-crashcollector-ip-10-0-147-230-7cbf854757-chlgs         1/1     Running     0
+    20m
+rook-ceph-crashcollector-ip-10-0-175-8-5779d5d5df-p6hkl           1/1     Running     0
+    21m
+rook-ceph-crashcollector-ip-10-0-209-53-7ccc4cc785-wjxzd          1/1     Running     0
+    21m
+rook-ceph-drain-canary-128c383c26627b938ab0fd7f47f58d33-665pbsg   1/1     Running     0
+    19m
+rook-ceph-drain-canary-84c954eec459013180f78efd0a35792c-7b6qdnj   1/1     Running     0
+    19m
+rook-ceph-drain-canary-ip-10-0-175-8.us-east-2.compute.intrh526   1/1     Running     0
+    19m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-756df8b4kp9kr   1/1     Running     0
+    18m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-64585764bbg6b   1/1     Running     0
+    18m
+rook-ceph-mgr-a-5c74bb4b85-5x26g                                  1/1     Running     0
+    20m
+rook-ceph-mon-a-746b5457c-hlh7n                                   1/1     Running     0
+    21m
+rook-ceph-mon-b-754b99cfd-xs9g4                                   1/1     Running     0
+    21m
+rook-ceph-mon-c-7474d96f55-qhhb6                                  1/1     Running     0
+    20m
+rook-ceph-operator-59f7fb95d6-sdjd8                               1/1     Running     0
+    17h
+rook-ceph-osd-0-7d45696497-jwgb7                                  1/1     Running     0
+    19m
+rook-ceph-osd-1-6f49b665c7-gxq75                                  1/1     Running     0
+    19m
+rook-ceph-osd-2-76ffc64cd-9zg65                                   1/1     Running     0
+    19m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0-9977n-49ngd      0/1     Completed   0
+    20m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-0-nnmpv-z8vq6      0/1     Completed   0
+    20m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0-mtbtj-xrj2n      0/1     Completed   0
+    20m</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The great thing about operators and OpenShift is that the operator has the
 intelligence about the deployed components built-in. And, because of the
 relationship between the <code>CustomResource</code> and the operator, you can check the
-status by looking at the <code>CustomResource</code> itself. When you went therough the
-UI dialogs, ultimately in the back-end an instance of a <code>StorageCluster</code> was
+status by looking at the <code>CustomResource</code> itself. When you went therough the UI
+dialogs, ultimately in the back-end an instance of a <code>StorageCluster</code> was
 created:</p>
 </div>
 <div class="listingblock execute">
@@ -707,10 +732,16 @@ created:</p>
 <div class="sect2">
 <h3 id="_getting_to_know_the_storage_dashboards"><a class="anchor" href="#_getting_to_know_the_storage_dashboards"></a>2.3. Getting to know the Storage Dashboards</h3>
 <div class="paragraph">
-<p>You can now also check the status of your storage cluster with the OCS
-specific <strong>Dashboards</strong> that are included in your <strong>Openshift Web Console</strong>. You
-can reach this by clicking on <code>Overview</code> on your left navigation bar, then clicking on <code>Persistent Storage</code> on the
-top navigation bar of the content page.</p>
+<p>You can now also check the status of your storage cluster with the OCS specific
+<strong>Dashboards</strong> that are included in your <strong>Openshift Web Console</strong>. You can reach
+this by clicking on <code>Overview</code> on your left navigation bar, then selecting
+<code>Persistent Storage</code> on the top navigation bar of the content page.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-OCP4-Overview-Location.png" alt="Location of OCS Dashboards">
+</div>
+<div class="title">Figure 12. Location of OCS Dashboards</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -727,9 +758,9 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS-dashboard-healthy.png" alt="OCS Dashboard after successful backing storage installation">
+<img src="_images/OCS-dashboard-healthy.png" alt="Storage Dashboard after successful storage installation">
 </div>
-<div class="title">Figure 12. OCS Dashboard after successful backing storage installation</div>
+<div class="title">Figure 13. Storage Dashboard after successful storage installation</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -739,35 +770,35 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>1</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Health</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Quick overview of the general health of the storage cluster</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>2</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Details</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Overview of the deployed storage cluster version and backend provider</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>3</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Inventory</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>List of all the resources that are used and offered by the storage system</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>4</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Events</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Live overview of all the changes that are being done affecting the storage cluster</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">5</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Utilization</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Overview of the storage cluster usage and performance</p>
@@ -776,13 +807,14 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 </tbody>
 </table>
 <div class="paragraph">
-<p>OCS ships with a <strong>Dashboard</strong> for the Object Store service as well. After navigating to <code>Overview</code> on your left navigation bar, click on the <code>Object Service</code> on the top navigation bar of the content page.</p>
+<p>OCS ships with a <strong>Dashboard</strong> for the Object Store service as well. From the <strong>Overview</strong> click on the <code>Object Service</code> on the top
+navigation bar of the content page.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/OCS-noobaa-dashboard-healthy.png" alt="OCS Multi-Cloud-Gateway Dashboard after successful installation">
 </div>
-<div class="title">Figure 13. OCS Multi-Cloud-Gateway Dashboard after successful installation</div>
+<div class="title">Figure 14. OCS Multi-Cloud-Gateway Dashboard after successful installation</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -792,31 +824,45 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 </colgroup>
 <tbody>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>1</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Health</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Quick overview of the general health of the Multi-Cloud-Gateway</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">2</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>2</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Details</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
-<p>Overview of the deployed MCG version and backend provider including a link to the MCG Dashboard</p>
+<p>Overview of the deployed MCG version and backend provider including a link to the MCG Console</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">3</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>3</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Buckets</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>List of all the ObjectBucket with are offered and ObjectBucketClaims which are connected to them</p>
 </div></div></td>
 </tr>
 <tr>
-<td class="tableblock halign-left valign-top"><p class="tableblock">4</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>4</strong></p></td>
 <td class="tableblock halign-left valign-top"><p class="tableblock">Resource Providers</p></td>
 <td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
 <p>Shows the list of configured Resource Providers that are available as backing storage in the MCG</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>5</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Counters</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Shows the current numbers of reads and writes issued against each provider</p>
+</div></div></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><strong>6</strong></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Events</p></td>
+<td class="tableblock halign-left valign-top"><div class="content"><div class="paragraph">
+<p>Live overview of all the changes that are being done affecting the MCG</p>
 </div></div></td>
 </tr>
 </tbody>
@@ -860,7 +906,7 @@ before proceeding.</p>
 </td>
 <td class="content">
 The NooBaa pod used the <code>ocs-storagecluster-ceph-rbd</code> storage class for
-creating a PVC for mounting to it&#8217;s <code>db</code> container.
+creating a PVC for mounting to the <code>db</code> container.
 </td>
 </tr>
 </table>
@@ -881,7 +927,7 @@ manually.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>After the <code>rook-ceph-tools</code> <strong>Pod</strong> is <code>Running</code> you can access the toolbox
+<p>After the <code>rook-ceph-tools</code> <strong>Pod</strong> is <code>Running</code> you can access the <strong>toolbox</strong>
 like this:</p>
 </div>
 <div class="listingblock execute">
@@ -891,7 +937,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Once inside the toolbox, try out the following Ceph commands:</p>
+<p>Once inside the <strong>toolbox</strong>, try out the following Ceph commands:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -928,28 +974,28 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="content">
 <pre>sh-4.2# ceph status
   cluster:
-    id:     bcc52257-12b7-4401-9f8d-c7b5bf4b5d6f
+    id:     e3398039-f8c6-4937-ba9d-655f5c01e0ae
     health: HEALTH_OK
 
   services:
-    mon: 3 daemons, quorum a,b,c (age 11m)
-    mgr: a(active, since 10m)
+    mon: 3 daemons, quorum a,b,c (age 6h)
+    mgr: a(active, since 6h)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 3 osds: 3 up (since 9m), 3 in (since 9m)
+    osd: 3 osds: 3 up (since 6h), 3 in (since 6h)
 
   task status:
-      scrub status:
-          mds.ocs-storagecluster-cephfilesystem-a: idle
-          mds.ocs-storagecluster-cephfilesystem-b: idle
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
 
   data:
-    pools:   3 pools, 24 pgs
-    objects: 90 objects, 75 MiB
-    usage:   3.1 GiB used, 6.0 TiB / 6.0 TiB avail
-    pgs:     24 active+clean
+    pools:   3 pools, 96 pgs
+    objects: 120 objects, 245 MiB
+    usage:   3.5 GiB used, 6.0 TiB / 6 TiB avail
+    pgs:     96 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 42 KiB/s wr, 2 op/s rd, 2 op/s wr</pre>
+    client:   853 B/s rd, 16 KiB/s wr, 1 op/s rd, 1 op/s wr</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -967,36 +1013,26 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <h2 id="_create_a_new_ocp_application_deployment_using_ceph_rbd_volume"><a class="anchor" href="#_create_a_new_ocp_application_deployment_using_ceph_rbd_volume"></a>3. Create a new OCP application deployment using Ceph RBD volume</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this section the <code>ocs-storagecluster-ceph-rbd</code> <strong>storage class</strong> will be
-used by an OCP application + database <strong>deployment</strong> to create RWO
-(ReadWriteOnce) persistent storage. The persistent storage will be a Ceph RBD
-(RADOS Block Device) volume (object) in the Ceph pool
-<code>ocs-storagecluster-cephblockpool</code>.</p>
+<p>In this section the <code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong> will be used
+by an OCP application + database <strong>Deployment</strong> to create RWO (ReadWriteOnce)
+persistent storage. The persistent storage will be a Ceph RBD (RADOS Block
+Device) volume in the Ceph pool <code>ocs-storagecluster-cephblockpool</code>.</p>
 </div>
 <div class="paragraph">
 <p>To do so we have created a template file, based on the OpenShift
-rails-pgsql-persistent template, that includes an extra parameter
-STORAGE_CLASS that enables the end user to specify the storage class the PVC
-should use. Feel free to download
-<code><a href="https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml" class="bare">https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml</a></code>
-to check on the format of this template. Search for <code>STORAGE_CLASS</code> in the
-downloaded content.</p>
+rails-pgsql-persistent template, that includes an extra parameter STORAGE_CLASS
+that enables the end user to specify the <strong>StorageClass</strong> the PVC should use.
+Feel free to download
+<code><a href="https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/attachments/configurable-rails-app.yaml" class="bare">https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/attachments/configurable-rails-app.yaml</a></code> to check on the format of this
+template. Search for <code>STORAGE_CLASS</code> in the downloaded content.</p>
 </div>
 <div class="paragraph">
 <p>Make sure that you completed all previous sections so that you are ready to
-start the Rails + PostgreSQL deployment.</p>
+start the Rails + PostgreSQL <strong>Deployment</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-database-app</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now create the new application.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1008,7 +1044,7 @@ start the Rails + PostgreSQL deployment.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Check the PVC that were created.</p>
+<p>Check the PVC is created.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1041,43 +1077,42 @@ rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</pre>
 </div>
 <div class="paragraph">
 <p>Once the deployment is complete you can now test the application and the
-persistent storage on Ceph. Your <code>HOST/PORT</code> will be different.</p>
+persistent storage on Ceph.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route -n my-database-app</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one (careful: there is no line break
+at the end so your shell prompt appears right after the output).</p>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                     HOST/PORT                                                                         PATH   SERVICES                 PORT    TERMINATION   WILDCARD
-rails-pgsql-persistent   rails-pgsql-persistent-my-database-app.apps.cluster-a26e.sandbox449.opentlc.com          rails-pgsql-persistent</pre>
+<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Copy your <code>rails-pgsql-persistent</code> route (different than above) to a browser
-window to create articles. You will need to append <code>/articles</code> to the end.</p>
-</div>
-<div class="paragraph">
-<p><strong>Example</strong>  <a href="http://&lt;your_route&gt;/articles" class="bare">http://&lt;your_route&gt;/articles</a></p>
+<p>Copy your route (different than above) to a browser window to create articles.</p>
 </div>
 <div class="paragraph">
 <p>Enter the <code>username</code> and <code>password</code> below to create articles and comments.
 The articles and comments are saved in a PostgreSQL database which stores its
 table spaces on the Ceph RBD volume provisioned using the
-<code>ocs-storagecluster-ceph-rbd</code> <strong>storageclass</strong> during the application
+<code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong> during the application
 deployment.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-ini hljs" data-lang="ini">username: openshift
-password: secret</code></pre>
+<pre>username: openshift
+password: secret</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>Lets now take another look at the Ceph <code>ocs-storagecluster-cephblockpool</code>
-created by the <code>ocs-storagecluster-ceph-rbd</code> <strong>Storage Class</strong>. Log into the
+created by the <code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong>. Log into the
 <strong>toolbox</strong> pod again.</p>
 </div>
 <div class="listingblock execute">
@@ -1090,7 +1125,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <p>Run the same Ceph commands as before the application deployment and compare
 to results in prior section. Notice the number of objects in
 <code>ocs-storagecluster-cephblockpool</code> has increased. The third command lists
-RBDs and we should now have two RBDs.</p>
+RBD volumes and we should now have two RBDs.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1118,7 +1153,7 @@ RBDs and we should now have two RBDs.</p>
 <div class="sect2">
 <h3 id="_matching_pvs_to_rbds"><a class="anchor" href="#_matching_pvs_to_rbds"></a>3.1. Matching PVs to RBDs</h3>
 <div class="paragraph">
-<p>A handy way to match persistent volumes to Ceph RBDs is to execute:</p>
+<p>A handy way to match OCP persistent volumes (<strong>PVs</strong>)to Ceph RBDs is to execute:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1145,10 +1180,16 @@ named inside of Ceph. All you have to do is append <code>csi-vol-</code> to the 
 like this:</p>
 </div>
 <div class="listingblock execute">
-<div class="title">Get the full RBD name and the associated information for our postgreSQL PV</div>
+<div class="title">Get the full RBD name and the associated information for your postgreSQL <strong>PV</strong></div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">CSIVOL=$(oc get pv $(oc get pv | grep my-database-app | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
 echo $CSIVOL</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Examplet output:</div>
+<div class="content">
+<pre>csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205</pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1179,22 +1220,26 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
 <div class="sect2">
 <h3 id="_expand_rbd_based_pvcs"><a class="anchor" href="#_expand_rbd_based_pvcs"></a>3.2. Expand RBD based PVCs</h3>
 <div class="paragraph">
-<p>OpenShift Container 4.5 and later versions let you expand an existing PVC based on
-the <code>ocs-storagecluster-ceph-rbd</code> storage class. This chapter walks you through the
-steps to perform a PVC expansion.</p>
+<p>OpenShift 4.5 and later versions let you expand an existing PVC based on the
+<code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong>. This section walks you through
+the steps to perform a PVC expansion.</p>
 </div>
 <div class="paragraph">
-<p>We will first artificially fill up the PVC used by the application you have just
-created.</p>
+<p>We will first artificially fill up the PVC used by the application you have
+just created.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app postgresql-1-p62vw
-df</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh $(oc get pods -n my-database-app|grep postgresql|grep -v deploy|awk {'print $1}')</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">df</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
 overlay                              125277164 12004092 113273072  10% /
@@ -1211,8 +1256,9 @@ tmpfs                                 32571336        0  32571336   0% /sys/firm
 </div>
 </div>
 <div class="paragraph">
-<p>As observed in the output above the RBD backed PVC, the device named <code>/dev/rbd</code>
-is mounted as <code>/var/lib/pgsql/data</code>. This is the directory we will artificially fill up.</p>
+<p>As observed in the output above the device named <code>/dev/rbd1</code>
+is mounted as <code>/var/lib/pgsql/data</code>. This is the directory we will artificially
+fill up.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1220,7 +1266,7 @@ is mounted as <code>/var/lib/pgsql/data</code>. This is the directory we will ar
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>3850+0 records in
 3850+0 records out
@@ -1236,7 +1282,7 @@ is mounted as <code>/var/lib/pgsql/data</code>. This is the directory we will ar
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
 overlay                              125277164 12028616 113248548  10% /
@@ -1253,8 +1299,8 @@ tmpfs                                 32571336        0  32571336   0% /sys/firm
 </div>
 </div>
 <div class="paragraph">
-<p>As observed in the output above the filesystem usage for <code>/var/lib/pgsql/data</code>
-has increased up to 79%. By default OCP will generate an alert when a PVC
+<p>As observed in the output above, the filesystem usage for <code>/var/lib/pgsql/data</code>
+has increased up to 79%. By default OCP will generate a PVC alert when a PVC
 crosses the 75% full threshold.</p>
 </div>
 <div class="paragraph">
@@ -1272,18 +1318,18 @@ crosses the 75% full threshold.</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-pvcnearfull-alert.png" alt="PVC nearfull alert">
 </div>
-<div class="title">Figure 14. OpenShift Container Platform Events</div>
+<div class="title">Figure 15. OpenShift Container Platform Events</div>
 </div>
 <div class="sect3">
 <h4 id="_expand_applying_a_modified_pvc_yaml_file"><a class="anchor" href="#_expand_applying_a_modified_pvc_yaml_file"></a>3.2.1. Expand applying a modified PVC YAML file</h4>
 <div class="paragraph">
-<p>To expand a PVC we simply need to change the actual amount of storage that is
-requested. This can easily be performed by exporting the PVC specfications
-with the following command:</p>
+<p>To expand a <strong>PVC</strong> we simply need to change the actual amount of storage that is
+requested. This can easily be performed by exporting the <strong>PVC</strong> specifications
+into a YAML file with the following command:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc postgresql -n my-database-app --export -o yaml &gt;pvc.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc postgresql -n my-database-app -o yaml &gt; pvc.yaml</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1291,9 +1337,9 @@ with the following command:</p>
 your favorite editor.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
-<pre>[truncated]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[truncated]
 spec:
   accessModes:
   - ReadWriteOnce
@@ -1303,7 +1349,7 @@ spec:
   storageClassName: ocs-storagecluster-ceph-rbd
   volumeMode: Filesystem
   volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-status: {}</pre>
+status: {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1311,9 +1357,9 @@ status: {}</pre>
 in your file should look like the output below.</p>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
-<pre>[truncated]
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[truncated]
 spec:
   accessModes:
   - ReadWriteOnce
@@ -1323,12 +1369,11 @@ spec:
   storageClassName: ocs-storagecluster-ceph-rbd
   volumeMode: Filesystem
   volumeName: pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
-status: {}</pre>
+status: {}</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now you can apply your updated PVC specifications using the following
-command:</p>
+<p>Now you can apply your updated PVC specifications using the following command:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1336,22 +1381,23 @@ command:</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
-<pre>Warning: oc apply should be used on resource created by either oc create --save-config or oc apply
-persistentvolumeclaim/postgresql configured</pre>
+<pre>Warning: oc apply should be used on resource created by either oc create
+--save-config or oc apply persistentvolumeclaim/postgresql configured</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>You can visualize the progress of the expansion of the PVC using the following command:</p>
+<p>You can visualize the progress of the expansion of the PVC using the following
+command:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe persistentvolumeclaim postgresql -n my-database-app</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe pvc postgresql -n my-database-app</code></pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>[truncated]
 Finalizers:    [kubernetes.io/pvc-protection]
@@ -1378,25 +1424,11 @@ Events:
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The expansion process commonly  takes over 30 seconds to complete and is based on
-the workload of your pod. This is due to the fact that the expansion requires the
-resizing of the underlying RBD image (pretty fast) while also requiring the resize
-of the filesystem that sits on top of the block device. To perform the latter
-the filesystem must be quiesced to be safely expanded. In the example above you
-can see that the filesystem expansion took approximatively 40 seconds while the
-RBD resizing took less than a second.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock warning">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
-</td>
-<td class="content">
-Repeat the command above until the <code>FileSystemResizeSuccessful</code> message is displayed.
+The expansion process commonly takes over 30 seconds to complete and is
+based on the workload of your pod. This is due to the fact that the expansion
+requires the resizing of the underlying RBD image (pretty fast) while also
+requiring the resize of the filesystem that sits on top of the block device. To
+perform the latter the filesystem must be quiesced to be safely expanded.
 </td>
 </tr>
 </table>
@@ -1408,14 +1440,14 @@ Repeat the command above until the <code>FileSystemResizeSuccessful</code> messa
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Reducing the size of a PVC is NOT supported.
+Reducing the size of a <strong>PVC</strong> is NOT supported.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Another way to check on the expansion of the PVC is to simply display the PVC
-information using the following command:</p>
+<p>Another way to check on the expansion of the <strong>PVC</strong> is to simply display the
+<strong>PVC</strong> information using the following command:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1423,7 +1455,7 @@ information using the following command:</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
 postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m</pre>
@@ -1436,17 +1468,18 @@ postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO 
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The capacity column will reflect the new requested size when the expansion process is complete.
+The <code>CAPACITY</code> column will reflect the new requested size when the
+expansion process is complete.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Another method to check on the expansion of the PVC is to go through two specific fields of
-the PVC object via the CLI.</p>
+<p>Another method to check on the expansion of the <strong>PVC</strong> is to go through two
+specific fields of the PVC object via the CLI.</p>
 </div>
 <div class="paragraph">
-<p>The current allocated size for the PVC can be checked this way:</p>
+<p>The current allocated size for the <strong>PVC</strong> can be checked this way:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1454,13 +1487,13 @@ the PVC object via the CLI.</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>10Gi</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>The requested size for the PVC can be checked this way:</p>
+<p>The requested size for the <strong>PVC</strong> can be checked this way:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1468,7 +1501,7 @@ the PVC object via the CLI.</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>10Gi</pre>
 </div>
@@ -1480,20 +1513,21 @@ the PVC object via the CLI.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-When both fields report the same value, the expansion was successful.
+When both results report the same value, the expansion was successful.
 </td>
 </tr>
 </table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_expand_via_oc_patch_command"><a class="anchor" href="#_expand_via_oc_patch_command"></a>3.2.2. Expand via <code>oc patch</code> command</h4>
+<h4 id="_expand_via_oc_patch_command"><a class="anchor" href="#_expand_via_oc_patch_command"></a>3.2.2. Expand via oc patch command</h4>
 <div class="paragraph">
-<p>Another method to expand a PVC through the CLI is to use the following command:</p>
+<p>Another method to expand a <strong>PVC</strong> through the CLI is to use the following
+command:</p>
 </div>
-<div class="listingblock execute">
+<div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'</code></pre>
+<pre>oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1503,26 +1537,27 @@ When both fields report the same value, the expansion was successful.
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Simply adapt the size of the command above (<code>nnGi</code>) to reflect the new size needed.
+Simply adapt the size of the command above to reflect the new
+size needed, <code>nnGi</code>.
 </td>
 </tr>
 </table>
 </div>
 </div>
 <div class="sect3">
-<h4 id="_expand_via_the_ui"><a class="anchor" href="#_expand_via_the_ui"></a>3.2.3. Expand via the UI</h4>
+<h4 id="_expand_via_the_user_interface"><a class="anchor" href="#_expand_via_the_user_interface"></a>3.2.3. Expand via the User Interface</h4>
 <div class="paragraph">
-<p>The last method available to expand a PVC is to do so through the UI. Proceed as
-follow:</p>
+<p>The last method available to expand a <strong>PVC</strong> is to do so through the <strong>OpenShift
+Web Console</strong>. Proceed as follow:</p>
 </div>
 <div class="paragraph">
-<p>Fierst step is to select the project to which the PVC belongs to.</p>
+<p>First step is to select the project to which the <strong>PVC</strong> belongs to.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/OCS-PVCResize-select-project.png" alt="Select project">
 </div>
-<div class="title">Figure 15. Select the appropriate project</div>
+<div class="title">Figure 16. Select the appropriate project</div>
 </div>
 <div class="paragraph">
 <p>Choose <code>Expand PVC</code> from the contextual menu.</p>
@@ -1531,10 +1566,10 @@ follow:</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-choose-expand-menu.png" alt="Choose expand from the contextual menu">
 </div>
-<div class="title">Figure 16. Choose Expand from menu</div>
+<div class="title">Figure 17. Choose Expand from menu</div>
 </div>
 <div class="paragraph">
-<p>In the dialog box that appears enter the new capacity for the PVC.</p>
+<p>In the dialog box that appears enter the new capacity for the <strong>PVC</strong>.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -1543,7 +1578,7 @@ follow:</p>
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-You can NOT reduce the size of a PVC.
+You can NOT reduce the size of a <strong>PVC</strong>.
 </td>
 </tr>
 </table>
@@ -1552,24 +1587,15 @@ You can NOT reduce the size of a PVC.
 <div class="content">
 <img src="_images/OCS-PVCResize-enter-new-size.png" alt="Enter new size">
 </div>
-<div class="title">Figure 17. Enter the new size for the PVC</div>
+<div class="title">Figure 18. Enter the new size for the <strong>PVC</strong></div>
 </div>
 <div class="paragraph">
-<p>Navigate back to the list of PVC for your project.</p>
+<p>You now simply have to wait for the expansion to complete and for the new size
+to be reflected in the console (15 GiB).</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS-PVCResize-goback-to-pvc-list.png" alt="Go back to PVC list">
-</div>
-<div class="title">Figure 18. Navigate back to the list of PVCs</div>
-</div>
-<div class="paragraph">
-<p>You now simply have to wait for the expansion to complete and for the new
-size to be reflected in the UI.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/OCS-PVCResize-verify-resize-worked.png" alt="Wait for expansion">
+<img src="_images/OCS-PVCResize-verify-resize-worked2.png" alt="Wait for expansion">
 </div>
 <div class="title">Figure 19. Wait for the expansion to complete</div>
 </div>
@@ -1581,8 +1607,8 @@ size to be reflected in the UI.</p>
 <h2 id="_create_a_new_ocp_application_deployment_using_cephfs_volume"><a class="anchor" href="#_create_a_new_ocp_application_deployment_using_cephfs_volume"></a>4. Create a new OCP application deployment using CephFS volume</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this section the <code>ocs-storagecluster-cephfs</code> <strong>Storage Class</strong> will be used
-to create a RWX (ReadWriteMany) PVC that can be used by multiple pods at the
+<p>In this section the <code>ocs-storagecluster-cephfs</code> <strong>StorageClass</strong> will be used to
+create a RWX (ReadWriteMany) <strong>PVC</strong> that can be used by multiple pods at the
 same time. The application we will use is called <code>File Uploader</code>.</p>
 </div>
 <div class="paragraph">
@@ -1598,21 +1624,27 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-app openshift/php:7.2~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-app openshift/php:7.2-ubi8~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>--&gt; Found image 000ed04 (9 days old) in image stream "openshift/php" under tag "7.2" for "openshift/php:7.2"
+<pre>--&gt; Found image 4f2dcc0 (9 days old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-
+ubi8"
 
     Apache 2.4 with PHP 7.2
     -----------------------
-    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
+    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and f
+rameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynam
+ically generated web pages. PHP also offers built-in database integration for several commercial and non-commerci
+al database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common
+use of PHP coding is probably as a replacement for CGI scripts.
 
-    Tags: builder, php, php72, rh-php72
+    Tags: builder, php, php72, php-72
 
-    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
+    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be cr
+eated
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
 
@@ -1622,14 +1654,15 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
     deployment.apps "file-uploader" created
     service "file-uploader" created
 --&gt; Success
-    Build scheduled, use 'oc logs -f bc/file-uploader' to track its progress.
-    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
-     'oc expose svc/file-uploader'
+    Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the comm
+ands below:
+     'oc expose service/file-uploader'
     Run 'oc status' to view your app.</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Watch and wait for the application to be deployed:</p>
+<p>Watch the build log and wait for the application to be deployed:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1643,34 +1676,48 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
 
 [...]
 
-Generating dockerfile with builder image image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5
-STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5
-STEP 2: LABEL "io.openshift.build.source-location"="https://github.com/christianh814/openshift-php-upload-demo" "io.openshift.build.image"="image-registry.openshift-image-registry.svc:5000/openshift/php@sha256:a06311381a15078be4d67cf844ba808e688dfe25305c6a696a19aee9b93c72d5" "io.openshift.build.commit.author"="Christian Hernandez &lt;christian.hernandez@yahoo.com&gt;" "io.openshift.build.commit.date"="Sun Oct 1 17:15:09 2017 -0700" "io.openshift.build.commit.id"="288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2" "io.openshift.build.commit.ref"="master" "io.openshift.build.commit.message"="trying to modularize"
-STEP 3: ENV OPENSHIFT_BUILD_NAME="file-uploader-1" OPENSHIFT_BUILD_NAMESPACE="my-shared-storage" OPENSHIFT_BUILD_SOURCE="https://github.com/christianh814/openshift-php-upload-demo" OPENSHIFT_BUILD_COMMIT="288eda3dff43b02f7f7b6b6b6f93396ffdf34cb2"
+Generating dockerfile with builder image image-registry.openshift-image-regis
+try.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610c
+0e05b593844b41d5494ea
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@s
+ha256:d97466f33999951739a76bce922ab17088885db610c0e05b593844b41d5494ea
+STEP 2: LABEL "io.openshift.build.commit.author"="Christian Hernandez &lt;christ
+ian.hernandez@yahoo.com&gt;"       "io.openshift.build.commit.date"="Sun Oct 1 1
+7:15:09 2017 -0700"       "io.openshift.build.commit.id"="288eda3dff43b02f7f7
+b6b6b6f93396ffdf34cb2"       "io.openshift.build.commit.ref"="master"       "
+io.openshift.build.commit.message"="trying to modularize"       "io.openshift
+.build.source-location"="https://github.com/christianh814/openshift-php-uploa
+d-demo"       "io.openshift.build.image"="image-registry.openshift-image-regi
+stry.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610
+c0e05b593844b41d5494ea"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="file-uploader-1"     OPENSHIFT_BUILD_NAMESP
+ACE="my-shared-storage"     OPENSHIFT_BUILD_SOURCE="https://github.com/christ
+ianh814/openshift-php-upload-demo"     OPENSHIFT_BUILD_COMMIT="288eda3dff43b0
+2f7f7b6b6b6f93396ffdf34cb2"
 STEP 4: USER root
 STEP 5: COPY upload/src /tmp/src
 STEP 6: RUN chown -R 1001:0 /tmp/src
-time="2019-11-20T18:53:16Z" level=warning msg="pkg/chroot: error unmounting \"/tmp/buildah873160532/mnt/rootfs\": error checking if \"/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-time="2019-11-20T18:53:16Z" level=warning msg="pkg/bind: error unmounting \"/tmp/buildah873160532/mnt/rootfs\": error checking if \"/tmp/buildah873160532/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
 STEP 7: USER 1001
 STEP 8: RUN /usr/libexec/s2i/assemble
 ---&gt; Installing application source...
 =&gt; sourcing 20-copy-config.sh ...
----&gt; 18:53:16     Processing additional arbitrary httpd configuration provided by s2i ...
+---&gt; 17:24:39     Processing additional arbitrary httpd configuration provide
+d by s2i ...
 =&gt; sourcing 00-documentroot.conf ...
 =&gt; sourcing 50-mpm-tuning.conf ...
 =&gt; sourcing 40-ssl-certs.sh ...
-time="2019-11-20T18:53:17Z" level=warning msg="pkg/chroot: error unmounting \"/tmp/buildah357283409/mnt/rootfs\": error checking if \"/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
-time="2019-11-20T18:53:17Z" level=warning msg="pkg/bind: error unmounting \"/tmp/buildah357283409/mnt/rootfs\": error checking if \"/tmp/buildah357283409/mnt/rootfs/sys/fs/cgroup/memory\" is mounted: no such file or directory"
 STEP 9: CMD /usr/libexec/s2i/run
-STEP 10: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:562d8fb3
+STEP 10: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:3
+b83e447
 Getting image source signatures
 
 [...]
 
 Writing manifest to image destination
 Storing signatures
-Successfully pushed image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:74029bb63e4b7cb33602eb037d45d3d27245ffbfc105fd2a4587037c6b063183
+Successfully pushed image-registry.openshift-image-registry.svc:5000/my-share
+d-storage/file-uploader@sha256:929c0ce3dcc65a6f6e8bd44069862858db651358b88065
+fb483d51f5d704e501
 Push successful</pre>
 </div>
 </div>
@@ -1684,11 +1731,9 @@ Push successful</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>This use of the <code>new-app</code> command directly asked for application code to be
-built and did not involve a template. That&#8217;s why it only created a <strong>single
-Pod</strong> deployment with a <strong>Service</strong> and no <strong>Route</strong>.</p>
-</div>
+This use of the <code>new-app</code> command directly asked for application code to
+be built and did not involve a template. That is why it only created a <strong>single
+Pod</strong> deployment with a <strong>Service</strong> and no <strong>Route</strong>.
 </td>
 </tr>
 </table>
@@ -1704,7 +1749,7 @@ scale to 3 instances for high availability:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 deploymentconfig/file-uploader -n my-shared-storage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=3 deploy/file-uploader -n my-shared-storage</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1713,7 +1758,8 @@ scale to 3 instances for high availability:</p>
 </div>
 </div>
 <div class="paragraph">
-<p>You should have 3 <code>file-uploader</code> <strong>Pods</strong> in a few minutes.</p>
+<p>You should have 3 <code>file-uploader</code> <strong>Pods</strong> in a few minutes. Repeat the command above
+until there are 3 <code>file-uploader</code> <strong>Pods</strong> in <code>Running</code> STATUS.</p>
 </div>
 <div class="admonitionblock caution">
 <table>
@@ -1733,8 +1779,7 @@ for whatever reason.</p>
 </table>
 </div>
 <div class="paragraph">
-<p>The app is of course not useful like this. We can fix this by providing shared
-storage to this app.</p>
+<p>We can fix this by providing shared persistent storage to this application.</p>
 </div>
 <div class="paragraph">
 <p>You can create a <strong>PersistentVolumeClaim</strong> and attach it into an application with
@@ -1742,7 +1787,7 @@ the <code>oc set volume</code> command. Execute the following</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc set volume deploymentconfig/file-uploader --add --name=my-shared-storage \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc set volume deploy/file-uploader --add --name=my-shared-storage \
 -t pvc --claim-mode=ReadWriteMany --claim-size=1Gi \
 --claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
 --mount-path=/opt/app-root/src/uploaded \
@@ -1770,8 +1815,9 @@ the <code>oc set volume</code> command. Execute the following</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>For more information on what <code>oc set volume</code> is capable of, look at its help output
-with <code>oc set volume -h</code>. Now, let&#8217;s look at the result of adding the volume:</p>
+<p>For more information on what <code>oc set volume</code> is capable of, look at its help
+output with <code>oc set volume -h</code>. Now, let&#8217;s look at the result of adding the
+volume:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1782,7 +1828,7 @@ with <code>oc set volume -h</code>. Now, let&#8217;s look at the result of addin
 <div class="title">Sample Output:</div>
 <div class="content">
 <pre>NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-my-shared-storage   Bound    pvc-371c2184-fb73-11e9-b901-0aad1a53052d   1Gi        RWX            ocs-storagecluster-cephfs   47s</pre>
+my-shared-storage   Bound    pvc-c34bb9db-43a7-4eca-bc94-0251d7128721   1Gi        RWX            ocs-storagecluster-cephfs   47s</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1796,11 +1842,11 @@ are using <strong>RWO</strong> or <code>ReadWriteOnce</code> storage, the <stron
 become co-located on the same node.</p>
 </div>
 <div class="paragraph">
-<p>Try it out in your file uploader web application using your browser. Upload
+<p>Now let&#8217;s use the file uploader web application using your browser to upload
 new files.</p>
 </div>
 <div class="paragraph">
-<p>Now, check the <strong>Route</strong> that has been created:</p>
+<p>First, find the <strong>Route</strong> that has been created:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1814,12 +1860,12 @@ at the end so your shell prompt appears right after the output).</p>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>file-uploader-my-shared-storage.apps.cluster-ocs-9b06.ocs-9b06.example.opentlc.com</pre>
+<pre>file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Point your browser to the web application using the URL advertised by your
-route. <strong>Your <code>route</code> will be different</strong></p>
+<p>Point your browser to the web application using your route above. <strong>Your <code>route</code>
+will be different.</strong></p>
 </div>
 <div class="paragraph">
 <p>The web app simply lists all uploaded files and offers the ability to upload
@@ -1842,8 +1888,8 @@ uploaded files.</p>
 <div class="sect2">
 <h3 id="_expand_cephfs_based_pvcs"><a class="anchor" href="#_expand_cephfs_based_pvcs"></a>4.1. Expand CephFS based PVCs</h3>
 <div class="paragraph">
-<p>OpenShift Container 4.5 and later versions let you expand an existing PVC based on
-the <code>ocs-storagecluster-cephfs</code> storage class. This chapter walks you through the
+<p>OpenShift 4.5 and later versions let you expand an existing <strong>PVC</strong> based on the
+<code>ocs-storagecluster-cephfs</code> <strong>StorageClass</strong>. This chapter walks you through the
 steps to perform a PVC expansion through the CLI.</p>
 </div>
 <div class="admonitionblock note">
@@ -1853,11 +1899,14 @@ steps to perform a PVC expansion through the CLI.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-All the other methods described for expanding a RBD based PVC are also
-available.
+All the other methods described for expanding a Ceph RBD based <strong>PVC</strong> are
+also available.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>The <code>my-sharged-storage</code> <strong>PVC</strong> size is currently <code>1Gi</code>. Let&#8217;s increase the size to <code>5Gi</code> using the <strong>oc patch</strong> command.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1865,24 +1914,13 @@ available.
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>persistentvolumeclaim/my-shared-storage patched</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now let&#8217;s verify the RWX PVC has been expanded.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output</div>
-<div class="content">
-<pre>5Gi</pre>
-</div>
+<p>Now let&#8217;s verify the RWX <strong>PVC</strong> has been expanded.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1890,22 +1928,24 @@ available.
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>5Gi</pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Repeat both commands until output values are identical.
-</td>
-</tr>
-</table>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>5Gi</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Repeat both commands until output values are identical.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1914,10 +1954,10 @@ Repeat both commands until output values are identical.
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-CephFS based RWX PVC resizing, as opposed to RBD based ones, is almost
-instantaneous. This is due to the fact that resizing such PVC does not
-involved resizing a filesystem but simply involves updating a quota for
-the mounted filesystem.
+CephFS based RWX <strong>PVC</strong> resizing, as opposed to RBD based <strong>PVCs</strong>, is
+almost instantaneous. This is due to the fact that resizing such PVC does not
+involved resizing a filesystem but simply involves updating a quota for the
+mounted filesystem.
 </td>
 </tr>
 </table>
@@ -1929,7 +1969,7 @@ the mounted filesystem.
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Reducing the size of a PVC is NOT supported.
+Reducing the size of a CephFS <strong>PVC</strong> is NOT supported.
 </td>
 </tr>
 </table>
@@ -1944,19 +1984,19 @@ Reducing the size of a PVC is NOT supported.
 <p>OpenShift ships with a pre-configured and self-updating monitoring stack that
 is based on the Prometheus open source project and its wider eco-system. It
 provides monitoring of cluster components and ships with a set of alerts to
-immediately notify the cluster administrator about any occurring problems.
-For production environments, it is highly recommended to configure persistent
-storage using block storage technology. OCS 4 provide block storage using
-Ceph RBD volumes. Running cluster monitoring with persistent storage means
-that your metrics are stored to a persistent volume and can survive a pod
-being restarted or recreated. This section will detail how to migrate
-Prometheus and AlertManager storage to Ceph RBD volumes for persistence.</p>
+immediately notify the cluster administrator about any occurring problems. For
+production environments, it is highly recommended to configure persistent
+storage using block storage technology. OCS 4 provide block storage using Ceph
+RBD volumes. Running cluster monitoring with persistent storage means that your
+metrics are stored to a persistent volume and can survive a pod being restarted
+or recreated. This section will detail how to migrate Prometheus and
+AlertManager storage to Ceph RBD volumes for persistence.</p>
 </div>
 <div class="paragraph">
 <p>First, let&#8217;s discover what <strong>Pods</strong> and <strong>PVCs</strong> are installed in the
-<code>openshift-monitoring</code> namespace. In the prior module, OpenShift
-Infrastructure Nodes, the Prometheus and AlertManager resources were moved to
-the OCP infra nodes.</p>
+<code>openshift-monitoring</code> namespace. In the prior module, OpenShift Infrastructure
+Nodes, the Prometheus and AlertManager resources were moved to the OCP infra
+nodes.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1966,47 +2006,50 @@ the OCP infra nodes.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                               READY   STATUS    RESTARTS   AGE
-pod/alertmanager-main-0                            3/3     Running   0          6d23h
-pod/alertmanager-main-1                            3/3     Running   0          6d23h
-pod/alertmanager-main-2                            3/3     Running   0          6d23h
-pod/cluster-monitoring-operator-84cd9df668-74wnk   1/1     Running   0          6d23h
-pod/grafana-5db6fd97f8-fqj5g                       2/2     Running   0          6d23h
-pod/kube-state-metrics-895899678-pm8h7             3/3     Running   0          6d23h
-pod/node-exporter-69hqs                            2/2     Running   0          6d23h
-pod/node-exporter-mw7lf                            2/2     Running   0          6d23h
-pod/node-exporter-npngl                            2/2     Running   0          6d23h
-pod/node-exporter-p8nv7                            2/2     Running   0          6d23h
-pod/node-exporter-pgppl                            2/2     Running   0          6d23h
-pod/node-exporter-pnnhb                            2/2     Running   0          6d23h
-pod/node-exporter-rb4wv                            2/2     Running   0          6d23h
-pod/node-exporter-rwpwj                            2/2     Running   0          6d23h
-pod/node-exporter-xpvv7                            2/2     Running   0          6d23h
-pod/openshift-state-metrics-77d5f699d8-km8dn       3/3     Running   0          6d23h
-pod/prometheus-adapter-7cd7578f49-2wr84            1/1     Running   0          5d23h
-pod/prometheus-adapter-7cd7578f49-hbwgg            1/1     Running   0          5d23h
-pod/prometheus-k8s-0                               6/6     Running   1          6d23h
-pod/prometheus-k8s-1                               6/6     Running   1          6d23h
-pod/prometheus-operator-cbfd89f9-95bgj             1/1     Running   0          156m
-pod/telemeter-client-7c65855db4-vd5jl              3/3     Running   0          6d23h</pre>
+<pre>NAME                                               READY   STATUS         RESTARTS   AGE
+pod/alertmanager-main-0                            5/5     Running        0          6d21h
+pod/alertmanager-main-1                            5/5     Running        0          6d21h
+pod/alertmanager-main-2                            5/5     Running        0          6d21h
+pod/cluster-monitoring-operator-595888fddd-mcgnl   2/2     Running        0          4h49m
+pod/grafana-65454464fd-5spx2                       2/2     Running        0          26h
+pod/kube-state-metrics-7cb89d65d4-p9hbd            3/3     Running        0          6d21h
+pod/node-exporter-96zjb                            2/2     Running        0          6d21h
+pod/node-exporter-9jjdk                            2/2     Running        0          2d17h
+pod/node-exporter-dhnt4                            2/2     Running        0          6d21h
+pod/node-exporter-kg2fb                            2/2     Running        0          2d17h
+pod/node-exporter-l27n2                            2/2     Running        0          16h
+pod/node-exporter-qq4g7                            2/2     Running        0          16h
+pod/node-exporter-rfnxb                            2/2     Running        0          16h
+pod/node-exporter-v8kpq                            2/2     Running        0          2d17h
+pod/node-exporter-wvm8n                            2/2     Running        0          6d21h
+pod/node-exporter-wwcr9                            2/2     Running        0          6d21h
+pod/node-exporter-z8r98                            2/2     Running        0          6d21h
+pod/openshift-state-metrics-57969c7f87-h8fm4       3/3     Running        0          6d21h
+pod/prometheus-adapter-cb658c44-zmcww              1/1     Running        0          2d22h
+pod/prometheus-adapter-cb658c44-zsn85              1/1     Running        0          2d22h
+pod/prometheus-k8s-0                               6/6     Running        0          6d21h
+pod/prometheus-k8s-1                               6/6     Running        0          6d21h
+pod/prometheus-operator-8594bd77df-ftwvl           2/2     Running        0          26h
+pod/telemeter-client-79d7ddbf84-ft97l              3/3     Running        0          42h
+pod/thanos-querier-787547fbd6-qw9tr                5/5     Running        0          6d21h
+pod/thanos-querier-787547fbd6-xdsmm                5/5     Running        0          6d21h</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>At this point there are no <strong>PVC</strong> resources because Prometheus and
-AlertManager are both using ephemeral (EmptyDir) storage. This is the way
-OpenShift is initially installed. The Prometheus stack consists of the
-Prometheus database and the alertmanager data. Persisting both is
-best-practice since data loss on either of these will cause you to lose your
-collected metrics and alerting data.</p>
+<p>At this point there are no <strong>PVC</strong> resources because Prometheus and AlertManager
+are both using ephemeral (EmptyDir) storage. This is the way OpenShift is
+initially installed. The Prometheus stack consists of the Prometheus database
+and the alertmanager data. Persisting both is best-practice since data loss on
+either of these will cause you to lose your metrics and alerting data.</p>
 </div>
 <div class="sect2">
 <h3 id="_modifying_your_prometheus_environment"><a class="anchor" href="#_modifying_your_prometheus_environment"></a>5.1. Modifying your Prometheus environment</h3>
 <div class="paragraph">
 <p>For Prometheus every supported configuration change is controlled through a
-central <strong>ConfigMap</strong>, which needs to exist before we can make changes. When
-you start off with a clean installation of Openshift, the ConfigMap to
-configure the Prometheus environment may not be present. To check if your
-ConfigMap is present, execute this:</p>
+central <strong>ConfigMap</strong>, which needs to exist before we can make changes. When you
+start off with a clean installation of Openshift, the ConfigMap to configure
+the Prometheus environment may not be present. To check if your ConfigMap is
+present, execute this:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2035,7 +2078,7 @@ cluster-monitoring-config   1      116m</pre>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Sample output:</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>configmap/cluster-monitoring-config created</pre>
 </div>
@@ -2050,8 +2093,8 @@ cluster-monitoring-config   1      116m</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The size of the Ceph RBD volumes, <code>40Gi</code>, can be modified to be larger
-or smaller depending on requirements.
+The size of the Ceph RBD volumes, <code>40Gi</code>, can be modified to be larger or
+smaller depending on requirements.
 </td>
 </tr>
 </table>
@@ -2064,7 +2107,7 @@ or smaller depending on requirements.
 <div class="listingblock">
 <div class="title">ConfigMap sample output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">...
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
       volumeClaimTemplate:
         metadata:
           name: prometheusdb
@@ -2073,7 +2116,7 @@ or smaller depending on requirements.
           resources:
             requests:
               storage: 40Gi
-...
+[...]
       volumeClaimTemplate:
         metadata:
           name: alertmanager
@@ -2082,7 +2125,7 @@ or smaller depending on requirements.
           resources:
             requests:
               storage: 40Gi
-...</code></pre>
+[...]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2097,12 +2140,10 @@ mounted in the Pods.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>It is not possible to retain data that was written on the default
+It is not possible to retain data that was written on the default
 EmptyDir-based or ephemeral installation. Thus you will start with an empty
 DB after changing the backend storage thereby starting over with metric
-collection and reporting.</p>
-</div>
+collection and reporting.
 </td>
 </tr>
 </table>
@@ -2120,13 +2161,13 @@ that they are now providing persistent storage.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
-...
+<pre>NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+[...]
 alertmanager-alertmanager-main-0   Bound    pvc-733be285-aaf9-4334-9662-44b63bb4efdf   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 alertmanager-alertmanager-main-1   Bound    pvc-e07ebe61-de5d-404c-9a25-bb3a677281c5   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 alertmanager-alertmanager-main-2   Bound    pvc-9de2edf2-9f5e-4f62-8aa7-ecfd01957748   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 prometheusdb-prometheus-k8s-0      Bound    pvc-5b845908-d929-4326-976e-0659901468e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
-prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s</code></pre>
+prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2142,7 +2183,7 @@ section of this lab guide.</p>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section discusses the usage of the Multi-Cloud-Gateway (MCG). Currently
-the best way to configure the MCG is to use the CLI.</p>
+the best way to configure the MCG is to use the <code>NooBaa client</code> or <code>oc CLI</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2162,8 +2203,7 @@ to the Openshift cluster.
 <h3 id="_checking_on_the_mcg_status"><a class="anchor" href="#_checking_on_the_mcg_status"></a>6.1. Checking on the MCG status</h3>
 <div class="paragraph">
 <p>The MCG status can be checked with the NooBaa CLI. Make sure you are in the
-<code>openshift-storage</code> project when you execute this command. If your machine
-dos not have the <code>noobaa</code> command installed go to <strong>Appendix B</strong> to install it.</p>
+<code>openshift-storage</code> project when you execute this command.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2173,9 +2213,9 @@ dos not have the <code>noobaa</code> command installed go to <strong>Appendix B<
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 2.3.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.5.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.3.0
+<pre>INFO[0000] CLI version: 5.6.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0
+INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0
 INFO[0000] Namespace: openshift-storage
 INFO[0000]
 INFO[0000] CRD Status:
@@ -2188,18 +2228,18 @@ INFO[0000]
 INFO[0000] Operator Status:
 INFO[0000] ✅ Exists: Namespace "openshift-storage"
 INFO[0000] ✅ Exists: ServiceAccount "noobaa"
-INFO[0000] ✅ Exists: Role "ocs-operator.v4.5.0-w7xhr"
-INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.5.0-w7xhr-noobaa-vxfsn"
-INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.5.0-rcswh"
-INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.5.0-rcswh-noobaa-j9rkp"
+INFO[0000] ✅ Exists: Role "ocs-operator.v4.6.0-noobaa-6649766bf4"
+INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.6.0-noobaa-6649766bf4"
+INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.6.0-65577bfbc"
+INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.6.0-65577bfbc"
 INFO[0000] ✅ Exists: Deployment "noobaa-operator"
 INFO[0000]
 INFO[0000] System Status:
 INFO[0000] ✅ Exists: NooBaa "noobaa"
 INFO[0000] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0000] ✅ Exists: StatefulSet "noobaa-db"
 INFO[0000] ✅ Exists: Service "noobaa-mgmt"
 INFO[0000] ✅ Exists: Service "s3"
+INFO[0000] ✅ Exists: StatefulSet "noobaa-db"
 INFO[0000] ✅ Exists: Service "noobaa-db"
 INFO[0000] ✅ Exists: Secret "noobaa-server"
 INFO[0000] ✅ Exists: Secret "noobaa-operator"
@@ -2213,6 +2253,8 @@ INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
 INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
 INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
 INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
+INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
+INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
 INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
 INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
 INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"
@@ -2225,59 +2267,53 @@ INFO[0000] ✅ Exists:  "noobaa-admin"
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs4-0e35.ocs4-0e35.
-sandbox577.opentlc.com https://aa294f5987c2b4d2aa2120149666e40b-580940553.us-east-2.el
-b.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com https://af3f0dd25ab0f4c7ba70f101f112ef0c-11
+5712529.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.159.98:32484]
+NodePorts   : [https://10.0.209.53:31759]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.66.63:443]
-PodPorts    : [https://10.129.2.25:8443]
+InternalIP  : [https://172.30.22.156:443]
+PodPorts    : [https://10.131.2.11:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : nQdzF14mJlUliFOu51Vydw==
+password : Mph5Mhg/r2lCWj99O4jWjw==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs4-0e35.ocs4-0e35.sandbox57
-7.opentlc.com https://aed30343521d544d98491619b9ff193f-1558442573.us-east-2.elb.amazon
-aws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com https://a2087e1ee6e754d70bb96dd8922435b3-1451584877.
+us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.169.142:30465]
+NodePorts   : [https://10.0.147.230:32297]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.203.2:443]
-PodPorts    : [https://10.128.2.12:6443]
+InternalIP  : [https://172.30.54.94:443]
+PodPorts    : [https://10.130.2.70:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : GqrNDEIOuz0XcfSQfzL1
-AWS_SECRET_ACCESS_KEY : K+uAG7aamxWuKpIjbXDTKLcCkKmBjcdGr+nZXFsd
+AWS_ACCESS_KEY_ID     : SBC4HsLagqAy7IrGK2A3
+AWS_SECRET_ACCESS_KEY : anilMy0atqj/QlVXMwNwbGasUpRJTXDM7/Mmt/AN
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET
-      PHASE   AGE
-noobaa-default-backing-store   aws-s3   nb.1600187786380.ocs4-0e35.sandbox577.opentlc.
-com   Ready   1h55m36s
+NAME                           TYPE     TARGET-BUCKET                                       PHASE   AGE
+noobaa-default-backing-store   aws-s3   nb.1610563076824.ocs4-8613.sandbox944.opentlc.com   Ready   7h9m5s
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT
-              PHASE   AGE
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backin
-g-store]}]}   Ready   1h55m36s
+NAME                          PLACEMENT                                                             PHASE   AGE
+noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   7h9m5s
 
 #-----------------#
 #- Bucket Claims -#
@@ -2295,18 +2331,18 @@ using the external DNS which incurs DNS traffic cost, or route internally
 inside of our Openshift cluster.</p>
 </div>
 <div class="paragraph">
-<p>You can get a more basic overview of the MCG status using the Object Storage
+<p>You can get a more basic overview of the MCG status using the Object Service
 <strong>Dashboard</strong>. To reach this, log into the <strong>Openshift Web Console</strong>, click on
-<code>Home</code> and select the <code>Dashboards</code> item. In the main view, select <code>Object
-Service</code> in the top navigation bar. This dashboard does not give you
-connection information for your S3 endpoint, but offers Graphs and runtime
-information about the usage of your S3 backend.</p>
+<code>Home</code> and select the <code>Overview</code> item. In the main view, select <code>Object
+Service</code> in the top navigation bar. This dashboard does not give you connection
+information for your S3 endpoint, but offers Graphs and runtime information
+about the usage of your S3 backend as well as a link to the MCG console.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_creating_an_object_bucket_claim"><a class="anchor" href="#_creating_an_object_bucket_claim"></a>6.2. Creating an Object Bucket Claim</h3>
 <div class="paragraph">
-<p>An Object Bucket Claim (OBC) can be used to request a S3 compatible bucket
+<p>An Object Bucket Claim, <strong>OBC</strong>, can be used to request a S3 compatible bucket
 backend for your workloads. When creating an OBC you get a ConfigMap (CM) and
 a Secret that together contain all the information your application needs to
 use the object storage service.</p>
@@ -2323,12 +2359,13 @@ use the object storage service.</p>
 <div class="title">Example output:</div>
 <div class="content">
 <pre>INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
-INFO[0000] ✅ Created: ObjectBucketClaim "test21obc"</pre>
+INFO[0000] ✅ Created: ObjectBucketClaim "test21obc"
+[...]</pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The NooBaa CLI has created the necessary configuration inside of NooBaa and
-has informed Openshift about the new OBC:</p>
+has informed Openshift about the new <strong>OBC</strong>:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2353,7 +2390,7 @@ test21obc   openshift-storage.noobaa.io   Bound   38s</pre>
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: objectbucket.io/v1alpha1
 kind: ObjectBucketClaim
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-01-14T01:53:15Z"
   finalizers:
   - objectbucket.io/finalizer
   generation: 2
@@ -2361,14 +2398,18 @@ metadata:
     app: noobaa
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
+  managedFields:
+
+[...]
+
   name: test21obc
   namespace: openshift-storage
-  resourceVersion: "40756"
+  resourceVersion: "879458"
   selfLink: /apis/objectbucket.io/v1alpha1/namespaces/openshift-storage/objectbucketclaims/test21obc
-  uid: 64f04cba-f662-11e9-bc3c-0295250841af
+  uid: 0c8e288a-047a-4e9a-83d2-5dddf8e4af2a
 spec:
   ObjectBucketName: obc-openshift-storage-test21obc
-  bucketName: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
+  bucketName: test21obc-d87b9eec-3842-43ed-abd9-18aa4a3a9e48
   generateBucketName: test21obc
   storageClassName: openshift-storage.noobaa.io
 status:
@@ -2378,11 +2419,11 @@ status:
 <div class="paragraph">
 <p>Inside of your <code>openshift-storage</code> namespace, you will now find the
 <strong>ConfigMap</strong> and the <strong>Secret</strong> to use this OBC. The CM and the secret have the
-same name as the OBC:</p>
+same name as the <strong>OBC</strong>:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get -n openshift-storage secret test21obc -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret test21obc -o yaml -n openshift-storage</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2390,17 +2431,21 @@ same name as the OBC:</p>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
-  AWS_ACCESS_KEY_ID: c0M0R2xVanF3ODR3bHBkVW94cmY=
-  AWS_SECRET_ACCESS_KEY: Wi9kcFluSWxHRzlWaFlzNk1hc0xma2JXcjM1MVhqa051SlBleXpmOQ==
+  AWS_ACCESS_KEY_ID: TTZybEVOY01qR3FnaXZpdk1rQXo=
+  AWS_SECRET_ACCESS_KEY: aHNNdVJxSGFDV0hZdUpOOXZEbFpkc2tZaklKL21MKzN4WTRRKzc3YQ==
 kind: Secret
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-01-14T01:53:16Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
     app: noobaa
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
+  managedFields:
+
+[...]
+
   name: test21obc
   namespace: openshift-storage
   ownerReferences:
@@ -2409,16 +2454,15 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 64f04cba-f662-11e9-bc3c-0295250841af
-  resourceVersion: "40751"
+    uid: 0c8e288a-047a-4e9a-83d2-5dddf8e4af2a
+  resourceVersion: "879450"
   selfLink: /api/v1/namespaces/openshift-storage/secrets/test21obc
-  uid: 65117c1c-f662-11e9-9094-0a5305de57bb
-type: Opaque</code></pre>
+  uid: 1c7cdcdd-f449-4dec-b2e6-32a2e9ea03e3</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get -n openshift-storage cm test21obc -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm test21obc -o yaml -n openshift-storage</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2426,20 +2470,24 @@ type: Opaque</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
-  BUCKET_HOST: 10.0.171.35
-  BUCKET_NAME: test21obc-933348a6-e267-4f82-82f1-e59bf4fe3bb4
-  BUCKET_PORT: "31242"
+  BUCKET_HOST: s3.openshift-storage.svc
+  BUCKET_NAME: test21obc-d87b9eec-3842-43ed-abd9-18aa4a3a9e48
+  BUCKET_PORT: "443"
   BUCKET_REGION: ""
   BUCKET_SUBREGION: ""
 kind: ConfigMap
 metadata:
-  creationTimestamp: "2019-10-24T13:30:07Z"
+  creationTimestamp: "2021-01-14T01:53:16Z"
   finalizers:
   - objectbucket.io/finalizer
   labels:
     app: noobaa
     bucket-provisioner: openshift-storage.noobaa.io-obc
     noobaa-domain: openshift-storage.noobaa.io
+  managedFields:
+
+[...]
+
   name: test21obc
   namespace: openshift-storage
   ownerReferences:
@@ -2448,10 +2496,10 @@ metadata:
     controller: true
     kind: ObjectBucketClaim
     name: test21obc
-    uid: 64f04cba-f662-11e9-bc3c-0295250841af
-  resourceVersion: "40752"
+    uid: 0c8e288a-047a-4e9a-83d2-5dddf8e4af2a
+  resourceVersion: "879453"
   selfLink: /api/v1/namespaces/openshift-storage/configmaps/test21obc
-  uid: 651c6501-f662-11e9-9094-0a5305de57bb</code></pre>
+  uid: 9c29e56c-03fd-4ae8-9260-370fcfe46547</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2462,11 +2510,11 @@ contains the S3 endpoint information for our application.</p>
 <div class="sect2">
 <h3 id="_using_an_obc_inside_a_container"><a class="anchor" href="#_using_an_obc_inside_a_container"></a>6.3. Using an OBC inside a container</h3>
 <div class="paragraph">
-<p>In this section we will see how one can create an OBC using a YAML file and
+<p>In this section we will see how one can create an <strong>OBC</strong> using a YAML file and
 use the provided S3 configuration in an example application.</p>
 </div>
 <div class="paragraph">
-<p>To deploy the OBC and the example application we apply this YAML file:</p>
+<p>To deploy the <strong>OBC</strong> and the example application we apply this YAML file:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2539,8 +2587,8 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>The first part creates an OBC that will create a ConfigMap and a secret that
-have the same name as the OBC (<code>obc-test</code>). The second part of the file
+<p>The first part creates an <strong>OBC</strong> that will create a <strong>ConfigMap</strong> and a <strong>Secret</strong>
+that have the same name as the <strong>OBC</strong> (<code>obc-test</code>). The second part of the file
 (after the <code>---</code>), creates a Job that deploys a container with the s3cmd
 pre-installed. It will execute s3cmd with the appropriate command line
 arguments and exit. S3cmd will in this case report the current disk usage of
@@ -2580,9 +2628,8 @@ obc-test-bvg8h   0/1     Completed   0          22s</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Then you can check the <code>obc-test</code> <strong>Pod</strong> logs for the contents of the S3
-bucket using the command below (in this case there are zero objects in the
-bucket).</p>
+<p>Then you can check the <code>obc-test</code> <strong>Pod</strong> logs for the contents of the S3 bucket
+using the command below (in this case there are zero objects in the bucket).</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2590,7 +2637,7 @@ bucket).</p>
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Example output</div>
+<div class="title">Example output:</div>
 <div class="content">
 <pre>+ s3cmd --no-check-certificate --signature-v2 --host s3.openshift-storage.svc:443 --host-bucket s3.openshift-storage.svc:443 du
 0        0 objects s3://obc-test-noobaa-1ec979bc-c53f-42e0-b551-ffaa895c06a6/
@@ -2622,10 +2669,8 @@ cluster.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>The reason for adding more OCP worker nodes for storage is because the
-existing nodes do not have adequate CPU and/or Memory available.</p>
-</div>
+The reason for adding more OCP worker nodes for storage is because the
+existing nodes do not have adequate CPU and/or Memory available.
 </td>
 </tr>
 </table>
@@ -2643,7 +2688,7 @@ or scale the already present OCS <strong>machinesets</strong>. For this training
 spawn more workers by scaling the already present OCS worker instances up from 1 to 2 <strong>machines</strong>.</p>
 </div>
 <div class="listingblock execute">
-<div class="title">Check on our current machinesets:</div>
+<div class="title">Check on our current workerocs <strong>machinesets</strong> and <strong>machine</strong> counts:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'</code></pre>
 </div>
@@ -2653,10 +2698,10 @@ spawn more workers by scaling the already present OCS worker instances up from 1
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                          DESIRED   CURRENT   READY   AVAILABLE   AGE
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b   1         1         1       1           3h50m
-cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1           3h50m</pre>
+<pre>NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
+cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           2d
+cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           2d
+cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           2d</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2670,12 +2715,12 @@ cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c   1         1         1       1     
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2a scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2b scaled
-oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs-0ec4-dgwqc-workerocs-us-east-2c scaled</pre>
+<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a
+machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b
+machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b scaled
+oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c
+machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c scaled</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2704,8 +2749,8 @@ six.</p>
 </td>
 <td class="content">
 The OCS label <code>cluster.ocs.openshift.io/openshift-storage=</code> is already
-applied because it is configured in the workerocs <strong>machinesets</strong> that you used to
-create the new worker nodes.
+applied because it is configured in the workerocs <strong>machinesets</strong> that you used
+to create the new worker nodes.
 </td>
 </tr>
 </table>
@@ -2718,18 +2763,18 @@ create the new worker nodes.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ip-10-0-131-209.us-east-2.compute.internal
-ip-10-0-133-99.us-east-2.compute.internal
-ip-10-0-155-12.us-east-2.compute.internal
-ip-10-0-158-153.us-east-2.compute.internal
-ip-10-0-160-200.us-east-2.compute.internal
-ip-10-0-162-215.us-east-2.compute.internal</pre>
+<pre>ip-10-0-147-230.us-east-2.compute.internal
+ip-10-0-157-22.us-east-2.compute.internal
+ip-10-0-175-8.us-east-2.compute.internal
+ip-10-0-183-84.us-east-2.compute.internal
+ip-10-0-209-53.us-east-2.compute.internal
+ip-10-0-214-36.us-east-2.compute.internal</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now that you have the new instances created with the OCS label, the next step is
-to add more storage to the Ceph cluster. The OCS operator will prefer the new
-OCP nodes with the OCS label because they have no OCS <strong>Pods</strong> scheduled yet.</p>
+<p>Now that you have the new instances created with the OCS label, the next step
+is to add more storage to the Ceph cluster. The OCS operator will prefer the
+new OCP nodes with the OCS label because they have no OCS <strong>Pods</strong> scheduled yet.</p>
 </div>
 </div>
 <div class="sect2">
@@ -2761,7 +2806,7 @@ reach the OCS storage cluster overview:</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-Storage-Cluster-overview-reachit.png" alt="OCS4 Storage Cluster overview reachit">
+<img src="_images/OCS4-OCP4-Storage-Cluster-overview-reachit.png" alt="OCS4 OCP4 Storage Cluster overview reachit">
 </div>
 </div>
 <div class="ulist">
@@ -2781,8 +2826,9 @@ reach the OCS storage cluster overview:</p>
 <div class="title">Figure 21. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
-<p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will be three times as much as you see in the <code>Raw Capacity</code> field, because OCS uses a replica count of
-3.</p>
+<p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
+be three times as much as you see in the <code>Raw Capacity</code> field, because OCS uses
+a replica count of 3.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2798,31 +2844,43 @@ reach the OCS storage cluster overview:</p>
 </div>
 <div class="paragraph">
 <p>Once you are done with your setting, proceed by clicking on <code>Add</code>. You will
-see the Status of the Storage Cluster change until it reaches <code>Ready</code> again.</p>
+see the Status of the Storage Cluster is <code>Ready</code>.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+It may take more than 5 minutes for new OSD pods to be in a <code>Running</code> state.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>You can now see that there are new OSD pods:</p>
+<p>Use this command to see the new OSD pods:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName -n openshift-storage | grep osd</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pod -o=custom-columns=NAME:.metadata.name,STATUS:.status.phase,NODE:.spec.nodeName -n openshift-storage | grep osd | grep -v prepare</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>rook-ceph-osd-0-5dd77b475-zn7fq                                   Running     ip-10-0-136-250.us-east-2.compute.internal
-rook-ceph-osd-1-686f5dff76-tlr9r                                  Running     ip-10-0-162-88.us-east-2.compute.internal
-rook-ceph-osd-2-fb48fb96-b8dv6                                    Running     ip-10-0-154-203.us-east-2.compute.internal
-rook-ceph-osd-3-77f95c4bbc-gc8nt                                  Running     ip-10-0-150-158.us-east-2.compute.internal
-rook-ceph-osd-4-64dcb564db-t5w82                                  Running     ip-10-0-143-214.us-east-2.compute.internal
-rook-ceph-osd-5-6b4b8bbf44-9jfjq                                  Running     ip-10-0-174-206.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-data-0-l4b6w-qqxfc          Succeeded   ip-10-0-136-250.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-0-data-1-wfw6d-9tnk8          Succeeded   ip-10-0-143-214.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-data-0-hvrdt-gcd7v          Succeeded   ip-10-0-154-203.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-1-data-1-vrvs7-d5ff7          Succeeded   ip-10-0-150-158.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-data-0-v7gnf-8nrrd          Succeeded   ip-10-0-162-88.us-east-2.compute.internal
-rook-ceph-osd-prepare-ocs-deviceset-2-data-1-t5hqf-s2cqs          Succeeded   ip-10-0-174-206.us-east-2.compute.internal</pre>
+<pre>rook-ceph-osd-0-7d45696497-jwgb7            Running     ip-10-0-147-230.us-east-
+2.compute.internal
+rook-ceph-osd-1-6f49b665c7-gxq75            Running     ip-10-0-209-53.us-east-2
+.compute.internal
+rook-ceph-osd-2-76ffc64cd-9zg65             Running     ip-10-0-175-8.us-east-2.
+compute.internal
+rook-ceph-osd-3-97b5d9844-jpwgm             Running     ip-10-0-157-22.us-east-2
+.compute.internal
+rook-ceph-osd-4-9cb667b76-mftt9             Running     ip-10-0-214-36.us-east-2
+.compute.internal
+rook-ceph-osd-5-55b8d97855-2bp85            Running     ip-10-0-157-22.us-east-2
+.compute.internal</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2833,11 +2891,9 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-t5hqf-s2cqs          Succeeded   ip
 <h3 id="_verify_new_storage"><a class="anchor" href="#_verify_new_storage"></a>7.3. Verify new storage</h3>
 <div class="paragraph">
 <p>Once you added the capacity and made sure that the OSD pods are present, you
-can also optionally check the additional storage capacity using the Ceph
-tools. To do this, follow these steps:</p>
+can also optionally check the additional storage capacity using the Ceph <strong>toolbox</strong> created earlier. Follow these steps:</p>
 </div>
 <div class="listingblock execute">
-<div class="title">Enter the tools pod that you created in <a href="#_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage">the previous section</a>:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD</code></pre>
@@ -2854,14 +2910,14 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="content">
 <pre>sh-4.2# ceph status
   cluster:
-    id:     bcc52257-12b7-4401-9f8d-c7b5bf4b5d6f
+    id:     e3398039-f8c6-4937-ba9d-655f5c01e0ae
     health: HEALTH_OK
 
   services:
     mon: 3 daemons, quorum a,b,c (age 25m)
     mgr: a(active, since 24m)
     mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 6 osds: 6 up (since 38s), 6 in (since 38s) <i class="conum" data-value="1"></i><b>(1)</b>
+    osd: 6 osds: 6 up (since 38s), 6 in (since 38s)
 
   task status:
       scrub status:
@@ -2869,10 +2925,10 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
           mds.ocs-storagecluster-cephfilesystem-b: idle
 
   data:
-    pools:   3 pools, 24 pgs
+    pools:   3 pools, 192 pgs
     objects: 92 objects, 81 MiB
-    usage:   6.1 GiB used, 12 TiB / 12 TiB avail <i class="conum" data-value="2"></i><b>(2)</b>
-    pgs:     24 active+clean
+    usage:   6.1 GiB used, 12 TiB / 12 TiB avail
+    pgs:     192 active+clean
 
   io:
     client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
@@ -2909,35 +2965,40 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
  -1       12.00000 root default
  -5       12.00000     region us-east-2
  -4        4.00000         zone us-east-2a
- -3        2.00000             host ocs-deviceset-0-data-0-l4b6w
+ -3        2.00000             host ocs-deviceset-gp2-0-data-0-9977n
   0   ssd  2.00000                 osd.0
--21        2.00000             host ocs-deviceset-0-data-1-wfw6d
+-21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr
   4   ssd  2.00000                 osd.4
 -14        4.00000         zone us-east-2b
--13        2.00000             host ocs-deviceset-1-data-0-hvrdt
+-13        2.00000             host ocs-deviceset-gp2-1-data-0-nnmpv
   2   ssd  2.00000                 osd.2
--19        2.00000             host ocs-deviceset-1-data-1-vrvs7
+-19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987
   3   ssd  2.00000                 osd.3
 -10        4.00000         zone us-east-2c
- -9        2.00000             host ocs-deviceset-2-data-0-v7gnf
+ -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
   1   ssd  2.00000                 osd.1
--17        2.00000             host ocs-deviceset-2-data-1-t5hqf
+-17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb
   5   ssd  2.00000                 osd.5</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>We now have additional hosts, which are extending the hosts in the respective zone</p>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>We now have additional hosts, which are extending the hosts in the respective zone</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Since our Ceph cluster&#8217;s CRUSH rules are set up to replicate data between the
-zones, this is an effective way to relax the load on the previous nodes.</p>
+zones, this is an effective way to reduce the load on the 3 initial nodes.</p>
 </div>
 <div class="paragraph">
 <p>Existing data on the original OSDs will be balanced out automatically, so
 that the old and the new OSDs share the load.</p>
 </div>
 <div class="paragraph">
-<p>You can exit the toolbox by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing exit.</p>
+<p>You can exit the <strong>toolbox</strong> by either pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>D</kbd></span> or by executing exit.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2951,16 +3012,17 @@ that the old and the new OSDs share the load.</p>
 <h2 id="_monitoring_the_ocs_environment"><a class="anchor" href="#_monitoring_the_ocs_environment"></a>8. Monitoring the OCS environment</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section covers the different tools available with OCS 4 when it comes
-to monitoring the environment.</p>
+<p>This section covers the different tools available when it comes to monitoring
+OCS the environment. This section relies on using the <strong>OpenShift Web Console</strong>.</p>
 </div>
 <div class="paragraph">
 <p>Individuals already familiar with OCP will feel comfortable with this section
-but for those who are not, it will be a good bootstrap.</p>
+but for those who are not, it will be a good primer.</p>
 </div>
 <div class="paragraph">
-<p>The tools are accessible through the main UI window left pane. Click the
-<strong>Monitoring</strong> menu item to expand and have access to the following 3 choices:</p>
+<p>The monitoring tools are accessible through the main <strong>OpenShift Web Console</strong>
+left pane. Click the <strong>Monitoring</strong> menu item to expand and have access to the
+following 3 selections:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -2997,8 +3059,25 @@ screen capture below.</p>
 <div class="title">Figure 23. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
-<p>You can display the alerts in the main window by state. To do so you must
-highlight the states you want to display. The states are:</p>
+<p>You can display the alerts in the main window using the filters at your
+disposal.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>1 - Will let you select alerts by State, Severity and Sourc</p>
+</li>
+<li>
+<p>2 - Will let you select if you want to search a specific character string
+using either the <code>Name</code> or the <code>Label</code></p>
+</li>
+<li>
+<p>3 - Will let you enter the character string you are searching for</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The alert <code>State</code> can be.</p>
 </div>
 <div class="ulist">
 <ul>
@@ -3011,9 +3090,6 @@ highlight the states you want to display. The states are:</p>
 <li>
 <p><code>Pending</code> - Alerts that have been triggered but not confirmed</p>
 </li>
-<li>
-<p><code>Not Firing</code> - Alerts that have not been triggered</p>
-</li>
 </ul>
 </div>
 <div class="admonitionblock note">
@@ -3023,17 +3099,53 @@ highlight the states you want to display. The states are:</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-An alert transitions from <code>Pending</code> to <code>Firing</code> state if it persists
-for more than the amount of time configured in the alert definition (e.g. 10
-minutes for the <code>CephClusterWarningState</code> alert).
+An alert transitions from <code>Pending</code> to <code>Firing</code> state if the alert
+persists for more than the amount of time configured in the alert definition
+(e.g. 10 minutes for the <code>CephClusterWarningState</code> alert).
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>As illustrated below, you can filter the alerts being displayed based on
-their state. Just click on the states to display to toggle the filter. The
-states highlighted in blue will be displayed.</p>
+<p>The alert <code>Severity</code> can be.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Critical</code> - Alert is tagged as critical</p>
+</li>
+<li>
+<p><code>Warning</code> - Alert is tagged as warning</p>
+</li>
+<li>
+<p><code>Info</code> - Alert is tagged as informational</p>
+</li>
+<li>
+<p><code>None</code> - The alert has no <code>Severity</code> assigned</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The alert <code>Source</code> can be.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Platform</code> - Alert is generated by an OCP component</p>
+</li>
+<li>
+<p><code>User</code> - Alert is generated by a user application</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>As illustrated below, alerts can be filtered precisely using multiple criteria.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
+</div>
+<div class="title">Figure 24. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3042,38 +3154,10 @@ states highlighted in blue will be displayed.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-You need at least one state highlighted.
+You can clear all filters to view all the existing alerts.
 </td>
 </tr>
 </table>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
-</div>
-<div class="title">Figure 24. OCP Alerting Status Filtering</div>
-</div>
-<div class="paragraph">
-<p>As illustrated below, you can also filter alerts by name using the <strong>Filter</strong>
-area on the top right of the window to search for a particular alert or set
-of alerts.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/metrics-alertingnamefilter.png" alt="OCP Alert Name Filtering">
-</div>
-<div class="title">Figure 25. OCP Alerting Name Filtering</div>
-</div>
-<div class="paragraph">
-<p>Through the 3 dot icon on the right hand side of each alert line you have
-access to a contextual menu to either view the alert definition or to silence
-the alert.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
-</div>
-<div class="title">Figure 26. OCP Alert Contextual Menu</div>
 </div>
 <div class="paragraph">
 <p>If you select <code>View Alerting Rule</code> you will get access to the details of the
@@ -3082,9 +3166,15 @@ by the alert to perform the detection of the condition.</p>
 </div>
 <div class="imageblock">
 <div class="content">
+<img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
+</div>
+<div class="title">Figure 25. OCP Alert Contextual Menu</div>
+</div>
+<div class="imageblock">
+<div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 27. OCP Alert Detail Display</div>
+<div class="title">Figure 26. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3095,7 +3185,7 @@ by the alert to perform the detection of the condition.</p>
 <td class="content">
 If desired, you can click the Prometheus query embedded in the alert.
 Doing so will take you to the <strong>Metrics</strong> page where you will be able to
-execute the alert and to test updates to the alert.
+execute the query for the alert and if desired make changes to the rule.
 </td>
 </tr>
 </table>
@@ -3104,13 +3194,13 @@ execute the alert and to test updates to the alert.
 <div class="sect2">
 <h3 id="_metrics"><a class="anchor" href="#_metrics"></a>8.2. Metrics</h3>
 <div class="paragraph">
-<p>Click on the <strong>Metrics</strong> item as illustrated below.</p>
+<p>Click on the <strong>Metrics</strong> item as illustrated below in the <code>Monitoring</code> menu.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 28. OCP Metrics Menu</div>
+<div class="title">Figure 27. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3119,24 +3209,24 @@ execute the alert and to test updates to the alert.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 29. OCP UI Metrics Homepage</div>
+<div class="title">Figure 28. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
-<p>Use the query field to either enter the formula of your choice or to search
-for metrics by name. The metrics available will let you query both OCP
-related information or OCS related information. The queries can be simple or
-complex using the Prometheus query syntax and all its available functions.</p>
+<p>Use the query field to either enter the formula of your choice or to search for
+metrics by name. The metrics available will let you query both OCP related
+information or OCS related information. The queries can be simple or complex
+using the Prometheus query syntax and all its available functions.</p>
 </div>
 <div class="paragraph">
 <p>Let&#8217;s start testing a simple query example and enter the following text
 <code>ceph_osd_op</code> in the query field. When you are done typing, simply hit
-<code>[Enter]</code>.</p>
+<code>[Enter]</code> or select <code>Run Queries</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 30. Simple Ceph Query</div>
+<div class="title">Figure 29. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3145,18 +3235,18 @@ complex using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 31. Simple Ceph Graph</div>
+<div class="title">Figure 30. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
 <code>rate(ceph_osd_op[5m])</code> or <code>irate(ceph_osd_op[5m])</code> in the query field. When
-you are done typing, simply hit <code>[Enter]</code>.</p>
+you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 32. Complex Ceph Query</div>
+<div class="title">Figure 31. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3165,7 +3255,7 @@ you are done typing, simply hit <code>[Enter]</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 33. Complex Ceph Graph</div>
+<div class="title">Figure 32. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3176,34 +3266,21 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 34. Complex OCP Graph</div>
+<div class="title">Figure 33. Complex OCP Graph</div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Have a look at the difference between
-<code>sum(irate(process_cpu_seconds_total[5m]))</code> and
-<code>irate(process_cpu_seconds_total[5m])</code> from above.
-</td>
-</tr>
-</table>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
 <div class="paragraph">
-<p>For more information on the Prometheus query language visit the
-<a href="https://prometheus.io/docs/prometheus/latest/querying/basics/">Prometheus
-Query Documentation</a>.</p>
+<p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For more information on the Prometheus query language visit the
+<a href="https://prometheus.io/docs/prometheus/latest/querying/basics/">Prometheus
+Query Documentation</a>.
 </td>
 </tr>
 </table>
@@ -3215,19 +3292,19 @@ Query Documentation</a>.</p>
 <h2 id="_using_must_gather"><a class="anchor" href="#_using_must_gather"></a>9. Using must-gather</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Must-gather is a tool for collecting data about the current&#8217;y running
-Openshift cluster. It loads a predefined set of containers that execute
-multiple programs and dump it on the local workstations filesystem. The local
-files can then be used by a remote support engineer to debug a problem more
-easily without needing direct cluster access. This is similar to sosreports
-for RHEL hosts.</p>
+<p>Must-gather is a tool for collecting data about your running Openshift cluster.
+It loads a predefined set of containers that execute multiple programs and
+write results on the local workstation&#8217;s filesystem. The local files can then
+be uploaded to a Red Hat case and used by a remote support engineer to debug a
+problem without needing direct access to your cluster. This utility and method
+for diagnostic collection is similar to sosreports for RHEL hosts.</p>
 </div>
 <div class="paragraph">
-<p>The OCS team has released its own image for the must-gather tool that runs
-storage specific commands.</p>
+<p>The OCS team has released its own must-gather image for the must-gather tool
+that runs storage specific commands.</p>
 </div>
 <div class="paragraph">
-<p>You can run this diagnostic tool like this for generic Openshift debugging:</p>
+<p>You can run this diagnostic tool like this for generic OpenShift debugging:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -3235,11 +3312,11 @@ storage specific commands.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Or like this for OCS specific insights:</p>
+<p>Or like this for OCS specific results:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.5</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.6</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3341,29 +3418,37 @@ sudo mv oc /usr/bin</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Afterwards, go to your Openshift Web Console, log in and click on the username in the top right corner. There you will find the menu item <code>Copy Login Command</code>.</p>
+<p>Afterwards, go to your <strong>Openshift Web Console</strong>, log in and click on the
+username in the top right corner. There you will find the menu item <code>Copy Login
+Command</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 35. Copy Login command menu entry</div>
+<div class="title">Figure 34. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
-<p>Clicking on <code>Copy Login Command</code> will open a new window and you might be required to login to your Openshift cluster again.
-After successfully login in, you see blue text <code>Display token</code> - click this and you will be shown your login command.</p>
+<p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
+required to login to your Openshift cluster again. After successfully login in,
+you see blue text <code>Display token</code> - click this and you will be shown your login
+command.</p>
 </div>
 <div class="paragraph">
-<p>The login command will look similar to this</p>
+<p>The login command will look similar to this:</p>
 </div>
 <div class="paragraph">
-<p><code>oc login --token=zoNoANLOOoJzXV3sb-TE1xIcg2aLBssdN0bTNIuV29w --server=https://api.cluster-ocs-89db.ocs-89db.example.opentlc.com:6443</code></p>
+<p><code>oc login --token=zoNoANLOOoJzXV3sb-TE1xIcg2aLBssdN0bTNIuV29w
+--server=https://api.cluster-ocs-89db.ocs-89db.example.opentlc.com:6443</code></p>
 </div>
 <div class="paragraph">
-<p>execute this login command on your terminal. If you did not provision your RHPDS environment with Let&#8217;s Encrypt certificates, it will ask if you want to connect without certificate checks, accept this.</p>
+<p>Execute this login command on your terminal. If you did not provision your
+RHPDS environment with Let&#8217;s Encrypt certificates, it will ask if you want to
+connect without certificate checks, accept this.</p>
 </div>
 <div class="paragraph">
-<p>Check if you are successfully connected by issuing a command against the cluster:</p>
+<p>Check if you are successfully connected by issuing a command against the
+cluster:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -3373,9 +3458,9 @@ After successfully login in, you see blue text <code>Display token</code> - clic
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Client Version: 4.5.9
-Server Version: 4.5.9
-Kubernetes Version: v1.18.3+6c42de8</pre>
+<pre>Client Version: 4.6.12
+Server Version: 4.6.12
+Kubernetes Version: v1.19.0+7070803</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3385,9 +3470,8 @@ Kubernetes Version: v1.18.3+6c42de8</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>The above commands will always pull the latest oc version, so your version might be higher than the version in the example output.</p>
-</div>
+The above commands will always pull the latest oc version, so your
+version might be higher than the version in the example output.
 </td>
 </tr>
 </table>
@@ -3409,13 +3493,13 @@ Kubernetes Version: v1.18.3+6c42de8</pre>
 <div class="listingblock">
 <div class="title">Mac steps without Homebrew</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-mac-v2.3.0 ; chmod +x noobaa-mac-v2.3.0 ; sudo mv noobaa-mac-v2.3.0 /usr/local/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-mac-v5.6.0 ; chmod +x noobaa-mac-v5.6.0 ; sudo mv noobaa-mac-v5.6.0 /usr/local/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v2.3.0/noobaa-linux-v2.3.0 ; chmod +x noobaa-linux-v2.3.0 ; sudo mv noobaa-linux-v2.3.0 /usr/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-linux-v5.6.0 ; chmod +x noobaa-linux-v5.6.0 ; sudo mv noobaa-linux-v5.6.0 /usr/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3429,9 +3513,9 @@ Kubernetes Version: v1.18.3+6c42de8</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 2.3.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.5.0
-INFO[0000] operator-image: noobaa/noobaa-operator:2.3.0</pre>
+<pre>INFO[0000] CLI version: 5.6.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0
+INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0</pre>
 </div>
 </div>
 </div>
@@ -3451,14 +3535,12 @@ used by OCS 4.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>The content in this Appendix is relevant to learning about the critical
+The content in this Appendix is relevant to learning about the critical
 components of Ceph and how Ceph works. OCS 4 uses Ceph in a prescribed manner
 for providing storage to OpenShift applications. Using <strong>Operators</strong> and
 <strong>CustomResourceDefinitions</strong> (CRDs) for deploying and managing OCS 4 may
 restrict some of Ceph&#8217;s advanced features when compared to general use
-outside of OCP 4.</p>
-</div>
+outside of OCP 4.
 </td>
 </tr>
 </table>
@@ -3473,7 +3555,7 @@ outside of OCP 4.</p>
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 36. Ceph Project History</div>
+<div class="title">Figure 35. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -3492,7 +3574,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 37. Ceph Architecture</div>
+<div class="title">Figure 36. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -3509,21 +3591,25 @@ requests, to protect the data, to check the consistency and the integrity of
 the data through built-in mechanisms. The RADOS layer is composed of the
 following daemons:</p>
 </div>
-<div class="olist arabic">
-<ol class="arabic">
-<li>
-<p>MONs or Monitors</p>
-</li>
-<li>
-<p>OSDs or Object Storage Devices</p>
-</li>
-<li>
-<p>MGRs or Managers</p>
-</li>
-<li>
-<p>MDSs or Meta Data Servers</p>
-</li>
-</ol>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>MONs or Monitors</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>OSDs or Object Storage Devices</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>MGRs or Managers</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>MDSs or Meta Data Servers</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <div class="title"><strong><em>Monitors</em></strong></div>
@@ -3591,7 +3677,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 38. RADOS as it stands</div>
+<div class="title">Figure 37. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -3610,7 +3696,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 39. Different Storage Types Supported</div>
+<div class="title">Figure 38. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -3630,7 +3716,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 40. Application Native Object API</div>
+<div class="title">Figure 39. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -3657,7 +3743,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 41. kRBD Diagram</div>
+<div class="title">Figure 40. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -3672,7 +3758,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 42. librbd Diagram</div>
+<div class="title">Figure 41. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -3687,7 +3773,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 43. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 42. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -3706,7 +3792,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 44. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 43. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -3784,7 +3870,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 45. Pools and PGs</div>
+<div class="title">Figure 44. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -3797,10 +3883,9 @@ access method level down to the OSDs at the physical layer.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>A Ceph pool has no size and is able to consume the space available any OSD
-where its PGs are created. A Placement Group or PG belongs to only one pool.</p>
-</div>
+A Ceph pool has no size and is able to consume the space available on any
+OSD where it&#8217;s PGs are created. A Placement Group or PG belongs to only one
+pool.
 </td>
 </tr>
 </table>
@@ -3815,7 +3900,7 @@ where its PGs are created. A Placement Group or PG belongs to only one pool.</p>
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 46. Ceph Data Protection</div>
+<div class="title">Figure 45. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -3859,7 +3944,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 47. Data Distribution</div>
+<div class="title">Figure 46. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3868,11 +3953,9 @@ in multiple objects.</p>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>By default, each access method uses an object size of 4MB. The above diagram
-details how a 32MB RBD (Block Device) supporting a RWO PVC will be scattered
-throughout the cluster.</p>
-</div>
+By default, each access method uses an object size of 4MB. The above
+diagram details how a 32MB RBD (Block Device) supporting a RWO PVC will be
+scattered throughout the cluster.
 </td>
 </tr>
 </table>
