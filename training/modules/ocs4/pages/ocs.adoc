@@ -107,8 +107,7 @@ PHASE. The `NAME` of your machines will be different than shown below.
 
 .Example output:
 ----
-NAME                                                 PHASE     TYPE          REGION      ZONE
-         AGE
+NAME                                                 PHASE     TYPE          REGION      ZONE         AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a-g6cfz   Running   m5.4xlarge    us-east-2   us-east-2a   3m48s
 cluster-ocs4-8613-bc282-workerocs-us-east-2b-2zdgx   Running   m5.4xlarge    us-east-2   us-east-2b   3m48s
 cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s
