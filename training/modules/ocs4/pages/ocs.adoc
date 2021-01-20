@@ -1598,7 +1598,7 @@ You can get a more basic overview of the MCG status using the Object Service
 `Home` and select the `Overview` item. In the main view, select `Object
 Service` in the top navigation bar. This dashboard does not give you connection
 information for your S3 endpoint, but offers Graphs and runtime information
-about the usage of your S3 backend as well as a link to the MGC console.
+about the usage of your S3 backend as well as a link to the MCG console.
 
 === Creating an Object Bucket Claim
 
