@@ -1241,7 +1241,7 @@ just created.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh $(oc get pods -n my-database-app|grep postgresql|grep -v deploy|awk {'print $1}')</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql|grep -v deploy|awk {'print $1}')</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
