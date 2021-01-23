@@ -304,7 +304,7 @@ selected.
 
 [source,role="execute"]
 ----
-oc get nodes --show-labels | grep ocs |cut -d' ' -f1
+oc get nodes --show-labels | grep ocs | cut -d ' ' -f1
 ----
 
 Then click on the button `Create` below the dialog box with the 3 workers
@@ -653,7 +653,7 @@ persistent storage on Ceph.
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
 ----
 
 This will return a route similar to this one (careful: there is no line break
@@ -783,7 +783,7 @@ just created.
 
 [source,role="execute"]
 ----
-oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql|grep -v deploy|awk {'print $1}')
+oc rsh -n my-database-app $(oc get pods -n my-database-app | grep postgresql | grep -v deploy | awk {'print $1}')
 ----
 [source,role="execute"]
 ----
@@ -976,7 +976,7 @@ The current allocated size for the *PVC* can be checked this way:
 
 [source,role="execute"]
 ----
-echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}')
+oc get pvc postgresql -n my-database-app -o jsonpath='{.status.capacity.storage}{"\n"}'
 ----
 .Example output:
 ----
@@ -987,7 +987,7 @@ The requested size for the *PVC* can be checked this way:
 
 [source,role="execute"]
 ----
-echo $(oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}')
+oc get pvc postgresql -n my-database-app -o jsonpath='{.spec.resources.requests.storage}{"\n"}'
 ----
 .Example output:
 ----
@@ -1232,7 +1232,7 @@ First, find the *Route* that has been created:
 
 [source,role="execute"]
 ----
-oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.host}"
+oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.host}{'\n'}"
 ----
 
 This will return a route similar to this one (careful: there is no line break
@@ -1282,7 +1282,7 @@ Now let's verify the RWX *PVC* has been expanded.
 
 [source,role="execute"]
 ----
-echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}')
+oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.resources.requests.storage}{"\n"}'
 ----
 .Example output:
 ----
@@ -1291,7 +1291,7 @@ echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.spec.res
 
 [source,role="execute"]
 ----
-echo $(oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}')
+oc get pvc my-shared-storage -n my-shared-storage -o jsonpath='{.status.capacity.storage}{"\n"}'
 ----
 .Example output:
 ----
@@ -1934,7 +1934,7 @@ Let's scale the workerocs machinesets up with this command:
 
 [source,role="execute"]
 ----
-oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -n1 -t oc scale -n openshift-machine-api --replicas=2
+oc get machinesets -n openshift-machine-api -o name | grep workerocs | xargs -t -n 1 oc scale -n openshift-machine-api --replicas=2
 ----
 .Example output:
 ----
@@ -2352,7 +2352,7 @@ To get the latest OpenShift CLI client run the following commands:
 [source]
 ----
 curl -s https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-mac.tar.gz | tar xzv oc
-sudo mv oc /usr/local/bin
+sudo install oc --mode 0755 --owner root --group root /usr/local/bin/oc
 ----
 
 In addition install the watch command to use with the `oc client` on your Mac using Homebrew.
@@ -2374,7 +2374,7 @@ Then reload your profile with `source $HOME/.profile`.
 [source]
 ----
 curl -s https://mirror.openshift.com/pub/openshift-v4/clients/ocp/latest/openshift-client-linux.tar.gz | tar xzv oc
-sudo mv oc /usr/bin
+sudo install oc --mode 0755 --owner root --group root /usr/local/bin/oc
 ----
 
 Afterwards, go to your *Openshift Web Console*, log in and click on the
@@ -2428,13 +2428,15 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-mac-v5.6.0 ; chmod +x noobaa-mac-v5.6.0 ; sudo mv noobaa-mac-v5.6.0 /usr/local/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-mac-v5.6.0
+sudo install noobaa-mac-v5.6.0 --mode 0755 --owner root --group root /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-linux-v5.6.0 ; chmod +x noobaa-linux-v5.6.0 ; sudo mv noobaa-linux-v5.6.0 /usr/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-linux-v5.6.0
+sudo install noobaa-linux-v5.6.0 --mode 0755 --owner root --group root /usr/local/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
