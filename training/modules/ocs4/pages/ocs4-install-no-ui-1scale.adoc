@@ -294,7 +294,9 @@ As described above this method of deployment does not require initial deployment
 
 Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, …​). There must be a minimum of 3 OCP nodes with storage devices.
 
-The only modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., 5 servers with 4 disks each count = 20) that you want to use for your OCS cluster.
+The modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., 5 servers with 4 disks each count = 20) that you want to use for your OCS cluster.
+
+Under the `managedResources` section is the default setting of `manage` for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of `ignore` will not deploy the particular service.
 
 [source]
 ....
@@ -314,6 +316,21 @@ spec:
         cpu: "3"
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
+  managedResources:
+    cephBlockPools:
+      reconcileStrategy: manage
+    cephFilesystems:
+      reconcileStrategy: manage
+    cephObjectStoreUsers:
+      reconcileStrategy: manage
+    cephObjectStores:
+      reconcileStrategy: manage
+    snapshotClasses:
+      reconcileStrategy: manage
+    storageClasses:
+      reconcileStrategy: manage
+  multiCloudGateway:
+    reconcileStrategy: manage
   storageDeviceSets:
   - count: 20  # <-- Modify count to number of disks
     dataPVCTemplate:
