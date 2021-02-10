@@ -284,6 +284,8 @@ EOF
 
 Storage Cluster CR. For each set of 3 OSDs increment the `count`.
 
+Under the `managedResources` section is the default setting of `manage` for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of `ignore` will not deploy the particular service.
+
 [source]
 ....
 apiVersion: ocs.openshift.io/v1
@@ -302,6 +304,21 @@ spec:
         cpu: "3"
         memory: "8Gi"
   monDataDirHostPath: /var/lib/rook
+  managedResources:
+    cephBlockPools:
+      reconcileStrategy: manage
+    cephFilesystems:
+      reconcileStrategy: manage
+    cephObjectStoreUsers:
+      reconcileStrategy: manage
+    cephObjectStores:
+      reconcileStrategy: manage
+    snapshotClasses:
+      reconcileStrategy: manage
+    storageClasses:
+      reconcileStrategy: manage
+  multiCloudGateway:
+    reconcileStrategy: manage
   storageDeviceSets:
   - count: 1  # <-- Modify count to desired value. For each set of 3 disks increment the count by 1.
     dataPVCTemplate:
