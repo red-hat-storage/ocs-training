@@ -19,7 +19,7 @@ In addition, using the method detailed in this document, you can use 1+ scaling 
 == Installing the Local Storage Operator v4.6
 
 First, you will need to create a namespace for the Local Storage
-Operator. A self descriptive `openshift-local-storage' namespace is recommended.
+Operator. A self descriptive `openshift-local-storage` namespace is recommended.
 
 [source]
 ....
