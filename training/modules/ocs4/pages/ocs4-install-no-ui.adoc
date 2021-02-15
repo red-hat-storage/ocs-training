@@ -17,7 +17,7 @@ These instructions require that you have the ability to install version 4.6 for 
 == Installing the Local Storage Operator v4.6
 
 First, you will need to create a namespace for the Local Storage
-Operator. A self descriptive `openshift-local-storage' namespace is recommended.
+Operator. A self descriptive `openshift-local-storage` namespace is recommended.
 
 [source]
 ....
