@@ -3,6 +3,8 @@ site:
   url: https://red-hat-storage.github.io/ocs-training
   start_page: training::index.adoc
   robots: allow
+  keys:
+    google_analytics: 'G-LGCEEZGN54'
 content:
   sources:
   - url: https://github.com/red-hat-storage/ocs-training.git
