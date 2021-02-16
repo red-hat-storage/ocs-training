@@ -304,7 +304,7 @@ selected.
 
 [source,role="execute"]
 ----
-oc get nodes --show-labels | grep ocs |cut -d' ' -f1
+oc get nodes --show-labels | grep ocs | cut -d ' ' -f1
 ----
 
 Then click on the button `Create` below the dialog box with the 3 workers
@@ -653,11 +653,10 @@ persistent storage on Ceph.
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-This will return a route similar to this one (careful: there is no line break
-at the end so your shell prompt appears right after the output).
+This will return a route similar to this one.
 
 .Example output:
 ----
@@ -1220,15 +1219,14 @@ First, find the *Route* that has been created:
 
 [source,role="execute"]
 ----
-oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.host}"
+oc get route file-uploader -n my-shared-storage -o jsonpath --template="http://{.spec.host}{'\n'}"
 ----
 
-This will return a route similar to this one (careful: there is no line break
-at the end so your shell prompt appears right after the output).
+This will return a route similar to this one.
 
 .Sample Output:
 ----
-file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com
+http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com
 ----
 
 Point your browser to the web application using your route above. *Your `route`
@@ -1297,9 +1295,9 @@ CAUTION: Reducing the size of a CephFS *PVC* is NOT supported.
 
 == PVC Clone and Snapshot
 
-Starting with version OCS 4.6, the `Container Storage Interface` (CSI) features of being able to clone or snapshot a persistent volume are now supported. These new capabilities are very important for protecting persistent data and can be used with third party `Backup and Restore` vendors that have CSI integration. 
+Starting with version OCS version 4.6, the `Container Storage Interface` (CSI) features of being able to clone or snapshot a persistent volume are now supported. These new capabilities are very important for protecting persistent data and can be used with third party `Backup and Restore` vendors that have CSI integration. 
 
-In addition to third party vendors, OCS snapshot for Ceph RBD and CephFS PVCs can be triggered using `OpenShift APIs for Data Protection` (OADP) which is an un-supported community operator in *OperatorHub* that can be very useful for testing backup and restore including the snapshot of the OpenShift metadata.
+In addition to third party backup and restore vendors, OCS snapshot for Ceph RBD and CephFS PVCs can be triggered using `OpenShift APIs for Data Protection` (OADP) which is an un-supported community operator in *OperatorHub* that can be very useful for testing backup and restore of persistent data including OpenShift metadata (definition files for pods, service, routes, deployments, etc.).
 
 === PVC Clone 
 
@@ -1307,7 +1305,7 @@ A CSI volume clone is a duplicate of an existing persistent volume at a particul
 
 ==== Provisioning a CSI Volume clone
 
-For this exercise we will use the already created *PVC* `postgresql` that was just expanded to 15 GiB. 
+For this exercise we will use the already created *PVC* `postgresql` that was just expanded to 15 GiB. Make sure you have done section <<Create a new OCP application deployment using Ceph RBD volume>> before proceeding.
 
 [source,role="execute"]
 ----
@@ -1322,11 +1320,10 @@ Before creating the PVC clone make sure to create and save at least one new arti
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
-This will return a route similar to this one (careful: there is no line break
-at the end so your shell prompt appears right after the output).
+This will return a route similar to this one.
 
 .Example output:
 ----
@@ -1392,8 +1389,7 @@ oc get pvc -n my-database-app | grep clone
 ----
 .Example output:
 ----
-postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-cep
-h-rbd   3m47s
+postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s
 ----
 
 You can also check the new clone *PVC* in the *OpenShift Web Console*.
@@ -1403,7 +1399,9 @@ image::OCP4-OCS4-Clone-PVC-view.png[Persistent Volume Claim clone view in UI]
 
 ==== Using a CSI Volume clone for application recovery
 
-Now that you have a clone for `postgresql` *PVC* you are ready to test by corrupting the database.
+Now that you have a clone for `postgresql` *PVC* you are ready to test by corrupting the database. 
+
+The following command will print all `postgresql` tables before deleting the article tables in the database and after the tables are deleted.
 
 [source,role="execute"]
 ----
@@ -1439,7 +1437,7 @@ Now go back to the browser tab where you created your article using this link:
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
 If you refresh the browser you will see the application has failed.
@@ -1507,7 +1505,7 @@ Now go back to the browser tab where you created your article using this link:
 
 [source,role="execute"]
 ----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"  
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
 ----
 
 If you refresh the browser you will see the application is back online and you have your articles. You can even add more articles now.
@@ -1533,19 +1531,16 @@ oc get volumesnapshotclasses
 .Example output:
 ----
 $ oc get volumesnapshotclasses
-NAME                                        DRIVER
-    DELETIONPOLICY   AGE
-ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.co
-m   Delete           4d23h
-ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com
-    Delete           4d23h
+NAME                                        DRIVER                                  DELETIONPOLICY   AGE
+ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.com   Delete           4d23h
+ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           4d23h
 ----
 
 You can see by the naming of the *VolumeSnapshotClass* that one is for creating CephFS volume snapshots and the other is for Ceph RBD.
 
 ==== Provisioning a CSI Volume snapshot
 
-For this exercise we will use the already created *PVC* `my-shared-storage`.
+For this exercise we will use the already created *PVC* `my-shared-storage`. Make sure you have done section <<Create a new OCP application deployment using CephFS volume>> before proceeding.
 
 The operation of creating a snapshot can be done using the *OpenShift Web Console* or by creating the resource via a YAML file.
 
@@ -1591,10 +1586,8 @@ oc get volumesnapshot -n my-shared-storage
 ----
 .Example output:
 ----
-NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT
-                                   CREATIONTIME   AGE
-my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d47
-29bc-a127-4da6-930d-2a7d0125d3b7   24s            26s
+NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT                                   CREATIONTIME   AGE
+my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d4729bc-a127-4da6-930d-2a7d0125d3b7   24s            26s
 ----
 
 ==== Restoring Volume Snapshot to clone PVC
@@ -1613,16 +1606,11 @@ Now check to see if there is a new *PVC* restored from the *VolumeSnapshot*.
 
 [source,role="execute"]
 ----
-oc get pvc -n my-shared-storage
+oc get pvc -n my-shared-storage | grep restore
 ----
 .Example output:
 ----
-NAME                                 STATUS   VOLUME                                     CAPACITY   ACCESS MOD
-ES   STORAGECLASS                AGE
-my-shared-storage                    Bound    pvc-b10d4ab3-a5ec-4e6a-b2b8-f591eaa7cad6   5Gi        RWX
-     ocs-storagecluster-cephfs   169m
-my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX
-     ocs-storagecluster-cephfs   108s
+my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s
 ----
 
 The output shows a new *PVC* that can be used similar to the last section if needed to recover an application if there is corruption or lost data.
