@@ -1478,7 +1478,7 @@ oc patch dc postgresql -n my-database-app --type json --patch  '[{ "op": "replac
 deploymentconfig.apps.openshift.io/postgresql patched
 ----
 
-Now the `rails-pgsql-persistent` deployment needs to be scaled back up.
+After modifying the deployment with the clone *PVC* the `rails-pgsql-persistent` deployment needs to be scaled back up.
 
 [source,role="execute"]
 ----
@@ -1501,7 +1501,7 @@ postgresql-4-hv5kb                  1/1     Running     0          5m58s
 rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s
 ----
 
-Now go back to the browser tab where you created your article using this link:
+Go back to the browser tab where you created your article using this link:
 
 [source,role="execute"]
 ----
@@ -1512,7 +1512,7 @@ If you refresh the browser you will see the application is back online and you h
 
 This process shows the pratical reasons to create a *PVC* clone if you are testing an application where data corruption is a possibility and you want a known good copy or `clone`. 
 
-Now lets look at a similar feature, creating a *PVC* snapshot.
+Let's next look at a similar feature, creating a *PVC* snapshot.
 
 === PVC Snapshot
 
@@ -1549,7 +1549,7 @@ The operation of creating a snapshot can be done using the *OpenShift Web Consol
 apiVersion: snapshot.storage.k8s.io/v1beta1
 kind: VolumeSnapshot
 metadata:
-  name: my-shared-storage-snapshot1
+  name: my-shared-storage-snapshot
   namespace: my-shared-storage
 spec:
   volumeSnapshotClassName: ocs-storagecluster-cephfsplugin-snapclass 
@@ -1567,7 +1567,7 @@ image::OCP4-OCS4-Snapshot.png[Persistent Volume Claim snapshot using UI]
 // .Persistent Volume Claim snapshot configuration
 // image::OCP4-OCS4-Snapshot-config.png[Persistent Volume Claim snapshot configuration]
     
-Now create a snapshot for Cephfs volume `my-shared-storage`.
+Now create a snapshot for CephFS volume `my-shared-storage`.
 
 [source,role="execute"]
 ----
@@ -1597,12 +1597,12 @@ You can now restore the new *VolumeSnapshot* in the *OpenShift Web Console*. Nav
 .Persistent Volume Claim snapshot restore in UI
 image::OCP4-OCS4-Snapshot-restore.png[Persistent Volume Claim snapshot restore in UI]
 
-Now chose the correct *StorageClass* to create the restore *PVC* and select `Restore`. The size of the new *PVC* is greyed out and is same as the `parent` or original *PVC* `my-shared-storage`. 
+Chose the correct *StorageClass* to create the new clone from snapshot *PVC* and select `Restore`. The size of the new *PVC* is greyed out and is same as the `parent` or original *PVC* `my-shared-storage`. 
 
 .Persistent Volume Claim snapshot restore configuration
 image::OCP4-OCS4-Snapshot-restore-config.png[Persistent Volume Claim snapshot restore configuration]
 
-Now check to see if there is a new *PVC* restored from the *VolumeSnapshot*.
+Check to see if there is a new *PVC* restored from the *VolumeSnapshot*.
 
 [source,role="execute"]
 ----
@@ -1613,7 +1613,7 @@ oc get pvc -n my-shared-storage | grep restore
 my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s
 ----
 
-The output shows a new *PVC* that can be used similar to the last section if needed to recover an application if there is corruption or lost data.
+The output shows a new *PVC* that could be used to recover an application if there is corruption or lost data.
 
 == Using OCS for Prometheus Metrics
 
