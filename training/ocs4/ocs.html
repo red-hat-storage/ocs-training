@@ -2242,7 +2242,7 @@ rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
 <div class="sect2">
 <h3 id="_pvc_snapshot"><a class="anchor" href="#_pvc_snapshot"></a>5.2. PVC Snapshot</h3>
 <div class="paragraph">
-<p>Cloning, as its name implies, is making a copy of a volume. A snapshot is taking that original copy, and then each subsequent snapshot is only of the difference from the previous one.</p>
+<p>Creating the first snapshot of a PVC is the same as creating a clone from that PVC. However, after an initial PVC snapshot is created, subsequent snapshots only save the delta between the initial snapshot the current contents of the PVC. Snapshots are frequently used by backup utilities which schedule incremental backups on a periodic basis (e.g. hourly). Snapshots are more capacity efficient than creating full clones each time period (e.g. hourly), as only the deltas to the PVC are stored in each snapshot.</p>
 </div>
 <div class="paragraph">
 <p>A snapshot can be used to provision a new volume by creating a <strong>PVC</strong> clone. The volume clone can be used for application recovery as demonstrated in the previous section.</p>
