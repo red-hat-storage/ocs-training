@@ -1516,7 +1516,7 @@ Let's next look at a similar feature, creating a *PVC* snapshot.
 
 === PVC Snapshot
 
-Cloning, as its name implies, is making a copy of a volume. A snapshot is taking that original copy, and then each subsequent snapshot is only of the difference from the previous one. 
+Creating the first snapshot of a PVC is the same as creating a clone from that PVC. However, after an initial PVC snapshot is created, subsequent snapshots only save the delta between the initial snapshot the current contents of the PVC. Snapshots are frequently used by backup utilities which schedule incremental backups on a periodic basis (e.g. hourly). Snapshots are more capacity efficient than creating full clones each time period (e.g. hourly), as only the deltas to the PVC are stored in each snapshot. 
 
 A snapshot can be used to provision a new volume by creating a *PVC* clone. The volume clone can be used for application recovery as demonstrated in the previous section.
 
