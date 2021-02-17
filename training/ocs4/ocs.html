@@ -585,7 +585,7 @@ selected.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes --show-labels | grep ocs |cut -d' ' -f1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes --show-labels | grep ocs | cut -d ' ' -f1</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1085,12 +1085,11 @@ persistent storage on Ceph.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles"</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will return a route similar to this one (careful: there is no line break
-at the end so your shell prompt appears right after the output).</p>
+<p>This will return a route similar to this one.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
@@ -1234,7 +1233,7 @@ just created.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql|grep -v deploy|awk {'print $1}')</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}')</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1524,32 +1523,7 @@ When both results report the same value, the expansion was successful.
 </div>
 </div>
 <div class="sect3">
-<h4 id="_expand_via_oc_patch_command"><a class="anchor" href="#_expand_via_oc_patch_command"></a>3.2.2. Expand via oc patch command</h4>
-<div class="paragraph">
-<p>Another method to expand a <strong>PVC</strong> through the CLI is to use the following
-command:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre>oc patch pvc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/resources/requests/storage", "value": "nnGi" }]'</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Simply adapt the size of the command above to reflect the new
-size needed, <code>nnGi</code>.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect3">
-<h4 id="_expand_via_the_user_interface"><a class="anchor" href="#_expand_via_the_user_interface"></a>3.2.3. Expand via the User Interface</h4>
+<h4 id="_expand_via_the_user_interface"><a class="anchor" href="#_expand_via_the_user_interface"></a>3.2.2. Expand via the User Interface</h4>
 <div class="paragraph">
 <p>The last method available to expand a <strong>PVC</strong> is to do so through the <strong>OpenShift
 Web Console</strong>. Proceed as follow:</p>
@@ -1674,7 +1648,7 @@ ands below:
 </div>
 </div>
 <div class="listingblock">
-<div class="title">Sample Output:</div>
+<div class="title">Example Output:</div>
 <div class="content">
 <pre>Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
 
@@ -1854,17 +1828,16 @@ new files.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route file-uploader -n my-shared-storage -o jsonpath --template="{.spec.host}"</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route file-uploader -n my-shared-storage -o jsonpath --template="http://{.spec.host}{'\n'}"</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>This will return a route similar to this one (careful: there is no line break
-at the end so your shell prompt appears right after the output).</p>
+<p>This will return a route similar to this one.</p>
 </div>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</pre>
+<pre>http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1982,7 +1955,424 @@ Reducing the size of a CephFS <strong>PVC</strong> is NOT supported.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_ocs_for_prometheus_metrics"><a class="anchor" href="#_using_ocs_for_prometheus_metrics"></a>5. Using OCS for Prometheus Metrics</h2>
+<h2 id="_pvc_clone_and_snapshot"><a class="anchor" href="#_pvc_clone_and_snapshot"></a>5. PVC Clone and Snapshot</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with version OCS version 4.6, the <code>Container Storage Interface</code> (CSI) features of being able to clone or snapshot a persistent volume are now supported. These new capabilities are very important for protecting persistent data and can be used with third party <code>Backup and Restore</code> vendors that have CSI integration.</p>
+</div>
+<div class="paragraph">
+<p>In addition to third party backup and restore vendors, OCS snapshot for Ceph RBD and CephFS PVCs can be triggered using <code>OpenShift APIs for Data Protection</code> (OADP) which is an un-supported community operator in <strong>OperatorHub</strong> that can be very useful for testing backup and restore of persistent data including OpenShift metadata (definition files for pods, service, routes, deployments, etc.).</p>
+</div>
+<div class="sect2">
+<h3 id="_pvc_clone"><a class="anchor" href="#_pvc_clone"></a>5.1. PVC Clone</h3>
+<div class="paragraph">
+<p>A CSI volume clone is a duplicate of an existing persistent volume at a particular point in time. Cloning creates an exact duplicate of the specified volume in OCS. After dynamic provisioning, you can use a volume clone just as you would use any standard volume.</p>
+</div>
+<div class="sect3">
+<h4 id="_provisioning_a_csi_volume_clone"><a class="anchor" href="#_provisioning_a_csi_volume_clone"></a>5.1.1. Provisioning a CSI Volume clone</h4>
+<div class="paragraph">
+<p>For this exercise we will use the already created <strong>PVC</strong> <code>postgresql</code> that was just expanded to 15 GiB. Make sure you have done section <a href="#_create_a_new_ocp_application_deployment_using_ceph_rbd_volume">Create a new OCP application deployment using Ceph RBD volume</a> before proceeding.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-database-app | awk {'print $1}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME
+postgresql</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Before creating the PVC clone make sure to create and save at least one new article so there is new data in the <code>postgresql</code> <strong>PVC</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your route (different than above) to a browser window to create articles.</p>
+</div>
+<div class="paragraph">
+<p>Enter the <code>username</code> and <code>password</code> below to create a new article.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>username: openshift
+password: secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To protect the data (articles) in this <strong>PVC</strong> we will now clone this PVC. The operation of creating a clone can be done using the <strong>OpenShift Web Console</strong> or by creating the resource via a YAML file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgresql-clone
+  namespace: my-database-app
+spec:
+  storageClassName: ocs-storagecluster-ceph-rbd
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 15Gi
+  dataSource:
+    kind: PersistentVolumeClaim
+    name: postgresql</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Doing the same operation in the <strong>OpenShift Web Console</strong> would require navigating to <code>Storage</code> &#8594; <code>Persistent Volume Claim</code> and choosing <code>Clone PVC</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Clone-PVC.png" alt="Persistent Volume Claim clone PVC using UI">
+</div>
+<div class="title">Figure 21. Persistent Volume Claim clone PVC using UI</div>
+</div>
+<div class="paragraph">
+<p>Size of new clone <strong>PVC</strong> is greyed out. The new <strong>PVC</strong> will be the same size as the original.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Clone-PVC-config.png" alt="Persistent Volume Claim clone configuration">
+</div>
+<div class="title">Figure 22. Persistent Volume Claim clone configuration</div>
+</div>
+<div class="paragraph">
+<p>Now create a <strong>PVC</strong> clone for <code>postgresql</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/postgresql-clone.yaml | oc apply -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>persistentvolumeclaim/postgresql-clone created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now check to see there is a new <strong>PVC</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-database-app | grep clone</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also check the new clone <strong>PVC</strong> in the <strong>OpenShift Web Console</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Clone-PVC-view.png" alt="Persistent Volume Claim clone view in UI">
+</div>
+<div class="title">Figure 23. Persistent Volume Claim clone view in UI</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_using_a_csi_volume_clone_for_application_recovery"><a class="anchor" href="#_using_a_csi_volume_clone_for_application_recovery"></a>5.1.2. Using a CSI Volume clone for application recovery</h4>
+<div class="paragraph">
+<p>Now that you have a clone for <code>postgresql</code> <strong>PVC</strong> you are ready to test by corrupting the database.</p>
+</div>
+<div class="paragraph">
+<p>The following command will print all <code>postgresql</code> tables before deleting the article tables in the database and after the tables are deleted.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "drop table articles cascade;" -c "\d+"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | userXNL | 16 kB      |
+ public | articles             | table    | userXNL | 16 kB      |
+ public | articles_id_seq      | sequence | userXNL | 8192 bytes |
+ public | comments             | table    | userXNL | 8192 bytes |
+ public | comments_id_seq      | sequence | userXNL | 8192 bytes |
+ public | schema_migrations    | table    | userXNL | 16 kB      |
+(6 rows)
+
+NOTICE:  drop cascades to constraint fk_rails_3bf61a60d3 on table comments
+DROP TABLE
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | userXNL | 16 kB      |
+ public | comments             | table    | userXNL | 8192 bytes |
+ public | comments_id_seq      | sequence | userXNL | 8192 bytes |
+ public | schema_migrations    | table    | userXNL | 16 kB      |
+(4 rows)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now go back to the browser tab where you created your article using this link:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you refresh the browser you will see the application has failed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/rails-postgresql-failed.png" alt="Application failed because database table removed">
+</div>
+<div class="title">Figure 24. Application failed because database table removed</div>
+</div>
+<div class="paragraph">
+<p>Remember a <strong>PVC</strong> clone is an exact duplica of the original <strong>PVC</strong> at the time the clone was created. Therefore you can use you <code>postgresql</code> clone to recover the application.</p>
+</div>
+<div class="paragraph">
+<p>First you need to scale the <code>rails-pgsql-persistent</code> deployment down to zero so the <strong>Pod</strong> will be deleted.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent --replicas=0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the <strong>Pod</strong> is gone.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n my-database-app | grep rails | egrep -v 'deploy|build|hook' | awk {'print $1}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Wait until there is no result for this command. Repeat if necessary.</p>
+</div>
+<div class="paragraph">
+<p>Now you need to patch the deployment for <code>postgesql</code> and modify to use the <code>postgresql-clone</code> <strong>PVC</strong>. This can be done using the <code>oc patch</code> command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch dc postgresql -n my-database-app --type json --patch  '[{ "op": "replace", "path": "/spec/template/spec/volumes/0/persistentVolumeClaim/claimName", "value": "postgresql-clone" }]'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/postgresql patched</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the <code>rails-pgsql-persistent</code> deployment needs to be scaled back up.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent --replicas=1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now check to see that there is a new <code>postgresql</code> and <code>rails-pgsql-persistent</code> <strong>Pod</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n my-database-app | egrep 'rails|postgresql' | egrep -v 'deploy|build|hook'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>postgresql-4-hv5kb                  1/1     Running     0          5m58s
+rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now go back to the browser tab where you created your article using this link:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you refresh the browser you will see the application is back online and you have your articles. You can even add more articles now.</p>
+</div>
+<div class="paragraph">
+<p>This process shows the pratical reasons to create a <strong>PVC</strong> clone if you are testing an application where data corruption is a possibility and you want a known good copy or <code>clone</code>.</p>
+</div>
+<div class="paragraph">
+<p>Now lets look at a similar feature, creating a <strong>PVC</strong> snapshot.</p>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_pvc_snapshot"><a class="anchor" href="#_pvc_snapshot"></a>5.2. PVC Snapshot</h3>
+<div class="paragraph">
+<p>Cloning, as its name implies, is making a copy of a volume. A snapshot is taking that original copy, and then each subsequent snapshot is only of the difference from the previous one.</p>
+</div>
+<div class="paragraph">
+<p>A snapshot can be used to provision a new volume by creating a <strong>PVC</strong> clone. The volume clone can be used for application recovery as demonstrated in the previous section.</p>
+</div>
+<div class="sect3">
+<h4 id="_volumesnapshotclass"><a class="anchor" href="#_volumesnapshotclass"></a>5.2.1. VolumeSnapshotClass</h4>
+<div class="paragraph">
+<p>To create a volume snapshot there first must be <strong>VolumeSnapshotClass</strong> resources that will be referenced in the <strong>VolumeSnapshot</strong> definition. The deployment of OCS (must be version 4.6 or greater) creates two <strong>VolumeSnapshotClass</strong> resources for creating snapshots.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get volumesnapshotclasses</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>$ oc get volumesnapshotclasses
+NAME                                        DRIVER                                  DELETIONPOLICY   AGE
+ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.com   Delete           4d23h
+ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           4d23h</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can see by the naming of the <strong>VolumeSnapshotClass</strong> that one is for creating CephFS volume snapshots and the other is for Ceph RBD.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_provisioning_a_csi_volume_snapshot"><a class="anchor" href="#_provisioning_a_csi_volume_snapshot"></a>5.2.2. Provisioning a CSI Volume snapshot</h4>
+<div class="paragraph">
+<p>For this exercise we will use the already created <strong>PVC</strong> <code>my-shared-storage</code>. Make sure you have done section <a href="#_create_a_new_ocp_application_deployment_using_cephfs_volume">Create a new OCP application deployment using CephFS volume</a> before proceeding.</p>
+</div>
+<div class="paragraph">
+<p>The operation of creating a snapshot can be done using the <strong>OpenShift Web Console</strong> or by creating the resource via a YAML file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: snapshot.storage.k8s.io/v1beta1
+kind: VolumeSnapshot
+metadata:
+  name: my-shared-storage-snapshot1
+  namespace: my-shared-storage
+spec:
+  volumeSnapshotClassName: ocs-storagecluster-cephfsplugin-snapclass
+  source:
+    persistentVolumeClaimName: my-shared-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Doing the same operation in the <strong>OpenShift Web Console</strong> would require navigating to <code>Storage</code> &#8594; <code>Persistent Volume Claim</code> and choosing <code>Create Snapshot</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Snapshot.png" alt="Persistent Volume Claim snapshot using UI">
+</div>
+<div class="title">Figure 25. Persistent Volume Claim snapshot using UI</div>
+</div>
+<div class="paragraph">
+<p>Now create a snapshot for Cephfs volume <code>my-shared-storage</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/my-shared-storage-snapshot.yaml | oc apply -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>volumesnapshot.snapshot.storage.k8s.io/my-shared-storage-snapshot created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now check to see there is a new <strong>VolumeSnapshot</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get volumesnapshot -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT                                   CREATIONTIME   AGE
+my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d4729bc-a127-4da6-930d-2a7d0125d3b7   24s            26s</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_restoring_volume_snapshot_to_clone_pvc"><a class="anchor" href="#_restoring_volume_snapshot_to_clone_pvc"></a>5.2.3. Restoring Volume Snapshot to clone PVC</h4>
+<div class="paragraph">
+<p>You can now restore the new <strong>VolumeSnapshot</strong> in the <strong>OpenShift Web Console</strong>. Navigate to <code>Storage</code> &#8594; <code>Volume Snapshots</code>. Select <code>Restore as new PVC</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Snapshot-restore.png" alt="Persistent Volume Claim snapshot restore in UI">
+</div>
+<div class="title">Figure 26. Persistent Volume Claim snapshot restore in UI</div>
+</div>
+<div class="paragraph">
+<p>Now chose the correct <strong>StorageClass</strong> to create the restore <strong>PVC</strong> and select <code>Restore</code>. The size of the new <strong>PVC</strong> is greyed out and is same as the <code>parent</code> or original <strong>PVC</strong> <code>my-shared-storage</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OCS4-Snapshot-restore-config.png" alt="Persistent Volume Claim snapshot restore configuration">
+</div>
+<div class="title">Figure 27. Persistent Volume Claim snapshot restore configuration</div>
+</div>
+<div class="paragraph">
+<p>Now check to see if there is a new <strong>PVC</strong> restored from the <strong>VolumeSnapshot</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-shared-storage | grep restore</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output shows a new <strong>PVC</strong> that can be used similar to the last section if needed to recover an application if there is corruption or lost data.</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_ocs_for_prometheus_metrics"><a class="anchor" href="#_using_ocs_for_prometheus_metrics"></a>6. Using OCS for Prometheus Metrics</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>OpenShift ships with a pre-configured and self-updating monitoring stack that
@@ -2047,7 +2437,7 @@ and the alertmanager data. Persisting both is best-practice since data loss on
 either of these will cause you to lose your metrics and alerting data.</p>
 </div>
 <div class="sect2">
-<h3 id="_modifying_your_prometheus_environment"><a class="anchor" href="#_modifying_your_prometheus_environment"></a>5.1. Modifying your Prometheus environment</h3>
+<h3 id="_modifying_your_prometheus_environment"><a class="anchor" href="#_modifying_your_prometheus_environment"></a>6.1. Modifying your Prometheus environment</h3>
 <div class="paragraph">
 <p>For Prometheus every supported configuration change is controlled through a
 central <strong>ConfigMap</strong>, which needs to exist before we can make changes. When you
@@ -2183,7 +2573,7 @@ section of this lab guide.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_the_multi_cloud_gateway"><a class="anchor" href="#_using_the_multi_cloud_gateway"></a>6. Using the Multi-Cloud-Gateway</h2>
+<h2 id="_using_the_multi_cloud_gateway"><a class="anchor" href="#_using_the_multi_cloud_gateway"></a>7. Using the Multi-Cloud-Gateway</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section discusses the usage of the Multi-Cloud-Gateway (MCG). Currently
@@ -2204,7 +2594,7 @@ to the Openshift cluster.
 </table>
 </div>
 <div class="sect2">
-<h3 id="_checking_on_the_mcg_status"><a class="anchor" href="#_checking_on_the_mcg_status"></a>6.1. Checking on the MCG status</h3>
+<h3 id="_checking_on_the_mcg_status"><a class="anchor" href="#_checking_on_the_mcg_status"></a>7.1. Checking on the MCG status</h3>
 <div class="paragraph">
 <p>The MCG status can be checked with the NooBaa CLI. Make sure you are in the
 <code>openshift-storage</code> project when you execute this command.</p>
@@ -2344,7 +2734,7 @@ about the usage of your S3 backend as well as a link to the MCG console.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_creating_an_object_bucket_claim"><a class="anchor" href="#_creating_an_object_bucket_claim"></a>6.2. Creating an Object Bucket Claim</h3>
+<h3 id="_creating_an_object_bucket_claim"><a class="anchor" href="#_creating_an_object_bucket_claim"></a>7.2. Creating an Object Bucket Claim</h3>
 <div class="paragraph">
 <p>An Object Bucket Claim, <strong>OBC</strong>, can be used to request a S3 compatible bucket
 backend for your workloads. When creating an OBC you get a ConfigMap (CM) and
@@ -2512,7 +2902,7 @@ contains the S3 endpoint information for our application.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_using_an_obc_inside_a_container"><a class="anchor" href="#_using_an_obc_inside_a_container"></a>6.3. Using an OBC inside a container</h3>
+<h3 id="_using_an_obc_inside_a_container"><a class="anchor" href="#_using_an_obc_inside_a_container"></a>7.3. Using an OBC inside a container</h3>
 <div class="paragraph">
 <p>In this section we will see how one can create an <strong>OBC</strong> using a YAML file and
 use the provided S3 configuration in an example application.</p>
@@ -2660,7 +3050,7 @@ for each application. In our example we used CLI flags of s3cmd for this.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_adding_storage_to_the_ceph_cluster"><a class="anchor" href="#_adding_storage_to_the_ceph_cluster"></a>7. Adding storage to the Ceph Cluster</h2>
+<h2 id="_adding_storage_to_the_ceph_cluster"><a class="anchor" href="#_adding_storage_to_the_ceph_cluster"></a>8. Adding storage to the Ceph Cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Adding storage to OCS adds capacity and performance to your already present
@@ -2680,7 +3070,7 @@ existing nodes do not have adequate CPU and/or Memory available.
 </table>
 </div>
 <div class="sect2">
-<h3 id="_add_storage_worker_nodes"><a class="anchor" href="#_add_storage_worker_nodes"></a>7.1. Add storage worker nodes</h3>
+<h3 id="_add_storage_worker_nodes"><a class="anchor" href="#_add_storage_worker_nodes"></a>8.1. Add storage worker nodes</h3>
 <div class="paragraph">
 <p>This section will explain how one can add more worker nodes to the present
 storage cluster. Afterwards follow the next sub-section on how to extend the
@@ -2782,7 +3172,7 @@ new OCP nodes with the OCS label because they have no OCS <strong>Pods</strong> 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_add_storage_capacity"><a class="anchor" href="#_add_storage_capacity"></a>7.2. Add storage capacity</h3>
+<h3 id="_add_storage_capacity"><a class="anchor" href="#_add_storage_capacity"></a>8.2. Add storage capacity</h3>
 <div class="paragraph">
 <p>In this section we will add storage capacity and performance to the
 configured OCS worker nodes and the Ceph cluster. If you have followed the
@@ -2827,7 +3217,7 @@ reach the OCS storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 21. Add Capacity dialog</div>
+<div class="title">Figure 28. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
 <p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
@@ -2892,7 +3282,7 @@ rook-ceph-osd-5-55b8d97855-2bp85            Running     ip-10-0-157-22.us-east-2
 </div>
 </div>
 <div class="sect2">
-<h3 id="_verify_new_storage"><a class="anchor" href="#_verify_new_storage"></a>7.3. Verify new storage</h3>
+<h3 id="_verify_new_storage"><a class="anchor" href="#_verify_new_storage"></a>8.3. Verify new storage</h3>
 <div class="paragraph">
 <p>Once you added the capacity and made sure that the OSD pods are present, you
 can also optionally check the additional storage capacity using the Ceph <strong>toolbox</strong> created earlier. Follow these steps:</p>
@@ -3013,7 +3403,7 @@ that the old and the new OSDs share the load.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_monitoring_the_ocs_environment"><a class="anchor" href="#_monitoring_the_ocs_environment"></a>8. Monitoring the OCS environment</h2>
+<h2 id="_monitoring_the_ocs_environment"><a class="anchor" href="#_monitoring_the_ocs_environment"></a>9. Monitoring the OCS environment</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section covers the different tools available when it comes to monitoring
@@ -3042,7 +3432,7 @@ following 3 selections:</p>
 </ul>
 </div>
 <div class="sect2">
-<h3 id="_alerting"><a class="anchor" href="#_alerting"></a>8.1. Alerting</h3>
+<h3 id="_alerting"><a class="anchor" href="#_alerting"></a>9.1. Alerting</h3>
 <div class="paragraph">
 <p>Click on the <strong>Alerting</strong> item to open the Alert window as illustrated in the
 screen capture below.</p>
@@ -3051,7 +3441,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Monitoring Menu">
 </div>
-<div class="title">Figure 22. OCP Monitoring Menu</div>
+<div class="title">Figure 29. OCP Monitoring Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -3060,7 +3450,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 23. OCP Alerting Homepage</div>
+<div class="title">Figure 30. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window using the filters at your
@@ -3149,7 +3539,7 @@ persists for more than the amount of time configured in the alert definition
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 24. OCP Alerting Status Filtering</div>
+<div class="title">Figure 31. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3172,13 +3562,13 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 25. OCP Alert Contextual Menu</div>
+<div class="title">Figure 32. OCP Alert Contextual Menu</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 26. OCP Alert Detail Display</div>
+<div class="title">Figure 33. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3196,7 +3586,7 @@ execute the query for the alert and if desired make changes to the rule.
 </div>
 </div>
 <div class="sect2">
-<h3 id="_metrics"><a class="anchor" href="#_metrics"></a>8.2. Metrics</h3>
+<h3 id="_metrics"><a class="anchor" href="#_metrics"></a>9.2. Metrics</h3>
 <div class="paragraph">
 <p>Click on the <strong>Metrics</strong> item as illustrated below in the <code>Monitoring</code> menu.</p>
 </div>
@@ -3204,7 +3594,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 27. OCP Metrics Menu</div>
+<div class="title">Figure 34. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3213,7 +3603,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 28. OCP Monitoring Metrics Homepage</div>
+<div class="title">Figure 35. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search for
@@ -3230,7 +3620,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 29. Simple Ceph Query</div>
+<div class="title">Figure 36. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3239,7 +3629,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 30. Simple Ceph Graph</div>
+<div class="title">Figure 37. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -3250,7 +3640,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 31. Complex Ceph Query</div>
+<div class="title">Figure 38. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3259,7 +3649,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 32. Complex Ceph Graph</div>
+<div class="title">Figure 39. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3270,7 +3660,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 33. Complex OCP Graph</div>
+<div class="title">Figure 40. Complex OCP Graph</div>
 </div>
 <div class="paragraph">
 <p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
@@ -3293,7 +3683,7 @@ Query Documentation</a>.
 </div>
 </div>
 <div class="sect1">
-<h2 id="_using_must_gather"><a class="anchor" href="#_using_must_gather"></a>9. Using must-gather</h2>
+<h2 id="_using_must_gather"><a class="anchor" href="#_using_must_gather"></a>10. Using must-gather</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Must-gather is a tool for collecting data about your running Openshift cluster.
@@ -3430,7 +3820,7 @@ Command</code>.</p>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 34. Copy Login command menu entry</div>
+<div class="title">Figure 41. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
@@ -3559,7 +3949,7 @@ outside of OCP 4.
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 35. Ceph Project History</div>
+<div class="title">Figure 42. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -3578,7 +3968,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 36. Ceph Architecture</div>
+<div class="title">Figure 43. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -3677,7 +4067,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 37. RADOS as it stands</div>
+<div class="title">Figure 44. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -3696,7 +4086,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 38. Different Storage Types Supported</div>
+<div class="title">Figure 45. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -3716,7 +4106,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 39. Application Native Object API</div>
+<div class="title">Figure 46. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -3743,7 +4133,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 40. kRBD Diagram</div>
+<div class="title">Figure 47. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -3758,7 +4148,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 41. librbd Diagram</div>
+<div class="title">Figure 48. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -3773,7 +4163,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 42. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 49. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -3792,7 +4182,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 43. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 50. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -3870,7 +4260,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 44. Pools and PGs</div>
+<div class="title">Figure 51. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -3900,7 +4290,7 @@ pool.
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 45. Ceph Data Protection</div>
+<div class="title">Figure 52. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -3944,7 +4334,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 46. Data Distribution</div>
+<div class="title">Figure 53. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
