@@ -2192,7 +2192,7 @@ DROP TABLE
 </div>
 </div>
 <div class="paragraph">
-<p>Now the <code>rails-pgsql-persistent</code> deployment needs to be scaled back up.</p>
+<p>After modifying the deployment with the clone <strong>PVC</strong> the <code>rails-pgsql-persistent</code> deployment needs to be scaled back up.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2221,7 +2221,7 @@ rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now go back to the browser tab where you created your article using this link:</p>
+<p>Go back to the browser tab where you created your article using this link:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2235,7 +2235,7 @@ rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
 <p>This process shows the pratical reasons to create a <strong>PVC</strong> clone if you are testing an application where data corruption is a possibility and you want a known good copy or <code>clone</code>.</p>
 </div>
 <div class="paragraph">
-<p>Now lets look at a similar feature, creating a <strong>PVC</strong> snapshot.</p>
+<p>Let&#8217;s next look at a similar feature, creating a <strong>PVC</strong> snapshot.</p>
 </div>
 </div>
 </div>
@@ -2283,7 +2283,7 @@ ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com  
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: snapshot.storage.k8s.io/v1beta1
 kind: VolumeSnapshot
 metadata:
-  name: my-shared-storage-snapshot1
+  name: my-shared-storage-snapshot
   namespace: my-shared-storage
 spec:
   volumeSnapshotClassName: ocs-storagecluster-cephfsplugin-snapclass
@@ -2301,7 +2301,7 @@ spec:
 <div class="title">Figure 25. Persistent Volume Claim snapshot using UI</div>
 </div>
 <div class="paragraph">
-<p>Now create a snapshot for Cephfs volume <code>my-shared-storage</code>.</p>
+<p>Now create a snapshot for CephFS volume <code>my-shared-storage</code>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2342,7 +2342,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="title">Figure 26. Persistent Volume Claim snapshot restore in UI</div>
 </div>
 <div class="paragraph">
-<p>Now chose the correct <strong>StorageClass</strong> to create the restore <strong>PVC</strong> and select <code>Restore</code>. The size of the new <strong>PVC</strong> is greyed out and is same as the <code>parent</code> or original <strong>PVC</strong> <code>my-shared-storage</code>.</p>
+<p>Chose the correct <strong>StorageClass</strong> to create the new clone from snapshot <strong>PVC</strong> and select <code>Restore</code>. The size of the new <strong>PVC</strong> is greyed out and is same as the <code>parent</code> or original <strong>PVC</strong> <code>my-shared-storage</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -2351,7 +2351,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="title">Figure 27. Persistent Volume Claim snapshot restore configuration</div>
 </div>
 <div class="paragraph">
-<p>Now check to see if there is a new <strong>PVC</strong> restored from the <strong>VolumeSnapshot</strong>.</p>
+<p>Check to see if there is a new <strong>PVC</strong> restored from the <strong>VolumeSnapshot</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2365,7 +2365,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 </div>
 </div>
 <div class="paragraph">
-<p>The output shows a new <strong>PVC</strong> that can be used similar to the last section if needed to recover an application if there is corruption or lost data.</p>
+<p>The output shows a new <strong>PVC</strong> that could be used to recover an application if there is corruption or lost data.</p>
 </div>
 </div>
 </div>
