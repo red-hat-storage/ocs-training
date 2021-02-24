@@ -2157,7 +2157,7 @@ DROP TABLE
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent --replicas=0</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2196,7 +2196,7 @@ DROP TABLE
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent --replicas=1</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=1</code></pre>
 </div>
 </div>
 <div class="listingblock">
