@@ -1451,7 +1451,7 @@ First you need to scale the `rails-pgsql-persistent` deployment down to zero so 
 
 [source,role="execute"]
 ----
-oc scale deploymentconfig rails-pgsql-persistent --replicas=0
+oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0
 ----
 .Example output:
 ----
@@ -1482,7 +1482,7 @@ After modifying the deployment with the clone *PVC* the `rails-pgsql-persistent`
 
 [source,role="execute"]
 ----
-oc scale deploymentconfig rails-pgsql-persistent --replicas=1
+oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=1
 ----
 .Example output:
 ----
