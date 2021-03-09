@@ -2013,8 +2013,7 @@ oc -n demo get route
 oc get route
 NAME          HOST/PORT                                                   PATH   SERVICES
     PORT     TERMINATION   WILDCARD
-photo-album   photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com          photo-albu
-m   80-tcp                 None
+photo-album   photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com          photo-album   80-tcp                 None
 ----
 
 Then navigate to the MCG console by viewing the Object Service Dashboard mentioned in Section 2.3, and selecting
