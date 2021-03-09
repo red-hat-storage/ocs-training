@@ -1922,8 +1922,8 @@ about the usage of your S3 backend as well as a link to the MCG console.
 === Creating and Using Object Bucket Claims
 
 MCG Object Bucket Claims, or *OBC*, are used to dynamically create S3 compatible buckets that can be used by 
-an OCP application. When an OBC is created MCG creates a new object bucket, ConfigMap (CM) and
- Secret that together contain all the information your application needs to
+an OCP application. When an OBC is created MCG creates a new object bucket, *ConfigMap* (CM) and
+ *Secret* that together contain all the information your application needs to
 connect to the new bucket from within your deployment.
 
 To demonstrate this feature we will use the Photo-Album demo application. 
@@ -1931,12 +1931,11 @@ To demonstrate this feature we will use the Photo-Album demo application.
 First download and extract the photo-album tarball. 
 [source,role="execute"]
 ----
-curl -s https://raw.githubusercontent.com/mid998/ocs-training/master/training/modules/ocs4/attachments/photo-album.tar.gz | tar xvz 
+curl -s https://github.com/red-hat-storage/demo-apps/raw/main/packaged/photo-album.tgz | tar xvz
 ----
 
 .Example output:
 ----
-curl -s https://raw.githubusercontent.com/mid998/ocs-training/master/training/modules/ocs4/attachments/photo-album.tar.gz | tar xvz 
 x photo-album/
 x photo-album/documentation/
 x photo-album/app/
@@ -1945,7 +1944,8 @@ x photo-album/demo.sh
 [...]
 ----
 
-Then, run the application startup script which will build and deploy the app to your cluster. Please make sure you follow the continuation prompts. 
+Then, run the application startup script which will build and deploy the app to your cluster. 
+
 
 [source,role="execute"]
 ----
@@ -1953,7 +1953,9 @@ cd photo-album
 ./demo.sh
 ----
 
-Deployment might take a few minutes to complete. 
+NOTE: Please make sure you follow the continuation prompts. 
+
+Deployment might take up to 5 minutes to complete. 
 
 .Example output:
 ----
