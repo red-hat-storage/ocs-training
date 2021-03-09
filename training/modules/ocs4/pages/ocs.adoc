@@ -1955,10 +1955,8 @@ NAME          STORAGE-CLASS                 PHASE   AGE
 photo-album   openshift-storage.noobaa.io   Bound   155m
 
 oc get ob
-NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAI
-M-POLICY   PHASE   AGE
-obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete
-           Bound   155m
+NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
+obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete Bound   155m
 
 oc get cm/photo-album -o yaml
 apiVersion: v1
