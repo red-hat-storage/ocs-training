@@ -2119,6 +2119,34 @@ Once in the bucket, select the object tab:
 
 image::photo-album-objects.png[]
 
+To view exactly how the application uses the information in the new Secret and ConfigMap have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the ConfigMap and Secret details are mapped to environment variables. 
+
+----
+[...]
+     spec:
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/default/photo-album
+          name: photo-album
+          env:
+            - name: ENDPOINT_URL
+              value: 'https://s3-openshift-storage.apps.cluster-7c31.7c31.sandbox905.opentlc.com'
+            - name: BUCKET_NAME
+              valueFrom:
+                configMapKeyRef:
+                  name: photo-album
+                  key: BUCKET_NAME
+            - name: AWS_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: photo-album
+                  key: AWS_ACCESS_KEY_ID
+            - name: AWS_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: photo-album
+                  key: AWS_SECRET_ACCESS_KEY
+[...]
+----
 == Adding storage to the Ceph Cluster
 
 Adding storage to OCS adds capacity and performance to your already present
