@@ -1928,14 +1928,69 @@ connect to the new bucket from within your deployment.
 
 To demonstrate this feature we will use the Photo-Album demo application. 
 
-.Download the photo-album and create the application:
+First download and extract the photo-album tarball. 
 [source,role="execute"]
 ----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/photo-album.tar.gz | tar xvz - .
+curl -s https://raw.githubusercontent.com/mid998/ocs-training/master/training/modules/ocs4/attachments/photo-album.tar.gz | tar xvz 
+----
+
+.Example output:
+----
+curl -s https://raw.githubusercontent.com/mid998/ocs-training/master/training/modules/ocs4/attachments/photo-album.tar.gz | tar xvz 
+x photo-album/
+x photo-album/documentation/
+x photo-album/app/
+x photo-album/images/
+x photo-album/demo.sh
+[...]
+----
+
+Then, run the application startup script which will build and deploy the app to your cluster. Please make sure you follow the continuation prompts. 
+
+[source,role="execute"]
+----
 cd photo-album
 ./demo.sh
 ----
+
 Deployment might take a few minutes to complete. 
+
+.Example output:
+----
+./demo.sh
+[ OK    ] Using apps.cluster-7c31.7c31.sandbox905.opentlc.com as our base domain
+
+Object Bucket Demo
+
+ * Cleanup existing environment
+
+Press any key to continue...
+[ OK    ] oc delete --ignore-not-found=1 -f app.yaml
+
+[ OK    ] oc delete --ignore-not-found=1 bc photo-album -n demo
+buildconfig.build.openshift.io "photo-album" deleted
+
+ * Import dependencies and create build config
+-./demo.sh
+[ OK    ] Using apps.cluster-7c31.7c31.sandbox905.opentlc.com as our base domain
+
+Object Bucket Demo
+
+ * Cleanup existing environment
+
+Press any key to continue...
+[ OK    ] oc delete --ignore-not-found=1 -f app.yaml
+
+[ OK    ] oc delete --ignore-not-found=1 bc photo-album -n demo
+buildconfig.build.openshift.io "photo-album" deleted
+
+ * Import dependencies and create build config
+
+[...]
+ OK    ] oc start-build photo-album --from-dir . -F -n demo
+photo-album setup
+/opt/app-root/src/demo-apps/photo-album
+----
 
 Check the photo-album deployment is complete by running:
 [source,role="execute"]
@@ -1945,7 +2000,6 @@ oc -n demo get pods
 
 .Example output:
 ----
-oc -n demo get pods
 NAME                   READY   STATUS      RESTARTS   AGE
 photo-album-1-build    0/1     Completed   0          10m
 photo-album-1-deploy   0/1     Completed   0          10m
@@ -1954,50 +2008,73 @@ photo-album-1-rtplt    1/1     Running     0          10m
 
 Now that the photo-album application has deployed you can view the Object Bucket Claim it created. You can also view the new bucket, Configmap and Secret using the oc cli.
 
+To view the Object Bucket Claim used by photo-album run the following:
 [source,role="execute"]
 ----
 oc -n demo get obc 
-oc get ob 
-oc -n demo get cm/photo-album -o yaml
-oc -n demo get secret/photo-album -o yaml
 ----
 
 .Example output:
 [source,role="execute"]
 ----
-oc -n demo get obc
 NAME          STORAGE-CLASS                 PHASE   AGE
-photo-album   openshift-storage.noobaa.io   Bound   155m
+photo-album   openshift-storage.noobaa.io   Bound   23m
+----
 
-oc get ob
+To view the Object Bucket that was created by the object bucket claim above, run the following:
+[source,role="execute"]
+----
+oc get ob 
+----
+
+.Example output:
+----
 NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
-obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete Bound   155m
+obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m
+----
 
-oc get cm/photo-album -o yaml
+To view the ConfigMap created by the OBC, run the following:
+[source,role="execute"]
+----
+oc -n demo get cm/photo-album -o yaml
+----
+
+The ConfigMap will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
+
+.Example output:
+----
 apiVersion: v1
 data:
   BUCKET_HOST: s3.openshift-storage.svc
-  BUCKET_NAME: photo-album-645e537a-32ff-491b-9f93-d6aeef7a4ee8
+  BUCKET_NAME: photo-album-2c0d8504-ae02-4632-af83-b8b458b9b923
   BUCKET_PORT: "443"
   BUCKET_REGION: ""
   BUCKET_SUBREGION: ""
 kind: ConfigMap
-...
+[...]
+----
 
-oc get secret/photo-album -o yaml
+To view the Secret created by the OBC, run the following:
+[source,role="execute"]
+----
+oc -n demo get secret/photo-album -o yaml
+----
+
+The Secret will contain the credentials required for the application to connect and access the new object bucket.
+
+.Example output:
+----
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: MTAyc3pJNnBsM3dXV0hOUzUyTEk=
   AWS_SECRET_ACCESS_KEY: cWpyWWhuendDcjNaR1ZyVkZVN1p4c2hRK2xicy9XVW1ETk50QmJpWg==
 kind: Secret
-...
+[...]
 ----
 
-As you can see, the secret gives us the S3 access credentials, while the CM
-contains the S3 endpoint information for our photo-album application.
+As you can see when the new OBC is processed, MCG creates a new bucket, Secret and Configmap which contain all the information required for our application to use the new bucket.
 
-Object bucket claim details are at the top of photo-album/app.yaml.
-
+In order to view the details of the Object Bucket Claim, view the top of photo-album/app.yaml.
 [source,yaml]
 ----
 ---
@@ -2041,138 +2118,6 @@ image::photo-album-buckets.png[]
 Once in the bucket, select the object tab:
 
 image::photo-album-objects.png[]
-
-=== Using an OBC inside a container
-
-In this section we will see how one can create an *OBC* using a YAML file and
-use the provided S3 configuration in an example application.
-
-To deploy the *OBC* and the example application we apply this YAML file:
-
-[source,yaml]
-----
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: obc-test
----
-apiVersion: objectbucket.io/v1alpha1
-kind: ObjectBucketClaim
-metadata:
-  name: obc-test
-  namespace: obc-test
-spec:
-  generateBucketName: "obc-test-noobaa"
-  storageClassName: openshift-storage.noobaa.io
----
-apiVersion: batch/v1
-kind: Job
-metadata:
-  name: obc-test
-  namespace: obc-test
-  labels:
-    app: obc-test
-spec:
-  template:
-    metadata:
-      labels:
-        app: obc-test
-    spec:
-      restartPolicy: OnFailure
-      containers:
-        - image: mesosphere/aws-cli:latest
-          command: ["sh"]
-          args:
-            - '-c'
-            - 'set -x && s3cmd --no-check-certificate --signature-v2 --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
-          name: obc-test
-          env:
-            - name: BUCKET_NAME
-              valueFrom:
-                configMapKeyRef:
-                  name: obc-test
-                  key: BUCKET_NAME
-            - name: BUCKET_HOST
-              valueFrom:
-                configMapKeyRef:
-                  name: obc-test
-                  key: BUCKET_HOST
-            - name: BUCKET_PORT
-              valueFrom:
-                configMapKeyRef:
-                  name: obc-test
-                  key: BUCKET_PORT
-            - name: AWS_DEFAULT_REGION
-              valueFrom:
-                configMapKeyRef:
-                  name: obc-test
-                  key: BUCKET_REGION
-            - name: AWS_ACCESS_KEY_ID
-              valueFrom:
-                secretKeyRef:
-                  name: obc-test
-                  key: AWS_ACCESS_KEY_ID
-            - name: AWS_SECRET_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: obc-test
-                  key: AWS_SECRET_ACCESS_KEY
-----
-
-The first part creates an *OBC* that will create a *ConfigMap* and a *Secret*
-that have the same name as the *OBC* (`obc-test`). The second part of the file
-(after the `---`), creates a Job that deploys a container with the s3cmd
-pre-installed. It will execute s3cmd with the appropriate command line
-arguments and exit. S3cmd will in this case report the current disk usage of
-our S3 endpoint and exit, which will mark our *Pod* as `Completed`.
-
-Let's try this out:
-
-.Deploy the Manifest:
-[source,role="execute"]
-----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/obc_app_example.yaml | oc apply -f -
-----
-.Example output:
-----
-namespace/obc-test created
-objectbucketclaim.objectbucket.io/obc-test created
-job.batch/obc-test created
-----
-
-Afterwards watch the *Pod* be Created, Run and finally be marked `Completed`
-like below - be aware that your Pod name will differ:
-
-[source,role="execute"]
-----
-oc get pods -n obc-test -l app=obc-test
-----
-.Example output:
-----
-NAME             READY   STATUS      RESTARTS   AGE
-obc-test-bvg8h   0/1     Completed   0          22s
-----
-
-Then you can check the `obc-test` *Pod* logs for the contents of the S3 bucket
-using the command below (in this case there are zero objects in the bucket).
-
-[source,role="execute"]
-----
-oc logs -n obc-test $(oc get pods -n obc-test -l app=obc-test -o jsonpath='{.items[0].metadata.name}')
-----
-.Example output:
-----
-+ s3cmd --no-check-certificate --signature-v2 --host s3.openshift-storage.svc:443 --host-bucket s3.openshift-storage.svc:443 du
-0        0 objects s3://obc-test-noobaa-1ec979bc-c53f-42e0-b551-ffaa895c06a6/
---------
-0        Total
-----
-
-This proves that the access credentials from the OBC work and are set up
-correctly inside of the container. Most applications support reading out the
-`AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` environment variables
-natively, but you will have to figure out how to set the host and bucket name
-for each application. In our example we used CLI flags of s3cmd for this.
 
 == Adding storage to the Ceph Cluster
 
