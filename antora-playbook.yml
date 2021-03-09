@@ -1,13 +1,14 @@
 site:
   title: OCS Training
-  url: https://red-hat-storage.github.io/ocs-training
+  #url: https://red-hat-storage.github.io/ocs-training
+  url: https://mid998.github.io/ocs-training
   start_page: training::index.adoc
   robots: allow
   keys:
     google_analytics: 'G-LGCEEZGN54'
 content:
   sources:
-  - url: https://github.com/red-hat-storage/ocs-training.git
+  - url: https://github.com/mid998/ocs-training.git
   # - url: .
     branches: [master]
     start_paths: [training]
