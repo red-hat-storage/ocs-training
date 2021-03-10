@@ -1931,16 +1931,15 @@ To demonstrate this feature we will use the Photo-Album demo application.
 First download and extract the photo-album tarball. 
 [source,role="execute"]
 ----
-curl -s https://github.com/red-hat-storage/demo-apps/raw/main/packaged/photo-album.tgz | tar xvz
+curl -L -s https://github.com/red-hat-storage/demo-apps/blob/main/packaged/photo-album.tgz?raw=true | tar xvz
 ----
 
 .Example output:
 ----
-x photo-album/
-x photo-album/documentation/
-x photo-album/app/
-x photo-album/images/
-x photo-album/demo.sh
+photo-album/
+photo-album/documentation/
+photo-album/app/
+photo-album/demo.sh
 [...]
 ----
 
@@ -1953,7 +1952,7 @@ cd photo-album
 ./demo.sh
 ----
 
-NOTE: Please make sure you follow the continuation prompts. 
+NOTE: Please make sure you follow the continuation prompts by pressing enter. 
 
 Deployment might take up to 5 minutes to complete. 
 
@@ -2016,13 +2015,12 @@ oc -n demo get obc
 ----
 
 .Example output:
-[source,role="execute"]
 ----
 NAME          STORAGE-CLASS                 PHASE   AGE
 photo-album   openshift-storage.noobaa.io   Bound   23m
 ----
 
-To view the *Object Bucket* that was created by the object bucket claim above, run the following:
+To view the *Object Bucket* that was created by the *Object Bucket Claim* above, run the following:
 [source,role="execute"]
 ----
 oc get ob 
@@ -2178,6 +2176,7 @@ spawn more workers by scaling the already present OCS worker instances up from 1
 ----
 oc get machinesets -n openshift-machine-api | egrep 'NAME|workerocs'
 ----
+
 Example output:
 ----
 NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
