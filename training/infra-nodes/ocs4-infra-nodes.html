@@ -185,12 +185,30 @@ nodes. Reference section below for how this is done.</p>
 </div>
 <div class="paragraph">
 <p>Example of the taint and labels required on infrastructure node that
-will be used to run OCS services: <sub>~</sub> spec: taints: - effect: NoSchedule
-key: node.ocs.openshift.io/storage value: ``true'' metadata:
-creationTimestamp: null labels: node-role.kubernetes.io/worker: ""
-node-role.kubernetes.io/infra: ""
-cluster.ocs.openshift.io/openshift-storage: "" <sub>~</sub> # Machine sets for
-creating Infrastructure nodes If the Machine API is supported in the
+will be used to run OCS services:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>  spec:
+    taints:
+    - effect: NoSchedule
+      key: node.ocs.openshift.io/storage
+      value: "true"
+    metadata:
+      creationTimestamp: null
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node-role.kubernetes.io/infra: ""
+        cluster.ocs.openshift.io/openshift-storage: ""</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_machine_sets_for_creating_infrastructure_nodes"><a class="anchor" href="#_machine_sets_for_creating_infrastructure_nodes"></a>Machine sets for creating Infrastructure nodes</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If the Machine API is supported in the
 environment, then labels should be added to the templates for the
 Machine Sets that will be provisioning the infrastructure nodes. Avoid
 the anti-pattern of adding labels manually to nodes created by the
