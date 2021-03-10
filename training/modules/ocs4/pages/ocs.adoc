@@ -2094,6 +2094,7 @@ spec:
 
 To view exactly how the application uses the information in the new *Secret* and *ConfigMap* have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the *ConfigMap* and *Secret* details are mapped to environment variables. 
 
+[source,yaml]
 ----
 [...]
      spec:
