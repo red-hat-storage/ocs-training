@@ -2148,11 +2148,11 @@ image::System-Name-MCG-Console.png[]
 
 Login to the MCG Console using your Openshift Kubeadmin credentials. You can navigate to the bucket details by selecting the bucket from the Bucket menu:
 
-image::photo-album-buckets.png[]
+image::MCG-Console-photo-album-buckets.png[]
 
-Once in the bucket, select the object tab:
+Once in the bucket, select the object tab to view the individual objects create when you uploaded your images:
 
-image::photo-album-objects.png[]
+image::MCG-Console-photo-album-objects.png[]
 
 
 == Adding storage to the Ceph Cluster
