@@ -1678,20 +1678,20 @@ either of these will cause you to lose your metrics and alerting data.
 
 For Prometheus every supported configuration change is controlled through a
 central *ConfigMap*, which needs to exist before we can make changes. When you
-start off with a clean installation of Openshift, the ConfigMap to configure
-the Prometheus environment may not be present. To check if your ConfigMap is
+start off with a clean installation of Openshift, the *ConfigMap* to configure
+the Prometheus environment may not be present. To check if your *ConfigMap* is
 present, execute this:
 
 [source,role="execute"]
 ----
 oc -n openshift-monitoring get configmap cluster-monitoring-config
 ----
-.Output if the ConfigMap is not yet created:
+.Output if the *ConfigMap* is not yet created:
 ----
 Error from server (NotFound): configmaps "cluster-monitoring-config" not found
 ----
 
-.Output if the ConfigMap is created:
+.Output if the *ConfigMap* is created:
 ----
 NAME                        DATA   AGE
 cluster-monitoring-config   1      116m
@@ -1718,7 +1718,7 @@ smaller depending on requirements.
 oc -n openshift-monitoring get configmap cluster-monitoring-config -o yaml | more
 ----
 
-.ConfigMap sample output:
+.*ConfigMap* sample output:
 [source,yaml]
 ----
 [...]
@@ -2032,9 +2032,9 @@ NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAM
 obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m
 ----
 
-The ConfigMap will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
+The *ConfigMap* will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
 
-To view the ConfigMap created by the OBC, run the following:
+To view the *ConfigMap* created by the OBC, run the following:
 [source,role="execute"]
 ----
 oc -n demo get cm/photo-album -o yaml
@@ -2055,9 +2055,9 @@ kind: ConfigMap
 [...]
 ----
 
-The Secret will contain the credentials required for the application to connect and access the new object bucket.
+The *Secret* will contain the credentials required for the application to connect and access the new object bucket.
 
-To view the Secret created by the OBC, run the following:
+To view the *Secret* created by the OBC, run the following:
 [source,role="execute"]
 ----
 oc -n demo get secret/photo-album -o yaml
@@ -2074,7 +2074,7 @@ kind: Secret
 [...]
 ----
 
-As you can see when the new OBC is processed, MCG creates a new bucket, Secret and Configmap which contain all the information required for our application to use the new bucket.
+As you can see when the new OBC is processed, MCG creates a new bucket, *Secret* and *ConfigMap* which contain all the information required for our application to use the new bucket.
 
 In order to view the details of the Object Bucket Claim, view the top of photo-album/app.yaml.
 [source,yaml]
