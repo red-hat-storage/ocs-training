@@ -1774,7 +1774,7 @@ You can validate that Prometheus and AlertManager are working correctly after
 moving to persistent storage <<Monitoring the OCS environment>> in a later
 section of this lab guide.
 
-== Create a new OCP application deployment using the Multicloud Object Gateway OBC
+== MCG: Create a deployment that uses Object Bucket Claims
 
 In this section, you will deploy a new OCP application that uses Object Bucket Claims to 
  create dynamic buckets via the Multicloud Object Gateway.
@@ -1783,7 +1783,7 @@ The MCG console is not fully integrated with the *Openshift Web Console* and res
 
 For other MCG features such as Namespace buckets, please use the MCG console.
 
-=== Checking on MCG status
+=== Checking MCG status
 
 MCG status can be checked with the NooBaa CLI. You may download the NooBaa CLI 
 from the NooBaa Operator releases page: https://github.com/noobaa/noobaa-operator/releases
@@ -1921,7 +1921,7 @@ about the usage of your S3 backend as well as a link to the MCG console.
 
 === Creating and Using Object Bucket Claims
 
-MCG Object Bucket Claims, or *OBC*, are used to dynamically create S3 compatible buckets that can be used by 
+MCG Object Bucket Claim *OBCs*, are used to dynamically create S3 compatible buckets that can be used by 
 an OCP application. When an OBC is created MCG creates a new object bucket, *ConfigMap* (CM) and
  *Secret* that together contain all the information your application needs to
 connect to the new bucket from within your deployment.
@@ -2006,7 +2006,7 @@ photo-album-1-deploy   0/1     Completed   0          10m
 photo-album-1-rtplt    1/1     Running     0          10m
 ----
 
-Now that the photo-album application has deployed you can view the *Object Bucket Claim* it created. You can also view the new bucket, *Configmap* and *Secret* using the oc command.
+Now that the photo-album application has been deployed you can view the *Object Bucket Claim* it created. You can also view the new bucket, *Configmap* and *Secret* using the oc command.
 
 To view the *Object Bucket Claim* used by photo-album run the following:
 [source,role="execute"]
@@ -2137,7 +2137,7 @@ Copy and paste this route into a browser tab.
 
 image::photo-album-select-upload.png[]
 
-Select 1 or more photos, then make sure to upload.
+Select 1 or more photos, then make sure to click the upload button.
 
 image::photo-album-images.png[]
 
