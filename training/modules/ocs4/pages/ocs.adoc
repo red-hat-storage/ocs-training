@@ -1959,7 +1959,6 @@ Deployment might take up to 5 minutes to complete.
 
 .Example output:
 ----
-./demo.sh
 [ OK    ] Using apps.cluster-7c31.7c31.sandbox905.opentlc.com as our base domain
 
 Object Bucket Demo
@@ -2008,9 +2007,9 @@ photo-album-1-deploy   0/1     Completed   0          10m
 photo-album-1-rtplt    1/1     Running     0          10m
 ----
 
-Now that the photo-album application has deployed you can view the Object Bucket Claim it created. You can also view the new bucket, Configmap and Secret using the oc cli.
+Now that the photo-album application has deployed you can view the *Object Bucket Claim* it created. You can also view the new bucket, *Configmap* and *Secret* using the oc command.
 
-To view the Object Bucket Claim used by photo-album run the following:
+To view the *Object Bucket Claim* used by photo-album run the following:
 [source,role="execute"]
 ----
 oc -n demo get obc 
@@ -2023,7 +2022,7 @@ NAME          STORAGE-CLASS                 PHASE   AGE
 photo-album   openshift-storage.noobaa.io   Bound   23m
 ----
 
-To view the Object Bucket that was created by the object bucket claim above, run the following:
+To view the *Object Bucket* that was created by the object bucket claim above, run the following:
 [source,role="execute"]
 ----
 oc get ob 
@@ -2035,15 +2034,17 @@ NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAM
 obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m
 ----
 
+The ConfigMap will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
+
 To view the ConfigMap created by the OBC, run the following:
 [source,role="execute"]
 ----
 oc -n demo get cm/photo-album -o yaml
 ----
 
-The ConfigMap will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
 
 .Example output:
+[source,yaml]
 ----
 apiVersion: v1
 data:
@@ -2056,15 +2057,16 @@ kind: ConfigMap
 [...]
 ----
 
+The Secret will contain the credentials required for the application to connect and access the new object bucket.
+
 To view the Secret created by the OBC, run the following:
 [source,role="execute"]
 ----
 oc -n demo get secret/photo-album -o yaml
 ----
 
-The Secret will contain the credentials required for the application to connect and access the new object bucket.
-
 .Example output:
+[source,yaml]
 ----
 apiVersion: v1
 data:
@@ -2092,36 +2094,7 @@ spec:
 [...]
 ----
 
-In order to see objects in your new bucket, first upload some images to your photo-album by finding the route.
-
-[source,role="execute"]
-----
-oc -n demo get route
-----
-
-.Example output:
-[source,role="execute"]
-----
-oc get route
-NAME          HOST/PORT                                                   PATH   SERVICES
-    PORT     TERMINATION   WILDCARD
-photo-album   photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com          photo-album   80-tcp                 None
-----
-
-Then navigate to the MCG console by viewing the Object Service Dashboard mentioned in Section 2.3, and selecting
- the Multcloud Object Gateway link under System Name:
-
-image::System-Name-MCG-Console.png[]
-
-Once you have logged into the MCG console, you maybe view the bucket details by selecting the bucket from the Bucket menu:
-
-image::photo-album-buckets.png[]
-
-Once in the bucket, select the object tab:
-
-image::photo-album-objects.png[]
-
-To view exactly how the application uses the information in the new Secret and ConfigMap have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the ConfigMap and Secret details are mapped to environment variables. 
+To view exactly how the application uses the information in the new *Secret* and *ConfigMap* have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the *ConfigMap* and *Secret* details are mapped to environment variables. 
 
 ----
 [...]
@@ -2149,6 +2122,39 @@ To view exactly how the application uses the information in the new Secret and C
                   key: AWS_SECRET_ACCESS_KEY
 [...]
 ----
+
+In order to see objects in your new bucket, find your route:
+[source,role="execute"]
+----
+oc get route photo-album -n demo -o jsonpath --template="http://{.spec.host}{'\n'}"
+----
+
+.Example output:
+----
+http://photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com
+----
+
+Copy and paste this route into a browser tab. 
+
+image::photo-album-select-upload.png[]
+
+Select 1 or more photos, then make sure to upload.
+
+image::photo-album-images.png[]
+
+Then navigate to the MCG console by viewing the *Object Service Dashboard* mentioned previously, and selecting the Multcloud Object Gateway link under System Name:
+
+image::System-Name-MCG-Console.png[]
+
+Login to the MCG Console using your Openshift Kubeadmin credentials. You can navigate to the bucket details by selecting the bucket from the Bucket menu:
+
+image::photo-album-buckets.png[]
+
+Once in the bucket, select the object tab:
+
+image::photo-album-objects.png[]
+
+
 == Adding storage to the Ceph Cluster
 
 Adding storage to OCS adds capacity and performance to your already present
