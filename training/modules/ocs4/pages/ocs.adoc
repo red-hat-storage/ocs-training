@@ -2045,7 +2045,7 @@ To view the *ConfigMap* created by the OBC, run the following:
 
 [source,role="execute"]
 ----
-oc -n demo get cm photo-album -o yaml
+oc -n demo get cm photo-album -o yaml | more
 ----
 .Example output:
 [source,yaml]
@@ -2067,7 +2067,7 @@ To view the *Secret* created for the OBC run the following:
 
 [source,role="execute"]
 ----
-oc -n demo get secret photo-album -o yaml
+oc -n demo get secret photo-album -o yaml | more
 ----
 .Example output:
 [source,yaml]
