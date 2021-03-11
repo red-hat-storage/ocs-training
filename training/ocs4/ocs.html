@@ -2910,7 +2910,7 @@ obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-alb
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get cm photo-album -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get cm photo-album -o yaml | more</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2935,7 +2935,7 @@ kind: ConfigMap
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get secret photo-album -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get secret photo-album -o yaml | more</code></pre>
 </div>
 </div>
 <div class="listingblock">
