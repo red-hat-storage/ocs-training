@@ -2573,25 +2573,38 @@ section of this lab guide.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_mcg_create_a_deployment_that_uses_object_bucket_claims"><a class="anchor" href="#_mcg_create_a_deployment_that_uses_object_bucket_claims"></a>7. MCG: Create a deployment that uses Object Bucket Claims</h2>
+<h2 id="_create_a_new_ocp_application_deployment_using_an_object_bucket"><a class="anchor" href="#_create_a_new_ocp_application_deployment_using_an_object_bucket"></a>7. Create a new OCP application deployment using an Object Bucket</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>In this section, you will deploy a new OCP application that uses Object Bucket Claims to
- create dynamic buckets via the Multicloud Object Gateway.
-The MCG console is not fully integrated with the <strong>Openshift Web Console</strong> and resources created in the MCG console
- are not synchronized back to the Openshift Cluster. For checking MCG/NooBaa status and object bucket claims, the <code>NooBaa client</code> or <code>oc CLI</code> will be used.</p>
+<p>In this section, you will deploy a new OCP application that uses <code>Object Bucket
+Claims</code> (OBCs) to create dynamic buckets via the <code>Multicloud Object Gateway</code>
+(MCG). You will also use the <code>MCG Console</code> to validate new objects in the
+<code>Object Bucket</code>.</p>
 </div>
-<div class="paragraph">
-<p>For other MCG features such as Namespace buckets, please use the MCG console.</p>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>MCG Console</code> is not fully integrated with the <strong>Openshift Web Console</strong>
+and resources created in the <code>MCG Console</code> are not synchronized back to the
+Openshift Cluster. For MCG features such as Namespace buckets, please use the
+MCG console to configure.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_checking_mcg_status"><a class="anchor" href="#_checking_mcg_status"></a>7.1. Checking MCG status</h3>
 <div class="paragraph">
 <p>MCG status can be checked with the NooBaa CLI. You may download the NooBaa CLI
-from the NooBaa Operator releases page: <a href="https://github.com/noobaa/noobaa-operator/releases" class="bare">https://github.com/noobaa/noobaa-operator/releases</a></p>
+from the NooBaa Operator releases page: <a href="https://github.com/noobaa/noobaa-operator/releases" class="bare">https://github.com/noobaa/noobaa-operator/releases</a>. There is also instructions at <a href="#_install_the_noobaa_cli_client">Install the NooBaa CLI client</a>.</p>
 </div>
 <div class="paragraph">
-<p>Make sure you are in the <code>openshift-storage</code> project (oc project openshift-storage) when you execute the following command.</p>
+<p>Make sure you are in the <code>openshift-storage</code> project when you execute this
+command.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2711,29 +2724,30 @@ No OBCs found.</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>As you can see - the NooBaa CLI will first check on the environment and will
-then print all the information about the environment. Besides the status of
-the MCG, the second most intersting information for us are the available S3
-addresses that we can use to connect to our MCG buckets. We can chose between
-using the external DNS which incurs DNS traffic cost, or route internally
-inside of our Openshift cluster.</p>
+<p>The NooBaa status command will first check on the environment and will then
+print all the information about the environment. Besides the status of the MCG,
+the second most intersting information for us are the available S3 addresses
+that we can use to connect to our MCG buckets. We can chose between using the
+external DNS which incurs DNS traffic cost, or route internally inside of our
+Openshift cluster.</p>
 </div>
 <div class="paragraph">
-<p>You can get a more basic overview of the MCG status using the Object Service
+<p>You can get a more basic overview of the MCG status using the <code>Object Service</code>
 <strong>Dashboard</strong>. To reach this, log into the <strong>Openshift Web Console</strong>, click on
 <code>Home</code> and select the <code>Overview</code> item. In the main view, select <code>Object
 Service</code> in the top navigation bar. This dashboard does not give you connection
 information for your S3 endpoint, but offers Graphs and runtime information
-about the usage of your S3 backend as well as a link to the MCG console.</p>
+about the usage of your S3 backend as well as a link to the <code>MCG Console</code>.</p>
 </div>
 </div>
 <div class="sect2">
 <h3 id="_creating_and_using_object_bucket_claims"><a class="anchor" href="#_creating_and_using_object_bucket_claims"></a>7.2. Creating and Using Object Bucket Claims</h3>
 <div class="paragraph">
-<p>MCG Object Bucket Claim <strong>OBCs</strong>, are used to dynamically create S3 compatible buckets that can be used by
-an OCP application. When an OBC is created MCG creates a new object bucket, <strong>ConfigMap</strong> (CM) and
- <strong>Secret</strong> that together contain all the information your application needs to
-connect to the new bucket from within your deployment.</p>
+<p>MCG <strong>ObjectBucketClaims</strong> (OBCs) are used to dynamically create S3 compatible
+buckets that can be used by an OCP application. When an OBC is created MCG
+creates a new <strong>ObjectBucket</strong> (OB), <strong>ConfigMap</strong> (CM) and <strong>Secret</strong> that together
+contain all the information your application needs to connect to the new bucket
+from within your deployment.</p>
 </div>
 <div class="paragraph">
 <p>To demonstrate this feature we will use the Photo-Album demo application.</p>
@@ -2757,7 +2771,7 @@ photo-album/demo.sh
 </div>
 </div>
 <div class="paragraph">
-<p>Then, run the application startup script which will build and deploy the app to your cluster.</p>
+<p>Then, run the application startup script which will build and deploy the application to your cluster.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2776,9 +2790,6 @@ Please make sure you follow the continuation prompts by pressing enter.
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>Deployment might take up to 5 minutes to complete.</p>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
@@ -2817,6 +2828,18 @@ photo-album setup
 /opt/app-root/src/demo-apps/photo-album</pre>
 </div>
 </div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<strong>Deployment might take up to 5 minutes or more to complete.</strong>
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Check the photo-album deployment is complete by running:</p>
 </div>
@@ -2835,10 +2858,7 @@ photo-album-1-rtplt    1/1     Running     0          10m</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now that the photo-album application has been deployed you can view the <strong>Object Bucket Claim</strong> it created. You can also view the new bucket, <strong>Configmap</strong> and <strong>Secret</strong> using the oc command.</p>
-</div>
-<div class="paragraph">
-<p>To view the <strong>Object Bucket Claim</strong> used by photo-album run the following:</p>
+<p>Now that the photo-album application has been deployed you can view the <strong>ObjectBucketClaim</strong> it created. Run the following:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2853,7 +2873,7 @@ photo-album   openshift-storage.noobaa.io   Bound   23m</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>To view the <strong>Object Bucket</strong> that was created by the <strong>Object Bucket Claim</strong> above, run the following:</p>
+<p>To view the <strong>ObjectBucket</strong> (OB) that was created by the <strong>OBC</strong> above run the following:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2867,6 +2887,21 @@ photo-album   openshift-storage.noobaa.io   Bound   23m</pre>
 obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m</pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong>OBs</strong>, similar to <strong>PVs</strong>, are cluster-scoped resources so therefore adding the namespace is not needed.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can also view the new bucket <strong>ConfigMap</strong> and <strong>Secret</strong> using the following commands.</p>
+</div>
 <div class="paragraph">
 <p>The <strong>ConfigMap</strong> will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.</p>
 </div>
@@ -2875,7 +2910,7 @@ obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-alb
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get cm/photo-album -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get cm photo-album -o yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2893,14 +2928,14 @@ kind: ConfigMap
 </div>
 </div>
 <div class="paragraph">
-<p>The <strong>Secret</strong> will contain the credentials required for the application to connect and access the new object bucket.</p>
+<p>The <strong>Secret</strong> will contain the credentials required for the application to connect and access the new object bucket. The credentials or keys are <code>base64</code> encoded in the <strong>Secret</strong>.</p>
 </div>
 <div class="paragraph">
-<p>To view the <strong>Secret</strong> created by the OBC, run the following:</p>
+<p>To view the <strong>Secret</strong> created for the OBC run the following:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get secret/photo-album -o yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n demo get secret photo-album -o yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2915,10 +2950,10 @@ kind: Secret
 </div>
 </div>
 <div class="paragraph">
-<p>As you can see when the new OBC is processed, MCG creates a new bucket, <strong>Secret</strong> and <strong>ConfigMap</strong> which contain all the information required for our application to use the new bucket.</p>
+<p>As you can see when the new <strong>OBC</strong> and <strong>OB</strong> are created, MCG creates an associated <strong>Secret</strong> and <strong>ConfigMap</strong> which contain all the information required for our photo-album application to use the new bucket.</p>
 </div>
 <div class="paragraph">
-<p>In order to view the details of the Object Bucket Claim, view the top of photo-album/app.yaml.</p>
+<p>In order to view the details of the <strong>ObjectBucketClaim</strong> view the start of <code>photo-album/app.yaml</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2936,7 +2971,7 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>To view exactly how the application uses the information in the new <strong>Secret</strong> and <strong>ConfigMap</strong> have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the <strong>ConfigMap</strong> and <strong>Secret</strong> details are mapped to environment variables.</p>
+<p>To view exactly how the application uses the information in the new <strong>Secret</strong> and <strong>ConfigMap</strong> have a look at the file <code>photo-album/app.yaml</code> after you have deployed the app. In the <strong>DeploymentConfig</strong> specification section, find <code>env:</code> and you can see how the <strong>ConfigMap</strong> and <strong>Secret</strong> details are mapped to environment variables.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -2967,7 +3002,7 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>In order to see objects in your new bucket, find your route:</p>
+<p>In order to create objects in your new bucket you must first find the route for the <code>photo-album</code> application.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2981,44 +3016,49 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>Copy and paste this route into a browser tab.</p>
+<p>Copy and paste this route into a web browser tab.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/photo-album-select-upload.png" alt="photo album select upload">
+<img src="_images/photo-album-select-upload.png" alt="Select Photo and Upload">
 </div>
+<div class="title">Figure 28. Select Photo and Upload</div>
 </div>
 <div class="paragraph">
-<p>Select 1 or more photos, then make sure to click the upload button.</p>
+<p>Select one or more photos of your choosing on your local machine. Then make sure to click the <code>Upload</code> button for each photo.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/photo-album-images.png" alt="photo album images">
+<img src="_images/photo-album-images.png" alt="View photos after uploading">
 </div>
+<div class="title">Figure 29. View photos after uploading</div>
 </div>
 <div class="paragraph">
-<p>Then navigate to the MCG console by viewing the <strong>Object Service Dashboard</strong> mentioned previously, and selecting the Multcloud Object Gateway link under System Name:</p>
+<p>To view the photos in your object bucket navigate to the <code>MCG Console</code> by viewing the <strong>Object Service</strong> dashboard viewed previously. Select the <code>Mulitcloud Object Gateway</code> link under <code>System Name</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/System-Name-MCG-Console.png" alt="System Name MCG Console">
+<img src="_images/System-Name-MCG-Console.png" alt="Launch MCG console from Object Service dashboard">
 </div>
+<div class="title">Figure 30. Launch MCG console from Object Service dashboard</div>
 </div>
 <div class="paragraph">
-<p>Login to the MCG Console using your Openshift Kubeadmin credentials. You can navigate to the bucket details by selecting the bucket from the Bucket menu:</p>
+<p>Login to the <code>MCG Console</code> using <code>username</code> kubeadmin and your <code>password</code>. You can navigate to the bucket details by selecting the <code>Buckets</code> on the far right side. Now select <code>Object Buckets</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/MCG-Console-photo-album-buckets.png" alt="MCG Console photo album buckets">
+<img src="_images/MCG-Console-photo-album-buckets.png" alt="Login to MCG Console and select Buckets">
 </div>
+<div class="title">Figure 31. Login to MCG Console and select Buckets</div>
 </div>
 <div class="paragraph">
-<p>Once in the bucket, select the object tab to view the individual objects create when you uploaded your images:</p>
+<p>Select your bucket name under <code>Object Buckets</code> and then select the <code>Objects</code> tab to view the individual objects create when you uploaded your photos.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/MCG-Console-photo-album-objects.png" alt="MCG Console photo album objects">
+<img src="_images/MCG-Console-photo-album-objects.png" alt="Validate uploaded photos are in your object bucket">
 </div>
+<div class="title">Figure 32. Validate uploaded photos are in your Object Bucket</div>
 </div>
 </div>
 </div>
@@ -3191,7 +3231,7 @@ reach the OCS storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 28. Add Capacity dialog</div>
+<div class="title">Figure 33. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
 <p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
@@ -3415,7 +3455,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Monitoring Menu">
 </div>
-<div class="title">Figure 29. OCP Monitoring Menu</div>
+<div class="title">Figure 34. OCP Monitoring Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -3424,7 +3464,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 30. OCP Alerting Homepage</div>
+<div class="title">Figure 35. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window using the filters at your
@@ -3513,7 +3553,7 @@ persists for more than the amount of time configured in the alert definition
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 31. OCP Alerting Status Filtering</div>
+<div class="title">Figure 36. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3536,13 +3576,13 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 32. OCP Alert Contextual Menu</div>
+<div class="title">Figure 37. OCP Alert Contextual Menu</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 33. OCP Alert Detail Display</div>
+<div class="title">Figure 38. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3568,7 +3608,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 34. OCP Metrics Menu</div>
+<div class="title">Figure 39. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3577,7 +3617,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 35. OCP Monitoring Metrics Homepage</div>
+<div class="title">Figure 40. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search for
@@ -3594,7 +3634,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 36. Simple Ceph Query</div>
+<div class="title">Figure 41. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3603,7 +3643,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 37. Simple Ceph Graph</div>
+<div class="title">Figure 42. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -3614,7 +3654,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 38. Complex Ceph Query</div>
+<div class="title">Figure 43. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3623,7 +3663,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 39. Complex Ceph Graph</div>
+<div class="title">Figure 44. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3634,7 +3674,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 40. Complex OCP Graph</div>
+<div class="title">Figure 45. Complex OCP Graph</div>
 </div>
 <div class="paragraph">
 <p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
@@ -3794,7 +3834,7 @@ Command</code>.</p>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 41. Copy Login command menu entry</div>
+<div class="title">Figure 46. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
@@ -3923,7 +3963,7 @@ outside of OCP 4.
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 42. Ceph Project History</div>
+<div class="title">Figure 47. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -3942,7 +3982,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 43. Ceph Architecture</div>
+<div class="title">Figure 48. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -4041,7 +4081,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 44. RADOS as it stands</div>
+<div class="title">Figure 49. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -4060,7 +4100,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 45. Different Storage Types Supported</div>
+<div class="title">Figure 50. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -4080,7 +4120,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 46. Application Native Object API</div>
+<div class="title">Figure 51. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -4107,7 +4147,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 47. kRBD Diagram</div>
+<div class="title">Figure 52. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -4122,7 +4162,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 48. librbd Diagram</div>
+<div class="title">Figure 53. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -4137,7 +4177,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 49. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 54. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -4156,7 +4196,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 50. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 55. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -4234,7 +4274,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 51. Pools and PGs</div>
+<div class="title">Figure 56. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -4264,7 +4304,7 @@ pool.
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 52. Ceph Data Protection</div>
+<div class="title">Figure 57. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -4308,7 +4348,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 53. Data Distribution</div>
+<div class="title">Figure 58. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
