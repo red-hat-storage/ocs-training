@@ -36,12 +36,25 @@ OCS then a toleration will need to be added to allow
 nodes. Reference section below for how this is done.
 
 Example of the taint and labels required on infrastructure node that
-will be used to run OCS services: ~~~ spec: taints: - effect: NoSchedule
-key: node.ocs.openshift.io/storage value: ``true'' metadata:
-creationTimestamp: null labels: node-role.kubernetes.io/worker: ""
-node-role.kubernetes.io/infra: ""
-cluster.ocs.openshift.io/openshift-storage: "" ~~~ # Machine sets for
-creating Infrastructure nodes If the Machine API is supported in the
+will be used to run OCS services: 
+
+....
+  spec:
+    taints:
+    - effect: NoSchedule
+      key: node.ocs.openshift.io/storage
+      value: "true"
+    metadata:
+      creationTimestamp: null
+      labels:
+        node-role.kubernetes.io/worker: ""
+        node-role.kubernetes.io/infra: ""
+        cluster.ocs.openshift.io/openshift-storage: ""
+....
+
+== Machine sets for creating Infrastructure nodes 
+
+If the Machine API is supported in the
 environment, then labels should be added to the templates for the
 Machine Sets that will be provisioning the infrastructure nodes. Avoid
 the anti-pattern of adding labels manually to nodes created by the
