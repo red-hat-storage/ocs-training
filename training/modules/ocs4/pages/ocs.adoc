@@ -1774,21 +1774,25 @@ You can validate that Prometheus and AlertManager are working correctly after
 moving to persistent storage <<Monitoring the OCS environment>> in a later
 section of this lab guide.
 
-== MCG: Create a deployment that uses Object Bucket Claims
+== Create a new OCP application deployment using an Object Bucket
 
-In this section, you will deploy a new OCP application that uses Object Bucket Claims to 
- create dynamic buckets via the Multicloud Object Gateway.
-The MCG console is not fully integrated with the *Openshift Web Console* and resources created in the MCG console
- are not synchronized back to the Openshift Cluster. For checking MCG/NooBaa status and object bucket claims, the `NooBaa client` or `oc CLI` will be used. 
+In this section, you will deploy a new OCP application that uses `Object Bucket
+Claims` (OBCs) to create dynamic buckets via the `Multicloud Object Gateway`
+(MCG). You will also use the `MCG Console` to validate new objects in the
+`Object Bucket`.
 
-For other MCG features such as Namespace buckets, please use the MCG console.
+NOTE: The `MCG Console` is not fully integrated with the *Openshift Web Console*
+and resources created in the `MCG Console` are not synchronized back to the
+Openshift Cluster. For MCG features such as Namespace buckets, please use the
+MCG console to configure.
 
 === Checking MCG status
 
 MCG status can be checked with the NooBaa CLI. You may download the NooBaa CLI 
-from the NooBaa Operator releases page: https://github.com/noobaa/noobaa-operator/releases
+from the NooBaa Operator releases page: https://github.com/noobaa/noobaa-operator/releases. There is also instructions at <<Install the NooBaa CLI client>>.
 
-Make sure you are in the `openshift-storage` project (oc project openshift-storage) when you execute the following command.
+Make sure you are in the `openshift-storage` project when you execute this
+command.
 
 [source,role="execute"]
 ----
@@ -1905,30 +1909,32 @@ noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-
 No OBCs found.
 ----
 
-As you can see - the NooBaa CLI will first check on the environment and will
-then print all the information about the environment. Besides the status of
-the MCG, the second most intersting information for us are the available S3
-addresses that we can use to connect to our MCG buckets. We can chose between
-using the external DNS which incurs DNS traffic cost, or route internally
-inside of our Openshift cluster.
+The NooBaa status command will first check on the environment and will then
+print all the information about the environment. Besides the status of the MCG,
+the second most intersting information for us are the available S3 addresses
+that we can use to connect to our MCG buckets. We can chose between using the
+external DNS which incurs DNS traffic cost, or route internally inside of our
+Openshift cluster.
 
-You can get a more basic overview of the MCG status using the Object Service
+You can get a more basic overview of the MCG status using the `Object Service`
 *Dashboard*. To reach this, log into the *Openshift Web Console*, click on
 `Home` and select the `Overview` item. In the main view, select `Object
 Service` in the top navigation bar. This dashboard does not give you connection
 information for your S3 endpoint, but offers Graphs and runtime information
-about the usage of your S3 backend as well as a link to the MCG console.
+about the usage of your S3 backend as well as a link to the `MCG Console`.
 
 === Creating and Using Object Bucket Claims
 
-MCG Object Bucket Claim *OBCs*, are used to dynamically create S3 compatible buckets that can be used by 
-an OCP application. When an OBC is created MCG creates a new object bucket, *ConfigMap* (CM) and
- *Secret* that together contain all the information your application needs to
-connect to the new bucket from within your deployment.
+MCG *ObjectBucketClaims* (OBCs) are used to dynamically create S3 compatible
+buckets that can be used by an OCP application. When an OBC is created MCG
+creates a new *ObjectBucket* (OB), *ConfigMap* (CM) and *Secret* that together
+contain all the information your application needs to connect to the new bucket
+from within your deployment.
 
 To demonstrate this feature we will use the Photo-Album demo application. 
 
 First download and extract the photo-album tarball. 
+
 [source,role="execute"]
 ----
 curl -L -s https://github.com/red-hat-storage/demo-apps/blob/main/packaged/photo-album.tgz?raw=true | tar xvz
@@ -1943,7 +1949,7 @@ photo-album/demo.sh
 [...]
 ----
 
-Then, run the application startup script which will build and deploy the app to your cluster. 
+Then, run the application startup script which will build and deploy the application to your cluster. 
 
 
 [source,role="execute"]
@@ -1952,9 +1958,7 @@ cd photo-album
 ./demo.sh
 ----
 
-NOTE: Please make sure you follow the continuation prompts by pressing enter. 
-
-Deployment might take up to 5 minutes to complete. 
+NOTE: Please make sure you follow the continuation prompts by pressing enter.  
 
 .Example output:
 ----
@@ -1992,12 +1996,13 @@ photo-album setup
 /opt/app-root/src/demo-apps/photo-album
 ----
 
+IMPORTANT: *Deployment might take up to 5 minutes or more to complete.*
+
 Check the photo-album deployment is complete by running:
 [source,role="execute"]
 ----
 oc -n demo get pods
 ----
-
 .Example output:
 ----
 NAME                   READY   STATUS      RESTARTS   AGE
@@ -2006,41 +2011,42 @@ photo-album-1-deploy   0/1     Completed   0          10m
 photo-album-1-rtplt    1/1     Running     0          10m
 ----
 
-Now that the photo-album application has been deployed you can view the *Object Bucket Claim* it created. You can also view the new bucket, *Configmap* and *Secret* using the oc command.
+Now that the photo-album application has been deployed you can view the *ObjectBucketClaim* it created. Run the following:
 
-To view the *Object Bucket Claim* used by photo-album run the following:
 [source,role="execute"]
 ----
 oc -n demo get obc 
 ----
-
 .Example output:
 ----
 NAME          STORAGE-CLASS                 PHASE   AGE
 photo-album   openshift-storage.noobaa.io   Bound   23m
 ----
 
-To view the *Object Bucket* that was created by the *Object Bucket Claim* above, run the following:
+To view the *ObjectBucket* (OB) that was created by the *OBC* above run the following:
+
 [source,role="execute"]
 ----
 oc get ob 
 ----
-
 .Example output:
 ----
 NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
 obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m
 ----
 
+NOTE: *OBs*, similar to *PVs*, are cluster-scoped resources so therefore adding the namespace is not needed.
+
+You can also view the new bucket *ConfigMap* and *Secret* using the following commands.
+
 The *ConfigMap* will contain important information such as the bucket name, service and port. All are used to configure the connection from within the deployment to the s3 endpoint.
 
 To view the *ConfigMap* created by the OBC, run the following:
+
 [source,role="execute"]
 ----
-oc -n demo get cm/photo-album -o yaml
+oc -n demo get cm photo-album -o yaml
 ----
-
-
 .Example output:
 [source,yaml]
 ----
@@ -2055,14 +2061,14 @@ kind: ConfigMap
 [...]
 ----
 
-The *Secret* will contain the credentials required for the application to connect and access the new object bucket.
+The *Secret* will contain the credentials required for the application to connect and access the new object bucket. The credentials or keys are `base64` encoded in the *Secret*.
 
-To view the *Secret* created by the OBC, run the following:
+To view the *Secret* created for the OBC run the following:
+
 [source,role="execute"]
 ----
-oc -n demo get secret/photo-album -o yaml
+oc -n demo get secret photo-album -o yaml
 ----
-
 .Example output:
 [source,yaml]
 ----
@@ -2074,9 +2080,10 @@ kind: Secret
 [...]
 ----
 
-As you can see when the new OBC is processed, MCG creates a new bucket, *Secret* and *ConfigMap* which contain all the information required for our application to use the new bucket.
+As you can see when the new *OBC* and *OB* are created, MCG creates an associated *Secret* and *ConfigMap* which contain all the information required for our photo-album application to use the new bucket.
 
-In order to view the details of the Object Bucket Claim, view the top of photo-album/app.yaml.
+In order to view the details of the *ObjectBucketClaim* view the start of `photo-album/app.yaml`.
+
 [source,yaml]
 ----
 ---
@@ -2092,7 +2099,7 @@ spec:
 [...]
 ----
 
-To view exactly how the application uses the information in the new *Secret* and *ConfigMap* have a look at the file photo-album/app.yaml after you have deployed the app. In the deployment template specification section, find 'env:' and you can see how the *ConfigMap* and *Secret* details are mapped to environment variables. 
+To view exactly how the application uses the information in the new *Secret* and *ConfigMap* have a look at the file `photo-album/app.yaml` after you have deployed the app. In the *DeploymentConfig* specification section, find `env:` and you can see how the *ConfigMap* and *Secret* details are mapped to environment variables. 
 
 [source,yaml]
 ----
@@ -2122,37 +2129,41 @@ To view exactly how the application uses the information in the new *Secret* and
 [...]
 ----
 
-In order to see objects in your new bucket, find your route:
+In order to create objects in your new bucket you must first find the route for the `photo-album` application.
+
 [source,role="execute"]
 ----
 oc get route photo-album -n demo -o jsonpath --template="http://{.spec.host}{'\n'}"
 ----
-
 .Example output:
 ----
 http://photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com
 ----
 
-Copy and paste this route into a browser tab. 
+Copy and paste this route into a web browser tab. 
 
-image::photo-album-select-upload.png[]
+.Select Photo and Upload
+image::photo-album-select-upload.png[Select Photo and Upload]
 
-Select 1 or more photos, then make sure to click the upload button.
+Select one or more photos of your choosing on your local machine. Then make sure to click the `Upload` button for each photo.
 
-image::photo-album-images.png[]
+.View photos after uploading
+image::photo-album-images.png[View photos after uploading]
 
-Then navigate to the MCG console by viewing the *Object Service Dashboard* mentioned previously, and selecting the Multcloud Object Gateway link under System Name:
+To view the photos in your object bucket navigate to the `MCG Console` by viewing the *Object Service* dashboard viewed previously. Select the `Mulitcloud Object Gateway` link under `System Name`.
 
-image::System-Name-MCG-Console.png[]
+.Launch MCG console from Object Service dashboard
+image::System-Name-MCG-Console.png[Launch MCG console from Object Service dashboard]
 
-Login to the MCG Console using your Openshift Kubeadmin credentials. You can navigate to the bucket details by selecting the bucket from the Bucket menu:
+Login to the `MCG Console` using `username` kubeadmin and your `password`. You can navigate to the bucket details by selecting the `Buckets` on the far right side. Now select `Object Buckets`.
 
-image::MCG-Console-photo-album-buckets.png[]
+.Login to MCG Console and select Buckets
+image::MCG-Console-photo-album-buckets.png[Login to MCG Console and select Buckets]
 
-Once in the bucket, select the object tab to view the individual objects create when you uploaded your images:
+Select your bucket name under `Object Buckets` and then select the `Objects` tab to view the individual objects create when you uploaded your photos.
 
-image::MCG-Console-photo-album-objects.png[]
-
+.Validate uploaded photos are in your Object Bucket
+image::MCG-Console-photo-album-objects.png[Validate uploaded photos are in your object bucket]
 
 == Adding storage to the Ceph Cluster
 
