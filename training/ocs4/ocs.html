@@ -1985,6 +1985,18 @@ Reducing the size of a CephFS <strong>PVC</strong> is NOT supported.
 postgresql</pre>
 </div>
 </div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Make sure you expanded the <code>postgresql</code> <strong>PVC</strong> to 15Gi before proceeding. If not expanded go back and complete this section <a href="#_expand_rbd_based_pvcs">Expand RBD based PVCs</a>.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Before creating the PVC clone make sure to create and save at least one new article so there is new data in the <code>postgresql</code> <strong>PVC</strong>.</p>
 </div>
@@ -2333,7 +2345,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="sect3">
 <h4 id="_restoring_volume_snapshot_to_clone_pvc"><a class="anchor" href="#_restoring_volume_snapshot_to_clone_pvc"></a>5.2.3. Restoring Volume Snapshot to clone PVC</h4>
 <div class="paragraph">
-<p>You can now restore the new <strong>VolumeSnapshot</strong> in the <strong>OpenShift Web Console</strong>. Navigate to <code>Storage</code> &#8594; <code>Volume Snapshots</code>. Select <code>Restore as new PVC</code>.</p>
+<p>You can now restore the new <strong>VolumeSnapshot</strong> in the <strong>OpenShift Web Console</strong>. Navigate to <code>Storage</code> &#8594; <code>Volume Snapshots</code>. Select <code>Restore as new PVC</code>. Make sure to have the <code>my-shared-storage</code> project selected at the top right.</p>
 </div>
 <div class="imageblock">
 <div class="content">
