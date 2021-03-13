@@ -1,4 +1,6 @@
-= OpenShift Multisite Disaster Recovery 
+= OpenShift Multisite Disaster Recovery
+:toc:
+:toclevels: 4 
 :icons: font
 :source-language: shell
 :numbered:
@@ -365,7 +367,7 @@ curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/tr
 cephblockpool.ceph.rook.io/replicapool created
 ----
 
-IMPORTANT: Repeat the steps on the OCP *remote cluster* or `site2`.
+IMPORTANT: Repeat the steps on the OCP *secondary cluster* or `site2`.
 
 ===== Bootstrap Peer Clusters
 
@@ -373,7 +375,7 @@ In order for the `rbd-mirror` daemon to discover its peer cluster, the peer must
 
 For `Bootstrapping` a peer cluster it's bootstrap secret is required. 
 
-NOTE: Execute the following commands on the *remote cluster* or `site2` cluster first.
+NOTE: Execute the following commands on the *secondary cluster* or `site2` cluster first.
 
 To determine the name of the secret that contains the bootstrap secret do the following:
 
@@ -397,7 +399,7 @@ oc get secrets pool-peer-token-replicapool -n openshift-storage -o jsonpath='{.d
 eyJmc2lkIjoiNTliODkwMjEtM2VlMi00YTI1LWIwODctYjQzZWU4MGIzZGRlIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFCd3pVSmdGWVFySXhBQU5NR3AyK3BrR2hJa1dzMXBFclN4ZUE9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi4yNDQuMTQ2OjMzMDAsdjE6MTAuMTEyLjI0NC4xNDY6Njc4OV0sW3YyOjEwLjExMi4xMDMuNTU6MzMwMCx2MToxMC4xMTIuMTAzLjU1OjY3ODldLFt2MjoxMC4xMTIuMTI0LjExOTozMzAwLHYxOjEwLjExMi4xMjQuMTE5OjY3ODldIn0=
 ----
 
-Now get the site name for the *remote cluster* or `site2` cluster:
+Now get the site name for the *secondary cluster* or `site2` cluster:
 
 [source,role="execute"]
 ----
@@ -410,7 +412,7 @@ oc get cephblockpools.ceph.rook.io replicapool -n openshift-storage -o jsonpath=
 
 NOTE: Execute the following command on the *primary cluster* or `site1` cluster.
 
-With the decoded value, create a secret on the *primary cluster*, using the site name of the *remote cluster* from prior step as the secret name.
+With the decoded value, create a secret on the *primary cluster*, using the site name of the *secondary cluster* from prior step as the secret name.
 
 IMPORTANT: *Make sure to replace site name and token with the values from your clusters.*
 
@@ -422,11 +424,11 @@ oc -n openshift-storage create secret generic 59b89021-3ee2-4a25-b087-b43ee80b3d
 secret/59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage created
 ----
 
-This completes the bootstrap process for the *primary cluster* to the *remote cluster* or site1 to site2. 
+This completes the bootstrap process for the *primary cluster* to the *secondary cluster* or site1 to site2. 
 
-NOTE: Repeat the process switching the steps for the *remote cluster* and the *primary cluster*.
+NOTE: Repeat the process switching the steps for the *secondary cluster* and the *primary cluster*.
 
-After generating the *primary cluster* site name and token the following example command is done on the *remote cluster*.
+After generating the *primary cluster* site name and token the following example command is done on the *secondary cluster*.
 
 IMPORTANT: *Make sure to replace site name and token with the values from your clusters.*
 
@@ -438,13 +440,13 @@ oc -n openshift-storage create secret generic dc12a67b-d82c-4b7c-b3d7-60a44d9737
 secret/dc12a67b-d82c-4b7c-b3d7-60a44d973772-openshift-storage created
 ----
 
-This completes the bootstrap process for the *remote cluster* to the *primary cluster* or site2 to site1.
+This completes the bootstrap process for the *secondary cluster* to the *primary cluster* or site2 to site1.
 
 ===== Create RBD Mirror Custom Resource
 
-Replication is handled by the `rbd-mirror` daemon. The `rbd-mirror` daemon is responsible for pulling image updates from the *remote cluster*, and applying them to images within the local cluster. 
+Replication is handled by the `rbd-mirror` daemon. The `rbd-mirror` daemon is responsible for pulling image updates from the *secondary cluster*, and applying them to images within the local cluster. 
 
-The `rbd-mirror` daemon(s) can be created using a custom resource definition (CRD). There must be a `rbd-mirror` daemon or *Pod* created on the *primary cluster* and the *remote cluster* using this CRD:
+The `rbd-mirror` daemon(s) can be created using a custom resource definition (CRD). There must be a `rbd-mirror` daemon or *Pod* created on the *primary cluster* and the *secondary cluster* using this CRD:
 
 [source,yaml]
 ----
@@ -515,10 +517,284 @@ oc get cephblockpools.ceph.rook.io replicapool -n openshift-storage -o jsonpath=
 {"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}
 ----
 
-Now repeat process for *remote cluster* or `site2`.
+Now repeat process for *secondary cluster* or `site2`.
 
-IMPORTANT: Make sure to do all steps above on the *remote cluster*. The results for `SECRET` should be different than the *primary cluster* as a way to check you are on the *remote cluster*.
+IMPORTANT: Make sure to do all steps above on the *secondary cluster*. The results for `SECRET` should be different than the *primary cluster* as a way to check you are on the *secondary cluster*.
 
-You have now completed the steps for configuring *RBD Mirroring* between the *primary cluster* and the *remote cluster* or site1 and site2. The next sections will cover how to enable Ceph RBD images (volumes) for mirroring data from site1 to site2 asynchronously. Also, using a sample application, detailed instructions will be provided on how to `failover` from site1 to site2 and how to `failback` the application all the while preserving the persistent data. 
+You have now completed the steps for configuring *RBD Mirroring* between the *primary cluster* and the *secondary cluster* or site1 and site2. The next sections will cover how to enable Ceph RBD images (volumes) for mirroring data from site1 to site2 asynchronously. Also, using a sample application, detailed instructions will be provided on how to `failover` from site1 to site2 and how to `failback` the application all the while preserving the persistent data. 
+
+=== Creating Mirror storage class and Sample application
+
+==== Storageclass for volume replication
+
+Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* replicapool that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` verses `Delete` as it is in the default pool.
+
+Example *StorageClass*:
+
+[source,yaml]
+----
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ocs-storagecluster-ceph-mirror
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  imageFeatures: layering
+  imageFormat: "2"
+  pool: replicapool
+provisioner: openshift-storage.rbd.csi.ceph.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+----
+
+Now create the *StorageClass*:
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/ocs-storagecluster-ceph-mirror.yaml | oc apply -f -
+----
+.Example output:
+----
+storageclass.storage.k8s.io/ocs-storagecluster-ceph-mirror created
+----
+
+IMPORTANT: Make sure to also create the `ocs-storagecluster-ceph-mirror` *StorageClass* on the *secondary cluster* before proceeding.
+
+==== Sample Application
+
+In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working. 
+
+Start by creating a new project on the *primary cluster*:
+
+[source,role="execute"]
+----
+oc new-project my-database-app
+----
+
+Then use the `rails-pgsql-persistent` template to create the new application. The new `postgresql` volume will be claimed from the new *StorageClass*.
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-mirror -p VOLUME_CAPACITY=5Gi -f -
+----
+
+After the deployment is started you can monitor with these commands.
+
+[source,role="execute"]
+----
+oc status
+----
+
+Check the PVC is created.
+
+[source,role="execute"]
+----
+oc get pvc -n my-database-app
+----
+
+This step could take 5 or more minutes. Wait until there are 2 *Pods* in
+`Running` STATUS and 4 *Pods* in `Completed` STATUS as shown below.
+
+[source,role="execute"]
+----
+watch oc get pods -n my-database-app
+----
+.Example output:
+----
+NAME                                READY   STATUS      RESTARTS   AGE
+postgresql-1-deploy                 0/1     Completed   0          5m48s
+postgresql-1-lf7qt                  1/1     Running     0          5m40s
+rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
+rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
+rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
+rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s
+----
+
+You can exit by pressing kbd:[Ctrl+C].
+
+Once the deployment is complete you can now test the application and the
+persistent storage on Ceph.
+
+[source,role="execute"]
+----
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"  
+----
+
+This will return a route similar to this one.
+
+.Example output:
+----
+http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
+----
+
+Copy your route (different than above) to a browser window to create articles.
+
+Enter the `username` and `password` below to create articles and comments.
+The articles and comments are saved in a PostgreSQL database which stores its
+table spaces on the Ceph RBD volume provisioned using the
+`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
+deployment.
+
+----
+username: openshift
+password: secret
+----
+
+Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
+
+[source,role="execute"]
+----
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
+----
+.Example output:
+----
+You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description 
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | userCY2 | 16 kB      | 
+ public | articles             | table    | userCY2 | 16 kB      | 
+ public | articles_id_seq      | sequence | userCY2 | 8192 bytes | 
+ public | comments             | table    | userCY2 | 8192 bytes | 
+ public | comments_id_seq      | sequence | userCY2 | 8192 bytes | 
+ public | schema_migrations    | table    | userCY2 | 16 kB      | 
+(6 rows)
+
+ id |      title      |                  body                   |         create
+d_at         |         updated_at         
+----+-----------------+-----------------------------------------+---------------
+-------------+----------------------------
+  1 | Annette's test1 | My test article for multisite failover. | 2021-03-13 15:
+29:34.747517 | 2021-03-13 15:38:58.276829
+(1 row)
+----
+
+=== Installing OADP for Backup and Restore
+
+OADP (OpenShift APIs for Data Protection) is a community operator and is available in *OperatorHub*. If you are not finding OADP most likely the `community-operator` catalogsource is not deployed in your cluster.
+
+We will be using OADP for the `Backup` and `Restore` APIs for the OpenShift metadata at a namespace level. This metadata is needed to restore the application on the *secondary cluster*.
+
+==== Installing OADP from OperatorHub
+
+First is to find OADP in *OperatorHub*. Login to your *OpenShift Web Console* and navigate to *OperatorHub*. Filter for `OADP` as shown below:
+
+.OperatorHub filter for OADP
+image::OCP4-OADP-operatorhub-filter.png[OperatorHub filter for OADP]
+
+Select `Continue` on next screen.
+
+CAUTION: OADP is a community operator and as such is not supported by Red Hat. More information can be found at https://github.com/konveyor/oadp-operator.
+
+.OADP operator support statement
+image::OCP4-OADP-operatorhub-continue.png[OADP operator support statement]
+
+Select `Install` on next screen.
+
+.OADP install screen
+image::OCP4-OADP-operatorhub-install.png[OADP install screen]
+
+Now you will create the new namespace `oadp-operator` and install the OADP operator into this namespace. Select `Install` again.
+
+.OADP create namespace and install operator
+image::OCP4-OADP-operatorhub-install2.png[OADP create namespace and install operator]
+
+Wait for operator to install. When you see this screen the OADP operator is installed.
+
+.OADP operator installed and ready
+image::OCP4-OADP-operator-installed.png[OADP operator installed and ready]
+
+The next step is to create the `Velero` *CustomResource* or CR. For this you will need to have a `S3` compatible object bucket created that you know the `bucket name` as well as the credentials to access the bucket. 
+
+NOTE: It is not recommended to use OCS object buckets (MCG or RGW) as the `S3` *BackingStorageLocation* for `Velero` CR. If your remote or secondary clusters become unavailable and the `S3` bucket is created on that cluster there is no way to recover to alternate cluster.
+
+==== Creating bucket credentials secret
+
+Before creating the  `Velero` CR you must create the `cloud-credentials` file with the creditials for your `S3` bucket. The format of the file needs to be this:
+
+----
+[default]
+aws_access_key_id=VELERO_ACCESS_KEY_ID
+aws_secret_access_key=VELERO_SECRET_ACCESS_KEY
+----
+
+Copy your unique credentials into file `cloud-credentials` and save file.
+
+Now use this new `cloud-credentials` file to create a new *Secret*. Replace `<CREDENTIALS_FILE_PATH>` with path to file you created with `S3` credentials.
+
+----
+oc create secret generic cloud-credentials --namespace oadp-operator --from-file cloud=<CREDENTIALS_FILE_PATH>/cloud-credentials  
+----
+
+==== Creating Velero resource
+
+The velero YAML file needs to be modified to be correct for your `S3` bucket. The example is for a `S3` bucket on AWS saved as file `velero-aws.yaml`.
+
+[source,yaml]
+----
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: Velero
+metadata:
+  name: oadp-velero
+  namespace: oadp-operator
+spec:
+  olm_managed: true
+  backup_storage_locations:
+    - config:
+        profile: default
+        region: us-east-2  # <-- Modify to your AWS region
+      credentials_secret_ref:
+        name: cloud-credentials
+        namespace: oadp-operator
+      name: default
+      object_storage:
+        bucket: oadp-xxxxxx # Modify to your AWS bucket name
+        prefix: velero
+      provider: aws
+  default_velero_plugins:
+    - aws
+    - openshift
+  enable_restic: false
+----
+
+Once you have your unique values copied into your YAML file create the `Velero` CR.
+
+NOTE: If using and OCS `S3` object bucket instead of on AWS reference these instructions https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md.
+
+----
+oc create -f velero-aws.yaml -n oadp-operator
+----
+
+Validate that the `velero` pod is `Running` and that the *BackingStorageLocation* have been created as well that has the details to access your `S3` bucket for OpenShift metadata storage.
+
+[source,role="execute"]
+----
+oc get pods,backupstoragelocation -n oadp-operator
+----
+.Example output:
+----
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/oadp-default-aws-registry-88f556c5-2mk6h   1/1     Running   0          4m59s
+pod/oadp-operator-6bb9fb6cfc-mc6vw             1/1     Running   0          49m
+pod/velero-6c6fd6d84d-mbct9                    1/1     Running   0          5m3s
+
+NAME                                      PHASE       LAST VALIDATED   AGE
+backupstoragelocation.velero.io/default   Available   9s               5m1s
+----
+
+IMPORTANT: Repeat these steps and install *OADP* on the *secondary cluster*. Make sure to use the same `S3` bucket and credentials as for the *primary cluster* when creating the `Velero` CR.
+
+
+
+
+
 
 
