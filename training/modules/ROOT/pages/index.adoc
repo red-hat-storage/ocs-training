@@ -1,6 +1,6 @@
 = OCS Training
 
 Welcome to the ocs-training!
-Note - this is not Red Hat official documentation for OCS. For the official documentation, please see https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.6/
+Note - this is not Red Hat official documentation for OCS. For the official documentation, please see https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage
 
 Discover our documents in the left navigation menu
