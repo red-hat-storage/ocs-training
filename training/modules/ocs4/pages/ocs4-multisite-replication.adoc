@@ -331,7 +331,7 @@ The next step will be to create the mirroring relationship between the two OCS c
 
 ===== Enable OMAP Generator
 
-Omap generator is a sidecar container that, when deployed with the CSI provisioner pod, generates the internal CSI omaps between the PV and the RBD image. The name of the new container is `csi-omap-generator`. This is required as static PVs are transferred across peer clusters in the DR use case, and hence is needed to preserve PVC to storage mappings.
+Omap generator is a sidecar container that, when deployed with the CSI provisioner pod, generates the internal CSI omaps between the PV and the RBD image. The name of the new container is `csi-omap-generator`. This is required as static *PVs* are transferred across peer clusters in the DR use case, and hence is needed to preserve *PVC* to storage mappings.
 
 Execute these steps on each of the OCP `site1` and `site2` clusters to enable the OMAP generator.
 
@@ -359,11 +359,11 @@ csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-
 
 There are two `csi-rbdplugin-provisioner` pods for availability so there should be two groups of the same 7 containers for each pod.
 
-IMPORTANT: Repeat these steps for the *remove cluster* or `site2` before proceeding and also repeat the validation for the new `csi-omap-generator` container.
+IMPORTANT: Repeat these steps for the *remote cluster* or `site2` before proceeding and also repeat the validation for the new `csi-omap-generator` container.
 
 ===== Create Ceph Pools for replication
 
-In this section you will create specific ceph pools that are RBD mirroring enabled. Execute the steps on each of the OCP clusters to enable mirroring.
+In this section you will create a new *CephBlockPool* that is RBD mirroring enabled. Execute the steps on each of the OCP clusters to enable mirroring and configure the `snapshot` schedule for images.
 
 Sample Ceph block pool that has mirroring enabled:
 
@@ -383,14 +383,16 @@ spec:
        # specify the schedules on which snapshots should be taken
      snapshotSchedules:
        - interval: 1h
-         startTime: 00:00:00-05:00
+       #  startTime: 00:00:00-05:00
    statusCheck:
      mirror:
        disabled: false
        interval: 60
 ----
 
-Now create new Ceph blockpool.
+NOTE: The `snapshotSchedules` is a global value for the specific *CephBlockPool* used to configure the snapshot interval between peers for `mirror-enabled` volumes in this pool.
+
+Now create new *CephBlockPool*.
 
 [source,role="execute"]
 ----
@@ -470,7 +472,7 @@ After generating the *primary cluster* site name and token the following example
 IMPORTANT: *Make sure to replace site name and token with the values from your clusters.*
 
 ----
-oc oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
+oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
   create secret generic dc12a67b-d82c-4b7c-b3d7-60a44d973772-openshift-storage \
   --from-literal=token=eyJmc2lkIjoiZGMxMmE2N2ItZDgyYy00YjdjLWIzZDctNjBhNDRkOTczNzcyIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFBY3pVSmdUTjZKT0JBQWlXZDNBV3UxeE41N1NrMVd0L3owaUE9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2LjIzOS40OjMzMDAsdjE6MTAuMTYuMjM5LjQ6Njc4OV0sW3YyOjEwLjE2LjE2My4xMzI6MzMwMCx2MToxMC4xNi4xNjMuMTMyOjY3ODldLFt2MjoxMC4xNi40NC44NTozMzAwLHYxOjEwLjE2LjQ0Ljg1OjY3ODldIn0= \
   --from-literal=pool=replicapool
@@ -567,7 +569,7 @@ You have now completed the steps for configuring *RBD Mirroring* between the *pr
 
 ==== Storageclass for volume replication
 
-Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* replicapool that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` verses `Delete` as it is in the default pool.
+Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* replicapool that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` verses `Delete` as it for the OCS default *StorageClasses*.
 
 Example *StorageClass*:
 
@@ -698,30 +700,30 @@ oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | gre
 ----
 You are now connected to database "root" as user "postgres".
                                List of relations
- Schema |         Name         |   Type   |  Owner  |    Size    | Description
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description 
 --------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | userCY2 | 16 kB      |
- public | articles             | table    | userCY2 | 16 kB      |
- public | articles_id_seq      | sequence | userCY2 | 8192 bytes |
- public | comments             | table    | userCY2 | 8192 bytes |
- public | comments_id_seq      | sequence | userCY2 | 8192 bytes |
- public | schema_migrations    | table    | userCY2 | 16 kB      |
+ public | ar_internal_metadata | table    | userXQR | 16 kB      | 
+ public | articles             | table    | userXQR | 16 kB      | 
+ public | articles_id_seq      | sequence | userXQR | 8192 bytes | 
+ public | comments             | table    | userXQR | 8192 bytes | 
+ public | comments_id_seq      | sequence | userXQR | 8192 bytes | 
+ public | schema_migrations    | table    | userXQR | 16 kB      | 
 (6 rows)
 
- id |      title      |                  body                   |         create
-d_at         |         updated_at
-----+-----------------+-----------------------------------------+---------------
--------------+----------------------------
-  1 | Annette's test1 | My test article for multisite failover. | 2021-03-13 15:
-29:34.747517 | 2021-03-13 15:38:58.276829
+ id |     title     |                  body                  |         created_a
+t         |         updated_at         
+----+---------------+----------------------------------------+------------------
+----------+----------------------------
+  2 | First Article | This is article #1 on primary cluster. | 2021-03-19 22:05:
+07.255362 | 2021-03-19 22:05:07.255362
 (1 row)
 ----
 
-=== Installing OADP for Backup and Restore
+=== Installing OADP for OpenShift metadata
 
-OADP (OpenShift APIs for Data Protection) is a community operator and is available in *OperatorHub*. If you are not finding OADP most likely the `community-operator` catalogsource is not deployed in your cluster.
+OADP (OpenShift APIs for Data Protection) is a community operator and is available in *OperatorHub*. 
 
-We will be using OADP for the `Backup` and `Restore` APIs for the OpenShift metadata at a namespace level. This metadata is needed to restore the application on the *secondary cluster*.
+We will be using OADP for the `Backup` and `Restore` APIs for collecting the OpenShift metadata at a namespace level. This metadata collection is needed to restore the application on the *secondary cluster*.
 
 ==== Installing OADP from OperatorHub
 
@@ -730,12 +732,14 @@ First is to find OADP in *OperatorHub*. Login to your *OpenShift Web Console* an
 .OperatorHub filter for OADP
 image::OCP4-OADP-operatorhub-filter.png[OperatorHub filter for OADP]
 
-Select `Continue` on next screen.
+NOTE: If you are not finding OADP in *OperatorHub* most likely the `community-operator` catalogsource is not deployed in your cluster.
 
-CAUTION: OADP is a community operator and as such is not supported by Red Hat. More information can be found at https://github.com/konveyor/oadp-operator.
+Select `Continue` on next screen.
 
 .OADP operator support statement
 image::OCP4-OADP-operatorhub-continue.png[OADP operator support statement]
+
+CAUTION: OADP is a community operator and as such is not supported by Red Hat. More information can be found at https://github.com/konveyor/oadp-operator.
 
 Select `Install` on next screen.
 
@@ -807,7 +811,7 @@ spec:
 
 Once you have your unique values copied into your YAML file create the `Velero` CR.
 
-NOTE: If using and OCS `S3` object bucket instead of on AWS reference these instructions https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md.
+NOTE: If wanting to us a MCG or RGW `S3` object bucket instead of a bucket off platform (i.e. AWS) as recommended, reference these instructions https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md.
 
 ----
 oc create -f velero-aws.yaml -n oadp-operator
@@ -832,9 +836,441 @@ backupstoragelocation.velero.io/default   Available   9s               5m1s
 
 IMPORTANT: Repeat these steps and install *OADP* on the *secondary cluster*. Make sure to use the same `S3` bucket and credentials as for the *primary cluster* when creating the `Velero` CR.
 
+=== Failover to Secondary cluster
 
+The setup and configuration steps in the prior section have prepared the environment to support a failover event from the *primary cluster* to the *secondary cluster*. In our case this will be for just one namespace (my-database-app) that includes restoring the OpenShift metadata and persistent data stored in *PVCs*. The following steps will be followed for the failover:
+[start=1]
+. Using the toolbox enable image(s) for replication via snapshot to peer cluster.
+. Use OADP and the `Backup` CR to collect OpenShift metadata for application namespace.
+. Scale application deployment down to take application offline.
+. Using the `toolbox` *demote* the storage for the application on the *primary cluster*.
+. Using the `toolbox` *promote* the storage on the *secondary cluster*.
+. Use OADP and the `Restore` CR to bring the application online.
+. Verify use of the application on the *secondary cluster*.
 
+==== Installing the toolbox for Ceph commands
 
+Since the Rook-Ceph *toolbox* is not shipped with OCS you will need to deploy it
+manually because a few steps of the failover process require use of Ceph commands today.
 
+You can patch the `OCSInitialization ocsinit` to create the *toolbox* using the following command line:
 
+[source,role="execute"]
+----
+oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+----
 
+After the `rook-ceph-tools` *Pod* is `Running` you can access the *toolbox*
+like this:
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+Once inside the *toolbox* try out the following Ceph commands:
+
+Check the health of the Ceph cluster first.
+
+[source,role="execute"]
+----
+ceph health
+----
+.Example output:
+----
+HEALTH_OK
+----
+
+CAUTION: Make sure that `HEALTH_OK` is the status before proceeding.
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror pool status
+----
+.Example output:
+----
+health: OK
+daemon health: OK
+image health: OK
+images: 0 total
+----
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror snapshot schedule ls
+----
+.Example output:
+----
+every 1h
+----
+
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
+
+[source,role="execute"]
+----
+exit
+----
+
+NOTE: Make sure to repeat these steps on the *secondary cluster* as well and logon to the *toolbox* and run the same Ceph commands to validate the health of the cluster and mirroring.
+
+==== Enable images for snapshot replication
+
+In order to have persistent data replicated for a particular application the volume(s) have to be enabled for mirroring. This is currently done using Ceph commands after logging into the *toolbox*.
+
+Login to the *toolbox* again on the *primary cluster* if not already in the *toolbox*.
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+List the images in the *CephBlockPool* replicapool.
+
+[source,role="execute"]
+----
+rbd -p replicapool ls
+----
+.Example output:
+----
+csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+
+In this case there is only one image or volume that was created for the `postgresql` persistent data storage. This is the image you want to enable for mirroring on the *primary cluster*.
+
+IMPORTANT: Your image name will be different. Use your image name for following commands.
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror image enable csi-vol-94953897-88fc-11eb-b175-0a580a061092 snapshot
+----
+.Example output:
+----
+Mirroring enabled
+----
+
+You can now get more information about image mirroring by doing this command on the *primary cluster*,
+
+[source,role="execute"]
+----
+rbd -p replicapool info csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+.Example output from *primary cluster*:
+----
+rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+	size 5 GiB in 1280 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 1
+	id: ee409072562b
+	block_name_prefix: rbd_data.ee409072562b
+	format: 2
+	features: layering
+	op_features: 
+	flags: 
+	create_timestamp: Fri Mar 19 21:46:38 2021
+	access_timestamp: Fri Mar 19 21:46:38 2021
+	modify_timestamp: Fri Mar 19 21:46:38 2021
+	mirroring state: enabled
+	mirroring mode: snapshot
+	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
+	mirroring primary: true  <1>
+----
+<1> Currently storage is promoted on *primary cluster*
+
+To validate the mirroring or replication is working you can logon to the *toolbox* on the *secondary cluster* and run the same command for the exact same image name which should now be replicated to the peer cluster.
+
+[source,role="execute"]
+----
+rbd -p replicapool info csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+.Example output from *secondary cluster*:
+----
+rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+	size 5 GiB in 1280 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 1
+	id: 74c39ad8d17a
+	block_name_prefix: rbd_data.74c39ad8d17a
+	format: 2
+	features: layering, non-primary
+	op_features: 
+	flags: 
+	create_timestamp: Sun Mar 21 00:49:58 2021
+	access_timestamp: Sun Mar 21 00:49:58 2021
+	modify_timestamp: Sun Mar 21 00:49:58 2021
+	mirroring state: enabled
+	mirroring mode: snapshot
+	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
+	mirroring primary: false  <1>
+----
+<1> Currently storage is demoted on *secondary cluster*
+
+These steps would be repeated for every image that you want to mirror via snapshot to the peer cluster. For this example the snapshot interval is `1 hour` and was configured in the `replicapool` *CephBlockPool* CR.
+
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
+
+[source,role="execute"]
+----
+exit
+----
+ 
+==== Creating OpenShift metadata backup
+
+The OpenShift metadata or resources have to be backup up and stored in a location where the *secondary cluster* can access. In this case using the `OADP` or `Velero` *Backup* API is how this will be done. 
+
+Here is a sample `backup.yaml` file for the sample application:
+
+[source,yaml]
+----
+apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  namespace: oadp-operator
+  name: backup1
+spec:
+  includedNamespaces:
+  - my-database-app
+  snapshotVolumes: false
+----  
+
+Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`.
+
+Now create the *Backup* for `my-database-app` namespace.
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/backup.yaml | oc apply -f -
+----
+----
+.Example output:
+----
+backup.velero.io/backup1 created
+
+Verify the *Backup* completed successfully to your `S3` object bucket target using the following command:
+
+[source,role="execute"]
+----
+oc describe backup backup1 -n oadp-operator
+----
+.Example output:
+----
+Name:         backup1
+Namespace:    oadp-operator
+Labels:       velero.io/storage-location=default
+Annotations:  velero.io/source-cluster-k8s-gitversion: v1.20.0+bd9e442
+              velero.io/source-cluster-k8s-major-version: 1
+              velero.io/source-cluster-k8s-minor-version: 20
+API Version:  velero.io/v1
+Kind:         Backup
+
+[...]
+Spec:
+  Default Volumes To Restic:  false
+  Included Namespaces:
+    my-database-app. <1>
+  Snapshot Volumes:  false
+  Storage Location:  default
+  Ttl:               720h0m0s
+Status:
+  Completion Timestamp:  2021-03-20T00:42:22Z
+  Expiration:            2021-04-19T00:40:18Z
+  Format Version:        1.1.0
+  Phase:                 Completed. <2>
+  Progress:
+    Items Backed Up:  100 <3>
+    Total Items:      100
+  Start Timestamp:    2021-03-20T00:40:18Z
+  Version:            1
+Events:               <none>
+----
+<1> Namespace for which resources copied to object bucket
+<2> Successul backup with Completed status
+<3> The number of OpenShift resources backed up
+
+==== Scaling application down on primary cluster
+
+In order to simulate a Disaster Recovery (DR) event the application deployment will be scaled to zero. 
+
+Let's take a look at the *DeploymentConfig* for our application.
+
+[source,role="execute"]
+----
+oc get deploymentconfig -n my-database-app
+----
+.Example output:
+----
+NAME                     REVISION   DESIRED   CURRENT   TRIGGERED BY
+postgresql               1          1         1         config,image(postgresql:10)
+rails-pgsql-persistent   1          1         1         config,image(rails-pgsql-persistent:latest)
+----
+
+There are two *DeploymentConfig* to scale to zero.
+
+[source,role="execute"]
+----
+oc scale deploymentconfig postgresql -n my-database-app --replicas=0
+----
+.Example output:
+----
+deploymentconfig.apps.openshift.io/postgresql scaled
+----
+
+Now scale the second deployment to zero.
+
+[source,role="execute"]
+----
+oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0
+----
+.Example output:
+----
+deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
+----
+
+Check to see the *Pods* are deleted. The following command should return *_no_* results if both *DeploymentConfig* are scaled to zero.
+
+[source,role="execute"]
+----
+oc get pods -n my-database-app | grep Running
+----
+
+Test that the application is down on the *primary cluster* by refreshing the route in your browser or get route again and copy to browser tab.
+
+[source,role="execute"]
+----
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
+----
+
+You show see something like this now.
+
+.Sample application is offline
+image::sample-app-down-primary.png[Sample application is offline]
+
+==== Demoting and Promoting storage to alternate site
+
+In order to failover the storage on the *primary cluster* must be `demoted` and the storage on the *secondary cluster* must be `promoted. This is currently done on a per image basis using the *toolbox*. 
+
+Logon to the *toolbox* on the *primary cluster* to use Ceph commands.
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+----
+
+First `demote` the `postgresql` image on the *primary cluster*.
+
+IMPORTANT: Your image name will be different. Use your image name for following commands.
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror image demote csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+.Example output:
+----
+Image demoted to non-primary
+----
+
+Now logoon to the *toolbox* on the *secondary cluster* and `promote` the `postgresql` image.
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror image promote csi-vol-94953897-88fc-11eb-b175-0a580a06109
+----
+.Example output:
+----
+Image promoted to primary
+----
+
+Using the *toolbox* on the *secondary cluster* validate the image is now `promoted`.
+
+[source,role="execute"]
+----
+rbd -p replicapool info csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+.Example output from *secondary cluster*:
+----
+rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+	size 5 GiB in 1280 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 1
+	id: 74c39ad8d17a
+	block_name_prefix: rbd_data.74c39ad8d17a
+	format: 2
+	features: layering
+	op_features: 
+	flags: 
+	create_timestamp: Sun Mar 21 00:49:58 2021
+	access_timestamp: Sun Mar 21 00:49:58 2021
+	modify_timestamp: Sun Mar 21 00:49:58 2021
+	mirroring state: enabled
+	mirroring mode: snapshot
+	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
+	mirroring primary: true  <1>
+----
+<1> Image is now promoted on *secondary cluster*
+
+These steps would be repeated for every image that you want to `demote` and `promote` to the *secondary cluster*.
+
+You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
+
+[source,role="execute"]
+----
+exit
+----
+
+==== Restoring application to alternate cluster
+
+The last step in the process to failover to the *secondary cluster* or alternate cluster is to now use `OADP` and the *Restore* CR to copy the OpenShift metadata to the alternate cluster. The persistent data is already `mirrored` to the *secondary cluster* from the *primary cluster* and therefore does not need to be copied.
+
+Here is a sample `restore.yaml` file for the sample application:
+
+[source,yaml]
+----
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  namespace: oadp-operator
+  name: restore1
+spec:
+  backupName: backup1
+  includedNamespaces:
+  - my-database-app
+----
+
+Now create the *Restore* on the *secondary cluster* for the `my-database-app` namespace. You notice in the *Restore* that the `backup1` created earlier is referenced.
+
+IMPORTANT: Make sure to issue this command on the *secondary cluster* where you are creating the `my-database-app` namespace and the OpenShift resources.
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/restore.yaml | oc apply -f -
+----
+.Example output:
+----
+restore.velero.io/restore1 created
+----
+
+Verify the *Restore* completed successfully from your `S3` object bucket target using the following command:
+
+[source,role="execute"]
+----
+oc describe restore restore1 -n oadp-operator
+----
+.Example output:
+----
+TBD
+----
+
+Now check to see that the *PODs* and *PVC* are created correctly ini `my-database-app`namespace on *secondary cluster*.
+
+[source,role="execute"]
+----
+oc get pods,pvc -n my-database-app
+----
+.Example output:
+----
+TBD
+----
+
+==== Verifying application
