@@ -682,7 +682,7 @@ Copy your route (different than above) to a browser window to create articles.
 Enter the `username` and `password` below to create articles and comments.
 The articles and comments are saved in a PostgreSQL database which stores its
 table spaces on the Ceph RBD volume provisioned using the
-`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
+`ocs-storagecluster-ceph-mirror` *StorageClass* during the application
 deployment.
 
 ----
@@ -1031,10 +1031,13 @@ metadata:
 spec:
   includedNamespaces:
   - my-database-app
+  excludedResources:
+  - buildconfigs.build.openshift.io
+  - imagetags.image.openshift.io
   snapshotVolumes: false
 ----  
 
-Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`.
+Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`. Also, we do not need the application to build again in this case so `buildconfigs.build` is excluded from the backup operation.
 
 Now create the *Backup* for `my-database-app` namespace.
 
@@ -1067,26 +1070,30 @@ Kind:         Backup
 [...]
 Spec:
   Default Volumes To Restic:  false
+  Excluded Resources:  <1>
+    buildconfigs.build.openshift.io
+    imagetags.image.openshift.io  
   Included Namespaces:
-    my-database-app. <1>
+    my-database-app  <2>
   Snapshot Volumes:  false
   Storage Location:  default
   Ttl:               720h0m0s
 Status:
-  Completion Timestamp:  2021-03-20T00:42:22Z
-  Expiration:            2021-04-19T00:40:18Z
+  Completion Timestamp:  2021-03-22T19:18:57Z
+  Expiration:            2021-04-21T19:17:20Z
   Format Version:        1.1.0
-  Phase:                 Completed. <2>
+  Phase:                 Completed  <3>
   Progress:
-    Items Backed Up:  100 <3>
-    Total Items:      100
-  Start Timestamp:    2021-03-20T00:40:18Z
+    Items Backed Up:  88  <4>
+    Total Items:      88
+  Start Timestamp:    2021-03-22T19:17:20Z
   Version:            1
 Events:               <none>
 ----
-<1> Namespace for which resources copied to object bucket
-<2> Successul backup with Completed status
-<3> The number of OpenShift resources backed up
+<1> Excluded resources for backup
+<2> Namespace for which resources copied to object bucket
+<3> Successul backup with Completed status
+<4> The number of OpenShift resources backed up
 
 ==== Scaling application down on primary cluster
 
@@ -1212,6 +1219,21 @@ rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
 
 These steps would be repeated for every image that you want to `demote` and `promote` to the *secondary cluster*.
 
+Also validate that the `mirror pool status` is healthy on the *secondary cluster*.
+
+[source,role="execute"]
+----
+rbd -p replicapool mirror pool status
+----
+.Example output:
+----
+health: OK
+daemon health: OK
+image health: OK
+images: 1 total
+    1 replaying
+----
+
 You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
 
 [source,role="execute"]
@@ -1259,10 +1281,35 @@ oc describe restore restore1 -n oadp-operator
 ----
 .Example output:
 ----
-TBD
-----
+Name:         restore1
+Namespace:    oadp-operator
+Labels:       <none>
+Annotations:  <none>
 
-Now check to see that the *PODs* and *PVC* are created correctly ini `my-database-app`namespace on *secondary cluster*.
+Phase:  Completed
+
+[...]
+Backup:  backup1  <1>
+
+Namespaces:
+  Included:  my-database-app  <2>
+  Excluded:  <none>
+
+Resources:
+  Included:        *
+  Excluded:        nodes, events, events.events.k8s.io, backups.velero.io, restores.velero.io, resticrepositories.velero.io
+  Cluster-scoped:  auto
+
+Namespace mappings:  <none>
+
+Label selector:  <none>
+
+Restore PVs:  auto
+----
+<1> Name of backup used for restore operation
+<2> Namespace to be restored from backup1
+
+Now check to see that the *PODs* and *PVC* are created correctly in `my-database-app`namespace on *secondary cluster*.
 
 [source,role="execute"]
 ----
@@ -1270,7 +1317,60 @@ oc get pods,pvc -n my-database-app
 ----
 .Example output:
 ----
-TBD
+NAME                                    READY   STATUS      RESTARTS   AGE
+pod/postgresql-1-deploy                 0/1     Completed   0          12m
+pod/postgresql-1-hrjlh                  1/1     Running     0          12m
+pod/rails-pgsql-persistent-1-deploy     0/1     Completed   0          12m
+pod/rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          12m
+pod/rails-pgsql-persistent-1-lmr4c      1/1     Running     0          11m
+
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                     AGE
+persistentvolumeclaim/postgresql   Bound    pvc-ec266c85-6606-44d4-8d47-8a008d513d0e   5Gi        RWO            ocs-storagecluster-ceph-mirror   12m
 ----
 
 ==== Verifying application
+
+To verify the application on the *secondary cluster* you will want to access the application again and create a new article. 
+
+[source,role="execute"]
+----
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
+----
+
+This will return a route similar to this one.
+
+.Example output:
+----
+http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles
+----
+
+Copy your route (different than above) to a browser window to create another article on the *secondary cluster*.
+
+Enter the `username` and `password` below to create articles and comments.
+
+----
+username: openshift
+password: secret
+----
+
+Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
+
+[source,role="execute"]
+----
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "select * from articles"
+----
+.Example output:
+----
+You are now connected to database "root" as user "postgres".
+ id |     title      |                   body                   |         create
+d_at         |         updated_at         
+----+----------------+------------------------------------------+---------------
+-------------+----------------------------
+  2 | First Article  | This is article #1 on primary cluster.   | 2021-03-19 22:
+05:07.255362 | 2021-03-19 22:05:07.255362
+  3 | Second Article | This is article #2 on secondary cluster. | 2021-03-22 23:
+29:24.051123 | 2021-03-22 23:29:24.051123
+(2 rows)
+----
+
+You should see your first article created on the *primary cluster* and the second article created on the *secondary cluster*. The application is now verified and the failover is completed.

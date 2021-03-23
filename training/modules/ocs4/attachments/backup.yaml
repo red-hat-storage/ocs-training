@@ -6,4 +6,7 @@ metadata:
 spec:
   includedNamespaces:
   - my-database-app
+  excludedResources:
+  - buildconfigs.build.openshift.io
+  - imagetags.image.openshift.io
   snapshotVolumes: false
