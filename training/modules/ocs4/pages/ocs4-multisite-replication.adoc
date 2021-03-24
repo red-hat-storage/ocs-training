@@ -13,7 +13,7 @@
 
 The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the primary cluster.
 
-The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous storage replication. In order to also replicate the OCP metadata (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
+The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous storage replication. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
 
 === OpenShift Multisite Connectivity
 
@@ -719,11 +719,11 @@ t         |         updated_at
 (1 row)
 ----
 
-=== Installing OADP for OpenShift metadata
+=== Installing OADP for Kubernetes resource collection
 
 OADP (OpenShift APIs for Data Protection) is a community operator and is available in *OperatorHub*. 
 
-We will be using OADP for the `Backup` and `Restore` APIs for collecting the OpenShift metadata at a namespace level. This metadata collection is needed to restore the application on the *secondary cluster*.
+We will be using OADP for the `Backup` and `Restore` APIs for collecting the Kubernetes objects at a namespace level. The collection or backup of resources is needed to restore the application on the *secondary cluster*.
 
 ==== Installing OADP from OperatorHub
 
@@ -817,7 +817,7 @@ NOTE: If wanting to us a MCG or RGW `S3` object bucket instead of a bucket off p
 oc create -f velero-aws.yaml -n oadp-operator
 ----
 
-Validate that the `velero` pod is `Running` and that the *BackingStorageLocation* have been created as well that has the details to access your `S3` bucket for OpenShift metadata storage.
+Validate that the `velero` pod is `Running` and that the *BackingStorageLocation* have been created as well that has the details to access your `S3` bucket for Kubernetes object storage.
 
 [source,role="execute"]
 ----
@@ -838,14 +838,14 @@ IMPORTANT: Repeat these steps and install *OADP* on the *secondary cluster*. Mak
 
 === Failover to Secondary cluster
 
-The setup and configuration steps in the prior section have prepared the environment to support a failover event from the *primary cluster* to the *secondary cluster*. In our case this will be for just one namespace (my-database-app) that includes restoring the OpenShift metadata and persistent data stored in *PVCs*. The following steps will be followed for the failover:
+The setup and configuration steps in the prior section have prepared the environment to support a failover event from the *primary cluster* to the *secondary cluster*. In our case this will be for just one namespace (my-database-app) that includes restoring the Kubernetes objects and persistent data stored in *PVCs*. The following steps will be followed for the failover:
 [start=1]
 . Using the toolbox enable image(s) for replication via snapshot to peer cluster.
-. Use OADP and the `Backup` CR to collect OpenShift metadata for application namespace.
+. Use OADP and the `Backup` CR to collect Kubernetes objects for application namespace.
 . Scale application deployment down to take application offline.
 . Using the `toolbox` *demote* the storage for the application on the *primary cluster*.
 . Using the `toolbox` *promote* the storage on the *secondary cluster*.
-. Use OADP and the `Restore` CR to bring the application online.
+. Use OADP and the `Restore` CR to bring the application online using collected Kubernetes objects.
 . Verify use of the application on the *secondary cluster*.
 
 ==== Installing the toolbox for Ceph commands
@@ -1015,9 +1015,9 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
 exit
 ----
  
-==== Creating OpenShift metadata backup
+==== Creating Kubernetes resource backup
 
-The OpenShift metadata or resources have to be backup up and stored in a location where the *secondary cluster* can access. In this case using the `OADP` or `Velero` *Backup* API is how this will be done. 
+The Kubernetese objects or resources for the OpenShift namespace `my-database-app` have to be backed up and stored in a location where the *secondary cluster* can access. In this case using the `OADP` or `Velero` *Backup* API is how this will be done. 
 
 Here is a sample `backup.yaml` file for the sample application:
 
@@ -1032,12 +1032,22 @@ spec:
   includedNamespaces:
   - my-database-app
   excludedResources:
-  - buildconfigs.build.openshift.io
   - imagetags.image.openshift.io
   snapshotVolumes: false
 ----  
 
-Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`. Also, we do not need the application to build again in this case so `buildconfigs.build` is excluded from the backup operation.
+Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`.
+
+There is one additional resource to exclude that will be done by adding a label to the specific `configmap`. 
+
+[source,role="execute"]
+----
+oc label -n my-database-app configmaps rails-pgsql-persistent-1-ca velero.io/exclude-from-backup=true
+----
+.Example output:
+----
+configmap/rails-pgsql-persistent-1-ca labeled
+----
 
 Now create the *Backup* for `my-database-app` namespace.
 
@@ -1045,10 +1055,10 @@ Now create the *Backup* for `my-database-app` namespace.
 ----
 curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/backup.yaml | oc apply -f -
 ----
-----
 .Example output:
 ----
 backup.velero.io/backup1 created
+----
 
 Verify the *Backup* completed successfully to your `S3` object bucket target using the following command:
 
@@ -1071,7 +1081,6 @@ Kind:         Backup
 Spec:
   Default Volumes To Restic:  false
   Excluded Resources:  <1>
-    buildconfigs.build.openshift.io
     imagetags.image.openshift.io  
   Included Namespaces:
     my-database-app  <2>
@@ -1084,8 +1093,8 @@ Status:
   Format Version:        1.1.0
   Phase:                 Completed  <3>
   Progress:
-    Items Backed Up:  88  <4>
-    Total Items:      88
+    Items Backed Up:  63  <4>
+    Total Items:      63
   Start Timestamp:    2021-03-22T19:17:20Z
   Version:            1
 Events:               <none>
@@ -1093,7 +1102,7 @@ Events:               <none>
 <1> Excluded resources for backup
 <2> Namespace for which resources copied to object bucket
 <3> Successul backup with Completed status
-<4> The number of OpenShift resources backed up
+<4> The number of Kubernetes resources backed up
 
 ==== Scaling application down on primary cluster
 
@@ -1165,9 +1174,20 @@ TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
 oc rsh -n openshift-storage $TOOLS_POD
 ----
 
-First `demote` the `postgresql` image on the *primary cluster*.
+List the images in the *CephBlockPool* replicapool.
+
+[source,role="execute"]
+----
+rbd -p replicapool ls
+----
+.Example output:
+----
+csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
 
 IMPORTANT: Your image name will be different. Use your image name for following commands.
+
+First `demote` the `postgresql` image on the *primary cluster*.
 
 [source,role="execute"]
 ----
@@ -1178,7 +1198,7 @@ rbd -p replicapool mirror image demote csi-vol-94953897-88fc-11eb-b175-0a580a061
 Image demoted to non-primary
 ----
 
-Now logoon to the *toolbox* on the *secondary cluster* and `promote` the `postgresql` image.
+Now logon to the *toolbox* on the *secondary cluster* and `promote` the `postgresql` image.
 
 [source,role="execute"]
 ----
@@ -1243,9 +1263,9 @@ exit
 
 ==== Restoring application to alternate cluster
 
-The last step in the process to failover to the *secondary cluster* or alternate cluster is to now use `OADP` and the *Restore* CR to copy the OpenShift metadata to the alternate cluster. The persistent data is already `mirrored` to the *secondary cluster* from the *primary cluster* and therefore does not need to be copied.
+The last step in the process to failover to the *secondary cluster* or alternate cluster is to now use `OADP` and the *Restore* CR to copy the Kubernetes objects to the alternate cluster. The persistent data is already `mirrored` to the *secondary cluster* from the *primary cluster* and therefore does not need to be copied.
 
-Here is a sample `restore.yaml` file for the sample application:
+Here is a the `restore.yaml` file for the sample application:
 
 [source,yaml]
 ----
@@ -1262,7 +1282,7 @@ spec:
 
 Now create the *Restore* on the *secondary cluster* for the `my-database-app` namespace. You notice in the *Restore* that the `backup1` created earlier is referenced.
 
-IMPORTANT: Make sure to issue this command on the *secondary cluster* where you are creating the `my-database-app` namespace and the OpenShift resources.
+IMPORTANT: Make sure to issue this command on the *secondary cluster*. The namespace `my-database-app` should not exist on the *secondary cluster* yet.
 
 [source,role="execute"]
 ----
@@ -1285,31 +1305,33 @@ Name:         restore1
 Namespace:    oadp-operator
 Labels:       <none>
 Annotations:  <none>
-
-Phase:  Completed
+API Version:  velero.io/v1
+Kind:         Restore
 
 [...]
-Backup:  backup1  <1>
-
-Namespaces:
-  Included:  my-database-app  <2>
-  Excluded:  <none>
-
-Resources:
-  Included:        *
-  Excluded:        nodes, events, events.events.k8s.io, backups.velero.io, restores.velero.io, resticrepositories.velero.io
-  Cluster-scoped:  auto
-
-Namespace mappings:  <none>
-
-Label selector:  <none>
-
-Restore PVs:  auto
+Spec:
+  Backup Name:  backup1  <1>
+  Excluded Resources:
+    nodes
+    events
+    events.events.k8s.io
+    backups.velero.io
+    restores.velero.io
+    resticrepositories.velero.io
+  Included Namespaces:
+    my-database-app <2>
+Status:
+  Completion Timestamp:  2021-03-23T23:51:43Z
+  Phase:                 Completed  <3>
+  Start Timestamp:       2021-03-23T23:51:28Z
+  Warnings:              7
+Events:                  <none>
 ----
 <1> Name of backup used for restore operation
 <2> Namespace to be restored from backup1
+<3> Successul restore with Completed status 
 
-Now check to see that the *PODs* and *PVC* are created correctly in `my-database-app`namespace on *secondary cluster*.
+Check to see that the *PODs* and *PVC* are created correctly in `my-database-app`namespace on *secondary cluster*.
 
 [source,role="execute"]
 ----
@@ -1318,14 +1340,17 @@ oc get pods,pvc -n my-database-app
 .Example output:
 ----
 NAME                                    READY   STATUS      RESTARTS   AGE
-pod/postgresql-1-deploy                 0/1     Completed   0          12m
-pod/postgresql-1-hrjlh                  1/1     Running     0          12m
-pod/rails-pgsql-persistent-1-deploy     0/1     Completed   0          12m
-pod/rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          12m
-pod/rails-pgsql-persistent-1-lmr4c      1/1     Running     0          11m
+pod/postgresql-1-deploy                 0/1     Completed   0          9m10s
+pod/postgresql-1-nld26                  1/1     Running     0          9m7s
+pod/rails-pgsql-persistent-1-build      0/1     Completed   0          9m4s
+pod/rails-pgsql-persistent-1-deploy     0/1     Completed   0          9m4s
+pod/rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          9m1s
+pod/rails-pgsql-persistent-2-4b28n      1/1     Running     0          6m39s
+pod/rails-pgsql-persistent-2-deploy     0/1     Completed   0          7m1s
+pod/rails-pgsql-persistent-2-hook-pre   0/1     Completed   0          6m58s
 
 NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                     AGE
-persistentvolumeclaim/postgresql   Bound    pvc-ec266c85-6606-44d4-8d47-8a008d513d0e   5Gi        RWO            ocs-storagecluster-ceph-mirror   12m
+persistentvolumeclaim/postgresql   Bound    pvc-c1b313c2-8e96-45b0-b9c8-57864b9437e7   5Gi        RWO            ocs-storagecluster-ceph-mirror   9m13s
 ----
 
 ==== Verifying application
@@ -1374,3 +1399,9 @@ d_at         |         updated_at
 ----
 
 You should see your first article created on the *primary cluster* and the second article created on the *secondary cluster*. The application is now verified and the failover is completed.
+
+IMPORTANT: If you want to delete the `my-database-app` project from the *secondary cluster* and the *primary cluster* it is important to modify the associated *PV* `reclaimPolicy` from `Retain` to `Delete`. Then, when the `my-database-app` project and *PVC* is deleted, the associated *PV* will be deleted as well as the associated image in Ceph.
+
+=== Failback to Primary cluster
+
+In order to failback to the *primary cluster* from the *secondary cluster* repeat the steps for failover except reverse the order between primary and secondary. If the *primary cluster* has been offline for some amount of time it could be necessary to either `force promote` or `resync` the image{s} using the *toolbox*.
