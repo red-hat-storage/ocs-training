@@ -11,13 +11,15 @@
 
 == Overview
 
-The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the primary cluster.
+The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*.
 
-The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous storage replication. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
+The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
 
 === OpenShift Multisite Connectivity
 
-For this solution to work the OpenShift SDNs (Software Defined Networks) must be connected so that `OpenShift Container Storage` (OCS) resources can communicate, in particular the Ceph Monitors on the two different clusters must have connectivity. There are various ways to connect the private SDNs and the choice for this guide is to use `Submariner`.
+For this solution to work the OpenShift SDNs (Software Defined Networks) must be connected so that `OpenShift Container Storage` (OCS) resources can communicate. In particular there needs to be network connectivity between the RBD Mirror *POD* or daemon deployed in each cluster. 
+
+There are various ways to connect the private SDNs and the choice for this guide is to use `Submariner`.
 
 IMPORTANT: Whatever way the OCP clusters are connected, the default `IP CIDRs` (Classless inter-domain routing) for cluster and service networking must be modified to be different on one of the clusters to avoid addressing conflicts.
 
@@ -78,7 +80,7 @@ networking:
 <1> clusterNetwork for site2
 <2> serviceNetwork for site2
 
-If you already have your OCP clusters deployed, you can check your clusterNetwork and serviceNetwork configuration like this:
+If you already have your OCP clusters deployed, you can check your clusterNetwork and serviceNetwork configuration using the following command:
 
 [source,role="execute"]
 ----
@@ -153,7 +155,7 @@ export PATH=$PATH:~/.local/bin
 
 NOTE: Add exported path for `subctl` in your deploy host `.profile` or `.bashrc`.
 
-Once the two OCP clusters are created note the location of their unique `kubeconfig` (i.e.~/site1/auth/kubeconfig).
+Once the two OCP clusters are created, note the location of their unique `kubeconfig` (i.e.~/site1/auth/kubeconfig).
 
 ==== Submariner Installation
 
@@ -411,7 +413,7 @@ In order for the `rbd-mirror` daemon to discover its peer cluster, the peer must
 
 For `Bootstrapping` a peer cluster it's bootstrap secret is required.
 
-NOTE: Execute the following commands on the *secondary cluster* or `site2` cluster first.
+IMPORTANT: Execute the following commands on the *secondary cluster* or `site2` cluster first.
 
 To determine the name of the secret that contains the bootstrap secret do the following:
 
@@ -446,11 +448,11 @@ oc --kubeconfig site2/auth/kubeconfig get cephblockpools.ceph.rook.io replicapoo
 59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage
 ----
 
-NOTE: Execute the following command on the *primary cluster* or `site1` cluster.
+IMPORTANT: Execute the following command on the *primary cluster* or `site1` cluster.
 
 With the decoded value, create a secret on the *primary cluster*, using the site name of the *secondary cluster* from prior step as the secret name.
 
-IMPORTANT: *Make sure to replace site name and token with the values from your clusters.*
+CAUTION: *Make sure to replace site name and token with the values from your clusters.*
 
 ----
 oc --kubeconfig site1/auth/kubeconfig -n openshift-storage \
@@ -465,11 +467,11 @@ secret/59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage created
 
 This completes the bootstrap process for the *primary cluster* to the *secondary cluster* or site1 to site2.
 
-NOTE: Repeat the process switching the steps for the *secondary cluster* and the *primary cluster*.
+IMPORTANT: Repeat the process switching the steps for the *secondary cluster* and the *primary cluster*.
 
 After generating the *primary cluster* site name and token the following example command is done on the *secondary cluster*.
 
-IMPORTANT: *Make sure to replace site name and token with the values from your clusters.*
+CAUTION: *Make sure to replace site name and token with the values from your clusters.*
 
 ----
 oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
@@ -486,7 +488,7 @@ This completes the bootstrap process for the *secondary cluster* to the *primary
 
 ===== Create RBD Mirror Custom Resource
 
-Replication is handled by the `rbd-mirror` daemon. The `rbd-mirror` daemon is responsible for pulling image updates from the *secondary cluster*, and applying them to images within the local cluster.
+Replication is handled by the `rbd-mirror` daemon. The `rbd-mirror` daemon is responsible for pulling image updates from the *_remote_* cluster, and applying them to images within the local cluster.
 
 The `rbd-mirror` daemon(s) can be created using a custom resource (CR). There must be a `rbd-mirror` daemon or *Pod* created on the *primary cluster* and the *secondary cluster* using this CR:
 
@@ -567,9 +569,11 @@ You have now completed the steps for configuring *RBD Mirroring* between the *pr
 
 === Creating Mirror storage class and Sample application
 
+In order to fully understand the process of failover between clusters we need to deploy a sample application for validation after failover. Also, the default Ceph RBD *StorageClasse* created when OCS is installed is not useable for this testing given these instructions have you create a new *CephBlockPool* named `replicapool`.
+
 ==== Storageclass for volume replication
 
-Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* replicapool that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` verses `Delete` as it for the OCS default *StorageClasses*.
+Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* `replicapool` that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` rather than `Delete` as it for the OCS default *StorageClasses*.
 
 Example *StorageClass*:
 
@@ -1261,9 +1265,9 @@ You can exit the toolbox by either pressing kbd:[Ctrl+D] or by executing exit.
 exit
 ----
 
-==== Restoring application to alternate cluster
+==== Restoring application to secondary cluster
 
-The last step in the process to failover to the *secondary cluster* or alternate cluster is to now use `OADP` and the *Restore* CR to copy the Kubernetes objects to the alternate cluster. The persistent data is already `mirrored` to the *secondary cluster* from the *primary cluster* and therefore does not need to be copied.
+The last step in the process to failover to the *secondary cluster* is to now use `OADP` and the *Restore* CR to copy the Kubernetes objects to the *_remote_* cluster. The persistent data is already `mirrored` to the *secondary cluster* from the *primary cluster* and therefore does not need to be copied.
 
 Here is a the `restore.yaml` file for the sample application:
 
