@@ -284,7 +284,7 @@ Ran 11 of 34 Specs in 159.666 seconds
 SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped
 ----
 
-You can also verify the connectivity this way using site specific kubeconfig and `subctl show connections`.
+You can also verify the connectivity using site specific kubeconfig and `subctl show connections`.
 
 [source,role="execute"]
 ----
@@ -314,11 +314,11 @@ Mirroring is configured on a per-pool basis within peer clusters and can be conf
 
 ==== OpenShift Container Storage Installation
 
-In order to configure storage replication between the two OCP instances `OpenShift Container Storage` must be installed first. Documentation for the deployment can be found at https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage.
+In order to configure storage replication between the two OCP instances `OpenShift Container Storage` (OCS) must be installed first. Documentation for the deployment can be found at https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage.
 
 OCS deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.). Install OCS version *4.7* or greater on both OCP clusters.
 
-You can validate the successful deployment of the OCS on each OCP instance you with the following:
+You can validate the successful deployment of OCS on each OCP instance with the following command:
 
 [source,role="execute"]
 ----
@@ -389,7 +389,7 @@ spec:
    statusCheck:
      mirror:
        disabled: false
-       interval: 60
+       interval: 60s
 ----
 
 NOTE: The `snapshotSchedules` is a global value for the specific *CephBlockPool* used to configure the snapshot interval between peers for `mirror-enabled` volumes in this pool.
@@ -506,14 +506,14 @@ spec:
     secretNames:
       # list of Kubernetes Secrets containing the peer token
       - SECRET  # <-- Fill in correct value
-    resources:
-      # The pod requests and limits
-      limits:
-        cpu: "1"
-        memory: "2Gi"
-      requests:
-        cpu: "1"
-        memory: "2Gi"
+  resources:
+    # The pod requests and limits
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+    requests:
+      cpu: "1"
+      memory: "2Gi"
 ----
 
 To get the `secret` for the *primary cluster* or site1 do the following:
