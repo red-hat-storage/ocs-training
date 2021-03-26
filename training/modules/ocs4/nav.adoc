@@ -1,5 +1,6 @@
 * xref:ocs.adoc[General deploy and use]
 * xref:ocs4-install-no-ui.adoc[CLI based install]
 * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
+* xref:ocs4-multisite-replication.adoc[Multisite disaster recovery]
 * xref:ocs4-cluster-downsize.adoc[Downsize existing OCS cluster]
 * xref:ocs4-enable-rgw.adoc[Use RGW in OCS deployment]
