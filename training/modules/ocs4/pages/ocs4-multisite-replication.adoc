@@ -308,6 +308,8 @@ site1-fqldq-worker-975qq        site1                   10.70.56.191    libreswa
 
 Now that the two OCP instances have their `clusterNetwork` and `serviceNetwork` connected the next step is to install `OpenShift Container Storage` version *4.7* and configure storage replication or `RDB Mirroring`.
 
+NOTE: For the rest of the instructions `site1` will be referred to as the OCP *primary cluster* and `site2` will be referred to as OCP *secondary cluster*.
+
 === Configuring Multisite Storage Replication
 
 Mirroring is configured on a per-pool basis within peer clusters and can be configured on a specific subset of images within the pool. The `rbd-mirror` daemon is responsible for pulling image updates from the remote peer cluster and applying them to the image within the local cluster.
@@ -325,7 +327,7 @@ You can validate the successful deployment of OCS on each OCP instance with the 
 oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.status.phase}{"\n"}'
 ----
 
-If result is `Ready` on `site1` and `site2` clusters you are ready to continue.
+If result is `Ready` on *primary cluster* and *secondary cluster* you are ready to continue.
 
 ==== Configuring RBD Mirroring between OCS clusters
 
@@ -335,7 +337,7 @@ The next step will be to create the mirroring relationship between the two OCS c
 
 Omap generator is a sidecar container that, when deployed with the CSI provisioner pod, generates the internal CSI omaps between the PV and the RBD image. The name of the new container is `csi-omap-generator`. This is required as static *PVs* are transferred across peer clusters in the DR use case, and hence is needed to preserve *PVC* to storage mappings.
 
-Execute these steps on each of the OCP `site1` and `site2` clusters to enable the OMAP generator.
+Execute these steps on the *primary cluster* and the *seconday cluster* to enable the OMAP generator.
 
 Edit the rook-ceph-operator-config configmap and add `CSI_ENABLE_OMAP_GENERATOR` set to true.
 
@@ -361,7 +363,7 @@ csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-
 
 There are two `csi-rbdplugin-provisioner` pods for availability so there should be two groups of the same 7 containers for each pod.
 
-IMPORTANT: Repeat these steps for the *remote cluster* or `site2` before proceeding and also repeat the validation for the new `csi-omap-generator` container.
+IMPORTANT: Repeat these steps for the *secondary cluster* before proceeding and also repeat the validation for the new `csi-omap-generator` container.
 
 ===== Create Ceph Pools for replication
 
@@ -392,7 +394,7 @@ spec:
        interval: 60s
 ----
 
-NOTE: The `snapshotSchedules` is a global value for the specific *CephBlockPool* used to configure the snapshot interval between peers for `mirror-enabled` volumes in this pool.
+NOTE: The `snapshotSchedules` is a global value for the specific *CephBlockPool* used to configure the snapshot interval between peers for `mirror-enabled` volumes in this pool. It can be as shorter if desired (i.e., 60s).
 
 Now create new *CephBlockPool*.
 
@@ -405,17 +407,15 @@ curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/tr
 cephblockpool.ceph.rook.io/replicapool created
 ----
 
-IMPORTANT: Repeat the steps on the OCP *secondary cluster* or `site2`.
+IMPORTANT: Repeat the steps on the OCP *secondary cluster*.
 
 ===== Bootstrap Peer Clusters
 
 In order for the `rbd-mirror` daemon to discover its peer cluster, the peer must be registered and a user account must be created. The following steps enables `Bootstrapping` peers to discover and authenticate to each other.
 
-For `Bootstrapping` a peer cluster it's bootstrap secret is required.
+IMPORTANT: Execute the following commands on the *secondary cluster* first.
 
-IMPORTANT: Execute the following commands on the *secondary cluster* or `site2` cluster first.
-
-To determine the name of the secret that contains the bootstrap secret do the following:
+To determine the name of the `rbd-mirror` secret that contains the bootstrap secret do the following:
 
 [source,role="execute"]
 ----
@@ -426,7 +426,7 @@ oc --kubeconfig site2/auth/kubeconfig get cephblockpool.ceph.rook.io/replicapool
 pool-peer-token-replicapool
 ----
 
-The secret `pool-peer-token-replicapool` contains all the information related to the token and needs to be injected to the peer, to fetch the decoded secret do the following:
+The secret `pool-peer-token-replicapool` contains all the information related to the token and needs to be injected into the peer. To find the decoded secret do the following:
 
 [source,role="execute"]
 ----
@@ -434,10 +434,10 @@ oc --kubeconfig site2/auth/kubeconfig get secrets pool-peer-token-replicapool -n
 ----
 .Example output:
 ----
-eyJmc2lkIjoiNTliODkwMjEtM2VlMi00YTI1LWIwODctYjQzZWU4MGIzZGRlIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFCd3pVSmdGWVFySXhBQU5NR3AyK3BrR2hJa1dzMXBFclN4ZUE9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi4yNDQuMTQ2OjMzMDAsdjE6MTAuMTEyLjI0NC4xNDY6Njc4OV0sW3YyOjEwLjExMi4xMDMuNTU6MzMwMCx2MToxMC4xMTIuMTAzLjU1OjY3ODldLFt2MjoxMC4xMTIuMTI0LjExOTozMzAwLHYxOjEwLjExMi4xMjQuMTE5OjY3ODldIn0=
+eyJmc2lkIjoiYjg4OGRlNjEtODUyMC00MzgxLWE4ODMtMzY2ZTY0YmQ0MDBmIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDOCtWTmdkNURnQkJBQUd5S0l0VE9ac3FneVM3SEMrTXh5bGc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi43MS4xNTU6MzMwMCx2MToxMC4xMTIuNzEuMTU1OjY3ODldLFt2MjoxMC4xMTIuMTI3LjE0ODozMzAwLHYxOjEwLjExMi4xMjcuMTQ4OjY3ODldLFt2MjoxMC4xMTIuNzAuMjUzOjMzMDAsdjE6MTAuMTEyLjcwLjI1Mzo2Nzg5XSJ9
 ----
 
-Now get the site name for the *secondary cluster* or `site2` cluster:
+Now get the site name for the *secondary cluster*:
 
 [source,role="execute"]
 ----
@@ -445,46 +445,79 @@ oc --kubeconfig site2/auth/kubeconfig get cephblockpools.ceph.rook.io replicapoo
 ----
 .Example output:
 ----
-59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage
+b888de61-8520-4381-a883-366e64bd400f-openshift-storage
 ----
 
-IMPORTANT: Execute the following command on the *primary cluster* or `site1` cluster.
+IMPORTANT: Execute the following command on the *primary cluster*.
 
 With the decoded value, create a secret on the *primary cluster*, using the site name of the *secondary cluster* from prior step as the secret name.
 
-CAUTION: *Make sure to replace site name and token with the values from your clusters.*
+CAUTION: *Make sure to replace site name and token with the values from your cluster.*
 
 ----
 oc --kubeconfig site1/auth/kubeconfig -n openshift-storage \
-  create secret generic 59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage \
-  --from-literal=token=eyJmc2lkIjoiNTliODkwMjEtM2VlMi00YTI1LWIwODctYjQzZWU4MGIzZGRlIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFCd3pVSmdGWVFySXhBQU5NR3AyK3BrR2hJa1dzMXBFclN4ZUE9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi4yNDQuMTQ2OjMzMDAsdjE6MTAuMTEyLjI0NC4xNDY6Njc4OV0sW3YyOjEwLjExMi4xMDMuNTU6MzMwMCx2MToxMC4xMTIuMTAzLjU1OjY3ODldLFt2MjoxMC4xMTIuMTI0LjExOTozMzAwLHYxOjEwLjExMi4xMjQuMTE5OjY3ODldIn0= \
+  create secret generic b888de61-8520-4381-a883-366e64bd400f-openshift-storage \
+  --from-literal=token=eyJmc2lkIjoiYjg4OGRlNjEtODUyMC00MzgxLWE4ODMtMzY2ZTY0YmQ0MDBmIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDOCtWTmdkNURnQkJBQUd5S0l0VE9ac3FneVM3SEMrTXh5bGc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi43MS4xNTU6MzMwMCx2MToxMC4xMTIuNzEuMTU1OjY3ODldLFt2MjoxMC4xMTIuMTI3LjE0ODozMzAwLHYxOjEwLjExMi4xMjcuMTQ4OjY3ODldLFt2MjoxMC4xMTIuNzAuMjUzOjMzMDAsdjE6MTAuMTEyLjcwLjI1Mzo2Nzg5XSJ9 \
   --from-literal=pool=replicapool
 ----
 .Example output:
 ----
-secret/59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage created
+secret/b888de61-8520-4381-a883-366e64bd400f-openshift-storage created
 ----
 
-This completes the bootstrap process for the *primary cluster* to the *secondary cluster* or site1 to site2.
+This completes the bootstrap process for the *primary cluster* to the *secondary cluster*.
 
 IMPORTANT: Repeat the process switching the steps for the *secondary cluster* and the *primary cluster*.
 
-After generating the *primary cluster* site name and token the following example command is done on the *secondary cluster*.
+To determine the name of the `rbd-mirror` secret that contains the bootstrap secret do the following:
 
-CAUTION: *Make sure to replace site name and token with the values from your clusters.*
+[source,role="execute"]
+----
+oc --kubeconfig site1/auth/kubeconfig get cephblockpool.ceph.rook.io/replicapool -n openshift-storage -ojsonpath='{.status.info.rbdMirrorBootstrapPeerSecretName}{"\n"}'
+----
+.Example output:
+----
+pool-peer-token-replicapool
+----
+
+The secret `pool-peer-token-replicapool` is the same as found in the *secondary cluster*. To find the decoded secret for the *primary cluster* do the following:
+
+[source,role="execute"]
+----
+oc --kubeconfig site1/auth/kubeconfig get secrets pool-peer-token-replicapool -n openshift-storage -o jsonpath='{.data.token}' | base64 -d
+----
+.Example output:
+----
+eyJmc2lkIjoiZjI4YWJjZjktMWZmZS00MWEwLWJkMmYtZjQzMDU2NGYwZWU1IiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDeStWTmdHQ25GQWhBQU5MNWQ1Zk9IQ1lMcTFYRDBSTkxMRHc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2Ljc1LjE2NTozMzAwLHYxOjEwLjE2Ljc1LjE2NTo2Nzg5XSxbdjI6MTAuMTYuMTc2LjEwMTozMzAwLHYxOjEwLjE2LjE3Ni4xMDE6Njc4OV0sW3YyOjEwLjE2LjI0OC4yNDM6MzMwMCx2MToxMC4xNi4yNDguMjQzOjY3ODldIn0=
+----
+
+Now get the site name for the *primary cluster*:
+
+[source,role="execute"]
+----
+oc --kubeconfig site1/auth/kubeconfig get cephblockpools.ceph.rook.io replicapool -n openshift-storage -o jsonpath='{.status.mirroringInfo.summary.summary.site_name}{"\n"}'
+----
+.Example output:
+----
+f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage
+----
+
+IMPORTANT: Execute the following command on the *secondary cluster*.
+
+CAUTION: *Make sure to replace site name and token with the values from your cluster.*
 
 ----
 oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
-  create secret generic dc12a67b-d82c-4b7c-b3d7-60a44d973772-openshift-storage \
-  --from-literal=token=eyJmc2lkIjoiZGMxMmE2N2ItZDgyYy00YjdjLWIzZDctNjBhNDRkOTczNzcyIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFBY3pVSmdUTjZKT0JBQWlXZDNBV3UxeE41N1NrMVd0L3owaUE9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2LjIzOS40OjMzMDAsdjE6MTAuMTYuMjM5LjQ6Njc4OV0sW3YyOjEwLjE2LjE2My4xMzI6MzMwMCx2MToxMC4xNi4xNjMuMTMyOjY3ODldLFt2MjoxMC4xNi40NC44NTozMzAwLHYxOjEwLjE2LjQ0Ljg1OjY3ODldIn0= \
+  create secret generic f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage \
+  --from-literal=token=eyJmc2lkIjoiZjI4YWJjZjktMWZmZS00MWEwLWJkMmYtZjQzMDU2NGYwZWU1IiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDeStWTmdHQ25GQWhBQU5MNWQ1Zk9IQ1lMcTFYRDBSTkxMRHc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2Ljc1LjE2NTozMzAwLHYxOjEwLjE2Ljc1LjE2NTo2Nzg5XSxbdjI6MTAuMTYuMTc2LjEwMTozMzAwLHYxOjEwLjE2LjE3Ni4xMDE6Njc4OV0sW3YyOjEwLjE2LjI0OC4yNDM6MzMwMCx2MToxMC4xNi4yNDguMjQzOjY3ODldIn0= \
   --from-literal=pool=replicapool
 ----
 .Example output:
 ----
-secret/dc12a67b-d82c-4b7c-b3d7-60a44d973772-openshift-storage created
+secret/f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage created
 ----
 
-This completes the bootstrap process for the *secondary cluster* to the *primary cluster* or site2 to site1.
+This completes the bootstrap process for the *secondary cluster* to the *primary cluster*.
 
 ===== Create RBD Mirror Custom Resource
 
@@ -516,7 +549,7 @@ spec:
       memory: "2Gi"
 ----
 
-To get the `secret` for the *primary cluster* or site1 do the following:
+To get the `secret` for the *primary cluster* do the following:
 
 [source,role="execute"]
 ----
@@ -543,7 +576,7 @@ Check to see if the new`rbd-mirror` *Pod* is created and `Running`.
 
 [source,role="execute"]
 ----
-oc get pods -n openshift-storage | grep rbd-mirror
+oc get pods -l 'app=rook-ceph-rbd-mirror' -n openshift-storage
 ----
 .Example output:
 ----
@@ -561,11 +594,11 @@ oc get cephblockpools.ceph.rook.io replicapool -n openshift-storage -o jsonpath=
 {"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}
 ----
 
-Now repeat process for *secondary cluster* or `site2`.
+Now repeat process for *secondary cluster*.
 
 IMPORTANT: Make sure to do all steps above on the *secondary cluster*. The results for `SECRET` should be different than the *primary cluster* as a way to check you are on the *secondary cluster*.
 
-You have now completed the steps for configuring *RBD Mirroring* between the *primary cluster* and the *secondary cluster* or site1 and site2. The next sections will cover how to enable Ceph RBD images (volumes) for mirroring data from site1 to site2 asynchronously. Also, using a sample application, detailed instructions will be provided on how to `failover` from site1 to site2 and how to `failback` the application all the while preserving the persistent data.
+You have now completed the steps for configuring *RBD Mirroring* between the *primary cluster* and the *secondary cluster*. The next sections will cover how to enable Ceph RBD images (volumes) for mirroring data between clusters asynchronously. Also, using a sample application, detailed instructions will be provided on how to `failover` from *primary cluster* to the *secondary cluster* all the while preserving the persistent data.
 
 === Creating Mirror storage class and Sample application
 
@@ -573,7 +606,9 @@ In order to fully understand the process of failover between clusters we need to
 
 ==== Storageclass for volume replication
 
-Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* `replicapool` that was created in prior section. Also, the `reclaimPolicy` needs to be `Retain` rather than `Delete` as it for the OCS default *StorageClasses*.
+Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* `replicapool` that was created in prior section. 
+
+NOTE: The `reclaimPolicy` needs to be `Retain` rather than `Delete` which is the usual default setting. This is needed to *_retain_* the image in Ceph even if the associated *PVC* and *PV* are deleted in OCP.
 
 Example *StorageClass*:
 
@@ -784,7 +819,9 @@ oc create secret generic cloud-credentials --namespace oadp-operator --from-file
 
 ==== Creating Velero resource
 
-The velero YAML file needs to be modified to be correct for your `S3` bucket. The example is for a `S3` bucket on AWS saved as file `velero-aws.yaml`.
+The velero YAML file needs to be modified to be correct for your `S3` bucket. The example is for a `S3` bucket on *AWS* saved as file `velero-aws.yaml`. It is recommended to use an object bucket `off-platform` meaning not backed by storage in the *primary cluster* or the *secondary cluster*.
+
+NOTE: Your velero YAML file will be slightly different if using a `S3` object bucket from a different provider (GCP, Azure), from an external Ceph cluster with `RGW`, or from OCS `MCG`.
 
 [source,yaml]
 ----
@@ -798,13 +835,13 @@ spec:
   backup_storage_locations:
     - config:
         profile: default
-        region: us-east-2  # <-- Modify to your AWS region
+        region: us-east-2  # <-- Modify to bucket AWS region or region for your provider
       credentials_secret_ref:
         name: cloud-credentials
         namespace: oadp-operator
       name: default
       object_storage:
-        bucket: oadp-xxxxxx # Modify to your AWS bucket name
+        bucket: oadp-xxxxxx # Modify to your bucket name
         prefix: velero
       provider: aws
   default_velero_plugins:
@@ -815,7 +852,7 @@ spec:
 
 Once you have your unique values copied into your YAML file create the `Velero` CR.
 
-NOTE: If wanting to us a MCG or RGW `S3` object bucket instead of a bucket off platform (i.e. AWS) as recommended, reference these instructions https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md.
+NOTE: If wanting to us a `MCG` object bucket instead of a bucket `off-platform` (i.e. AWS) as recommended, reference these instructions https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md.
 
 ----
 oc create -f velero-aws.yaml -n oadp-operator
@@ -1110,7 +1147,7 @@ Events:               <none>
 
 ==== Scaling application down on primary cluster
 
-In order to simulate a Disaster Recovery (DR) event the application deployment will be scaled to zero. 
+The reason for Disaster Recovery (DR) of an OCP cluster or application would usually happen because the *primary cluster* has become partially or completely unavailable. In order to simulate this behavior for our sample application the easiest way is to scale the deployments down on the *primary cluster* so as to make the application unavailable.
 
 Let's take a look at the *DeploymentConfig* for our application.
 
