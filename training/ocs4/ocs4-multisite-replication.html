@@ -150,7 +150,11 @@
 <li><a href="#_on_all_platforms">On all platforms</a></li>
 </ul>
 </li>
-<li><a href="#_submariner_installation">1.1.2. Submariner Installation</a></li>
+<li><a href="#_submariner_installation">1.1.2. Submariner Installation</a>
+<ul class="sectlevel4">
+<li><a href="#_verifying_submariner_connectivity">Verifying Submariner connectivity</a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li><a href="#_configuring_multisite_storage_replication">1.2. Configuring Multisite Storage Replication</a>
@@ -182,7 +186,7 @@
 <li><a href="#_failover_to_secondary_cluster">1.5. Failover to Secondary cluster</a>
 <ul class="sectlevel3">
 <li><a href="#_installing_the_toolbox_for_ceph_commands">1.5.1. Installing the toolbox for Ceph commands</a></li>
-<li><a href="#_enable_images_for_snapshot_replication">1.5.2. Enable images for snapshot replication</a></li>
+<li><a href="#_enable_volumes_for_snapshot_replication">1.5.2. Enable volumes for snapshot replication</a></li>
 <li><a href="#_creating_kubernetes_resource_backup">1.5.3. Creating Kubernetes resource backup</a></li>
 <li><a href="#_scaling_application_down_on_primary_cluster">1.5.4. Scaling application down on primary cluster</a></li>
 <li><a href="#_demoting_and_promoting_storage_to_alternate_site">1.5.5. Demoting and Promoting storage to alternate site</a></li>
@@ -203,6 +207,85 @@
 </div>
 <div class="paragraph">
 <p>The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and <code>OpenShift Container Storage</code> (OCS) installed on both OCP clusters. OCS version <strong>4.7</strong> (or greater) is required for the <code>RBD Mirroring</code> feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero <code>Backup</code> and <code>Restore</code> APIs exposed via the OCP community operator <code>OpenShift APIs for Data Protection</code> or <code>OADP</code>.</p>
+</div>
+<div class="paragraph">
+<p>This is a general overview of the steps required to configure asynchronous DR capabilities via OCS <strong>4.7</strong> across two distinct OCP clusters separated by distance.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+These steps are considered Dev Preview in OCS 4.7, and are provided for POCs purposes. They will be supported for production usage in a later OCS release.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p><strong>Ensure clusters have unique private network address ranges.</strong><br>
+Ensure the primary and secondary OCP clusters have unique private network address ranges.</p>
+</li>
+<li>
+<p><strong>Connect the two private networks.</strong><br>
+Connect the private networks (cluster and service) using submariner.</p>
+</li>
+<li>
+<p><strong>Install OCS 4.7.</strong><br>
+Install OCS 4.7 on primary and secondary OCP clusters and validate deployment.</p>
+</li>
+<li>
+<p><strong>Create new CephBlockPool.</strong><br>
+To clearly keep mirrored volumes separate from any production volumes in this POC, we will create a new CephBlockPool on both primary and secondary OCP clusters. We will limit RBD Mirroring to only RBD volumes from within this new pool.</p>
+</li>
+<li>
+<p><strong>Configure peer relationship between clusters.</strong><br>
+Configure peer relationship between OCS clusters and create RBD Mirroring daemons.</p>
+</li>
+<li>
+<p><strong>Create new StorageClass.</strong><br>
+To clearly keep mirrored PVs separate from any production PVs in this POC, we will create a new StorageClass for PVCs that will have mirroring enabled.</p>
+</li>
+<li>
+<p><strong>Configure target apps to claim PVCs from new StorageClass.</strong><br>
+In the example, we will create a Sample Application which will use a single PVC claimed from the StorageClass mirror.</p>
+</li>
+<li>
+<p><strong>Install OADP (OpenShift API for Data Protection).</strong><br>
+Using OperatorHub, install OADP on both OCP clusters. We will use OADP for copying target application metadata resources (Kubernetes CRs) from the primary to the secondary OCP cluster.</p>
+</li>
+<li>
+<p><strong>Install Ceph toolbox.</strong><br>
+Install the Ceph toolbox on primary and secondary clusters to make Ceph CLI commands available. Ceph CLI commands will be used for enabling PVC mirroring, and for promoting/demoting each half of a mirror to be primary or secondary.</p>
+</li>
+<li>
+<p><strong>Enable mirroring on each PVC.</strong><br>
+On the primary cluster, use the Ceph CLI to enable PV mirroring for each target PVC. (Our Sample Application has only a single PVC.)</p>
+</li>
+<li>
+<p><strong>Backup OpenShift resources to S3 target.</strong><br>
+Using the Backup API from OADP, we will backup all Kubernetes resources (CRs) for the Sample Application on the primary cluster to a S3 compatible object bucket.</p>
+</li>
+<li>
+<p><strong>Simulate cluster failure event on the primary cluster.</strong><br>
+In our example, we will simulate a failure event simply by scaling the deployment(s) for our Sample Application to zero. This makes the application on the primary cluster unavailable.</p>
+</li>
+<li>
+<p><strong>Demote and promote each PVC.</strong><br>
+On the primary cluster, demote each target PVC being mirrored. On the secondary cluster, promote each target PVC. (Our Sample Application has only a single PVC.)</p>
+</li>
+<li>
+<p><strong>Restore OpenShift resources from S3 target</strong>.<br>
+Using OADP and the Restore API copy all Kubernetes resources for the <code>Sample Application</code> from the <code>S3</code> combatible object bucket to the secondary cluster. The Backup and Restore could be scheduled to run at a desired frequency to ensure that the secondary cluster always has the most recent metadata from the applications targeted for failover on the primary cluster.</p>
+</li>
+<li>
+<p><strong>Verify application availability on the secondary cluster.</strong><br>
+Verify the Sample Application now is operational on the secondary cluster and that new data can be saved.</p>
+</li>
+</ol>
 </div>
 <div class="sect2">
 <h3 id="_openshift_multisite_connectivity"><a class="anchor" href="#_openshift_multisite_connectivity"></a>1.1. OpenShift Multisite Connectivity</h3>
@@ -247,7 +330,7 @@ Whatever way the OCP clusters are connected, the default <code>IP CIDRs</code> (
 <p><code>Submariner</code> does support connecting  OCP clusters installed on AWS. There is also support for connecting non-AWS OCP clusters such as those installed on VMware or Bare Metal (BM). Hybrid connectivity of one OCP cluster on AWS and the 2nd cluster on non-AWS (i.e. VMware) infrastructure is also possible.</p>
 </div>
 <div class="paragraph">
-<p>For more information on <code>Submariner</code> and the different configuration options go to (<a href="https://submariner.io/getting-started/" class="bare">submariner.io/getting-started/</a>).</p>
+<p>For more information on <code>Submariner</code> and the different configuration options go to <a href="https://submariner.io/getting-started" class="bare">submariner.io/getting-started</a>.</p>
 </div>
 <div class="sect3">
 <h4 id="_submariner_prerequisites"><a class="anchor" href="#_submariner_prerequisites"></a>1.1.1. Submariner Prerequisites</h4>
@@ -384,10 +467,10 @@ networking:
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://submariner.io/getting-started/quickstart/openshift/aws/" class="bare">submariner.io/getting-started/quickstart/openshift/aws/</a></p>
+<p><a href="https://submariner.io/getting-started/quickstart/openshift/aws" class="bare">submariner.io/getting-started/quickstart/openshift/aws</a></p>
 </li>
 <li>
-<p><a href="https://submariner.io/getting-started/quickstart/openshift/vsphere-aws/" class="bare">submariner.io/getting-started/quickstart/openshift/vsphere-aws/</a></p>
+<p><a href="https://submariner.io/getting-started/quickstart/openshift/vsphere-aws" class="bare">submariner.io/getting-started/quickstart/openshift/vsphere-aws</a></p>
 </li>
 </ul>
 </div>
@@ -488,7 +571,7 @@ All <code>subctl</code> commands can be executed from any node that has network 
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>--disable-nat</code> flag is used when the connection between the two OCP clusters does not involve <code>NAT</code> (Network Address Translation). Reference <a href="https://submariner.io/operations/deployment/subctl/">Submariner documentation</a> for how to <code>subctl join</code> OCP clusters using <code>NAT</code>.
+The <code>--disable-nat</code> flag is used when the connection between the two OCP clusters does not involve <code>NAT</code> (Network Address Translation). Reference <a href="https://submariner.io/operations/deployment">Submariner documentation</a> for how to <code>subctl join</code> OCP clusters using <code>NAT</code>.
 </td>
 </tr>
 </table>
@@ -583,6 +666,8 @@ submariner-routeagent-sl2tr                     1/1     Running   0          27m
 submariner-routeagent-smmdt                     1/1     Running   0          27m</pre>
 </div>
 </div>
+<div class="sect4">
+<h5 id="_verifying_submariner_connectivity"><a class="anchor" href="#_verifying_submariner_connectivity"></a>Verifying Submariner connectivity</h5>
 <div class="paragraph">
 <p>The last step is to validate the connection between the two OCP clusters using a <code>subctl verify</code> command.</p>
 </div>
@@ -611,7 +696,7 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl show connections --kubeconfig site1/auth/kubeconfig | grep connected</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl show connections --kubeconfig site1/auth/kubeconfig | egrep 'connect|error'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -625,7 +710,7 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl show connections --kubeconfig site2/auth/kubeconfig | grep connected</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl show connections --kubeconfig site2/auth/kubeconfig | egrep 'connect|error'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -634,20 +719,33 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 <pre>site1-fqldq-worker-975qq        site1                   10.70.56.191    libreswan           10.16.0.0/16, 10.6.0.0/16               connected</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Now that the two OCP instances have their <code>clusterNetwork</code> and <code>serviceNetwork</code> connected the next step is to install <code>OpenShift Container Storage</code> version <strong>4.7</strong> and configure storage replication or <code>RDB Mirroring</code>.</p>
-</div>
-<div class="admonitionblock note">
+<div class="admonitionblock caution">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+If either site has a <strong><em>connecting</em></strong> or <strong><em>error</em></strong> status instead of <strong><em>connected</em></strong> status there is something wrong with the multisite connectivity. Only proceed after both ways show <strong><em>connected</em></strong>. Reference <a href="https://submariner.io/operations/troubleshooting">Submariner Troubleshooting documentation</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now that the two OCP instances have their <code>clusterNetwork</code> and <code>serviceNetwork</code> connected the next step is to install <code>OpenShift Container Storage</code> version <strong>4.7</strong> and configure storage replication or <code>RDB Mirroring</code>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
 For the rest of the instructions <code>site1</code> will be referred to as the OCP <strong>primary cluster</strong> and <code>site2</code> will be referred to as OCP <strong>secondary cluster</strong>.
 </td>
 </tr>
 </table>
+</div>
 </div>
 </div>
 </div>
@@ -1664,9 +1762,9 @@ Make sure to repeat these steps on the <strong>secondary cluster</strong> as wel
 </div>
 </div>
 <div class="sect3">
-<h4 id="_enable_images_for_snapshot_replication"><a class="anchor" href="#_enable_images_for_snapshot_replication"></a>1.5.2. Enable images for snapshot replication</h4>
+<h4 id="_enable_volumes_for_snapshot_replication"><a class="anchor" href="#_enable_volumes_for_snapshot_replication"></a>1.5.2. Enable volumes for snapshot replication</h4>
 <div class="paragraph">
-<p>In order to have persistent data replicated for a particular application the volume(s) have to be enabled for mirroring. This is currently done using Ceph commands after logging into the <strong>toolbox</strong>.</p>
+<p>In order to have persistent data replicated for a particular application the volume(s) or images have to be enabled for mirroring. This is currently done using Ceph commands after logging into the <strong>toolbox</strong>.</p>
 </div>
 <div class="paragraph">
 <p>Login to the <strong>toolbox</strong> again on the <strong>primary cluster</strong> if not already in the <strong>toolbox</strong>.</p>
