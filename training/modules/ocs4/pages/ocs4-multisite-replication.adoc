@@ -15,6 +15,42 @@ The intent of this guide is to detail the steps and commands necessary to be abl
 
 The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
 
+This is a general overview of the steps required to configure asynchronous DR capabilities via OCS *4.7* across two distinct OCP clusters separated by distance. 
+
+NOTE: These steps are considered Dev Preview in OCS 4.7, and are provided for POCs purposes. They will be supported for production usage in a later OCS release.
+
+[start=1]
+. *Ensure clusters have unique private network address ranges.* +
+Ensure the primary and secondary OCP clusters have unique private network address ranges.
+. *Connect the two private networks.* +
+Connect the private networks (cluster and service) using submariner.
+. *Install OCS 4.7.* +
+Install OCS 4.7 on primary and secondary OCP clusters and validate deployment.
+. *Create new CephBlockPool.* +
+To clearly keep mirrored volumes separate from any production volumes in this POC, we will create a new CephBlockPool on both primary and secondary OCP clusters. We will limit RBD Mirroring to only RBD volumes from within this new pool.
+. *Configure peer relationship between clusters.* +
+Configure peer relationship between OCS clusters and create RBD Mirroring daemons.
+. *Create new StorageClass.* +
+To clearly keep mirrored PVs separate from any production PVs in this POC, we will create a new StorageClass for PVCs that will have mirroring enabled.
+. *Configure target apps to claim PVCs from new StorageClass.* +
+In the example, we will create a Sample Application which will use a single PVC claimed from the StorageClass mirror.
+. *Install OADP (OpenShift API for Data Protection).* +
+Using OperatorHub, install OADP on both OCP clusters. We will use OADP for copying target application metadata resources (Kubernetes CRs) from the primary to the secondary OCP cluster.
+. *Install Ceph toolbox.* +
+Install the Ceph toolbox on primary and secondary clusters to make Ceph CLI commands available. Ceph CLI commands will be used for enabling PVC mirroring, and for promoting/demoting each half of a mirror to be primary or secondary.
+. *Enable mirroring on each PVC.* +
+On the primary cluster, use the Ceph CLI to enable PV mirroring for each target PVC. (Our Sample Application has only a single PVC.)
+. *Backup OpenShift resources to S3 target.* +
+Using the Backup API from OADP, we will backup all Kubernetes resources (CRs) for the Sample Application on the primary cluster to a S3 compatible object bucket. 
+. *Simulate cluster failure event on the primary cluster.* +
+In our example, we will simulate a failure event simply by scaling the deployment(s) for our Sample Application to zero. This makes the application on the primary cluster unavailable.
+. *Demote and promote each PVC.* +
+On the primary cluster, demote each target PVC being mirrored. On the secondary cluster, promote each target PVC. (Our Sample Application has only a single PVC.) 
+. *Restore OpenShift resources from S3 target*. +
+Using OADP and the Restore API copy all Kubernetes resources for the `Sample Application` from the `S3` combatible object bucket to the secondary cluster. The Backup and Restore could be scheduled to run at a desired frequency to ensure that the secondary cluster always has the most recent metadata from the applications targeted for failover on the primary cluster.
+. *Verify application availability on the secondary cluster.* +
+Verify the Sample Application now is operational on the secondary cluster and that new data can be saved.
+
 === OpenShift Multisite Connectivity
 
 For this solution to work the OpenShift SDNs (Software Defined Networks) must be connected so that `OpenShift Container Storage` (OCS) resources can communicate. In particular there needs to be network connectivity between the RBD Mirror *POD* or daemon deployed in each cluster. 
@@ -32,7 +68,7 @@ IMPORTANT: Whatever way the OCP clusters are connected, the default `IP CIDRs` (
 
 `Submariner` does support connecting  OCP clusters installed on AWS. There is also support for connecting non-AWS OCP clusters such as those installed on VMware or Bare Metal (BM). Hybrid connectivity of one OCP cluster on AWS and the 2nd cluster on non-AWS (i.e. VMware) infrastructure is also possible.
 
-For more information on `Submariner` and the different configuration options go to (https://submariner.io/getting-started/).
+For more information on `Submariner` and the different configuration options go to https://submariner.io/getting-started.
 
 ==== Submariner Prerequisites
 
@@ -130,8 +166,8 @@ chmod a+x ./prep_for_subm.sh
 
 Refer to these links for additional information about prerequisites when at least one OCP instance is installed on AWS.
 
-* https://submariner.io/getting-started/quickstart/openshift/aws/
-* https://submariner.io/getting-started/quickstart/openshift/vsphere-aws/
+* https://submariner.io/getting-started/quickstart/openshift/aws
+* https://submariner.io/getting-started/quickstart/openshift/vsphere-aws
 
 ===== On non-AWS clusters
 
@@ -180,7 +216,7 @@ subctl deploy-broker --kubeconfig site1/auth/kubeconfig
 
 Now we want to create the connection between the two OCP clusters. The `gateway` *Pod* will be created on the node selected from the displayed list of available nodes during the `subctl join`.
 
-NOTE: The `--disable-nat` flag is used when the connection between the two OCP clusters does not involve `NAT` (Network Address Translation). Reference https://submariner.io/operations/deployment/subctl/[Submariner documentation] for how to `subctl join` OCP clusters using `NAT`.
+NOTE: The `--disable-nat` flag is used when the connection between the two OCP clusters does not involve `NAT` (Network Address Translation). Reference https://submariner.io/operations/deployment[Submariner documentation] for how to `subctl join` OCP clusters using `NAT`.
 
 [source,role="execute"]
 ----
@@ -264,6 +300,8 @@ submariner-routeagent-sl2tr                     1/1     Running   0          27m
 submariner-routeagent-smmdt                     1/1     Running   0          27m
 ----
 
+===== Verifying Submariner connectivity
+
 The last step is to validate the connection between the two OCP clusters using a `subctl verify` command.
 
 [source,role="execute"]
@@ -288,7 +326,7 @@ You can also verify the connectivity using site specific kubeconfig and `subctl 
 
 [source,role="execute"]
 ----
-subctl show connections --kubeconfig site1/auth/kubeconfig | grep connected
+subctl show connections --kubeconfig site1/auth/kubeconfig | egrep 'connect|error'
 ----
 .Example output:
 ----
@@ -299,16 +337,18 @@ And then using `site2` kubeconfig.
 
 [source,role="execute"]
 ----
-subctl show connections --kubeconfig site2/auth/kubeconfig | grep connected
+subctl show connections --kubeconfig site2/auth/kubeconfig | egrep 'connect|error'
 ----
 .Example output:
 ----
 site1-fqldq-worker-975qq        site1                   10.70.56.191    libreswan           10.16.0.0/16, 10.6.0.0/16               connected
 ----
 
+CAUTION: If either site has a *_connecting_* or *_error_* status instead of *_connected_* status there is something wrong with the multisite connectivity. Only proceed after both ways show *_connected_*. Reference https://submariner.io/operations/troubleshooting[Submariner Troubleshooting documentation].
+
 Now that the two OCP instances have their `clusterNetwork` and `serviceNetwork` connected the next step is to install `OpenShift Container Storage` version *4.7* and configure storage replication or `RDB Mirroring`.
 
-NOTE: For the rest of the instructions `site1` will be referred to as the OCP *primary cluster* and `site2` will be referred to as OCP *secondary cluster*.
+IMPORTANT: For the rest of the instructions `site1` will be referred to as the OCP *primary cluster* and `site2` will be referred to as OCP *secondary cluster*.
 
 === Configuring Multisite Storage Replication
 
@@ -955,9 +995,9 @@ exit
 
 NOTE: Make sure to repeat these steps on the *secondary cluster* as well and logon to the *toolbox* and run the same Ceph commands to validate the health of the cluster and mirroring.
 
-==== Enable images for snapshot replication
+==== Enable volumes for snapshot replication
 
-In order to have persistent data replicated for a particular application the volume(s) have to be enabled for mirroring. This is currently done using Ceph commands after logging into the *toolbox*.
+In order to have persistent data replicated for a particular application the volume(s) or images have to be enabled for mirroring. This is currently done using Ceph commands after logging into the *toolbox*.
 
 Login to the *toolbox* again on the *primary cluster* if not already in the *toolbox*.
 
