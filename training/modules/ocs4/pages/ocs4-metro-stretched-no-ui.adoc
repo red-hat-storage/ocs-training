@@ -1,0 +1,1597 @@
+= OpenShift Stretched Metro Cluster Disaster Recovery CLI Deployment
+:toc:
+:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+:hide-uri-scheme:
+
+== Overview
+
+The intent of this guide is to detail the steps and commands necessary to deploy `OpenShift Container Storage`
+(OCS) in Arbiter mode using CLI commands.
+
+In this module you will be using OpenShift Container Platform (OCP) 4.x and the OCS operator to deploy
+OCS in Arbiter mode.
+
+CAUTION: To complete the failure scenarios included in this lab you will need to be able to control
+your AWS instances via the `aws` CLI and proper credentials.
+To download the utility visit https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html[this page].
+
+== Production Environment Requirements
+
+IMPORTANT: In this lab we will perform the deployment of OCS using the `gp2` storage class in AWS.
+The UI based deployment requires you to deploy OCS in Arbiter Mode over LSO based storage. We chose
+to use `gp2` and `m5.4xlarge` instances for easier testing of the failover and failback functionalities
+given AWS EBS volumes persists even if an instance is being shutdown.
+
+As a reminder here is the list of requirements for production environments:
+
+* One OCP 4.6 (or greater) cluster
+* `OpenShift Container Storage` (OCS) *4.7* (or greater)
+* Two (2) failure domains for OSD deployment
+** At least two (2) nodes in each availability zone
+** LSO is a requirement for UI deployment
+* One (1) failure domain for Monitor Arbiter deployment
+** Arbiter Monitor can natively run on a master node
+
+== Prepare OCP Environment
+
+=== Add OCS Worker Nodes
+
+First step is to validate if the OCP environment has 2 or 3 worker nodes.
+
+[source,shell]
+....
+oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/master'
+....
+.Example output:
+----
+NAME                                         STATUS   ROLES    AGE    VERSION
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h7m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h4m   v1.20.0+bafe72f
+----
+
+=== Scale OCS Nodes
+
+==== Two Worker node cluster
+
+Confirm your environment only has 2 worker nodes.
+
+[source,shell]
+....
+oc get machineset -n openshift-machine-api
+....
+.Example output:
+----
+NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-mvghv-worker-us-east-2a   1         1         1       1           3h15m
+ocp45-mvghv-worker-us-east-2b   1         1         1       1           3h15m
+ocp45-mvghv-worker-us-east-2c   0         0                             3h15m
+----
+
+CAUTION: If your cluster has worker nodes deployed in your third availability zone go to 
+chapter xref:ocs4-metro-stretched-no-ui.adoc#_three_worker_node_cluster[].
+
+Scale up the machineset for zones `us-east-2a` and `us-east-2b` using the following commands.
+
+[source,shell]
+....
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+....
+.Example output
+----
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2a scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2b scaled
+----
+
+IMPORTANT: A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
+
+NOTE: Go to chapter xref:ocs4-metro-stretched-no-ui.adoc#_proceed_with_setup[]
+
+==== Three Worker node cluster
+
+Confirm your environment has 3 worker nodes.
+
+[source,shell]
+....
+oc get machineset -n openshift-machine-api
+....
+.Example output:
+----
+NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-xs7pv-worker-us-east-2a   1         1         1       1           59m
+ocp45-xs7pv-worker-us-east-2b   1         1         1       1           59m
+ocp45-xs7pv-worker-us-east-2c   1         1         1       1           59m
+----
+
+Scale up the machineset for zones `us-east-2a` and `us-east-2b` using the following commands.
+
+[source,shell]
+....
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
+....
+.Example output
+----
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2a scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2b scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2c scaled
+----
+
+IMPORTANT: A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
+
+==== Proceed With Setup
+
+[source,shell]
+....
+watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|worker'"
+....
+
+This step could take more than 5 minutes. The result of this command needs to
+look like below before you proceed. Worker *machinesets* in zones `2a`
+and `2b` should have an integer, in this case `2`, filled out for all rows
+and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets*
+will be different than shown below.
+
+.Example output:
+----
+NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-mvghv-worker-us-east-2a   2         2         2       2           3h28m
+ocp45-mvghv-worker-us-east-2b   2         2         2       2           3h28m
+ocp45-mvghv-worker-us-east-2c   0         0                             3h28m
+----
+
+You can exit by pressing kbd:[Ctrl+C].
+
+Now check to see that you have 2 new OCP worker nodes. The `NAME` of your OCP
+nodes will be different than shown below.
+
+NOTE: The total number of worker nodes should be 4.
+
+[source,shell]
+....
+oc get nodes -l node-role.kubernetes.io/worker
+....
+.Example output:
+----
+NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   10m     v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h21m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h18m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+bafe72f
+----
+
+Now assign the OCS label to all the worker nodes in the cluster.
+
+[source,shell]
+....
+oc label node -l node-role.kubernetes.io/worker cluster.ocs.openshift.io/openshift-storage=""
+....
+.Example output
+----
+node/ip-10-0-150-108.us-east-2.compute.internal labeled
+node/ip-10-0-158-73.us-east-2.compute.internal labeled
+node/ip-10-0-172-113.us-east-2.compute.internal labeled
+node/ip-10-0-179-14.us-east-2.compute.internal labeled
+----
+
+CAUTION: Arbiter mode CLI deployment requires the Arbibter failure domain to not carry
+any OCS label. Do NOT label the Arbiter node!
+
+Let's check to make sure the OCP worker nodes have the OCS label.
+
+[source,shell]
+....
+oc get nodes -l cluster.ocs.openshift.io/openshift-storage=
+....
+.Example output:
+----
+NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   11m     v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h22m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h19m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   11m     v1.20.0+bafe72f
+----
+
+== Local Storage Operator
+
+Check the type of instances you are currently using.
+
+[source,shell]
+....
+oc get machines -n openshift-machine-api | grep worker
+....
+.Example output
+----
+ocp45-mvghv-worker-us-east-2a-nnwcr   Running   m5.4xlarge   us-east-2   us-east-2a   3h25m
+ocp45-mvghv-worker-us-east-2a-wm79g   Running   m5.4xlarge   us-east-2   us-east-2a   14m
+ocp45-mvghv-worker-us-east-2b-gsz7p   Running   m5.4xlarge   us-east-2   us-east-2b   3h25m
+ocp45-mvghv-worker-us-east-2b-ptfz6   Running   m5.4xlarge   us-east-2   us-east-2b   14m
+----
+
+IMPORTANT: If you are using `m5.4xlarge` instances,
+as shown in the third column,
+go to chapter xref:ocs4-metro-stretched-no-ui.adoc#_openshift_container_storage_deployment[].
+
+=== Installing the Local Storage Operator v4.7
+
+First, you will need to create a namespace for the Local Storage
+Operator. A self descriptive `openshift-local-storage` namespace is recommended.
+
+[source]
+....
+cat <<EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-local-storage
+spec: {}
+EOF
+....
+
+Create Operator Group for Local Storage Operator.
+
+[source]
+....
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: local-operator-group
+  namespace: openshift-local-storage
+spec:
+  targetNamespaces:
+  - openshift-local-storage
+EOF
+....
+
+Subscribe to Local Storage Operator.
+
+[source]
+....
+cat <<EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: local-storage-operator
+  namespace: openshift-local-storage
+spec:
+  channel: "4.7"
+  installPlanApproval: Automatic
+  name: local-storage-operator
+  source: redhat-operators  # <-- Modify the name of the redhat-operators catalogsource if not default
+  sourceNamespace: openshift-marketplace
+EOF
+....
+
+Verify the Local Storage Operator deployment is successful.
+
+[source]
+....
+oc get csv,pod -n openshift-local-storage
+....
+.Example output
+----
+NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/local-storage-operator.4.7.0-202103202139.p0   Local Storage   4.7.0-202103202139.p0              Succeeded
+
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/local-storage-operator-5c8cc9545c-nh9jt   1/1     Running   0          87s
+----
+
+IMPORTANT: Do not proceed with the next instructions if the Local Storage Operator is not deployed successfully.
+
+=== Configuring the Local Storage Operator v4.7
+
+==== Configuring Auto Discovery
+
+Local Storage Operator v4.7 supports discovery of devices on OCP nodes with the OCS label `cluster.ocs.openshift.io/openshift-storage=""`. Create the `LocalVolumeDiscovery` resource using this file after the OCP nodes are labeled with the OCS label.
+
+[source]
+....
+cat <<EOF | oc apply -f -
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeDiscovery
+metadata:
+  name: auto-discover-devices
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+            - ""
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-east-2a
+          - us-east-2b
+EOF
+....
+
+After this resource is created you should see a new `localvolumediscoveries` resource and there will be a `localvolumediscoveryresults` for each OCP node labeled with the OCS label. Each `localvolumediscoveryresults` will have the detail for each disk on the node including the `by-id`, size and type of disk.
+
+==== Configuring LocalVolumeSet
+
+Red Hat only supports SSDs or NVMes in production environment.
+
+Use this file `localvolumeset.yaml` to create the `LocalVolumeSet`. Configure the parameters with comments to meet the needs of your environment. If not required, the parameters with comments can be deleted.
+
+[source]
+....
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  name: local-block
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: In
+            values:
+              - ""
+        - key: topology.kubernetes.io/zone
+          operator: In
+          values:
+          - us-east-2a
+          - us-east-2b
+  storageClassName: localblock
+  volumeMode: Block
+  fstype: ext4
+  maxDeviceCount: 1	# <-- Maximum number of devices per node to be used
+  deviceInclusionSpec:
+    deviceTypes:
+    - disk
+    - part		# <-- Remove this if not using partitions
+    deviceMechanicalProperties:
+    - NonRotational 	# <-- Use only SSDs and NVMes
+    #minSize: 0Ti	# <-- Uncomment and modify to limit the minimum size of disk used
+    #maxSize: 0Ti	# <-- Uncomment and modify to limit the maximum size of disk used
+....
+
+....
+oc create -f localvolumeset.yaml
+....
+
+After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP
+nodes with the OCS label in zone `us-east-2a` and `us-east-2b`. It can take a few minutes until all disks appear
+as PVs while the Local Storage Operator is preparing the disks.
+
+[source,shell]
+....
+oc get pv
+....
+.Example output
+----
+NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+local-pv-222fc034   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-376fac5f   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-5160893    2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-a58904fd   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-b7bb7e0a   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-c187d06d   2328Gi     RWO            Delete           Available           localblock              8s
+local-pv-d6c318a4   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-dc39122f   2328Gi     RWO            Delete           Available           localblock              8s
+----
+
+NOTE: Your lab environment should have 8 PVs, 2 per node where we intend to deploy the OCS OSDs.
+
+== OpenShift Container Storage Deployment
+
+In this section you will be using four (4) worker OCP 4 nodes to deploy
+OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
+
+- An OCS Subscription
+- The OCS Operator
+- All other OCS resources (Ceph Pods, NooBaa Pods, StorageClasses)
+
+=== OCS Operator Deployment
+
+Start with creating the `openshift-storage` namespace.
+
+[source,shell]
+....
+cat <<EOF | oc apply -f -
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+EOF
+....
+
+[source,shell]
+....
+cat <<EOF | oc apply -f -
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.7"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators # <-- Specify the correct catalogsource if using RC version
+  sourceNamespace: openshift-marketplace
+EOF
+....
+
+NOTE: If you do not know the name of the catalog source you can display all available
+ones using the `oc get catalogsource -A` command.
+
+Verify the operator is deployed successfully.
+
+[source,shell]
+....
+oc get pods,csv -n openshift-storage
+....
+.Example output
+----
+NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-746ddfc79-mzdkc         1/1     Running   0          28s
+pod/ocs-metrics-exporter-54b6d689f8-5jtgv   1/1     Running   0          28s
+pod/ocs-operator-5bcdd97ff4-kvp2z           1/1     Running   0          29s
+pod/rook-ceph-operator-7dd585bd97-md9w2     1/1     Running   0          28s
+
+NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShift Container Storage   4.7.0-339.ci              Succeeded
+----
+
+CAUTION: This will mark that the installation of your operator was
+successful. Reaching this state can take several minutes.
+
+=== OCS Cluster Deployment
+
+==== Using LSO based Storage (`i3` instances)
+
+Create your storage cluster using the following `yaml` file if you are using
+LSO based storage with `i3` or `i3en` instances. If you are using `m5.4xlarge`
+instances go to xref:ocs4-metro-stretched-no-ui.adoc#_using_ebs_storage[].
+
+[source,shell]
+....
+cat <<EOF | oc create -f -
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  annotations:
+    cluster.ocs.openshift.io/local-devices: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter:
+    enable: true
+  monDataDirHostPath: /var/lib/rook
+  nodeTopologies:
+    arbiterLocation: us-east-2c
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "1"
+        storageClassName: localblock
+        volumeMode: Block
+    name: ocs-deviceset-localblock
+    replica: 4
+  version: 4.7.0
+EOF
+....
+.Example output:
+----
+storagecluster.ocs.openshift.io/ocs-storagecluster created
+----
+
+IMPORTANT: Go to chapter xref:ocs4-metro-stretched-no-ui.adoc#_wait_for_cluster_deployment[]
+
+==== Using EBS Storage (`m5.4xlarge` instances)
+
+Create your storage cluster using the following `yaml` file if you are using
+EBS storage with `m5` instances.
+
+[source,shell]
+....
+cat <<EOF | oc create -f -
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  annotations:
+    cluster.ocs.openshift.io/local-devices: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter:
+    enable: true
+  monDataDirHostPath: /var/lib/rook
+  nodeTopologies:
+    arbiterLocation: us-east-2c
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "512Gi"
+        storageClassName: gp2
+        volumeMode: Block
+    name: ocs-deviceset-gp2
+    replica: 4
+  version: 4.7.0
+EOF
+....
+.Example output:
+----
+storagecluster.ocs.openshift.io/ocs-storagecluster created
+----
+
+NOTE: The CLI method will allow you to deploy an Arbiter node cluster using the `gp2`
+storage class dynamic provisioning. However, this is not a supported configuration.
+
+==== Wait For Cluster Deployment
+
+IMPORTANT: The UI method requires the Arbiter mode to be configured with LSO based
+storage.
+
+Wait for your storage cluster to become operational.
+
+[source,shell]
+....
+oc get cephcluster -n openshift-storage
+....
+.Example output
+----
+NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     5          9m17s   Ready   Cluster created successfully   HEALTH_OK
+----
+
+[source,shell]
+....
+oc get pods -n openshift-storage
+....
+.Example output
+----
+NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-provisioner-6976556bd7-7jmtp                     6/6     Running     0          9m49s
+csi-cephfsplugin-provisioner-6976556bd7-fd2zq                     6/6     Running     0          9m49s
+csi-cephfsplugin-qtl65                                            3/3     Running     0          9m49s
+csi-cephfsplugin-v2jnf                                            3/3     Running     0          9m49s
+csi-cephfsplugin-zftft                                            3/3     Running     0          9m49s
+csi-cephfsplugin-zm9qh                                            3/3     Running     0          9m49s
+csi-rbdplugin-96ff5                                               3/3     Running     0          9m50s
+csi-rbdplugin-g96bd                                               3/3     Running     0          9m50s
+csi-rbdplugin-gt7vc                                               3/3     Running     0          9m50s
+csi-rbdplugin-hh68b                                               3/3     Running     0          9m50s
+csi-rbdplugin-provisioner-6b8557bd8b-mb59w                        6/6     Running     0          9m49s
+csi-rbdplugin-provisioner-6b8557bd8b-rmjmg                        6/6     Running     0          9m49s
+noobaa-core-0                                                     1/1     Running     0          7m4s
+noobaa-db-pg-0                                                    1/1     Running     0          7m4s
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Running     0          5m42s
+noobaa-operator-746ddfc79-mzdkc                                   1/1     Running     0          11m
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Running     0          11m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Running     0          11m
+rook-ceph-crashcollector-ip-10-0-150-108-59dbc9f84b-z9kqp         1/1     Running     0          9m8s
+rook-ceph-crashcollector-ip-10-0-158-73-867477c64c-nr82z          1/1     Running     0          8m58s
+rook-ceph-crashcollector-ip-10-0-172-113-5f8d474d74-dxvbb         1/1     Running     0          8m46s
+rook-ceph-crashcollector-ip-10-0-179-14-7db8dcd979-m445k          1/1     Running     0          8m32s
+rook-ceph-crashcollector-ip-10-0-207-228-75596b5dff-5krbc         1/1     Running     0          8m17s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-68789cf7qkhcs   2/2     Running     0          6m49s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64d26hrd   2/2     Running     0          6m48s
+rook-ceph-mgr-a-58986cc846-ssn6d                                  2/2     Running     0          7m55s
+rook-ceph-mon-a-5f8568646-sxv4p                                   2/2     Running     0          9m23s
+rook-ceph-mon-b-57dfb9b66c-8klfx                                  2/2     Running     0          8m59s
+rook-ceph-mon-c-59c5b4749b-4gvv8                                  2/2     Running     0          8m46s
+rook-ceph-mon-d-5d45c796bc-cmtgh                                  2/2     Running     0          8m32s
+rook-ceph-mon-e-cd6988b6-m8c2p                                    2/2     Running     0          8m17s
+rook-ceph-operator-7dd585bd97-md9w2                               1/1     Running     0          11m
+rook-ceph-osd-0-5fc6b5864f-8wmlw                                  2/2     Running     0          7m30s
+rook-ceph-osd-1-b968db74-krn4f                                    2/2     Running     0          7m27s
+rook-ceph-osd-2-6c57b8946f-c8xgm                                  2/2     Running     0          7m26s
+rook-ceph-osd-3-6f7dd55b9f-g7k6r                                  2/2     Running     0          7m26s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          7m53s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-09p86q-k6tln       0/1     Completed   0          7m53s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0xx95t-qgnss       0/1     Completed   0          7m52s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          7m52s
+----
+
+=== Verify Deployment
+
+Deploy the `rook-ceph-tool` pod.
+
+[source,shell]
+....
+oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+....
+
+Establish a remote shell to the toolbox pod.
+
+[source,shell]
+....
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD
+....
+
+Run `ceph status` and `ceph osd tree` to see that status of the cluster.
+
+[source,shell]
+....
+sh-4.4# ceph status
+....
+.Example output
+----
+  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 50m)
+    mgr: a(active, since 50m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 50m), 4 in (since 50m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 92 objects, 133 MiB
+    usage:   4.3 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr
+----
+
+NOTE: As observed the cluster in Arbiter node is always deployed with 5 Monitors, 2 per active OSD failure
+domain and one in the Arbiter failure domain.
+
+[source,shell]
+....
+sh-4.4# ceph osd tree
+....
+.Example output
+----
+ID  CLASS WEIGHT  TYPE NAME                        STATUS REWEIGHT PRI-AFF
+ -1       2.00000 root default
+ -5       2.00000     region us-east-2
+ -4       1.00000         zone us-east-2a
+ -3       0.50000             host ip-10-0-150-108
+  0   ssd 0.50000                 osd.0                up  1.00000 1.00000
+ -9       0.50000             host ip-10-0-158-73
+  1   ssd 0.50000                 osd.1                up  1.00000 1.00000
+-12       1.00000         zone us-east-2b
+-11       0.50000             host ip-10-0-172-113
+  3   ssd 0.50000                 osd.3                up  1.00000 1.00000
+-15       0.50000             host ip-10-0-179-14
+  2   ssd 0.50000                 osd.2                up  1.00000 1.00000
+----
+
+NOTE: OSDs are deployed in sets of 4, 2 per failure domain.
+
+CAUTION: This lab is NOT a supported configuration but is designed for you to experiment.
+
+== Sample Application Deployment
+
+In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working.
+
+Start by creating a new project on the *primary cluster*:
+
+[source,role="execute"]
+----
+oc new-project my-database-app
+----
+
+Then use the `rails-pgsql-persistent` template to create the new application. The new `postgresql` volume will be claimed from the new *StorageClass*.
+
+[source,role="execute"]
+----
+curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
+----
+
+After the deployment is started you can monitor with these commands.
+
+[source,role="execute"]
+----
+oc status
+----
+
+Check the PVC is created.
+
+[source,role="execute"]
+----
+oc get pvc -n my-database-app
+----
+
+This step could take 5 or more minutes. Wait until there are 2 *Pods* in
+`Running` STATUS and 4 *Pods* in `Completed` STATUS as shown below.
+
+[source,role="execute"]
+----
+watch oc get pods -n my-database-app
+----
+.Example output:
+----
+NAME                                READY   STATUS      RESTARTS   AGE
+postgresql-1-674qv                  1/1     Running     0          3m1s
+postgresql-1-deploy                 0/1     Completed   0          3m4s
+rails-pgsql-persistent-1-build      0/1     Completed   0          3m6s
+rails-pgsql-persistent-1-deploy     0/1     Completed   0          100s
+rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          97s
+rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s
+----
+
+You can exit by pressing kbd:[Ctrl+C].
+
+Once the deployment is complete you can now test the application and the
+persistent storage on OCS.
+
+[source,role="execute"]
+----
+oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
+----
+
+This will return a route similar to this one.
+
+.Example output:
+----
+http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles
+----
+
+Copy your route (different than above) to a browser window to create articles.
+
+Click the `New Article` link.
+
+Enter the `username` and `password` below to create articles and comments.
+The articles and comments are saved in a PostgreSQL database which stores its
+table spaces on the RBD volume provisioned using the
+`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
+deployment.
+
+----
+username: openshift
+password: secret
+----
+
+Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
+
+[source,role="execute"]
+----
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
+----
+.Example output:
+----
+You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title             |                                        body                                        |         created_at         |         updated_at
+----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+(1 row)
+----
+
+== ARBITER Failure Test
+
+This test is designed to demonstrates that if the failure domain hosting the Monitor running in
+Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.
+
+Identify the node name for the master node in zone `us-east-2c`.
+
+[source,shell]
+....
+export masternode=$(oc get nodes -l node-role.kubernetes.io/master -l topology.kubernetes.io/zone=us-east-2c --no-headers | awk '{ print $1 }')
+echo $masternode
+....
+.Example output
+----
+ip-10-0-212-112.us-east-2.compute.internal
+----
+
+Identify the Monitor that runs on a master node in zone `us-east-2c`.
+
+[source,shell]
+....
+oc get pods -n openshift-storage -o wide | grep ${masternode} | grep 'ceph-mon' | awk '{ print $1 }'
+....
+.Example output
+----
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf
+----
+
+Shutdown the node where `rook-ceph-mon-e-6bdd6d6bb8-wxwkf` is running.
+
+Identify the AWS `InstanceId` for this master node.
+
+[source,shell]
+....
+export instanceid=$(oc get machines -n openshift-machine-api -o wide | grep ${masternode} | awk '{ print $8 }' | cut -f 5 -d '/')
+echo ${instanceid}
+....
+.Example output
+----
+i-096972e6887f383a6
+----
+
+Stop the instance
+
+[source,shell]
+....
+aws ec2 stop-instances --instance-ids ${instanceid}
+....
+.Exampe output
+----
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-096972e6887f383a6",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+----
+
+Verify the master node is now stopped and the monitor not in a `Running` state.
+
+[source,shell]
+....
+oc get nodes -l node-role.kubernetes.io/master -l topology.kubernetes.io/zone=us-east-2c
+....
+.Example output
+----
+NAME                                         STATUS      ROLES    AGE     VERSION
+ip-10-0-212-112.us-east-2.compute.internal   NotReady    master   3h33m   v1.20.0+bafe72f
+----
+
+Verify the Monitor is not in a Running State.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep 'ceph-mon'
+....
+.Example output
+----
+rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pending     0          111m
+----
+
+Now verify the application can still be accessed.
+
+[source,shell]
+....
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
+....
+.Example output
+----
+You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title             |                                        body                                        |         created_at         |         updated_at
+----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+(1 row)
+----
+
+NOTE: The output is identical to the one performed when we tested the successfull deployment of the application.
+
+Restart the AWS instance.
+
+[source,shell]
+....
+aws ec2 start-instances --instance-ids ${instanceid}
+....
+.Example output
+----
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-096972e6887f383a6",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+----
+
+Verify all Monitors are up and running again.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep 'ceph-mon'
+....
+.Example output
+----
+rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          8m59s
+----
+
+== DC Not Hosting Application Failure Test
+
+This test is designed to demonstrates that if an application runs in the failure domain that is not
+impacted by the failure, the application remains available at all time. Both RPO and RTO are equal to 0.
+
+Identify the node name where the application pod is running together with the zone in which the node
+is located.
+
+[source,shell]
+....
+export appnode=$(oc get pod -n my-database-app -o wide | grep Running | grep postgre | awk '{ print $7 }')
+echo $appnode
+....
+.Example output
+----
+ip-10-0-158-73.us-east-2.compute.internal
+----
+
+Identify the availability zone the nod ebelongs to and set a variable for the zone to shutdown.
+
+[source,shell]
+....
+export appzone=$(oc get node ${appnode} -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
+if [ x"$appzone" == "xus-east-2a" ]; then shutzone="us-east-2b"; else shutzone="us-east-2a"; fi
+echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"
+....
+.Example output
+----
+Application in zone us-east-2a; Shutting down zone us-east-2b
+----
+
+Shutdown the nodes of the zone where the application is not running.
+
+Identify the AWS `InstanceId`s and shut them down.
+
+[source,shell]
+....
+for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Shutting down ${instanceid}
+aws ec2 stop-instances --instance-ids ${instanceid}
+done
+....
+.Example output
+----
+Shutting down i-0a3a7885a211a2b6d
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-0a3a7885a211a2b6d",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+Shutting down i-0e31b4d74c583a6c1
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-0e31b4d74c583a6c1",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+----
+
+Verify the worker nodes are now stopped and OCS pods are not running.
+
+[source,shell]
+....
+oc get nodes
+....
+.Example output
+----
+NAME                                         STATUS     ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready      worker   4h15m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready      worker   7h26m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h30m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   NotReady   worker   7h24m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    NotReady   worker   4h16m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f
+----
+
+Verify the status of the pods impacted by the failure.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep -v Running
+....
+.Example output
+----
+NAME                                                              READY   STATUS        RESTARTS   AGE
+noobaa-core-0                                                     1/1     Terminating   0          4h1m
+noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Terminating   0          4h6m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Terminating   0          4h6m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64dth86s   0/2     Pending       0          2m22s
+rook-ceph-mon-c-59c5b4749b-mm7k5                                  0/2     Pending       0          2m22s
+rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pending       0          2m12s
+rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
+rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
+----
+
+IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+can not report their status.
+
+Verify the status of the OCS cluster by connecting to the toolbox pod.
+
+[source,shell]
+....
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status
+....
+.Example output
+----
+  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_WARN
+            insufficient standby MDS daemons available
+            We are missing stretch mode buckets, only requiring 1 of 2 buckets to peer
+            2 osds down
+            2 hosts (2 osds) down
+            1 zone (2 osds) down
+            Degraded data redundancy: 278/556 objects degraded (50.000%), 86 pgs degraded, 192 pgs undersized
+            2/5 mons down, quorum a,b,e
+
+  services:
+    mon: 5 daemons, quorum a,b,e (age 4m), out of quorum: c, d
+    mgr: a(active, since 3h)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active}
+    osd: 4 osds: 2 up (since 5m), 4 in (since 3h)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 139 objects, 259 MiB
+    usage:   4.7 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     278/556 objects degraded (50.000%)
+             106 active+undersized
+             86  active+undersized+degraded
+
+  io:
+    client:   5.3 KiB/s wr, 0 op/s rd, 0 op/s wr
+----
+
+NOTE: As you can see, 2 OSDs are down, 2 MONs are down but we will now verify that the application os still responding.
+
+Now verify the application can still be accessed.
+
+Add a new article via the application Web UI to verify the application is still available and data can be written
+to the database. Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
+
+[source,role="execute"]
+----
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
+----
+.Example output:
+----
+You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title              |                                        body                                        |         created_at         |         updated_at
+----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+  2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
+(2 rows)
+----
+
+Restart the instances that we stop.
+
+[source,shell]
+....
+for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Starting ${instanceid}
+aws ec2 start-instances --instance-ids ${instanceid}
+done
+....
+.Example output
+----
+Starting i-0a3a7885a211a2b6d
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-0a3a7885a211a2b6d",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+Starting i-0e31b4d74c583a6c1
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-0e31b4d74c583a6c1",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+----
+Verify the worker nodes are now started and OCS pods are now running.
+
+[source,shell]
+....
+oc get nodes
+....
+.Example output
+----
+NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h30m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   7h42m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready    master   7h45m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   7h39m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h31m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
+----
+
+Verify the status of the OCS pods impacted by the failure. There should be none.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep -v Running
+....
+.Example output
+----
+NAME                                                              READY   STATUS      RESTARTS   AGE
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          4h12m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          4h12m
+----
+
+IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
+
+Verify the status of the OCS cluster by connecting to the toolbox pod.
+
+[source,shell]
+....
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status
+....
+.Example output
+----
+  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 50m)
+    mgr: a(active, since 50m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 50m), 4 in (since 50m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 92 objects, 133 MiB
+    usage:   4.3 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr
+----
+
+NOTE: It make take about a minute or two before all pods are back in `Running` status
+and the OCS cluster returns to `HEALTH_OK`.
+
+== DC Hosting Application Failure Test
+
+This test is designed to demonstrates that if an application runs in the failure domain that will become
+unavailable, the application is rescheduled on one of the remaining worker nodes in the surviving failure domain
+and becomes available again when the application pod is restarted. In this scenario the RPO is equal to 0 and
+the RTO is equal to the time (a matter of seconds) it takes to reschedule the application pod.
+
+Identify the node name where the application pod is running together with the zone in which the node
+is located.
+
+[source,shell]
+....
+export appnode=$(oc get pod -n my-database-app -o wide | grep Running | grep postgre | awk '{ print $7 }')
+echo $appnode
+....
+.Example output
+----
+ip-10-0-158-73.us-east-2.compute.internal
+----
+
+Identify the availability zone the node belongs to and set a variable for the zone to shutdown.
+
+[source,shell]
+....
+export appzone=$(oc get node ${appnode} -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
+if [ x"$appzone" == "xus-east-2a" ]; then shutzone="us-east-2a"; else shutzone="us-east-2b"; fi
+echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"
+....
+.Example output
+----
+Application in zone us-east-2a; Shutting down zone us-east-2a
+----
+
+Shutdown the nodes of the zone where the application is not running.
+
+Identify the AWS `InstanceId`s and shut them down.
+
+[source,shell]
+....
+for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Shutting down ${instanceid}
+aws ec2 stop-instances --instance-ids ${instanceid}
+done
+....
+.Example output
+----
+Shutting down i-048512405b8d288c5
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-048512405b8d288c5",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+Shutting down i-01cdb6fe63f481043
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-01cdb6fe63f481043",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+----
+
+Verify the worker nodes are now stopped and OCS pods are not running.
+
+[source,shell]
+....
+oc get nodes
+....
+.Example output
+----
+NAME                                         STATUS     ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   NotReady   worker   4h38m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    NotReady   worker   7h49m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h53m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready      worker   7h46m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready      worker   4h38m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
+----
+
+Verify the status of the OCS pods impacted by the failure.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep -v Running
+....
+.Example output
+----
+NAME                                                              READY   STATUS        RESTARTS   AGE
+noobaa-core-0                                                     1/1     Terminating   0          4h1m
+noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Terminating   0          4h6m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Terminating   0          4h6m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64dth86s   0/2     Pending       0          2m22s
+rook-ceph-mon-c-59c5b4749b-mm7k5                                  0/2     Pending       0          2m22s
+rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pending       0          2m12s
+rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
+rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
+----
+
+IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+can not report their status.
+
+Verify the status of the OCS cluster by connecting to the toolbox pod.
+
+[source,shell]
+....
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status
+....
+.Example output
+----
+  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_WARN
+            1 filesystem is degraded
+            insufficient standby MDS daemons available
+            1 MDSs report slow metadata IOs
+            2 osds down
+            2 hosts (2 osds) down
+            1 zone (2 osds) down
+            Reduced data availability: 192 pgs inactive
+            Degraded data redundancy: 286/572 objects degraded (50.000%), 89 pgs degraded, 192 pgs undersized
+            2/5 mons down, quorum c,d,e
+
+  services:
+    mon: 5 daemons, quorum c,d,e (age 26s), out of quorum: a, b
+    mgr: a(active, since 64s)
+    mds: ocs-storagecluster-cephfilesystem:1/1 {0=ocs-storagecluster-cephfilesystem-b=up:replay}
+    osd: 4 osds: 2 up (since 6m), 4 in (since 4h)
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 143 objects, 267 MiB
+    usage:   2.3 GiB used, 1022 GiB / 1 TiB avail
+    pgs:     100.000% pgs not active
+             286/572 objects degraded (50.000%)
+             103 undersized+peered
+             89  undersized+degraded+peered
+----
+
+IMPORTANT: If an error message is displayed when trying to connect to the toolbox, delete the current pod
+to force a restart of the pod.
+
+NOTE: As you can see, 2 OSDs are down, 2 MONs are down but we will now verify that the application os still responding.
+
+Now verify the application can still be accessed.
+
+Add a new article via the application Web UI to verify the application is still available and data can be written
+to the database. Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
+
+[source,role="execute"]
+----
+oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
+----
+.Example output:
+----
+You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title              |                                        body                                        |         created_at         |         updated_at
+----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+  2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
+(2 rows)
+----
+
+Restart the instances that we stopped.
+
+[source,shell]
+....
+for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Starting ${instanceid}
+aws ec2 start-instances --instance-ids ${instanceid}
+done
+....
+.Example output
+----
+Starting i-048512405b8d288c5
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-048512405b8d288c5",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+Starting i-01cdb6fe63f481043
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-01cdb6fe63f481043",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+----
+
+Verify the worker nodes are now started and OCS pods are now running.
+
+[source,shell]
+....
+oc get nodes
+....
+.Example output
+----
+NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h57m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   8h      v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready    master   8h      v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   8h      v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h57m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
+----
+
+Verify the status of the OCS pods impacted by the failure. There should be none.
+
+[source,shell]
+....
+oc get pods -n openshift-storage | grep -v Running
+....
+.Example output
+----
+NAME                                                              READY   STATUS      RESTARTS   AGE
+----
+
+IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
+
+Verify the status of the OCS cluster by connecting to the toolbox pod.
+
+[source,shell]
+....
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status
+....
+.Example output
+----
+  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 52s)
+    mgr: a(active, since 15m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 64s), 4 in (since 4h)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 144 objects, 269 MiB
+    usage:   4.7 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   141 KiB/s rd, 145 KiB/s wr, 8 op/s rd, 9 op/s wr
+----
+
+NOTE: It make take about a minute or two before all pods are back in `Running` status
+and the OCS cluster is back to `HEALTH_OK` status.
+
