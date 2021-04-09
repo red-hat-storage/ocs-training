@@ -1,4 +1,4 @@
-= OpenShift Stretched Metro Cluster Disaster Recovery CLI Deployment
+= OpenShift Stretched Metro Cluster Disaster Recovery UI Deployment
 :toc:
 :toclevels: 4
 :icons: font
