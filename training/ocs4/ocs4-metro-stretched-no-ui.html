@@ -1,0 +1,2320 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenShift Data Foundation Stretched Metro Cluster (CLI) :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-metro-stretched-no-ui.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-multisite-replication.html">Multisite disaster recovery</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched-no-ui.html">Stretched Metro Cluster CLI</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched-ui.html">Stretched Metro Cluster UI</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-metro-stretched-no-ui.html">Stretched Metro Cluster CLI</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-metro-stretched-no-ui.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">OpenShift Data Foundation Stretched Metro Cluster (CLI)</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">1. Overview</a></li>
+<li><a href="#_production_environment_requirements">2. Production Environment Requirements</a></li>
+<li><a href="#_prepare_ocp_environment">3. Prepare OCP Environment</a>
+<ul class="sectlevel2">
+<li><a href="#_scale_odf_nodes">3.1. Scale ODF Nodes</a>
+<ul class="sectlevel3">
+<li><a href="#_two_worker_node_cluster">3.1.1. Two Worker node cluster</a></li>
+<li><a href="#_three_worker_node_cluster">3.1.2. Three Worker node cluster</a></li>
+<li><a href="#_proceed_with_setup">3.1.3. Proceed With Setup</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_local_storage_operator">4. Local Storage Operator</a>
+<ul class="sectlevel2">
+<li><a href="#_installing_the_local_storage_operator_v4_7">4.1. Installing the Local Storage Operator v4.7</a></li>
+<li><a href="#_configuring_the_local_storage_operator_v4_7">4.2. Configuring the Local Storage Operator v4.7</a>
+<ul class="sectlevel3">
+<li><a href="#_configuring_auto_discovery">4.2.1. Configuring Auto Discovery</a></li>
+<li><a href="#_configuring_localvolumeset">4.2.2. Configuring LocalVolumeSet</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li><a href="#_openshift_container_storage_deployment">5. OpenShift Container Storage Deployment</a>
+<ul class="sectlevel2">
+<li><a href="#_odf_operator_deployment">5.1. ODF Operator Deployment</a></li>
+<li><a href="#_odf_cluster_deployment">5.2. ODF Cluster Deployment</a>
+<ul class="sectlevel3">
+<li><a href="#_using_lso_based_storage_i3_instances">5.2.1. Using LSO based Storage (<code>i3</code> instances)</a></li>
+<li><a href="#_using_ebs_storage_m5_4xlarge_instances">5.2.2. Using EBS Storage (<code>m5.4xlarge</code> instances)</a></li>
+<li><a href="#_wait_for_cluster_deployment">5.2.3. Wait For Cluster Deployment</a></li>
+</ul>
+</li>
+<li><a href="#_verify_deployment">5.3. Verify Deployment</a></li>
+</ul>
+</li>
+<li><a href="#_sample_application_deployment">6. Sample Application Deployment</a></li>
+<li><a href="#_arbiter_failure_test">7. Arbiter Failure Test</a></li>
+<li><a href="#_dc_not_hosting_application_failure_test">8. DC Not Hosting Application Failure Test</a></li>
+<li><a href="#_dc_hosting_application_failure_test">9. DC Hosting Application Failure Test</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The intent of this solution guide is to detail the steps and commands necessary to deploy <code>OpenShift Data Foundation</code>
+(ODF) in Arbiter mode using CLI commands and test different failure scenarios.</p>
+</div>
+<div class="paragraph">
+<p>In this module you will be using OpenShift Container Platform (OCP) 4.x and the ODF operator to deploy
+ODF in Arbiter mode.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+To complete the failure scenarios included in this document you will need to be able to control
+your AWS instances via the <code>aws</code> CLI and proper credentials.
+To download the utility visit <a href="https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html">this page</a>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_production_environment_requirements"><a class="anchor" href="#_production_environment_requirements"></a>2. Production Environment Requirements</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+In this lab we will perform the deployment of ODF using the <code>gp2</code> storage class in AWS.
+The UI based deployment requires you to deploy ODF in Arbiter Mode over LSO based storage. We chose
+to use <code>gp2</code> and <code>m5.4xlarge</code> instances for easier testing of the failover and failback functionalities
+given AWS EBS volumes persists even if an instance is being shutdown.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>As a reminder here is the list of requirements for production environments:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>One OCP 4.6 (or greater) cluster</p>
+</li>
+<li>
+<p><code>OpenShift Container Storage</code> (ODF) <strong>4.7</strong> (or greater)</p>
+</li>
+<li>
+<p>Two (2) failure domains for OSD deployment</p>
+<div class="ulist">
+<ul>
+<li>
+<p>At least two (2) nodes in each availability zone</p>
+</li>
+<li>
+<p>LSO is a requirement for UI deployment</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>One (1) failure domain for Monitor Arbiter deployment</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Arbiter Monitor can natively run on a master node</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_prepare_ocp_environment"><a class="anchor" href="#_prepare_ocp_environment"></a>3. Prepare OCP Environment</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_scale_odf_nodes"><a class="anchor" href="#_scale_odf_nodes"></a>3.1. Scale ODF Nodes</h3>
+<div class="sect3">
+<h4 id="_two_worker_node_cluster"><a class="anchor" href="#_two_worker_node_cluster"></a>3.1.1. Two Worker node cluster</h4>
+<div class="paragraph">
+<p>Confirm your environment only has 2 worker nodes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machineset -n openshift-machine-api</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-mvghv-worker-us-east-2a   1         1         1       1           3h15m
+ocp45-mvghv-worker-us-east-2b   1         1         1       1           3h15m
+ocp45-mvghv-worker-us-east-2c   0         0                             3h15m</pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+If your cluster has worker nodes deployed in your third availability zone go to
+chapter <a href="#_three_worker_node_cluster">Three Worker node cluster</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Scale up the machineset for zones <code>us-east-2a</code> and <code>us-east-2b</code> using the following commands.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2a scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2b scaled</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Go to chapter <a href="#_proceed_with_setup">Proceed With Setup</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_three_worker_node_cluster"><a class="anchor" href="#_three_worker_node_cluster"></a>3.1.2. Three Worker node cluster</h4>
+<div class="paragraph">
+<p>Confirm your environment has 3 worker nodes.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machineset -n openshift-machine-api</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-xs7pv-worker-us-east-2a   1         1         1       1           59m
+ocp45-xs7pv-worker-us-east-2b   1         1         1       1           59m
+ocp45-xs7pv-worker-us-east-2c   1         1         1       1           59m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scale up the machineset for zones <code>us-east-2a</code> and <code>us-east-2b</code> using the following commands.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2a scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2b scaled
+$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2c scaled</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_proceed_with_setup"><a class="anchor" href="#_proceed_with_setup"></a>3.1.3. Proceed With Setup</h4>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|worker'"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This step could take more than 5 minutes. The result of this command needs to
+look like below before you proceed. Worker <strong>machinesets</strong> in zones <code>2a</code>
+and <code>2b</code> should have an integer, in this case <code>2</code>, filled out for all rows
+and under columns <code>READY</code> and <code>AVAILABLE</code>. The <code>NAME</code> of your <strong>machinesets</strong>
+will be different than shown below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+ocp45-mvghv-worker-us-east-2a   2         2         2       2           3h28m
+ocp45-mvghv-worker-us-east-2b   2         2         2       2           3h28m
+ocp45-mvghv-worker-us-east-2c   0         0                             3h28m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can exit by pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>C</kbd></span>.</p>
+</div>
+<div class="paragraph">
+<p>Now check to see that you have 2 new OCP worker nodes. The <code>NAME</code> of your OCP
+nodes will be different than shown below.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The total number of worker nodes should be 4.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l node-role.kubernetes.io/worker</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   10m     v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h21m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h18m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now assign the ODF label to all the worker nodes in the cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node -l node-role.kubernetes.io/worker cluster.ocs.openshift.io/openshift-storage=""</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>node/ip-10-0-150-108.us-east-2.compute.internal labeled
+node/ip-10-0-158-73.us-east-2.compute.internal labeled
+node/ip-10-0-172-113.us-east-2.compute.internal labeled
+node/ip-10-0-179-14.us-east-2.compute.internal labeled</pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Arbiter mode CLI deployment requires the Arbibter failure domain to not carry
+any ODF label. Do NOT label the Arbiter node!
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s check to make sure the OCP worker nodes have the ODF label.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l cluster.ocs.openshift.io/openshift-storage=</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   11m     v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h22m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h19m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   11m     v1.20.0+bafe72f</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_storage_operator"><a class="anchor" href="#_local_storage_operator"></a>4. Local Storage Operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Check the type of instances you are currently using.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get machines -n openshift-machine-api | grep worker</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ocp45-mvghv-worker-us-east-2a-nnwcr   Running   m5.4xlarge   us-east-2   us-east-2a   3h25m
+ocp45-mvghv-worker-us-east-2a-wm79g   Running   m5.4xlarge   us-east-2   us-east-2a   14m
+ocp45-mvghv-worker-us-east-2b-gsz7p   Running   m5.4xlarge   us-east-2   us-east-2b   3h25m
+ocp45-mvghv-worker-us-east-2b-ptfz6   Running   m5.4xlarge   us-east-2   us-east-2b   14m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If you are using <code>m5.4xlarge</code> instances,
+as shown in the third column,
+go to chapter <a href="#_openshift_container_storage_deployment">OpenShift Container Storage Deployment</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_installing_the_local_storage_operator_v4_7"><a class="anchor" href="#_installing_the_local_storage_operator_v4_7"></a>4.1. Installing the Local Storage Operator v4.7</h3>
+<div class="paragraph">
+<p>First, you will need to create a namespace for the Local Storage
+Operator. A self descriptive <code>openshift-local-storage</code> namespace is recommended.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: openshift-local-storage
+spec: {}
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create Operator Group for Local Storage Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: local-operator-group
+  namespace: openshift-local-storage
+spec:
+  targetNamespaces:
+  - openshift-local-storage
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Subscribe to Local Storage Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: local-storage-operator
+  namespace: openshift-local-storage
+spec:
+  channel: "4.7"
+  installPlanApproval: Automatic
+  name: local-storage-operator
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the Local Storage Operator deployment is successful.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv,pod -n openshift-local-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/local-storage-operator.4.7.0-202103202139.p0   Local Storage   4.7.0-202103202139.p0              Succeeded
+
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/local-storage-operator-5c8cc9545c-nh9jt   1/1     Running   0          87s</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Do not proceed with the next instructions until the Local Storage Operator is deployed successfully.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_the_local_storage_operator_v4_7"><a class="anchor" href="#_configuring_the_local_storage_operator_v4_7"></a>4.2. Configuring the Local Storage Operator v4.7</h3>
+<div class="sect3">
+<h4 id="_configuring_auto_discovery"><a class="anchor" href="#_configuring_auto_discovery"></a>4.2.1. Configuring Auto Discovery</h4>
+<div class="paragraph">
+<p>Local Storage Operator v4.7 supports discovery of devices on OCP nodes with the ODF label <code>cluster.ocs.openshift.io/openshift-storage=""</code>. Create the <code>LocalVolumeDiscovery</code> resource using this file after the OCP nodes are labeled with the ODF label.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeDiscovery
+metadata:
+  name: auto-discover-devices
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+            - ""
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After this resource is created in the <code>openshift-local-storage</code> namespace, you should see a new
+<code>localvolumediscoveries</code> resource and there will be a <code>localvolumediscoveryresults</code> for each OCP
+node labeled with the ODF label. Each <code>localvolumediscoveryresults</code> will have the detail for
+each disk on the node including the <code>by-id</code>, size and type of disk.</p>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_configuring_localvolumeset"><a class="anchor" href="#_configuring_localvolumeset"></a>4.2.2. Configuring LocalVolumeSet</h4>
+<div class="paragraph">
+<p>Red Hat only supports SSDs or NVMes in production environment.</p>
+</div>
+<div class="paragraph">
+<p>Use this file <code>localvolumeset.yaml</code> to create the <code>LocalVolumeSet</code>. Configure the parameters with comments to meet the needs of your environment. If not required, the parameters with comments can be deleted.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: local.storage.openshift.io/v1alpha1
+kind: LocalVolumeSet
+metadata:
+  name: local-block
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+      - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: In
+            values:
+              - ""
+  storageClassName: localblock
+  volumeMode: Block
+  fstype: ext4
+  maxDeviceCount: 1	# &lt;-- Maximum number of devices per node to be used
+  deviceInclusionSpec:
+    deviceTypes:
+    - disk
+    - part		# &lt;-- Remove this if not using partitions
+    deviceMechanicalProperties:
+    - NonRotational 	# &lt;-- Use only SSDs and NVMes
+    #minSize: 0Ti	# &lt;-- Uncomment and modify to limit the minimum size of disk used
+    #maxSize: 0Ti	# &lt;-- Uncomment and modify to limit the maximum size of disk used</code></pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>oc create -f localvolumeset.yaml</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the <code>localvolumesets</code> resource is created check that <code>Available</code> <strong>PVs</strong> are created for each disk on OCP
+nodes with the ODF label in zone <code>us-east-2a</code> and <code>us-east-2b</code>. It can take a few minutes until all disks appear
+as PVs while the Local Storage Operator is preparing the disks.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pv</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+local-pv-222fc034   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-376fac5f   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-5160893    2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-a58904fd   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-b7bb7e0a   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-c187d06d   2328Gi     RWO            Delete           Available           localblock              8s
+local-pv-d6c318a4   2328Gi     RWO            Delete           Available           localblock              9s
+local-pv-dc39122f   2328Gi     RWO            Delete           Available           localblock              8s</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Your lab environment should have 8 PVs, 2 per node where we intend to deploy the ODF OSDs.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openshift_container_storage_deployment"><a class="anchor" href="#_openshift_container_storage_deployment"></a>5. OpenShift Container Storage Deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section you will be using four (4) worker OCP 4 nodes to deploy
+ODF 4 using the ODF Operator in OperatorHub. The following will be installed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>An ODF Subscription</p>
+</li>
+<li>
+<p>The ODF Operator</p>
+</li>
+<li>
+<p>All other ODF resources (Ceph Pods, NooBaa Pods, StorageClasses)</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_odf_operator_deployment"><a class="anchor" href="#_odf_operator_deployment"></a>5.1. ODF Operator Deployment</h3>
+<div class="paragraph">
+<p>Start with creating the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.7"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators # &lt;-- Specify the correct catalogsource if using RC version
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you do not know the name of the catalog source you can display all available
+ones using the <code>oc get catalogsource -A</code> command.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the operator is deployed successfully.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-746ddfc79-mzdkc         1/1     Running   0          28s
+pod/ocs-metrics-exporter-54b6d689f8-5jtgv   1/1     Running   0          28s
+pod/ocs-operator-5bcdd97ff4-kvp2z           1/1     Running   0          29s
+pod/rook-ceph-operator-7dd585bd97-md9w2     1/1     Running   0          28s
+
+NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShift Container Storage   4.7.0-339.ci              Succeeded</pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+This will mark that the installation of your operator was
+successful. Reaching this state can take several minutes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_odf_cluster_deployment"><a class="anchor" href="#_odf_cluster_deployment"></a>5.2. ODF Cluster Deployment</h3>
+<div class="sect3">
+<h4 id="_using_lso_based_storage_i3_instances"><a class="anchor" href="#_using_lso_based_storage_i3_instances"></a>5.2.1. Using LSO based Storage (<code>i3</code> instances)</h4>
+<div class="paragraph">
+<p>Create your storage cluster using the following <code>yaml</code> file if you are using
+LSO based storage with <code>i3</code> or <code>i3en</code> instances. If you are using <code>m5.4xlarge</code>
+instances go to <a href="#_using_ebs_storage">[_using_ebs_storage]</a>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  annotations:
+    cluster.ocs.openshift.io/local-devices: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter:
+    enable: true
+  monDataDirHostPath: /var/lib/rook
+  nodeTopologies:
+    arbiterLocation: us-east-2c
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "1"
+        storageClassName: localblock
+        volumeMode: Block
+    name: ocs-deviceset-localblock
+    replica: 4
+  version: 4.7.0
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Go to chapter <a href="#_wait_for_cluster_deployment">Wait For Cluster Deployment</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_using_ebs_storage_m5_4xlarge_instances"><a class="anchor" href="#_using_ebs_storage_m5_4xlarge_instances"></a>5.2.2. Using EBS Storage (<code>m5.4xlarge</code> instances)</h4>
+<div class="paragraph">
+<p>Create your storage cluster using the following <code>yaml</code> file if you are using
+EBS storage with <code>m5</code> instances.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  annotations:
+    cluster.ocs.openshift.io/local-devices: "true"
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter:
+    enable: true
+  monDataDirHostPath: /var/lib/rook
+  nodeTopologies:
+    arbiterLocation: us-east-2c
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "512Gi"
+        storageClassName: gp2
+        volumeMode: Block
+    name: ocs-deviceset-gp2
+    replica: 4
+  version: 4.7.0
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The CLI method will allow you to deploy an Arbiter node cluster using the <code>gp2</code>
+storage class dynamic provisioning. However, this is not a supported configuration.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_wait_for_cluster_deployment"><a class="anchor" href="#_wait_for_cluster_deployment"></a>5.2.3. Wait For Cluster Deployment</h4>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The UI method requires the Arbiter mode to be configured with LSO based
+storage.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Wait for your storage cluster to become operational.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cephcluster -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     5          9m17s   Ready   Cluster created successfully   HEALTH_OK</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-provisioner-6976556bd7-7jmtp                     6/6     Running     0          9m49s
+csi-cephfsplugin-provisioner-6976556bd7-fd2zq                     6/6     Running     0          9m49s
+csi-cephfsplugin-qtl65                                            3/3     Running     0          9m49s
+csi-cephfsplugin-v2jnf                                            3/3     Running     0          9m49s
+csi-cephfsplugin-zftft                                            3/3     Running     0          9m49s
+csi-cephfsplugin-zm9qh                                            3/3     Running     0          9m49s
+csi-rbdplugin-96ff5                                               3/3     Running     0          9m50s
+csi-rbdplugin-g96bd                                               3/3     Running     0          9m50s
+csi-rbdplugin-gt7vc                                               3/3     Running     0          9m50s
+csi-rbdplugin-hh68b                                               3/3     Running     0          9m50s
+csi-rbdplugin-provisioner-6b8557bd8b-mb59w                        6/6     Running     0          9m49s
+csi-rbdplugin-provisioner-6b8557bd8b-rmjmg                        6/6     Running     0          9m49s
+noobaa-core-0                                                     1/1     Running     0          7m4s
+noobaa-db-pg-0                                                    1/1     Running     0          7m4s
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Running     0          5m42s
+noobaa-operator-746ddfc79-mzdkc                                   1/1     Running     0          11m
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Running     0          11m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Running     0          11m
+rook-ceph-crashcollector-ip-10-0-150-108-59dbc9f84b-z9kqp         1/1     Running     0          9m8s
+rook-ceph-crashcollector-ip-10-0-158-73-867477c64c-nr82z          1/1     Running     0          8m58s
+rook-ceph-crashcollector-ip-10-0-172-113-5f8d474d74-dxvbb         1/1     Running     0          8m46s
+rook-ceph-crashcollector-ip-10-0-179-14-7db8dcd979-m445k          1/1     Running     0          8m32s
+rook-ceph-crashcollector-ip-10-0-207-228-75596b5dff-5krbc         1/1     Running     0          8m17s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-68789cf7qkhcs   2/2     Running     0          6m49s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64d26hrd   2/2     Running     0          6m48s
+rook-ceph-mgr-a-58986cc846-ssn6d                                  2/2     Running     0          7m55s
+rook-ceph-mon-a-5f8568646-sxv4p                                   2/2     Running     0          9m23s
+rook-ceph-mon-b-57dfb9b66c-8klfx                                  2/2     Running     0          8m59s
+rook-ceph-mon-c-59c5b4749b-4gvv8                                  2/2     Running     0          8m46s
+rook-ceph-mon-d-5d45c796bc-cmtgh                                  2/2     Running     0          8m32s
+rook-ceph-mon-e-cd6988b6-m8c2p                                    2/2     Running     0          8m17s
+rook-ceph-operator-7dd585bd97-md9w2                               1/1     Running     0          11m
+rook-ceph-osd-0-5fc6b5864f-8wmlw                                  2/2     Running     0          7m30s
+rook-ceph-osd-1-b968db74-krn4f                                    2/2     Running     0          7m27s
+rook-ceph-osd-2-6c57b8946f-c8xgm                                  2/2     Running     0          7m26s
+rook-ceph-osd-3-6f7dd55b9f-g7k6r                                  2/2     Running     0          7m26s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          7m53s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-09p86q-k6tln       0/1     Completed   0          7m53s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0xx95t-qgnss       0/1     Completed   0          7m52s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          7m52s</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_deployment"><a class="anchor" href="#_verify_deployment"></a>5.3. Verify Deployment</h3>
+<div class="paragraph">
+<p>Deploy the <code>rook-ceph-tool</code> pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Establish a remote shell to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run <code>ceph status</code> and <code>ceph osd tree</code> to see that status of the cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.4# ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 50m)
+    mgr: a(active, since 50m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 50m), 4 in (since 50m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 92 objects, 133 MiB
+    usage:   4.3 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As observed the cluster in Arbiter node is always deployed with 5 Monitors, 2 per active OSD failure
+domain and one in the Arbiter failure domain.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.4# ceph osd tree</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ID  CLASS WEIGHT  TYPE NAME                        STATUS REWEIGHT PRI-AFF
+ -1       2.00000 root default
+ -5       2.00000     region us-east-2
+ -4       1.00000         zone us-east-2a
+ -3       0.50000             host ip-10-0-150-108
+  0   ssd 0.50000                 osd.0                up  1.00000 1.00000
+ -9       0.50000             host ip-10-0-158-73
+  1   ssd 0.50000                 osd.1                up  1.00000 1.00000
+-12       1.00000         zone us-east-2b
+-11       0.50000             host ip-10-0-172-113
+  3   ssd 0.50000                 osd.3                up  1.00000 1.00000
+-15       0.50000             host ip-10-0-179-14
+  2   ssd 0.50000                 osd.2                up  1.00000 1.00000</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+OSDs are deployed in sets of 4, 2 per failure domain.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+This lab is NOT a supported configuration but is designed for you to experiment.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sample_application_deployment"><a class="anchor" href="#_sample_application_deployment"></a>6. Sample Application Deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working.</p>
+</div>
+<div class="paragraph">
+<p>Start by creating a new project on the <strong>primary cluster</strong>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then use the <code>rails-pgsql-persistent</code> template to create the new application. The new <code>postgresql</code> volume will be claimed from the new <strong>StorageClass</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the deployment is started you can monitor with these commands.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc status</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check the PVC is created.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This step could take 5 or more minutes. Wait until there are 2 <strong>Pods</strong> in
+<code>Running</code> STATUS and 4 <strong>Pods</strong> in <code>Completed</code> STATUS as shown below.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">watch oc get pods -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                READY   STATUS      RESTARTS   AGE
+postgresql-1-674qv                  1/1     Running     0          3m1s
+postgresql-1-deploy                 0/1     Completed   0          3m4s
+rails-pgsql-persistent-1-build      0/1     Completed   0          3m6s
+rails-pgsql-persistent-1-deploy     0/1     Completed   0          100s
+rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          97s
+rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can exit by pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>C</kbd></span>.</p>
+</div>
+<div class="paragraph">
+<p>Once the deployment is complete you can now test the application and the
+persistent storage on OCS.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your route (different than above) to a browser window to create articles.</p>
+</div>
+<div class="paragraph">
+<p>Click the <code>New Article</code> link.</p>
+</div>
+<div class="paragraph">
+<p>Enter the <code>username</code> and <code>password</code> below to create articles and comments.
+The articles and comments are saved in a PostgreSQL database which stores its
+table spaces on the RBD volume provisioned using the
+<code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong> during the application
+deployment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>username: openshift
+password: secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have added a new article you can verify it exists in the <code>postgresql</code> database by issuing this command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title             |                                        body                                        |         created_at         |         updated_at
+----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+(1 row)</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_arbiter_failure_test"><a class="anchor" href="#_arbiter_failure_test"></a>7. Arbiter Failure Test</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This test is designed to demonstrates that if the failure domain hosting the Monitor running in
+Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.</p>
+</div>
+<div class="paragraph">
+<p>Identify the node name for the master node in zone <code>us-east-2c</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export masternode=$(oc get nodes -l node-role.kubernetes.io/master -l topology.kubernetes.io/zone=us-east-2c --no-headers | awk '{ print $1 }')
+echo $masternode</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ip-10-0-212-112.us-east-2.compute.internal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Identify the Monitor that runs on a master node in zone <code>us-east-2c</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage -o wide | grep ${masternode} | grep 'ceph-mon' | awk '{ print $1 }'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-mon-e-6bdd6d6bb8-wxwkf</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Shutdown the node where <code>rook-ceph-mon-e-6bdd6d6bb8-wxwkf</code> is running.</p>
+</div>
+<div class="paragraph">
+<p>Identify the AWS <code>InstanceId</code> for this master node.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export instanceid=$(oc get machines -n openshift-machine-api -o wide | grep ${masternode} | awk '{ print $8 }' | cut -f 5 -d '/')
+echo ${instanceid}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>i-096972e6887f383a6</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Stop the instance</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">aws ec2 stop-instances --instance-ids ${instanceid}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Exampe output</div>
+<div class="content">
+<pre>{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-096972e6887f383a6",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the master node is now stopped and the monitor not in a <code>Running</code> state.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l node-role.kubernetes.io/master -l topology.kubernetes.io/zone=us-east-2c</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                         STATUS      ROLES    AGE     VERSION
+ip-10-0-212-112.us-east-2.compute.internal   NotReady    master   3h33m   v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the Monitor is not in a Running State.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep 'ceph-mon'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pending     0          111m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now verify the application can still be accessed.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title             |                                        body                                        |         created_at         |         updated_at
+----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+(1 row)</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The output is identical to the one performed when we tested the successfull deployment of the application.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Restart the AWS instance.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">aws ec2 start-instances --instance-ids ${instanceid}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-096972e6887f383a6",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify all Monitors are up and running again.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep 'ceph-mon'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          8m59s</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dc_not_hosting_application_failure_test"><a class="anchor" href="#_dc_not_hosting_application_failure_test"></a>8. DC Not Hosting Application Failure Test</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This test is designed to demonstrates that if an application runs in the failure domain that is not
+impacted by the failure, the application remains available at all time. Both RPO and RTO are equal to 0.</p>
+</div>
+<div class="paragraph">
+<p>Identify the node name where the application pod is running together with the zone in which the node
+is located.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export appnode=$(oc get pod -n my-database-app -o wide | grep Running | grep postgre | awk '{ print $7 }')
+echo $appnode</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ip-10-0-158-73.us-east-2.compute.internal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Identify the availability zone the node belongs to and set a variable for the zone to shutdown.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export appzone=$(oc get node ${appnode} -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
+if [ x"$appzone" == "xus-east-2a" ]; then shutzone="us-east-2b"; else shutzone="us-east-2a"; fi
+echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Application in zone us-east-2a; Shutting down zone us-east-2b</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Shutdown the nodes of the zone where the application is not running.</p>
+</div>
+<div class="paragraph">
+<p>Identify the AWS <code>InstanceIds</code> and shut them down.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Shutting down ${instanceid}
+aws ec2 stop-instances --instance-ids ${instanceid}
+done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Shutting down i-0a3a7885a211a2b6d
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-0a3a7885a211a2b6d",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+Shutting down i-0e31b4d74c583a6c1
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-0e31b4d74c583a6c1",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the worker nodes are now stopped and ODF pods are not running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                         STATUS     ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready      worker   4h15m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready      worker   7h26m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h30m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   NotReady   worker   7h24m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    NotReady   worker   4h16m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of the pods impacted by the failure.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep -v Running</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS        RESTARTS   AGE
+noobaa-core-0                                                     1/1     Terminating   0          4h1m
+noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Terminating   0          4h6m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Terminating   0          4h6m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64dth86s   0/2     Pending       0          2m22s
+rook-ceph-mon-c-59c5b4749b-mm7k5                                  0/2     Pending       0          2m22s
+rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pending       0          2m12s
+rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
+rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+It will take over 5 minutes for the ODF pods to change status as the underlying node <code>kubelet</code>
+can not report their status.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF cluster by connecting to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_WARN
+            insufficient standby MDS daemons available
+            We are missing stretch mode buckets, only requiring 1 of 2 buckets to peer
+            2 osds down
+            2 hosts (2 osds) down
+            1 zone (2 osds) down
+            Degraded data redundancy: 278/556 objects degraded (50.000%), 86 pgs degraded, 192 pgs undersized
+            2/5 mons down, quorum a,b,e
+
+  services:
+    mon: 5 daemons, quorum a,b,e (age 4m), out of quorum: c, d
+    mgr: a(active, since 3h)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active}
+    osd: 4 osds: 2 up (since 5m), 4 in (since 3h)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 139 objects, 259 MiB
+    usage:   4.7 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     278/556 objects degraded (50.000%)
+             106 active+undersized
+             86  active+undersized+degraded
+
+  io:
+    client:   5.3 KiB/s wr, 0 op/s rd, 0 op/s wr</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As you can see, 2 OSDs are down, 2 MONs are down but we will now verify that the application os still responding.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now verify the application can still be accessed.</p>
+</div>
+<div class="paragraph">
+<p>Add a new article via the application Web UI to verify the application is still available and data can be written
+to the database. Once you have added a new article you can verify it exists in the <code>postgresql</code> database by issuing this command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title              |                                        body                                        |         created_at         |         updated_at
+----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+  2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
+(2 rows)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the instances that we stop.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Starting ${instanceid}
+aws ec2 start-instances --instance-ids ${instanceid}
+done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Starting i-0a3a7885a211a2b6d
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-0a3a7885a211a2b6d",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+Starting i-0e31b4d74c583a6c1
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-0e31b4d74c583a6c1",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the worker nodes are now started and ODF pods are now running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h30m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   7h42m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready    master   7h45m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   7h39m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h31m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF pods impacted by the failure. There should be none.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep -v Running</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          4h12m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          4h12m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+It make take about a minute or two before all pods are back in <code>Running</code> status.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF cluster by connecting to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 50m)
+    mgr: a(active, since 50m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 50m), 4 in (since 50m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 92 objects, 133 MiB
+    usage:   4.3 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It make take about a minute or two before all pods are back in <code>Running</code> status
+and the ODF cluster returns to <code>HEALTH_OK</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_dc_hosting_application_failure_test"><a class="anchor" href="#_dc_hosting_application_failure_test"></a>9. DC Hosting Application Failure Test</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This test is designed to demonstrates that if an application runs in the failure domain that will become
+unavailable, the application is rescheduled on one of the remaining worker nodes in the surviving failure domain
+and becomes available again when the application pod is restarted. In this scenario the RPO is equal to 0 and
+the RTO is equal to the time (a matter of seconds) it takes to reschedule the application pod.</p>
+</div>
+<div class="paragraph">
+<p>Identify the node name where the application pod is running together with the zone in which the node
+is located.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export appnode=$(oc get pod -n my-database-app -o wide | grep Running | grep postgre | awk '{ print $7 }')
+echo $appnode</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>ip-10-0-158-73.us-east-2.compute.internal</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Identify the availability zone the node belongs to and set a variable for the zone to shutdown.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export appzone=$(oc get node ${appnode} -o jsonpath='{.metadata.labels.topology\.kubernetes\.io/zone}')
+if [ x"$appzone" == "xus-east-2a" ]; then shutzone="us-east-2a"; else shutzone="us-east-2b"; fi
+echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Application in zone us-east-2a; Shutting down zone us-east-2a</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Shutdown the nodes of the zone where the application is not running.</p>
+</div>
+<div class="paragraph">
+<p>Identify the AWS <code>InstanceIds</code> and shut them down.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Shutting down ${instanceid}
+aws ec2 stop-instances --instance-ids ${instanceid}
+done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Shutting down i-048512405b8d288c5
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-048512405b8d288c5",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}
+Shutting down i-01cdb6fe63f481043
+{
+    "StoppingInstances": [
+        {
+            "CurrentState": {
+                "Code": 64,
+                "Name": "stopping"
+            },
+            "InstanceId": "i-01cdb6fe63f481043",
+            "PreviousState": {
+                "Code": 16,
+                "Name": "running"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the worker nodes are now stopped and ODF pods are not running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                         STATUS     ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   NotReady   worker   4h38m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    NotReady   worker   7h49m   v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h53m   v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready      worker   7h46m   v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready      worker   4h38m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF pods impacted by the failure.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep -v Running</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS        RESTARTS   AGE
+noobaa-core-0                                                     1/1     Terminating   0          4h1m
+noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
+noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
+ocs-metrics-exporter-54b6d689f8-5jtgv                             1/1     Terminating   0          4h6m
+ocs-operator-5bcdd97ff4-kvp2z                                     1/1     Terminating   0          4h6m
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7456b64dth86s   0/2     Pending       0          2m22s
+rook-ceph-mon-c-59c5b4749b-mm7k5                                  0/2     Pending       0          2m22s
+rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pending       0          2m12s
+rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
+rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
+rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+It will take over 5 minutes for the ODF pods to change status as the underlying node <code>kubelet</code>
+can not report their status.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF cluster by connecting to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_WARN
+            1 filesystem is degraded
+            insufficient standby MDS daemons available
+            1 MDSs report slow metadata IOs
+            2 osds down
+            2 hosts (2 osds) down
+            1 zone (2 osds) down
+            Reduced data availability: 192 pgs inactive
+            Degraded data redundancy: 286/572 objects degraded (50.000%), 89 pgs degraded, 192 pgs undersized
+            2/5 mons down, quorum c,d,e
+
+  services:
+    mon: 5 daemons, quorum c,d,e (age 26s), out of quorum: a, b
+    mgr: a(active, since 64s)
+    mds: ocs-storagecluster-cephfilesystem:1/1 {0=ocs-storagecluster-cephfilesystem-b=up:replay}
+    osd: 4 osds: 2 up (since 6m), 4 in (since 4h)
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 143 objects, 267 MiB
+    usage:   2.3 GiB used, 1022 GiB / 1 TiB avail
+    pgs:     100.000% pgs not active
+             286/572 objects degraded (50.000%)
+             103 undersized+peered
+             89  undersized+degraded+peered</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If an error message is displayed when trying to connect to the toolbox, delete the current pod
+to force a restart of the pod.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As you can see, 2 OSDs are down, 2 MONs are down but we will now verify that the application os still responding.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now verify the application can still be accessed.</p>
+</div>
+<div class="paragraph">
+<p>Add a new article via the application Web UI to verify the application is still available and data can be written
+to the database. Once you have added a new article you can verify it exists in the <code>postgresql</code> database by issuing this command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | user8EF | 16 kB      |
+ public | articles             | table    | user8EF | 16 kB      |
+ public | articles_id_seq      | sequence | user8EF | 8192 bytes |
+ public | comments             | table    | user8EF | 8192 bytes |
+ public | comments_id_seq      | sequence | user8EF | 8192 bytes |
+ public | schema_migrations    | table    | user8EF | 16 kB      |
+(6 rows)
+
+ id |             title              |                                        body                                        |         created_at         |         updated_at
+----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
+  1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
+  2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
+(2 rows)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Restart the instances that we stopped.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for instanceid in $(oc get machines -n openshift-machine-api -o wide | grep ${shutzone} | grep -v master | awk '{ print $8 }' | cut -f 5 -d '/')
+do
+echo Starting ${instanceid}
+aws ec2 start-instances --instance-ids ${instanceid}
+done</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Starting i-048512405b8d288c5
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-048512405b8d288c5",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}
+Starting i-01cdb6fe63f481043
+{
+    "StartingInstances": [
+        {
+            "CurrentState": {
+                "Code": 0,
+                "Name": "pending"
+            },
+            "InstanceId": "i-01cdb6fe63f481043",
+            "PreviousState": {
+                "Code": 80,
+                "Name": "stopped"
+            }
+        }
+    ]
+}</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the worker nodes are now started and ODF pods are now running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h57m   v1.20.0+bafe72f
+ip-10-0-155-110.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
+ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   8h      v1.20.0+bafe72f
+ip-10-0-163-32.us-east-2.compute.internal    Ready    master   8h      v1.20.0+bafe72f
+ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   8h      v1.20.0+bafe72f
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h57m   v1.20.0+bafe72f
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF pods impacted by the failure. There should be none.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage | grep -v Running</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+It make take about a minute or two before all pods are back in <code>Running</code> status.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Verify the status of the ODF cluster by connecting to the toolbox pod.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     bb24312f-df33-455a-ae74-dc974a7572cd
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 52s)
+    mgr: a(active, since 15m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-b=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 64s), 4 in (since 4h)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 144 objects, 269 MiB
+    usage:   4.7 GiB used, 2.0 TiB / 2 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   141 KiB/s rd, 145 KiB/s wr, 8 op/s rd, 9 op/s wr</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It make take about a minute or two before all pods are back in <code>Running</code> status
+and the ODF cluster is back to <code>HEALTH_OK</code> status.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
