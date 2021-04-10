@@ -1,4 +1,4 @@
-= OpenShift Stretched Metro Cluster Disaster Recovery CLI Deployment
+= OpenShift Data Foundation Stretched Metro Cluster (CLI)
 :toc:
 :toclevels: 4
 :icons: font
@@ -11,27 +11,27 @@
 
 == Overview
 
-The intent of this guide is to detail the steps and commands necessary to deploy `OpenShift Container Storage`
-(OCS) in Arbiter mode using CLI commands.
+The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`
+(ODF) in Arbiter mode using CLI commands and test different failure scenarios.
 
-In this module you will be using OpenShift Container Platform (OCP) 4.x and the OCS operator to deploy
-OCS in Arbiter mode.
+In this module you will be using OpenShift Container Platform (OCP) 4.x and the ODF operator to deploy
+ODF in Arbiter mode.
 
-CAUTION: To complete the failure scenarios included in this lab you will need to be able to control
+CAUTION: To complete the failure scenarios included in this document you will need to be able to control
 your AWS instances via the `aws` CLI and proper credentials.
 To download the utility visit https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html[this page].
 
 == Production Environment Requirements
 
-IMPORTANT: In this lab we will perform the deployment of OCS using the `gp2` storage class in AWS.
-The UI based deployment requires you to deploy OCS in Arbiter Mode over LSO based storage. We chose
+IMPORTANT: In this lab we will perform the deployment of ODF using the `gp2` storage class in AWS.
+The UI based deployment requires you to deploy ODF in Arbiter Mode over LSO based storage. We chose
 to use `gp2` and `m5.4xlarge` instances for easier testing of the failover and failback functionalities
 given AWS EBS volumes persists even if an instance is being shutdown.
 
 As a reminder here is the list of requirements for production environments:
 
 * One OCP 4.6 (or greater) cluster
-* `OpenShift Container Storage` (OCS) *4.7* (or greater)
+* `OpenShift Container Storage` (ODF) *4.7* (or greater)
 * Two (2) failure domains for OSD deployment
 ** At least two (2) nodes in each availability zone
 ** LSO is a requirement for UI deployment
@@ -40,22 +40,7 @@ As a reminder here is the list of requirements for production environments:
 
 == Prepare OCP Environment
 
-=== Add OCS Worker Nodes
-
-First step is to validate if the OCP environment has 2 or 3 worker nodes.
-
-[source,shell]
-....
-oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/master'
-....
-.Example output:
-----
-NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h7m   v1.20.0+bafe72f
-ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h4m   v1.20.0+bafe72f
-----
-
-=== Scale OCS Nodes
+=== Scale ODF Nodes
 
 ==== Two Worker node cluster
 
@@ -172,7 +157,7 @@ ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h18m   v1.20.0+b
 ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+bafe72f
 ----
 
-Now assign the OCS label to all the worker nodes in the cluster.
+Now assign the ODF label to all the worker nodes in the cluster.
 
 [source,shell]
 ....
@@ -187,9 +172,9 @@ node/ip-10-0-179-14.us-east-2.compute.internal labeled
 ----
 
 CAUTION: Arbiter mode CLI deployment requires the Arbibter failure domain to not carry
-any OCS label. Do NOT label the Arbiter node!
+any ODF label. Do NOT label the Arbiter node!
 
-Let's check to make sure the OCP worker nodes have the OCS label.
+Let's check to make sure the OCP worker nodes have the ODF label.
 
 [source,shell]
 ....
@@ -290,13 +275,13 @@ NAME                                          READY   STATUS    RESTARTS   AGE
 pod/local-storage-operator-5c8cc9545c-nh9jt   1/1     Running   0          87s
 ----
 
-IMPORTANT: Do not proceed with the next instructions if the Local Storage Operator is not deployed successfully.
+IMPORTANT: Do not proceed with the next instructions until the Local Storage Operator is deployed successfully.
 
 === Configuring the Local Storage Operator v4.7
 
 ==== Configuring Auto Discovery
 
-Local Storage Operator v4.7 supports discovery of devices on OCP nodes with the OCS label `cluster.ocs.openshift.io/openshift-storage=""`. Create the `LocalVolumeDiscovery` resource using this file after the OCP nodes are labeled with the OCS label.
+Local Storage Operator v4.7 supports discovery of devices on OCP nodes with the ODF label `cluster.ocs.openshift.io/openshift-storage=""`. Create the `LocalVolumeDiscovery` resource using this file after the OCP nodes are labeled with the ODF label.
 
 [source]
 ....
@@ -314,15 +299,13 @@ spec:
           operator: In
           values:
             - ""
-        - key: topology.kubernetes.io/zone
-          operator: In
-          values:
-          - us-east-2a
-          - us-east-2b
 EOF
 ....
 
-After this resource is created you should see a new `localvolumediscoveries` resource and there will be a `localvolumediscoveryresults` for each OCP node labeled with the OCS label. Each `localvolumediscoveryresults` will have the detail for each disk on the node including the `by-id`, size and type of disk.
+After this resource is created in the `openshift-local-storage` namespace, you should see a new
+`localvolumediscoveries` resource and there will be a `localvolumediscoveryresults` for each OCP
+node labeled with the ODF label. Each `localvolumediscoveryresults` will have the detail for
+each disk on the node including the `by-id`, size and type of disk.
 
 ==== Configuring LocalVolumeSet
 
@@ -345,11 +328,6 @@ spec:
             operator: In
             values:
               - ""
-        - key: topology.kubernetes.io/zone
-          operator: In
-          values:
-          - us-east-2a
-          - us-east-2b
   storageClassName: localblock
   volumeMode: Block
   fstype: ext4
@@ -369,7 +347,7 @@ oc create -f localvolumeset.yaml
 ....
 
 After the `localvolumesets` resource is created check that `Available` *PVs* are created for each disk on OCP
-nodes with the OCS label in zone `us-east-2a` and `us-east-2b`. It can take a few minutes until all disks appear
+nodes with the ODF label in zone `us-east-2a` and `us-east-2b`. It can take a few minutes until all disks appear
 as PVs while the Local Storage Operator is preparing the disks.
 
 [source,shell]
@@ -389,18 +367,18 @@ local-pv-d6c318a4   2328Gi     RWO            Delete           Available        
 local-pv-dc39122f   2328Gi     RWO            Delete           Available           localblock              8s
 ----
 
-NOTE: Your lab environment should have 8 PVs, 2 per node where we intend to deploy the OCS OSDs.
+NOTE: Your lab environment should have 8 PVs, 2 per node where we intend to deploy the ODF OSDs.
 
 == OpenShift Container Storage Deployment
 
 In this section you will be using four (4) worker OCP 4 nodes to deploy
-OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
+ODF 4 using the ODF Operator in OperatorHub. The following will be installed:
 
-- An OCS Subscription
-- The OCS Operator
-- All other OCS resources (Ceph Pods, NooBaa Pods, StorageClasses)
+- An ODF Subscription
+- The ODF Operator
+- All other ODF resources (Ceph Pods, NooBaa Pods, StorageClasses)
 
-=== OCS Operator Deployment
+=== ODF Operator Deployment
 
 Start with creating the `openshift-storage` namespace.
 
@@ -460,7 +438,7 @@ clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShif
 CAUTION: This will mark that the installation of your operator was
 successful. Reaching this state can take several minutes.
 
-=== OCS Cluster Deployment
+=== ODF Cluster Deployment
 
 ==== Using LSO based Storage (`i3` instances)
 
@@ -630,7 +608,7 @@ Deploy the `rook-ceph-tool` pod.
 
 [source,shell]
 ....
-oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ....
 
 Establish a remote shell to the toolbox pod.
@@ -702,115 +680,9 @@ NOTE: OSDs are deployed in sets of 4, 2 per failure domain.
 
 CAUTION: This lab is NOT a supported configuration but is designed for you to experiment.
 
-== Sample Application Deployment
+include::partial$dr_sample_application.adoc[]
 
-In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working.
-
-Start by creating a new project on the *primary cluster*:
-
-[source,role="execute"]
-----
-oc new-project my-database-app
-----
-
-Then use the `rails-pgsql-persistent` template to create the new application. The new `postgresql` volume will be claimed from the new *StorageClass*.
-
-[source,role="execute"]
-----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
-----
-
-After the deployment is started you can monitor with these commands.
-
-[source,role="execute"]
-----
-oc status
-----
-
-Check the PVC is created.
-
-[source,role="execute"]
-----
-oc get pvc -n my-database-app
-----
-
-This step could take 5 or more minutes. Wait until there are 2 *Pods* in
-`Running` STATUS and 4 *Pods* in `Completed` STATUS as shown below.
-
-[source,role="execute"]
-----
-watch oc get pods -n my-database-app
-----
-.Example output:
-----
-NAME                                READY   STATUS      RESTARTS   AGE
-postgresql-1-674qv                  1/1     Running     0          3m1s
-postgresql-1-deploy                 0/1     Completed   0          3m4s
-rails-pgsql-persistent-1-build      0/1     Completed   0          3m6s
-rails-pgsql-persistent-1-deploy     0/1     Completed   0          100s
-rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          97s
-rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s
-----
-
-You can exit by pressing kbd:[Ctrl+C].
-
-Once the deployment is complete you can now test the application and the
-persistent storage on OCS.
-
-[source,role="execute"]
-----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
-----
-
-This will return a route similar to this one.
-
-.Example output:
-----
-http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles
-----
-
-Copy your route (different than above) to a browser window to create articles.
-
-Click the `New Article` link.
-
-Enter the `username` and `password` below to create articles and comments.
-The articles and comments are saved in a PostgreSQL database which stores its
-table spaces on the RBD volume provisioned using the
-`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
-deployment.
-
-----
-username: openshift
-password: secret
-----
-
-Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
-
-[source,role="execute"]
-----
-oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
-----
-.Example output:
-----
-You are now connected to database "root" as user "postgres".
-                               List of relations
- Schema |         Name         |   Type   |  Owner  |    Size    | Description
---------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | user8EF | 16 kB      |
- public | articles             | table    | user8EF | 16 kB      |
- public | articles_id_seq      | sequence | user8EF | 8192 bytes |
- public | comments             | table    | user8EF | 8192 bytes |
- public | comments_id_seq      | sequence | user8EF | 8192 bytes |
- public | schema_migrations    | table    | user8EF | 16 kB      |
-(6 rows)
-
- id |             title             |                                        body                                        |         created_at         |         updated_at
-----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
-  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
-(1 row)
-----
-
-== ARBITER Failure Test
+== Arbiter Failure Test
 
 This test is designed to demonstrates that if the failure domain hosting the Monitor running in
 Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.
@@ -990,7 +862,7 @@ echo $appnode
 ip-10-0-158-73.us-east-2.compute.internal
 ----
 
-Identify the availability zone the nod ebelongs to and set a variable for the zone to shutdown.
+Identify the availability zone the node belongs to and set a variable for the zone to shutdown.
 
 [source,shell]
 ....
@@ -1005,7 +877,7 @@ Application in zone us-east-2a; Shutting down zone us-east-2b
 
 Shutdown the nodes of the zone where the application is not running.
 
-Identify the AWS `InstanceId`s and shut them down.
+Identify the AWS `InstanceIds` and shut them down.
 
 [source,shell]
 ....
@@ -1051,7 +923,7 @@ Shutting down i-0e31b4d74c583a6c1
 }
 ----
 
-Verify the worker nodes are now stopped and OCS pods are not running.
+Verify the worker nodes are now stopped and ODF pods are not running.
 
 [source,shell]
 ....
@@ -1092,10 +964,10 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
 ----
 
-IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+IMPORTANT: It will take over 5 minutes for the ODF pods to change status as the underlying node `kubelet`
 can not report their status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1214,7 +1086,7 @@ Starting i-0e31b4d74c583a6c1
     ]
 }
 ----
-Verify the worker nodes are now started and OCS pods are now running.
+Verify the worker nodes are now started and ODF pods are now running.
 
 [source,shell]
 ....
@@ -1232,7 +1104,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h31m   v1.20.0+b
 ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure. There should be none.
+Verify the status of the ODF pods impacted by the failure. There should be none.
 
 [source,shell]
 ....
@@ -1247,7 +1119,7 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Comple
 
 IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1282,7 +1154,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status
 ----
 
 NOTE: It make take about a minute or two before all pods are back in `Running` status
-and the OCS cluster returns to `HEALTH_OK`.
+and the ODF cluster returns to `HEALTH_OK`.
 
 == DC Hosting Application Failure Test
 
@@ -1319,7 +1191,7 @@ Application in zone us-east-2a; Shutting down zone us-east-2a
 
 Shutdown the nodes of the zone where the application is not running.
 
-Identify the AWS `InstanceId`s and shut them down.
+Identify the AWS `InstanceIds` and shut them down.
 
 [source,shell]
 ....
@@ -1365,7 +1237,7 @@ Shutting down i-01cdb6fe63f481043
 }
 ----
 
-Verify the worker nodes are now stopped and OCS pods are not running.
+Verify the worker nodes are now stopped and ODF pods are not running.
 
 [source,shell]
 ....
@@ -1383,7 +1255,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready      worker   4h38m   v1.20.0
 ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure.
+Verify the status of the ODF pods impacted by the failure.
 
 [source,shell]
 ....
@@ -1406,10 +1278,10 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
 ----
 
-IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+IMPORTANT: It will take over 5 minutes for the ODF pods to change status as the underlying node `kubelet`
 can not report their status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1528,7 +1400,7 @@ Starting i-01cdb6fe63f481043
 }
 ----
 
-Verify the worker nodes are now started and OCS pods are now running.
+Verify the worker nodes are now started and ODF pods are now running.
 
 [source,shell]
 ....
@@ -1546,7 +1418,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h57m   v1.20.0+b
 ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure. There should be none.
+Verify the status of the ODF pods impacted by the failure. There should be none.
 
 [source,shell]
 ....
@@ -1559,7 +1431,7 @@ NAME                                                              READY   STATUS
 
 IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1593,5 +1465,5 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status
 ----
 
 NOTE: It make take about a minute or two before all pods are back in `Running` status
-and the OCS cluster is back to `HEALTH_OK` status.
+and the ODF cluster is back to `HEALTH_OK` status.
 

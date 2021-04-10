@@ -1,4 +1,4 @@
-= OpenShift Stretched Metro Cluster Disaster Recovery UI Deployment
+= OpenShift Data Foundation Stretched Metro Cluster (UI)
 :toc:
 :toclevels: 4
 :icons: font
@@ -11,18 +11,18 @@
 
 == Overview
 
-The intent of this guide is to detail the steps and commands necessary to deploy `OpenShift Container Storage`
-(OCS) in Arbiter mode using the OCP Web Console.
+The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`
+(ODF) in Arbiter mode using the OCP Web Console and test different failure scenarios.
 
-In this module you will be using OpenShift Container Platform (OCP) 4.x and the OCS operator to deploy
-OCS in Arbiter mode.
+In this module you will be using OpenShift Container Platform (OCP) 4.x and the ODF operator to deploy
+ODF in Arbiter mode.
 
 == Production Environment Requirements
 
 As a reminder here is the list of requirements for production environments:
 
 * One OCP 4.7 (or greater) cluster
-* `OpenShift Container Storage` (OCS) *4.7* (or greater)
+* `OpenShift Data Foundation` (ODF) *4.7* (or greater)
 * Two (2) failure domains for OSD deployment
 ** At least two (2) nodes in each availability zone
 ** LSO is a requirement for UI deployment
@@ -31,58 +31,39 @@ As a reminder here is the list of requirements for production environments:
 
 == Prepare OCP Environment
 
-=== Add OCS Worker Nodes
-
-First step is to validate if the OCP environment has 2 or 3 worker nodes.
-
-[source,shell]
-....
-oc get nodes -l node-role.kubernetes.io/worker -l '!node-role.kubernetes.io/master'
-....
-.Example output:
-----
-NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-148-220.us-east-2.compute.internal   Ready    worker   44m   v1.20.0+bafe72f
-ip-10-0-168-114.us-east-2.compute.internal   Ready    worker   47m   v1.20.0+bafe72f
-----
-
-=== Scale OCS Nodes
+=== Scale ODF Nodes
 
 ==== Two Worker node cluster
 
 Confirm your environment only has 2 worker nodes.
 
-[source,shell]
-....
-oc get machineset -n openshift-machine-api
-....
-.Example output:
-----
-NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
-ocp45-mvghv-worker-us-east-2a   1         1         1       1           3h15m
-ocp45-mvghv-worker-us-east-2b   1         1         1       1           3h15m
-ocp45-mvghv-worker-us-east-2c   0         0                             3h15m
-----
+Once you are logged in, navigate to the *Compute* -> *MachineSets* menu.
+
+.OCP MachineSet
+image::OCS4-4.7-OCP-MachineSet-2-Raw.png[Two zone configuration]
 
 CAUTION: If your cluster has worker nodes deployed in your third availability zone skip to 
-chapter *Three Worker node cluster*.
+chapter xref:ocs4-metro-stretched-ui.adoc#_three_worker_node_cluster[]. This is the case
+when all *MachineSets* show `1 of 1 machines`.
 
-Scale up the machineset for zones `us-east-2a` and `us-east-2b` using the following commands.
+Click the 3 dot icon on the right hand-side of the window for the *MachineSet*
+in zone `us-east-2a`.
 
-[source,shell]
-....
-oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
-oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
-....
-.Example output
-----
-$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
-machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2a scaled
-$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
-machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2b scaled
-----
+.OCP MachineSet Count Menu
+image::OCS4-4.7-OCP-MachineSet-2-CountMenu.png[Two zone count menu]
 
-IMPORTANT: A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
+Select `Edit Machine count`.
+
+.OCP MachineSet Count
+image::OCS4-4.7-OCP-MachineSet-Scale-2.png[Scale MachineSet up to 2]
+
+Increase the machine count to `2` using the `+` sign and click `Save`.
+
+IMPORTANT: Repeat the scaling operation for the *MachineSet* in zone `us-east-2b`.
+
+CAUTION: Do NOT scale the *MachineSet* in zone `us-east-2c`.
+
+A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
 
 NOTE: Go to chapter xref:ocs4-metro-stretched-ui.adoc#_proceed_with_setup[].
 
@@ -90,78 +71,56 @@ NOTE: Go to chapter xref:ocs4-metro-stretched-ui.adoc#_proceed_with_setup[].
 
 Confirm your environment has 3 worker nodes.
 
-[source,shell]
-....
-oc get machineset -n openshift-machine-api
-....
-.Example output:
-----
-NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
-ocp45-xs7pv-worker-us-east-2a   1         1         1       1           59m
-ocp45-xs7pv-worker-us-east-2b   1         1         1       1           59m
-ocp45-xs7pv-worker-us-east-2c   1         1         1       1           59m
-----
+Once you are logged in, navigate to the *Compute* -> *MachineSets* menu.
 
-Scale up the machineset for zones `us-east-2a` and `us-east-2b` using the following commands.
+.OCP MachineSet
+image::OCS4-4.7-OCP-MachineSet-3-Raw.png[Three zone Configuration]
 
-[source,shell]
-....
-oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
-oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
-oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
-....
-.Example output
-----
-$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
-machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2a scaled
-$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
-machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2b scaled
-$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
-machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2c scaled
-----
+Click the 3 dot icon on the right hand-side of the window for the *MachineSet*
+in zone `us-east-2a`.
+
+.OCP MachineSet
+image::OCS4-4.7-OCP-MachineSet-3-CountMenu.png[Three zone count menu]
+
+Select `Edit Machine count`.
+
+.OCP MachineSet Count
+image::OCS4-4.7-OCP-MachineSet-Scale-2.png[Scale MachineSet up to 2]
+
+Click the `+` sign up to 2 and click `Save`.
+
+IMPORTANT: Repeat the scaling operation for the *MachineSet* in zone `us-east-2b`.
+
+CAUTION: Scale down the *MachineSet* in zone `us-east-2c` to `0`.
+
+Click the 3 dot icon on the right hand-side of the window for the *MachineSet*
+in zone `us-east-2c` and select `Edit Machine count`.
+
+.OCP MachineSet Count to `0`
+image::OCS4-4.7-OCP-MachineSet-Scale-0.png[Scale MachineSet down to 0]
+
+Click the `-` sign down to 0 and click `Save`.
 
 IMPORTANT: A minimum of 2 nodes per storage availability zone is a requirement for Arbiter mode deployment.
 
 ==== Proceed With Setup
 
-[source,shell]
-....
-watch "oc get machinesets -n openshift-machine-api | egrep 'NAME|worker'"
-....
+The scaling operation could take more than 5 minutes. The result of this command needs to
+look like below before you proceed. Your configuration is ready when the *MachineSet*
+UI show `2 of 2 machines` for zone `us-east-2a` and `us-east-2b` as illustrated below.
 
-This step could take more than 5 minutes. The result of this command needs to
-look like below before you proceed. Worker *machinesets* in zones `2a`
-and `2b` should have an integer, in this case `2`, filled out for all rows
-and under columns `READY` and `AVAILABLE`. The `NAME` of your *machinesets*
-will be different than shown below.
-
-.Example output:
-----
-NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
-ocp45-pl5qh-worker-us-east-2a   2         2         2       2           62m
-ocp45-pl5qh-worker-us-east-2b   2         2         2       2           62m
-ocp45-pl5qh-worker-us-east-2c   0         0                             62m
-----
-
-You can exit by pressing kbd:[Ctrl+C].
-
-Now check to see that you have 2 new OCP worker nodes. The `NAME` of your OCP
-nodes will be different than shown below.
+.OCP MachineSet Correct
+image::OCS4-4.7-OCP-MachineSet-Scaled.png[Correct MachineSet Configuration]
 
 NOTE: The total number of worker nodes should be 4.
 
-[source,shell]
-....
-oc get nodes -l node-role.kubernetes.io/worker
-....
-.Example output:
-----
-NAME                                         STATUS   ROLES    AGE     VERSION
-ip-10-0-137-183.us-east-2.compute.internal   Ready    worker   3m39s   v1.20.0+bafe72f
-ip-10-0-148-220.us-east-2.compute.internal   Ready    worker   51m     v1.20.0+bafe72f
-ip-10-0-168-114.us-east-2.compute.internal   Ready    worker   54m     v1.20.0+bafe72f
-ip-10-0-172-31.us-east-2.compute.internal    Ready    worker   3m51s   v1.20.0+bafe72f
-----
+Navigate to the *Compute* -> *Nodes* menu.
+
+.OCP Correct Configuration
+image::OCS4-4.7-OCP-Nodes-Scaled.png[Correct MachineSet Configuration]
+
+Filter to visualize only the worker nodes. You UI should present
+only four (4) worker nodes as illustrated above.
 
 == Local Storage Operator
 
@@ -174,17 +133,17 @@ image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
 Now type `local storage` in the *Filter by _keyword..._* box.
 
-.OCP OperatorHub filter on OpenShift Container Storage Operator
+.OCP OperatorHub filter on OpenShift Data Foundation Operator
 image::OCS4-OCP-OperatorHub-LSOFilter.png[OCP OperatorHub Filter]
 
-Select `OpenShift Container Storage Operator` and then select *Install*.
+Select `OpenShift Data Foundation Operator` and then select *Install*.
 
-.OCP OperatorHub Install OpenShift Container Storage
+.OCP OperatorHub Install OpenShift Data Foundation
 image::OCS4-4.7-OCP4-OperatorHub-LSOInstall.png[OCP OperatorHub Install]
 
 On the next screen make sure the settings are as shown in this figure.
 
-.OCP Subscribe to OpenShift Container Storage
+.OCP Subscribe to OpenShift Data Foundation
 image::OCS4-4.7-OCP4-OperatorHub-LSOSubscribe.png[OCP OperatorHub Subscribe]
 
 Click `Install`.
@@ -204,18 +163,18 @@ NAME                                          READY   STATUS    RESTARTS   AGE
 pod/local-storage-operator-5879cf9565-r5s7k   1/1     Running   0          31s
 ----
 
-IMPORTANT: Do not proceed with the next instructions if the Local Storage Operator is not deployed successfully.
+IMPORTANT: Do not proceed with the next instructions until the Local Storage Operator is deployed successfully.
 
-== OpenShift Container Storage Deployment
+== OpenShift Data Foundation Deployment
 
 In this section you will be using four (4) worker OCP 4 nodes to deploy
-OCS 4 using the OCS Operator in OperatorHub. The following will be installed:
+ODF 4 using the ODF Operator in OperatorHub. The following will be installed:
 
-- The OCS Operator
+- The ODF Operator
 - Configure the Local Storage Operator
-- All other OCS resources (Ceph Pods, NooBaa Pods, StorageClasses)
+- All other ODF resources (Ceph Pods, NooBaa Pods, StorageClasses)
 
-=== OCS Operator Deployment
+=== ODF Operator Deployment
 
 Navigate to the *Operators* -> *OperatorHub* menu.
 
@@ -224,17 +183,17 @@ image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
 Now type `openshift container storage` in the *Filter by _keyword..._* box.
 
-.OCP OperatorHub filter on OpenShift Container Storage Operator
+.OCP OperatorHub filter on OpenShift Data Foundation Operator
 image::OCS4-4.7-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
-Select `OpenShift Container Storage Operator` and then select *Install*.
+Select `OpenShift Data Foundation Operator` and then select *Install*.
 
-.OCP OperatorHub Install OpenShift Container Storage
+.OCP OperatorHub Install OpenShift Data Foundation
 image::OCS4-4.7-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
 
 On the next screen make sure the settings are as shown in this figure.
 
-.OCP Subscribe to OpenShift Container Storage
+.OCP Subscribe to OpenShift Data Foundation
 image::OCS4-4.7-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
 Click `Install`.
@@ -266,18 +225,18 @@ clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShif
 CAUTION: This will mark that the installation of your operator was
 successful. Reaching this state can take several minutes.
 
-=== OCS Cluster Deployment
+=== ODF Cluster Deployment
 
 Navigate to the *Operators* -> *Installed Operators* menu.
 
-.Locate OCS Operator
+.Locate ODF Operator
 image::OCS4-4.7-OCP-InstalledOperators.png[OCP OperatorHub]
 
 Click on `Storage Cluster` on the right hand side of the UI as indicated
 in the screen capture above.
 
-.OCS Storage Cluster
-image::OCS4-4.7-OCP-CreateStorageCluster.png[OCS Storage Cluster]
+.ODF Storage Cluster
+image::OCS4-4.7-OCP-CreateStorageCluster.png[ODF Storage Cluster]
 
 Click on `Create Storage Cluster` on the right hand side of the UI.
 
@@ -305,7 +264,7 @@ Click `Yes` when asked to confirm the storage class creation.
 
 IMPORTANT: The LSO confirguration will take no less than a minute. Please be patient!
 
-.OCS Arbiter Mode Configuration
+.ODF Arbiter Mode Configuration
 image::OCS4-4.7-OCP4-StorageClusterArbiterScreen.png[Arbiter Mode Selection]
 
 Check the `Enable arbiter` checkbox, select the correct availability zone
@@ -396,7 +355,7 @@ Deploy the `rook-ceph-tool` pod.
 
 [source,shell]
 ....
-oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
 ....
 
 Establish a remote shell to the toolbox pod.
@@ -456,113 +415,7 @@ domain and one in the Arbiter failure domain.
 
 NOTE: OSDs are deployed in sets of 4, 2 per failure domain.
 
-== Sample Application Deployment
-
-In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working.
-
-Start by creating a new project on the *primary cluster*:
-
-[source,role="execute"]
-----
-oc new-project my-database-app
-----
-
-Then use the `rails-pgsql-persistent` template to create the new application. The new `postgresql` volume will be claimed from the new *StorageClass*.
-
-[source,role="execute"]
-----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-storagecluster-ceph-rbd -p VOLUME_CAPACITY=5Gi -f -
-----
-
-After the deployment is started you can monitor with these commands.
-
-[source,role="execute"]
-----
-oc status
-----
-
-Check the PVC is created.
-
-[source,role="execute"]
-----
-oc get pvc -n my-database-app
-----
-
-This step could take 5 or more minutes. Wait until there are 2 *Pods* in
-`Running` STATUS and 4 *Pods* in `Completed` STATUS as shown below.
-
-[source,role="execute"]
-----
-watch oc get pods -n my-database-app
-----
-.Example output:
-----
-NAME                                READY   STATUS      RESTARTS   AGE
-postgresql-1-674qv                  1/1     Running     0          3m1s
-postgresql-1-deploy                 0/1     Completed   0          3m4s
-rails-pgsql-persistent-1-build      0/1     Completed   0          3m6s
-rails-pgsql-persistent-1-deploy     0/1     Completed   0          100s
-rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          97s
-rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s
-----
-
-You can exit by pressing kbd:[Ctrl+C].
-
-Once the deployment is complete you can now test the application and the
-persistent storage on OCS.
-
-[source,role="execute"]
-----
-oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
-----
-
-This will return a route similar to this one.
-
-.Example output:
-----
-http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles
-----
-
-Copy your route (different than above) to a browser window to create articles.
-
-Click the `New Article` link.
-
-Enter the `username` and `password` below to create articles and comments.
-The articles and comments are saved in a PostgreSQL database which stores its
-table spaces on the RBD volume provisioned using the
-`ocs-storagecluster-ceph-rbd` *StorageClass* during the application
-deployment.
-
-----
-username: openshift
-password: secret
-----
-
-Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
-
-[source,role="execute"]
-----
-oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"
-----
-.Example output:
-----
-You are now connected to database "root" as user "postgres".
-                               List of relations
- Schema |         Name         |   Type   |  Owner  |    Size    | Description
---------+----------------------+----------+---------+------------+-------------
- public | ar_internal_metadata | table    | user8EF | 16 kB      |
- public | articles             | table    | user8EF | 16 kB      |
- public | articles_id_seq      | sequence | user8EF | 8192 bytes |
- public | comments             | table    | user8EF | 8192 bytes |
- public | comments_id_seq      | sequence | user8EF | 8192 bytes |
- public | schema_migrations    | table    | user8EF | 16 kB      |
-(6 rows)
-
- id |             title             |                                        body                                        |         created_at         |         updated_at
-----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
-  1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
-(1 row)
-----
+include::partial$dr_sample_application.adoc[]
 
 == ARBITER Failure Test
 
@@ -750,7 +603,7 @@ echo $appnode
 ip-10-0-158-73.us-east-2.compute.internal
 ----
 
-Identify the availability zone the nod ebelongs to and set a variable for the zone to shutdown.
+Identify the availability zone the node belongs to and set a variable for the zone to shutdown.
 
 [source,shell]
 ....
@@ -811,7 +664,7 @@ Shutting down i-0e31b4d74c583a6c1
 }
 ----
 
-Verify the worker nodes are now stopped and OCS pods are not running.
+Verify the worker nodes are now stopped and ODF pods are not running.
 
 [source,shell]
 ....
@@ -852,10 +705,10 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
 ----
 
-IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+IMPORTANT: It will take over 5 minutes for the ODF pods to change status as the underlying node `kubelet`
 can not report their status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -974,7 +827,7 @@ Starting i-0e31b4d74c583a6c1
     ]
 }
 ----
-Verify the worker nodes are now started and OCS pods are now running.
+Verify the worker nodes are now started and ODF pods are now running.
 
 [source,shell]
 ....
@@ -992,7 +845,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h31m   v1.20.0+b
 ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure. There should be none.
+Verify the status of the ODF pods impacted by the failure. There should be none.
 
 [source,shell]
 ....
@@ -1007,7 +860,7 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Comple
 
 IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1042,7 +895,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status
 ----
 
 NOTE: It make take about a minute or two before all pods are back in `Running` status
-and the OCS cluster returns to `HEALTH_OK`.
+and the ODF cluster returns to `HEALTH_OK`.
 
 == DC Hosting Application Failure Test
 
@@ -1125,7 +978,7 @@ Shutting down i-01cdb6fe63f481043
 }
 ----
 
-Verify the worker nodes are now stopped and OCS pods are not running.
+Verify the worker nodes are now stopped and ODF pods are not running.
 
 [source,shell]
 ....
@@ -1143,7 +996,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready      worker   4h38m   v1.20.0
 ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure.
+Verify the status of the ODF pods impacted by the failure.
 
 [source,shell]
 ....
@@ -1166,10 +1019,10 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m
 ----
 
-IMPORTANT: It will take over 5 minutes for the OCS pods to change status as the underlying node `kubelet`
+IMPORTANT: It will take over 5 minutes for the ODF pods to change status as the underlying node `kubelet`
 can not report their status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1288,7 +1141,7 @@ Starting i-01cdb6fe63f481043
 }
 ----
 
-Verify the worker nodes are now started and OCS pods are now running.
+Verify the worker nodes are now started and ODF pods are now running.
 
 [source,shell]
 ....
@@ -1306,7 +1159,7 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h57m   v1.20.0+b
 ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
 ----
 
-Verify the status of the OCS pods impacted by the failure. There should be none.
+Verify the status of the ODF pods impacted by the failure. There should be none.
 
 [source,shell]
 ....
@@ -1319,7 +1172,7 @@ NAME                                                              READY   STATUS
 
 IMPORTANT: It make take about a minute or two before all pods are back in `Running` status.
 
-Verify the status of the OCS cluster by connecting to the toolbox pod.
+Verify the status of the ODF cluster by connecting to the toolbox pod.
 
 [source,shell]
 ....
@@ -1353,5 +1206,5 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status
 ----
 
 NOTE: It make take about a minute or two before all pods are back in `Running` status
-and the OCS cluster is back to `HEALTH_OK` status.
+and the ODF cluster is back to `HEALTH_OK` status.
 
