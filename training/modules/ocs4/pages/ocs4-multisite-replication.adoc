@@ -13,23 +13,25 @@
 
 The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*.
 
-The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Container Storage` (OCS) installed on both OCP clusters. OCS version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
+The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Data Foundation` (ODF) installed on both OCP clusters. ODF version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
 
-This is a general overview of the steps required to configure asynchronous DR capabilities via OCS *4.7* across two distinct OCP clusters separated by distance. 
+IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded to `OpenShift Data Foundation` (ODF).
 
-NOTE: These steps are considered Dev Preview in OCS 4.7, and are provided for POCs purposes. They will be supported for production usage in a later OCS release.
+This is a general overview of the steps required to configure asynchronous DR capabilities via ODF *4.7* across two distinct OCP clusters separated by distance.
+
+NOTE: These steps are considered Dev Preview in ODF 4.7, and are provided for POCs purposes. They will be supported for production usage in a later ODF release.
 
 [start=1]
 . *Ensure clusters have unique private network address ranges.* +
 Ensure the primary and secondary OCP clusters have unique private network address ranges.
 . *Connect the two private networks.* +
 Connect the private networks (cluster and service) using submariner.
-. *Install OCS 4.7.* +
-Install OCS 4.7 on primary and secondary OCP clusters and validate deployment.
+. *Install ODF 4.7.* +
+Install ODF 4.7 on primary and secondary OCP clusters and validate deployment.
 . *Create new CephBlockPool.* +
 To clearly keep mirrored volumes separate from any production volumes in this POC, we will create a new CephBlockPool on both primary and secondary OCP clusters. We will limit RBD Mirroring to only RBD volumes from within this new pool.
 . *Configure peer relationship between clusters.* +
-Configure peer relationship between OCS clusters and create RBD Mirroring daemons.
+Configure peer relationship between ODF clusters and create RBD Mirroring daemons.
 . *Create new StorageClass.* +
 To clearly keep mirrored PVs separate from any production PVs in this POC, we will create a new StorageClass for PVCs that will have mirroring enabled.
 . *Configure target apps to claim PVCs from new StorageClass.* +
@@ -53,7 +55,7 @@ Verify the Sample Application now is operational on the secondary cluster and th
 
 === OpenShift Multisite Connectivity
 
-For this solution to work the OpenShift SDNs (Software Defined Networks) must be connected so that `OpenShift Container Storage` (OCS) resources can communicate. In particular there needs to be network connectivity between the RBD Mirror *POD* or daemon deployed in each cluster. 
+For this solution to work the OpenShift SDNs (Software Defined Networks) must be connected so that `OpenShift Data Foundation` (ODF) resources can communicate. In particular there needs to be network connectivity between the RBD Mirror *POD* or daemon deployed in each cluster. 
 
 There are various ways to connect the private SDNs and the choice for this guide is to use `Submariner`.
 
@@ -346,7 +348,7 @@ site1-fqldq-worker-975qq        site1                   10.70.56.191    libreswa
 
 CAUTION: If either site has a *_connecting_* or *_error_* status instead of *_connected_* status there is something wrong with the multisite connectivity. Only proceed after both ways show *_connected_*. Reference https://submariner.io/operations/troubleshooting[Submariner Troubleshooting documentation].
 
-Now that the two OCP instances have their `clusterNetwork` and `serviceNetwork` connected the next step is to install `OpenShift Container Storage` version *4.7* and configure storage replication or `RDB Mirroring`.
+Now that the two OCP instances have their `clusterNetwork` and `serviceNetwork` connected the next step is to install `OpenShift Data Foundation` version *4.7* and configure storage replication or `RDB Mirroring`.
 
 IMPORTANT: For the rest of the instructions `site1` will be referred to as the OCP *primary cluster* and `site2` will be referred to as OCP *secondary cluster*.
 
@@ -354,13 +356,13 @@ IMPORTANT: For the rest of the instructions `site1` will be referred to as the O
 
 Mirroring is configured on a per-pool basis within peer clusters and can be configured on a specific subset of images within the pool. The `rbd-mirror` daemon is responsible for pulling image updates from the remote peer cluster and applying them to the image within the local cluster.
 
-==== OpenShift Container Storage Installation
+==== OpenShift Data Foundation Installation
 
-In order to configure storage replication between the two OCP instances `OpenShift Container Storage` (OCS) must be installed first. Documentation for the deployment can be found at https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage.
+In order to configure storage replication between the two OCP instances `OpenShift Data Foundation` (ODF) must be installed first. Documentation for the deployment can be found at https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage.
 
-OCS deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.). Install OCS version *4.7* or greater on both OCP clusters.
+ODF deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.). Install ODF version *4.7* or greater on both OCP clusters.
 
-You can validate the successful deployment of OCS on each OCP instance with the following command:
+You can validate the successful deployment of ODF on each OCP instance with the following command:
 
 [source,role="execute"]
 ----
@@ -369,9 +371,9 @@ oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.sta
 
 If result is `Ready` on *primary cluster* and *secondary cluster* you are ready to continue.
 
-==== Configuring RBD Mirroring between OCS clusters
+==== Configuring RBD Mirroring between ODF clusters
 
-The next step will be to create the mirroring relationship between the two OCS clusters so the RBD volumes or images created using the Ceph RBD storageclass can be replicated from one OCP cluster to the other OCP cluster.
+The next step will be to create the mirroring relationship between the two ODF clusters so the RBD volumes or images created using the Ceph RBD storageclass can be replicated from one OCP cluster to the other OCP cluster.
 
 ===== Enable OMAP Generator
 
@@ -642,11 +644,11 @@ You have now completed the steps for configuring *RBD Mirroring* between the *pr
 
 === Creating Mirror storage class and Sample application
 
-In order to fully understand the process of failover between clusters we need to deploy a sample application for validation after failover. Also, the default Ceph RBD *StorageClasse* created when OCS is installed is not useable for this testing given these instructions have you create a new *CephBlockPool* named `replicapool`.
+In order to fully understand the process of failover between clusters we need to deploy a sample application for validation after failover. Also, the default Ceph RBD *StorageClasse* created when ODF is installed is not useable for this testing given these instructions have you create a new *CephBlockPool* named `replicapool`.
 
 ==== Storageclass for volume replication
 
-Before any new OCS volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* `replicapool` that was created in prior section. 
+Before any new ODF volumes are created for replication a new *StorageClass* needs to be created using *CephBlockPool* `replicapool` that was created in prior section. 
 
 NOTE: The `reclaimPolicy` needs to be `Retain` rather than `Delete` which is the usual default setting. This is needed to *_retain_* the image in Ceph even if the associated *PVC* and *PV* are deleted in OCP.
 
@@ -837,7 +839,7 @@ image::OCP4-OADP-operator-installed.png[OADP operator installed and ready]
 
 The next step is to create the `Velero` *CustomResource* or CR. For this you will need to have a `S3` compatible object bucket created that you know the `bucket name` as well as the credentials to access the bucket.
 
-NOTE: It is not recommended to use OCS object buckets (MCG or RGW) as the `S3` *BackingStorageLocation* for `Velero` CR. If your remote or secondary clusters become unavailable and the `S3` bucket is created on that cluster there is no way to recover to alternate cluster.
+NOTE: It is not recommended to use ODF object buckets (MCG or RGW) as the `S3` *BackingStorageLocation* for `Velero` CR. If your remote or secondary clusters become unavailable and the `S3` bucket is created on that cluster there is no way to recover to alternate cluster.
 
 ==== Creating bucket credentials secret
 
@@ -861,7 +863,7 @@ oc create secret generic cloud-credentials --namespace oadp-operator --from-file
 
 The velero YAML file needs to be modified to be correct for your `S3` bucket. The example is for a `S3` bucket on *AWS* saved as file `velero-aws.yaml`. It is recommended to use an object bucket `off-platform` meaning not backed by storage in the *primary cluster* or the *secondary cluster*.
 
-NOTE: Your velero YAML file will be slightly different if using a `S3` object bucket from a different provider (GCP, Azure), from an external Ceph cluster with `RGW`, or from OCS `MCG`.
+NOTE: Your velero YAML file will be slightly different if using a `S3` object bucket from a different provider (GCP, Azure), from an external Ceph cluster with `RGW`, or from ODF `MCG`.
 
 [source,yaml]
 ----
@@ -931,7 +933,7 @@ The setup and configuration steps in the prior section have prepared the environ
 
 ==== Installing the toolbox for Ceph commands
 
-Since the Rook-Ceph *toolbox* is not shipped with OCS you will need to deploy it
+Since the Rook-Ceph *toolbox* is not shipped with ODF you will need to deploy it
 manually because a few steps of the failover process require use of Ceph commands today.
 
 You can patch the `OCSInitialization ocsinit` to create the *toolbox* using the following command line:
@@ -1119,7 +1121,7 @@ spec:
 
 Given the persistent data is going to be mirrored or replicated from the *primary cluster* to the *secondary cluster* we do not need the `OADP` *Backup* to include this data and therefore set `snapshotVolumes: false`.
 
-There is one additional resource to exclude that will be done by adding a label to the specific `configmap`. 
+There is one additional resource to exclude that will be done by adding a label to the specific `configmap`. This is needed, excluding this resource for the *Backup*, because this `configmap` includes a `service-ca.crt` that needs to be uniquely created on the *secondary cluster* (not copied).
 
 [source,role="execute"]
 ----
