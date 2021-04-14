@@ -1,4 +1,4 @@
-= OpenShift Multisite Disaster Recovery
+= OpenShift Regional Disaster Recovery
 :toc:
 :toclevels: 4
 :icons: font
@@ -13,11 +13,11 @@
 
 The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*.
 
-The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Data Foundation` (ODF) installed on both OCP clusters. ODF version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
+The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and `OpenShift Data Foundation` (ODF) installed on both OCP clusters. ODF version *4.7* (or greater) is required for the `RBD Mirroring` feature to provide regional asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero `Backup` and `Restore` APIs exposed via the OCP community operator `OpenShift APIs for Data Protection` or `OADP`.
 
 IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded to `OpenShift Data Foundation` (ODF).
 
-This is a general overview of the steps required to configure asynchronous DR capabilities via ODF *4.7* across two distinct OCP clusters separated by distance.
+This is a general overview of the steps required to configure and execute `Regional Disaster Recovery` capabilities using ODF *4.7* and `OADP` across two distinct OCP clusters separated by distance.
 
 NOTE: These steps are considered Dev Preview in ODF 4.7, and are provided for POCs purposes. They will be supported for production usage in a later ODF release.
 
@@ -396,7 +396,7 @@ Validate that there are now 7 sidecar containers and that the `csi-omap-generato
 
 [source,role="execute"]
 ----
-oc get pods -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}
+oc get pods -n openshift-storage -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}
 ----
 .Example output:
 ----
@@ -1001,7 +1001,21 @@ NOTE: Make sure to repeat these steps on the *secondary cluster* as well and log
 
 In order to have persistent data replicated for a particular application the volume(s) or images have to be enabled for mirroring. This is currently done using Ceph commands after logging into the *toolbox*.
 
-Login to the *toolbox* again on the *primary cluster* if not already in the *toolbox*.
+To map a *PVC* name to a `image` name in Ceph you can use these commands.
+
+IMPORTANT: Change the *PVC* name in the command if your name is different than `postgresql`.
+
+[source,role="execute"]
+----
+CSIVOL=$(kubectl get pv $(kubectl get pv | grep postgresql | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL
+----
+.Example output:
+----
+csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+
+Now that you know your `image` name(s), login to the *toolbox* again on the *primary cluster*.
 
 [source,role="execute"]
 ----
@@ -1249,7 +1263,21 @@ image::sample-app-down-primary.png[Sample application is offline]
 
 In order to failover the storage on the *primary cluster* must be `demoted` and the storage on the *secondary cluster* must be `promoted. This is currently done on a per image basis using the *toolbox*. 
 
-Logon to the *toolbox* on the *primary cluster* to use Ceph commands.
+To map a *PVC* name to a `image` name in Ceph you can use these commands.
+
+IMPORTANT: Change the *PVC* name in the command if your name is different than `postgresql`.
+
+[source,role="execute"]
+----
+CSIVOL=$(kubectl get pv $(kubectl get pv | grep postgresql | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL
+----
+.Example output:
+----
+csi-vol-94953897-88fc-11eb-b175-0a580a061092
+----
+
+Now that you know the `image` name(s), logon again to the *toolbox* on the *primary cluster* to use Ceph commands.
 
 [source,role="execute"]
 ----
