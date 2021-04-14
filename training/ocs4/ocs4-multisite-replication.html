@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>OpenShift Multisite Disaster Recovery :: OCS Training</title>
+    <title>OpenShift Regional Disaster Recovery :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-multisite-replication.html">
     <meta name="generator" content="Antora 2.3.4">
     <link rel="stylesheet" href="../../_/css/site.css">
@@ -72,7 +72,7 @@
     <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
   </li>
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="ocs4-multisite-replication.html">Multisite disaster recovery</a>
+    <a class="nav-link" href="ocs4-multisite-replication.html">Regional disaster recovery</a>
   </li>
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
@@ -125,7 +125,7 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li><a href="ocs4-multisite-replication.html">Multisite disaster recovery</a></li>
+    <li><a href="ocs4-multisite-replication.html">Regional disaster recovery</a></li>
   </ul>
 </nav>
   <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-multisite-replication.adoc">Edit this Page</a></div>
@@ -135,7 +135,7 @@
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">OpenShift Multisite Disaster Recovery</h1>
+<h1 class="page">OpenShift Regional Disaster Recovery</h1>
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -206,7 +206,7 @@
 <p>The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one <code>OpenShift Container Platform</code> (OCP) cluster to another and then failback the same application to the original <strong>primary cluster</strong>.</p>
 </div>
 <div class="paragraph">
-<p>The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and <code>OpenShift Data Foundation</code> (ODF) installed on both OCP clusters. ODF version <strong>4.7</strong> (or greater) is required for the <code>RBD Mirroring</code> feature to provide asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero <code>Backup</code> and <code>Restore</code> APIs exposed via the OCP community operator <code>OpenShift APIs for Data Protection</code> or <code>OADP</code>.</p>
+<p>The necessary components are two OCP 4.6 (or greater) clusters, connectivity between their private networks, and <code>OpenShift Data Foundation</code> (ODF) installed on both OCP clusters. ODF version <strong>4.7</strong> (or greater) is required for the <code>RBD Mirroring</code> feature to provide regional asynchronous replication between the two clusters. In order to also replicate the Kubernetes resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero <code>Backup</code> and <code>Restore</code> APIs exposed via the OCP community operator <code>OpenShift APIs for Data Protection</code> or <code>OADP</code>.</p>
 </div>
 <div class="admonitionblock important">
 <table>
@@ -221,7 +221,7 @@ Starting April 2021, <code>OpenShift Container Storage</code> (OCS) has been reb
 </table>
 </div>
 <div class="paragraph">
-<p>This is a general overview of the steps required to configure asynchronous DR capabilities via ODF <strong>4.7</strong> across two distinct OCP clusters separated by distance.</p>
+<p>This is a general overview of the steps required to configure and execute <code>Regional Disaster Recovery</code> capabilities using ODF <strong>4.7</strong> and <code>OADP</code> across two distinct OCP clusters separated by distance.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -818,7 +818,7 @@ For the rest of the instructions <code>site1</code> will be referred to as the O
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1779,7 +1779,34 @@ Make sure to repeat these steps on the <strong>secondary cluster</strong> as wel
 <p>In order to have persistent data replicated for a particular application the volume(s) or images have to be enabled for mirroring. This is currently done using Ceph commands after logging into the <strong>toolbox</strong>.</p>
 </div>
 <div class="paragraph">
-<p>Login to the <strong>toolbox</strong> again on the <strong>primary cluster</strong> if not already in the <strong>toolbox</strong>.</p>
+<p>To map a <strong>PVC</strong> name to a <code>image</code> name in Ceph you can use these commands.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Change the <strong>PVC</strong> name in the command if your name is different than <code>postgresql</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">CSIVOL=$(kubectl get pv $(kubectl get pv | grep postgresql | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that you know your <code>image</code> name(s), login to the <strong>toolbox</strong> again on the <strong>primary cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -2114,7 +2141,34 @@ rails-pgsql-persistent   1          1         1         config,image(rails-pgsql
 <p>In order to failover the storage on the <strong>primary cluster</strong> must be <code>demoted</code> and the storage on the <strong>secondary cluster</strong> must be `promoted. This is currently done on a per image basis using the <strong>toolbox</strong>.</p>
 </div>
 <div class="paragraph">
-<p>Logon to the <strong>toolbox</strong> on the <strong>primary cluster</strong> to use Ceph commands.</p>
+<p>To map a <strong>PVC</strong> name to a <code>image</code> name in Ceph you can use these commands.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Change the <strong>PVC</strong> name in the command if your name is different than <code>postgresql</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">CSIVOL=$(kubectl get pv $(kubectl get pv | grep postgresql | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now that you know the <code>image</code> name(s), logon again to the <strong>toolbox</strong> on the <strong>primary cluster</strong> to use Ceph commands.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
