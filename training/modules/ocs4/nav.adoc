@@ -1,6 +1,7 @@
 * xref:ocs.adoc[General deploy and use]
 * xref:ocs4-install-no-ui.adoc[CLI based install]
 * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
+* xref:ocs4-encryption.adoc[External KMS Encryption]
 * xref:ocs4-multisite-replication.adoc[Regional disaster recovery]
 // * xref:ocs4-metro-stretched-no-ui.adoc[Metro disaster recovery CLI]
 // * xref:ocs4-metro-stretched-ui.adoc[Metro disaster recovery UI]
