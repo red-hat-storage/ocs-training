@@ -676,7 +676,6 @@ parameters:
 provisioner: openshift-storage.rbd.csi.ceph.com
 reclaimPolicy: Retain
 volumeBindingMode: Immediate
-allowVolumeExpansion: true
 ----
 
 Now create the *StorageClass*:
