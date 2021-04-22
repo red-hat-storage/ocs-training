@@ -1,0 +1,163 @@
+= OpenShift Data Foundation 4.7 Additional Features
+:toc:
+:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+:hide-uri-scheme:
+
+== Overview
+
+The intent of this guide is to detail additional OpenShift Data Foundation (ODF)
+4.7 features, some being considered Development Preview and undocumented
+until a later version becomes available.
+
+IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded
+to `OpenShift Data Foundation` (ODF).
+
+[start=1]
+. *OSD BlueStore RocksDB metadata and WAL placement customization.* +
+Learn how to create a custom *StorageCluster* to specify which devices are used for placing the OSD components.
+. *Ceph configuration override.* +
+Learn how to pass custom Ceph parameters during your cluster deployment.
+
+=== OSD device configuration strategy
+
+With ODF 4.7 you can customized the deployment of your OSDs when it comes to what device to use
+for what part of BlueStore. Let's consider a standard *StorageCluster* Custom Resource below:
+
+[source,shell]
+----
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: {deviceset-prefix}
+    portable: false
+    replica: 3
+----
+
+This will deploy a cluster in a very standard way where every piece of the OSD is collocated
+on the PVC that will be provisioned using the storage class `\{storageclass\}`. The size of
+PersistentVolume that will be provisioned is specified as `\{size\}`.
+
+==== RockB placement
+
+IMPORTANT: This feature is Development Preview.
+
+You can now add the following section to your `storageDeviceSets` parameter to customize
+the placement of RocksDB at deployment time.
+
+[source,shell]
+----
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+----
+
+When added to your storage cluster the following will happen:
+
+. Each OSD data will claim a PVC as `\{deviceset-prefix-x-data-y\}`
+. Each OSD RockDB metadata will claim a PVC as `\{deviceset-prefix-x-metadata-y\}`
+
+CAUTION: The deployment process will provision PVC and will not be able to partition
+an existing device. Make sure to configure your RocksDB metadata partitions through
+LSO before deploying your storage cluster.
+
+==== WAL placement
+
+IMPORTANT: This feature is Development Preview.
+
+You can now add the following section to your `storageDeviceSets` parameter to customize
+the placement of the RocksDB Write Ahead Log (WAL) at deployment time.
+
+[source,shell]
+----
+    walPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+----
+
+When added to your storage cluster the following will happen:
+
+. Each OSD data will claim a PVC as `\{deviceset-prefix-x-data-y\}`
+. Each OSD RockDB WAL will claim a PVC as `\{deviceset-prefix-x-wal-y\}`
+
+NOTE: The WAL placement can be combined with the RocksDB metadata placement.
+
+CAUTION: The deployment process will provision PVC and will not be able to partition
+an existing device. Make sure to configure your RocksDB WAL partitions through LSO
+before deploying your storage cluster.
+
+== Ceph configuration override
+
+ODF 4.7 allows you to create a custom configuration map containing Ceph configuration
+parameters that will be added to the default Ceph configuration parameters when deployed
+via the ODF operator.
+
+To achieve this, your *StorageCluster* CR must be configured specifically to inform 
+the ODF operator that a custom configuration is configured for the cluster.
+
+[source,shell]
+----
+spec:
+  managedResources:
+    cephConfig:
+      reconcileStrategy: ignore
+[...]
+----
+
+Once this parameter is added to your *StorageClkuster* CR you simply have to create
+a specific ConfigurationMap to be used by the operator during the deployment.
+[source,shell]
+----
+apiVersion: v1
+data:
+  config: |2
+
+    [global]
+    mon_osd_full_ratio = .85
+    mon_osd_backfillfull_ratio = .80
+    mon_osd_nearfull_ratio = .75
+    mon_max_pg_per_osd = 600
+    [osd]
+    osd_pool_default_min_size = 1
+    osd_pool_default_size = 2
+    osd_memory_target_cgroup_limit_ratio = 0.5
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: openshift-storage
+----
+
+Et voilà!
