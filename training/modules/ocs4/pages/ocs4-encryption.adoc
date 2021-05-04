@@ -18,18 +18,23 @@ configure OpenShift Data Foundation (ODF) 4.7 to enable the use of an external
 The necessary components are one OCP 4.6 (or greater) clusters and the `OpenShift Data
 Foundation` (ODF) operator installed with version *4.7* (or greater).
 
+Encryption at rest can be used to provide protection against the following threats:
+
+. Cluster wide encryption to protect the organization against device theft (all server or single device)
+. PV level encryption to guarantee isolation and confidentiality between tenants (applications).
+
 IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded
 to `OpenShift Data Foundation` (ODF).
 
 [start=1]
-. *Deploy HasshiCorp Vault.* +
+. *Deploy HashiCorp Vault.* +
 Download HashiCorp Vault and configure it so it can be used by ODF.
 . *Install ODF 4.7.* +
-Install ODF 4.7 on your OCP cluster.
-. *Create your data at rest encrypted Storage Cluster.* +
-Deploy your storage cluster pointing to HashICorp vault to provide storage for the generated encryption keys.
+Cluster wide at-rest encryption
+. *Create your Storage Cluster.* +
+Deploy your storage cluster pointing to HashICorp vault to provide cluster wide at-rest encryption.
 . *Deploy an application with PV encryption.* +
-Deploy your application over encrypted *PersistentVolumes* and use HashiCorp vault to store the generated encryption keys.
+Deploy your application over pointing to HashiCorp Vault to provide *PersistentVolume* granular at-rest encryption.
 
 == *HashiCorp Vault* deployment & configuration
 
@@ -439,7 +444,7 @@ $ vault token create -policy=ocs -format json
 
 NOTE: At this point your `vault` configuration is ready.
 
-== OpenShift Data Foundation Deployment
+== Cluster-wide at-rest encryption
 
 In this section you will be using an OCP cluster to deploy
 ODF 4.7 using OperatorHub. The following will be installed:
@@ -605,7 +610,7 @@ image::OCS4-4.7-OCP-Encryption-VaultOCSExpansionKeyList.png[Vault ODF additional
 
 We now have a total of 6 encryption keys.
 
-== *PersistentVolume* encryption
+== Granular *PersistentVolume* at-rest encryption
 
 To use *PersistentVolume* encryption, it is required to setup a new storage class
 that will be configured to use the external Key Management System we have configured in
@@ -1149,7 +1154,7 @@ NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   ME
 ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK
 ----
 
-== PV encryption without at-rest cluster encryption
+== Granular *PersistenVolume* at-rest encryption without cluster-wide encryption
 
 It is possible to provide PV level encryption on a non at-rest encrypted cluster.
 
