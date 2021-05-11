@@ -22,6 +22,7 @@ Encryption at rest can be used to provide protection against the following threa
 
 . Cluster wide encryption to protect the organization against device theft (all server or single device)
 . PV level encryption to guarantee isolation and confidentiality between tenants (applications).
+. Combined PV level encryption on top of cluster-wide encryption to offer both protections above at the same time
 
 IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded
 to `OpenShift Data Foundation` (ODF).
