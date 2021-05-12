@@ -760,7 +760,7 @@ rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Comple
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1246,7 +1246,7 @@ uploaded files.</p>
 <h2 id="_appendix_b_metro_dr_storagecluster_for_cli_deployment"><a class="anchor" href="#_appendix_b_metro_dr_storagecluster_for_cli_deployment"></a>8. Appendix B: Metro DR StorageCluster for CLI deployment</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Example <strong>StorageCluster</strong> CR for <code>Metro DR stretch cluster</code>. For each set of 4 OSDs increment the <code>count</code> by 1.</p>
+<p>Example <strong>StorageCluster</strong> CR for <code>Metro DR stretch cluster</code>. For each set of 4 OSDs increment the <code>count</code> by 1. Creating the ODF <code>StorageCluster</code> using <code>oc</code> CLI is a replacement for the method described earlier in this document using the *OpenShift Web Console` UI.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1309,11 +1309,11 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>Save contents above to storagecluster-metrodr.yaml file.</p>
+<p>Save contents above to <code>storagecluster-metrodr.yaml</code> file.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f storagecluster-metrodr.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f storagecluster-metrodr.yaml -n openshift-storage</code></pre>
 </div>
 </div>
 </div>
