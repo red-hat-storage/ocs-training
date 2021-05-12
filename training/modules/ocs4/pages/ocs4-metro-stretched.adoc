@@ -11,23 +11,23 @@
 
 == Overview
 
-In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be `stretched` between two geographically different locations. To do this necessary services including storage must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called `Metro DR stretch cluster` which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.
+In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be `stretched` between two geographically different locations. To be resilient in the face of a disaster necessary OCP services, including storage, must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called `Metro DR stretch cluster` which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.
 
-NOTE: Currently `Metro DR stretch cluster` is designed to be deployed where latencies do not exceed 4 milliseconds round-trip time (RTT) between locations. Contact https://access.redhat.com/support[Red Hat Customer Support] if you are planning to deploy with higher latencies.
+NOTE: Currently `Metro DR stretch cluster` is tested to be deployed where latencies do not exceed 4 milliseconds round-trip time (RTT) between OCP nodes in different locations. Contact https://access.redhat.com/support[Red Hat Customer Support] if you are planning to deploy with higher latencies.
 
-The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`(ODF) along with Kubernetes zone topology labels to achieve a highly available platform.
+The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`(ODF) along with Kubernetes zone topology labels to achieve a highly available storage infrastructure.
 
 This is a general overview of the steps required to configure and execute `Metro DR stretch cluster` capabilities using ODF *4.7* or greater.
 
 [start=1]
 . *Ensure you have at least 3 OCP master nodes in 3 different locations* +
 Ensure that there is a master node in each of the two locations and that the 3rd master node is in a 3rd location to act as the arbiter in the case of site outage.
-. *Ensure you have at least 4 OCP worker nodes in 2 different locations* +
-Ensure that the worker nodes are evenly split in each of the two locations with a minimum of 2 worker nodes in each location.
+. *Ensure you have a minimum of 4 OCP worker nodes* +
+Ensure you have at least 4 OCP worker nodes evenly dispersed across 2 different locations.
 . *Assign kubernetes topology zone labels to each master and worker node* +
-Assign unique topology.kubernetes.io/zone labels to each node to define failure domains as well as the arbiter zone.
-. *Install OpenShift Container Storage operator* +
-Install the OCS operator using OperatorHub in the OpenShift Web console.
+Assign unique `topology.kubernetes.io/zone` labels to each node to define failure domains as well as the arbiter zone.
+. *Install ODF operators and storage cluster* +
+Install the OpenShift Container Storage operator and storage cluster using OperatorHub in the OpenShift Web console.
 . *Install a sample application for failure testing* +
 Install an OCP application that can be configured to be highly available with critical components deployed in both data zones.
 . *Power off all OCP nodes in one location* +
@@ -37,7 +37,7 @@ Simulate a recovery by powering back on all nodes and validate sample applicatio
 
 == Metro DR Stretch Cluster Prerequisites 
 
-The diagram shows the most simple deployment for `Metro DR stretch cluster`. The ODF Monitor pod that is the `arbiter` in case of a site outage can be scheduled on a master node. The diagram does not show an additional master nodes in each `Data Zone` which is required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations. 
+The diagram shows the most simple deployment for `Metro DR stretch cluster`. The ODF Monitor pod that is the `arbiter` in case of a site outage can be scheduled on a master node. The diagram does not show the master nodes in each `Data Zone`. They are required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations. 
 
 .OpenShift nodes and ODF daemons
 image::OCS4-metrodr-zones.png[OpenShift nodes and ODF daemons]
@@ -46,14 +46,13 @@ NOTE: Refer to the https://access.redhat.com/documentation/en-us/red_hat_openshi
 
 === Apply topology zone labels to OCP nodes
 
-Prior to installing ODF the nodes that will be used for storage and the node for the arbiter function must be labeled to define their zone. In our case we will use the label `datacenter1` for one location with storage nodes and `datacenter2` for the other location. The zone that will have the arbiter function in the case of a site outage will use the `arbiter` label. These labels are arbitrary but they do need to be unique for the 3 locations.
+Prior to installing ODF the nodes used for storage and the node used to host the arbiter function must be specifically labeled to define their function. In our case we will use the label `datacenter1` for one location with storage nodes and `datacenter2` for the other location. The zone that will have the arbiter function in the case of a site outage will use the `arbiter` label. These labels are arbitrary but they do need to be unique for the 3 locations.
 
-For example, you can label the nodes and in the diagram as follows (including master nodes not shown):
+For example, you can label the nodes and in `Figure 1` as follows (including master nodes not shown in diagram):
 
-topology.kubernetes.io/zone=arbiter for Master3
-topology.kubernetes.io/zone=datacenter1 for Master1 Worker1 & Worker2
-topology.kubernetes.io/zone=datacenter2 for Master2 Worker3 & Worker4
-
+* topology.kubernetes.io/zone=arbiter for Master0
+* topology.kubernetes.io/zone=datacenter1 for Master1, Worker1, Worker2
+* topology.kubernetes.io/zone=datacenter2 for Master2, Worker3, Worker4
 
 To apply the labels to the node using `oc` CLI do the following: 
 ----
@@ -64,39 +63,39 @@ To validate the labels run the following commands using the example labels for t
 
 [source,role="execute"]
 ----
-oc get nodes -l topology.kubernetes.io/zone=arbiter | awk {'print $1}'
+oc get nodes -l topology.kubernetes.io/zone=arbiter -o name
 ----
 .Example output:
 ----
 NAME
-perf1-mz8bt-master-0
+node/perf1-mz8bt-master-0
 ----
 
 [source,role="execute"]
 ----
-oc get nodes -l topology.kubernetes.io/zone=datacenter1 | awk {'print $1}'
+oc get nodes -l topology.kubernetes.io/zone=datacenter1 -o name
 ----
 .Example output:
 ----
 NAME
-perf1-mz8bt-master-1
-perf1-mz8bt-worker-d2hdm
-perf1-mz8bt-worker-k68rv
+node/perf1-mz8bt-master-1
+node/perf1-mz8bt-worker-d2hdm
+node/perf1-mz8bt-worker-k68rv
 ----
 
 [source,role="execute"]
 ----
-oc get nodes -l topology.kubernetes.io/zone=datacenter2 | awk {'print $1}'
+oc get nodes -l topology.kubernetes.io/zone=datacenter2 -o name
 ----
 .Example output:
 ----
 NAME
-perf1-mz8bt-master-2
-perf1-mz8bt-worker-ntkp8
-perf1-mz8bt-worker-qpwsr
+node/perf1-mz8bt-master-2
+node/perf1-mz8bt-worker-ntkp8
+node/perf1-mz8bt-worker-qpwsr
 ----
 
-You have now created the `Metro DR stretch cluster` topology zones that are required for site outage recovery.
+The `Metro DR stretch cluster` topology zone labels are now applied to the appropriate OCP nodes to define the three locations. Next step is installing the storage operators from OCP *OperatorHub*.
 
 == Local Storage Operator
 
@@ -583,28 +582,47 @@ Currently the `file-upoader` *Deployment* is not zone aware and could schedule a
 
 [source,role="execute"]
 ----
-oc get deployment -o yaml -n my-shared-storage | less
+oc get deployment file-uploader -o yaml -n my-shared-storage | less
 ----
 
-Search for `containers` and repeat the search a few times until your output is similar. There is no pod placement rules in the *Deployment*.
+Search for `containers` and repeat the search a few times until your output is similar. There is currently no pod placement rules in the default *Deployment* `file-uploader`.
 
 .Example Output:
 [source,yaml]
 ----
 [...]
-      spec:
-        containers:
+spec:
+  progressDeadlineSeconds: 600
+  replicas: 4
+  revisionHistoryLimit: 10
+  selector:
+    matchLabels:
+      deployment: file-uploader
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+    type: RollingUpdate
+  template:
+    metadata:
+      annotations:
+        openshift.io/generated-by: OpenShiftNewApp
+      creationTimestamp: null
+      labels:
+        deployment: file-uploader
+      spec:  # <-- Start inserted lines after here
+        containers:  # <-- End inserted lines before here
         - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
           imagePullPolicy: IfNotPresent
           name: file-uploader
 [...]
 ----
 
-Currently the deployment is not configured to be zone aware. The *Deployment* needs to be modified to use the topology zone labels as shown below. Edit the deployment and add the new lines below.
+Currently the deployment is not configured to be zone aware. The *Deployment* needs to be modified to use the topology zone labels as shown below. Edit the deployment and add the new lines below between the `start` and `end` point.
 
 [source,role="execute"]
 ----
-oc edit deployment -n my-shared-storage
+oc edit deployment file-uploader -n my-shared-storage
 ----
 [source,yaml]
 ----
@@ -626,9 +644,6 @@ oc edit deployment -n my-shared-storage
         nodeSelector:
           node-role.kubernetes.io/worker: ""
         containers:
-        - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
-          imagePullPolicy: IfNotPresent
-          name: file-uploader
 [...]
 ----
 .Example output:
@@ -718,22 +733,76 @@ uploaded files.
 
 Next step is to use the application to test availability during a site outage.
 
-== Arbiter Zone Failure Test
-
-This test is designed to demonstrates that if the failure domain hosting the
-Monitor running in Arbiter mode is subject to a failure the application remains
-available at all time. Both RPO and RTO are equal to 0.
-
-TBD
-
 == Data Zone Failure Test
 
-TBD
+*Under Construction*
 
-== Appendix A: OpenShift Registry, Routing, Monitoring Zone Aware
+// == Arbiter Zone Failure Test
+// 
+// This test is designed to demonstrates that if the failure domain hosting the
+// Monitor running in Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.
 
-TBD
+== Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring 
 
-== Appendix B: Metro DR StorageCluster CLI deployment
+*Under Construction*
 
-TBD
+== Appendix B: Metro DR StorageCluster for CLI deployment
+
+Example *StorageCluster* CR for `Metro DR stretch cluster`. For each set of 4 OSDs increment the `count` by 1.
+
+NOTE: Under the `managedResources` section is the default setting of `manage` for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of `ignore` will not deploy the particular service.
+
+[source,yaml]
+----
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter:
+    enable: true  # <-- Enable arbiter mode for Metro Dr stretch cluster
+  nodeTopologies:
+    arbiterLocation: arbiter  # <-- Modify to label for arbiter zone
+  manageNodes: false
+  resources: {}
+  monDataDirHostPath: /var/lib/rook
+  managedResources:
+    cephBlockPools:
+      reconcileStrategy: manage
+    cephFilesystems:
+      reconcileStrategy: manage
+    cephObjectStoreUsers:
+      reconcileStrategy: manage
+    cephObjectStores:
+      reconcileStrategy: manage
+    snapshotClasses:
+      reconcileStrategy: manage
+    storageClasses:
+      reconcileStrategy: manage
+  multiCloudGateway:
+    reconcileStrategy: manage
+  storageDeviceSets:
+  - count: 1  #  <-- For each set of 4 disks increment the count by 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: "100Gi"  # <-- Use value smaller than actual disk size
+        storageClassName: localblock  <-- Modify to correct LSO storageclass
+        volumeMode: Block
+    name: ocs-deviceset
+    placement: {}
+    portable: false
+    replica: 4 #  <-- Replica = 4 for volume and object storage
+    resources: {}
+----        
+        
+Save contents above to storagecluster-metrodr.yaml file.
+
+[source,shell]
+----
+oc create -f storagecluster-metrodr.yaml
+----        
