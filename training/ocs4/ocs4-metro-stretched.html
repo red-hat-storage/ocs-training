@@ -1291,7 +1291,7 @@ spec:
   multiCloudGateway:
     reconcileStrategy: manage
   storageDeviceSets:
-  - count: 1  #  &lt;-- For each set of 4 disks increment the count by 1
+  - count: 1  # &lt;-- For each set of 4 disks increment the count by 1
     dataPVCTemplate:
       spec:
         accessModes:
@@ -1299,12 +1299,12 @@ spec:
         resources:
           requests:
             storage: "100Gi"  # &lt;-- Use value smaller than actual disk size
-        storageClassName: localblock  &lt;-- Modify to correct LSO storageclass
+        storageClassName: localblock  # &lt;-- Modify to correct LSO storageclass
         volumeMode: Block
     name: ocs-deviceset
     placement: {}
     portable: false
-    replica: 4 #  &lt;-- Replica = 4 for volume and object storage
+    replica: 4  # &lt;-- Replica = 4 for volume and object storage
     resources: {}</code></pre>
 </div>
 </div>
