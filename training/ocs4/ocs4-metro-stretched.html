@@ -1,0 +1,1255 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenShift Metro Disaster Recovery using Stretch Cluster :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-metro-stretched.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-multisite-replication.html">Regional disaster recovery</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-metro-stretched.html">Metro disaster recovery</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-metro-stretched.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">OpenShift Metro Disaster Recovery using Stretch Cluster</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">1. Overview</a></li>
+<li><a href="#_metro_dr_stretch_cluster_prerequisites">2. Metro DR Stretch Cluster Prerequisites</a>
+<ul class="sectlevel2">
+<li><a href="#_apply_topology_zone_labels_to_ocp_nodes">2.1. Apply topology zone labels to OCP nodes</a></li>
+</ul>
+</li>
+<li><a href="#_local_storage_operator">3. Local Storage Operator</a>
+<ul class="sectlevel2">
+<li><a href="#_installing_the_local_storage_operator_v4_7">3.1. Installing the Local Storage Operator v4.7</a></li>
+</ul>
+</li>
+<li><a href="#_openshift_data_foundation_deployment">4. OpenShift Data Foundation Deployment</a>
+<ul class="sectlevel2">
+<li><a href="#_odf_operator_deployment">4.1. ODF Operator Deployment</a></li>
+<li><a href="#_odf_storage_cluster_deployment">4.2. ODF Storage Cluster Deployment</a>
+<ul class="sectlevel3">
+<li><a href="#_validate_cluster_deployment">4.2.1. Validate Cluster Deployment</a></li>
+</ul>
+</li>
+<li><a href="#_install_rook_toolbox">4.3. Install Rook Toolbox</a></li>
+</ul>
+</li>
+<li><a href="#_install_zone_aware_sample_application">5. Install Zone Aware Sample Application</a>
+<ul class="sectlevel2">
+<li><a href="#_modify_deployment_to_be_zone_aware">5.1. Modify Deployment to be Zone Aware</a></li>
+</ul>
+</li>
+<li><a href="#_arbiter_zone_failure_test">6. Arbiter Zone Failure Test</a></li>
+<li><a href="#_data_zone_failure_test">7. Data Zone Failure Test</a></li>
+<li><a href="#_appendix_a_openshift_registry_routing_monitoring_zone_aware">8. Appendix A: OpenShift Registry, Routing, Monitoring Zone Aware</a></li>
+<li><a href="#_appendix_b_metro_dr_storagecluster_cli_deployment">9. Appendix B: Metro DR StorageCluster CLI deployment</a></li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be <code>stretched</code> between two geographically different locations. To do this necessary services including storage must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called <code>Metro DR stretch cluster</code> which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently <code>Metro DR stretch cluster</code> is designed to be deployed where latencies do not exceed 4 milliseconds round-trip time (RTT) between locations. Contact <a href="https://access.redhat.com/support">Red Hat Customer Support</a> if you are planning to deploy with higher latencies.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The intent of this solution guide is to detail the steps and commands necessary to deploy <code>OpenShift Data Foundation</code>(ODF) along with Kubernetes zone topology labels to achieve a highly available platform.</p>
+</div>
+<div class="paragraph">
+<p>This is a general overview of the steps required to configure and execute <code>Metro DR stretch cluster</code> capabilities using ODF <strong>4.7</strong> or greater.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p><strong>Ensure you have at least 3 OCP master nodes in 3 different locations</strong><br>
+Ensure that there is a master node in each of the two locations and that the 3rd master node is in a 3rd location to act as the arbiter in the case of site outage.</p>
+</li>
+<li>
+<p><strong>Ensure you have at least 4 OCP worker nodes in 2 different locations</strong><br>
+Ensure that the worker nodes are evenly split in each of the two locations with a minimum of 2 worker nodes in each location.</p>
+</li>
+<li>
+<p><strong>Assign kubernetes topology zone labels to each master and worker node</strong><br>
+Assign unique topology.kubernetes.io/zone labels to each node to define failure domains as well as the arbiter zone.</p>
+</li>
+<li>
+<p><strong>Install OpenShift Container Storage operator</strong><br>
+Install the OCS operator using OperatorHub in the OpenShift Web console.</p>
+</li>
+<li>
+<p><strong>Install a sample application for failure testing</strong><br>
+Install an OCP application that can be configured to be highly available with critical components deployed in both data zones.</p>
+</li>
+<li>
+<p><strong>Power off all OCP nodes in one location</strong><br>
+Simulate a site outage by powering off all nodes (including master node) and validate sample application availability.</p>
+</li>
+<li>
+<p><strong>Power on all OCP nodes in failed location</strong><br>
+Simulate a recovery by powering back on all nodes and validate sample application availability.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_metro_dr_stretch_cluster_prerequisites"><a class="anchor" href="#_metro_dr_stretch_cluster_prerequisites"></a>2. Metro DR Stretch Cluster Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The diagram shows the most simple deployment for <code>Metro DR stretch cluster</code>. The ODF Monitor pod that is the <code>arbiter</code> in case of a site outage can be scheduled on a master node. The diagram does not show an additional master nodes in each <code>Data Zone</code> which is required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-metrodr-zones.png" alt="OpenShift nodes and ODF daemons">
+</div>
+<div class="title">Figure 1. OpenShift nodes and ODF daemons</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Refer to the <a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.7/html/planning_your_deployment/index">planning guide</a> for node and storage sizing for ODF.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_apply_topology_zone_labels_to_ocp_nodes"><a class="anchor" href="#_apply_topology_zone_labels_to_ocp_nodes"></a>2.1. Apply topology zone labels to OCP nodes</h3>
+<div class="paragraph">
+<p>Prior to installing ODF the nodes that will be used for storage and the node for the arbiter function must be labeled to define their zone. In our case we will use the label <code>datacenter1</code> for one location with storage nodes and <code>datacenter2</code> for the other location. The zone that will have the arbiter function in the case of a site outage will use the <code>arbiter</code> label. These labels are arbitrary but they do need to be unique for the 3 locations.</p>
+</div>
+<div class="paragraph">
+<p>For example, you can label the nodes and in the diagram as follows (including master nodes not shown):</p>
+</div>
+<div class="paragraph">
+<p>topology.kubernetes.io/zone=arbiter for Master3
+topology.kubernetes.io/zone=datacenter1 for Master1 Worker1 &amp; Worker2
+topology.kubernetes.io/zone=datacenter2 for Master2 Worker3 &amp; Worker4</p>
+</div>
+<div class="paragraph">
+<p>To apply the labels to the node using <code>oc</code> CLI do the following:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc label node &lt;node_name&gt; topology.kubernetes.io/zone=&lt;label&gt;</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To validate the labels run the following commands using the example labels for the 3 zones:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l topology.kubernetes.io/zone=arbiter | awk {'print $1}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME
+perf1-mz8bt-master-0</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l topology.kubernetes.io/zone=datacenter1 | awk {'print $1}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME
+perf1-mz8bt-master-1
+perf1-mz8bt-worker-d2hdm
+perf1-mz8bt-worker-k68rv</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -l topology.kubernetes.io/zone=datacenter2 | awk {'print $1}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME
+perf1-mz8bt-master-2
+perf1-mz8bt-worker-ntkp8
+perf1-mz8bt-worker-qpwsr</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You have now created the <code>Metro DR stretch cluster</code> topology zones that are required for site outage recovery.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_local_storage_operator"><a class="anchor" href="#_local_storage_operator"></a>3. Local Storage Operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now switch over to your <strong>Openshift Web Console</strong>. You can get your URL by
+issuing command below to get the OCP 4 <code>console</code> route.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get -n openshift-console route console</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy the <strong>Openshift Web Console</strong> route to a browser tab and login using your cluster-admin username (i.e., kubeadmin) and password.</p>
+</div>
+<div class="sect2">
+<h3 id="_installing_the_local_storage_operator_v4_7"><a class="anchor" href="#_installing_the_local_storage_operator_v4_7"></a>3.1. Installing the Local Storage Operator v4.7</h3>
+<div class="paragraph">
+<p>Once you are logged in, navigate to the <strong>Operators</strong> &#8594; <strong>OperatorHub</strong> menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-OCP-OperatorHub.png" alt="OCP OperatorHub">
+</div>
+<div class="title">Figure 2. OCP OperatorHub</div>
+</div>
+<div class="paragraph">
+<p>Now type <code>local storage</code> in the <strong>Filter by <em>keyword&#8230;&#8203;</em></strong> box.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-OCP-OperatorHub-LSOFilter.png" alt="OCP OperatorHub Filter">
+</div>
+<div class="title">Figure 3. OCP OperatorHub filter on OpenShift Data Foundation Operator</div>
+</div>
+<div class="paragraph">
+<p>Select <code>Local Storage</code> and then select <strong>Install</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-LSOInstall.png" alt="OCP OperatorHub Install">
+</div>
+<div class="title">Figure 4. OCP OperatorHub Install OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>On the next screen make sure the settings are as shown in this figure.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-LSOSubscribe.png" alt="OCP OperatorHub Subscribe">
+</div>
+<div class="title">Figure 5. OCP Subscribe to OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Install</code>.</p>
+</div>
+<div class="paragraph">
+<p>Verify the Local Storage Operator deployment is successful.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv,pod -n openshift-local-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/local-storage-operator.4.7.0-202103270130.p0   Local Storage   4.7.0-202103270130.p0              Succeeded
+
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/local-storage-operator-5879cf9565-r5s7k   1/1     Running   0          31s</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Do not proceed with the next instructions until the Local Storage Operator is deployed successfully.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openshift_data_foundation_deployment"><a class="anchor" href="#_openshift_data_foundation_deployment"></a>4. OpenShift Data Foundation Deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section you will be installing ODF and enabling <code>arbiter</code> mode. For instruction specific to you environment reference <a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.7/">ODF documentation</a>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Currently the <code>Metro DR stretch cluster</code> solution is only designed for use on VMware and Bare Metal servers.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The following will be installed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The ODF Operator (OCS Operator in OCP Web console)</p>
+</li>
+<li>
+<p>All other ODF resources (Ceph Pods, NooBaa Pods, StorageClasses)</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_odf_operator_deployment"><a class="anchor" href="#_odf_operator_deployment"></a>4.1. ODF Operator Deployment</h3>
+<div class="paragraph">
+<p>Start with creating the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create namespace openshift-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You must add the monitoring label to this namespace. This is required to get
+prometheus metrics and alerts for the OCP storage dashboards. To label the
+<code>openshift-storage</code> namespace use the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The creation of the <code>openshift-storage</code> namespace, and the monitoring
+label added to this namespace, can also be done during the OCS operator
+installation using the <strong>Openshift Web Console</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Navigate to the <strong>Operators</strong> &#8594; <strong>OperatorHub</strong> menu again.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-OCP-OperatorHub.png" alt="OCP OperatorHub">
+</div>
+<div class="title">Figure 6. OCP OperatorHub</div>
+</div>
+<div class="paragraph">
+<p>Now type <code>openshift container storage</code> in the <strong>Filter by <em>keyword&#8230;&#8203;</em></strong> box.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-OperatorHub-Filter.png" alt="OCP OperatorHub Filter">
+</div>
+<div class="title">Figure 7. OCP OperatorHub filter on OpenShift Data Foundation Operator</div>
+</div>
+<div class="paragraph">
+<p>Select <code>OpenShift Data Foundation Operator</code> and then select <strong>Install</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-Install.png" alt="OCP OperatorHub Install">
+</div>
+<div class="title">Figure 8. OCP OperatorHub Install OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>On the next screen make sure the settings are as shown in this figure.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-Subscribe.png" alt="OCP OperatorHub Subscribe">
+</div>
+<div class="title">Figure 9. OCP Subscribe to OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Install</code>.</p>
+</div>
+<div class="paragraph">
+<p>Now you can go back to your terminal window to check the progress of the
+installation. Verify the operator is deployed successfully.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-746ddfc79-fcrfz         1/1     Running   0          33s
+pod/ocs-metrics-exporter-54b6d689f8-ltxvp   1/1     Running   0          32s
+pod/ocs-operator-5bcdd97ff4-rgn7f           1/1     Running   0          33s
+pod/rook-ceph-operator-7dd585bd97-sldkk     1/1     Running   0          33s
+
+NAME                                                             DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0   OpenShift Container Storage   4.7.0                   Succeeded</pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Reaching this status shows that the installation of your operator was successful. Reaching this state can take several minutes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_odf_storage_cluster_deployment"><a class="anchor" href="#_odf_storage_cluster_deployment"></a>4.2. ODF Storage Cluster Deployment</h3>
+<div class="paragraph">
+<p>Navigate to the <strong>Operators</strong> &#8594; <strong>Installed Operators</strong> menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-InstalledOperators.png" alt="OCP OperatorHub">
+</div>
+<div class="title">Figure 10. Locate ODF Operator</div>
+</div>
+<div class="paragraph">
+<p>Click on <code>Storage Cluster</code> as indicated in the graphic above.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-CreateStorageCluster.png" alt="ODF Storage Cluster">
+</div>
+<div class="title">Figure 11. ODF Storage Cluster</div>
+</div>
+<div class="paragraph">
+<p>Click on <code>Create Storage Cluster</code> on the far right side.</p>
+</div>
+<div class="paragraph">
+<p>Select the <strong>Internal - Attached Devices</strong> deployment option.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-InternalAttached.png" alt="LSO Based Cluster">
+</div>
+<div class="title">Figure 12. Select LSO Based Cluster</div>
+</div>
+<div class="paragraph">
+<p>Provide storage cluster details.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-StorageClusterDetailsNew.png" alt="LSO Discovery Parameters">
+</div>
+<div class="title">Figure 13. LSO Discovery Parameters</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Next</strong> at the bottom of the screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-StorageClusterLSOConfiguration.png" alt="LSO Configuration Parameters">
+</div>
+<div class="title">Figure 14. LSO LocalVolumeSet and Storage Class Configuration</div>
+</div>
+<div class="paragraph">
+<p>Enter the desired configuration for your Local Storage Operator and click <code>Next</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-StorageClusterLSOStorageClass.png" alt="LSO Storage Class Confirmation">
+</div>
+<div class="title">Figure 15. LSO Storage Class Confirmation</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Yes</code> when asked to confirm the storage class creation.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The local storage (LSO) configuration will take a few minute. Please be patient.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Next check the <code>Enable arbiter</code> checkbox. Select the correct topology zone
+that is to receive the Arbiter Monitor. The zone label is <code>arbiter</code> in this case.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-StorageClusterArbiterScreenNew.png" alt="Arbiter Mode Selection">
+</div>
+<div class="title">Figure 16. ODF Arbiter Mode Configuration</div>
+</div>
+<div class="paragraph">
+<p>Select the LSO storage class you created as illustrated in the screen capture. Then click <code>Next</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-ClassArbiterScreen.png" alt="ODF Storage Class Select">
+</div>
+<div class="title">Figure 17. ODF Storage Class Select</div>
+</div>
+<div class="paragraph">
+<p>When asked if you want to enable encryption just click <strong>Next</strong> again.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can combine cluster wide encryption with Arbiter mode during a real deployment.
+It is not the topic of this particular exercise.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Review parameters and create the cluster.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-StorageClusterReviewNew.png" alt="Review Cluster Parameters">
+</div>
+<div class="title">Figure 18. Review Cluster Parameters</div>
+</div>
+<div class="paragraph">
+<p>Click <strong>Create</strong> at the bottom of the <code>Review storage cluster</code> window.</p>
+</div>
+<div class="sect3">
+<h4 id="_validate_cluster_deployment"><a class="anchor" href="#_validate_cluster_deployment"></a>4.2.1. Validate Cluster Deployment</h4>
+<div class="paragraph">
+<p>Wait for your storage cluster to become operational. Do these steps to validate successful installation.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cephcluster -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     5          4m55s   Ready   Cluster created successfully   HEALTH_OK</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-28n69                                            3/3     Running     0          5m34s
+csi-cephfsplugin-5qfrr                                            3/3     Running     0          5m34s
+csi-cephfsplugin-provisioner-6976556bd7-5nvzz                     6/6     Running     0          5m34s
+csi-cephfsplugin-provisioner-6976556bd7-z2g7w                     6/6     Running     0          5m34s
+csi-cephfsplugin-qwzbs                                            3/3     Running     0          5m34s
+csi-cephfsplugin-wrrm5                                            3/3     Running     0          5m34s
+csi-rbdplugin-44bxs                                               3/3     Running     0          5m35s
+csi-rbdplugin-lzc2x                                               3/3     Running     0          5m35s
+csi-rbdplugin-mdm4n                                               3/3     Running     0          5m35s
+csi-rbdplugin-provisioner-6b8557bd8b-54kvr                        6/6     Running     0          5m35s
+csi-rbdplugin-provisioner-6b8557bd8b-k24sd                        6/6     Running     0          5m35s
+csi-rbdplugin-v66cl                                               3/3     Running     0          5m35s
+noobaa-core-0                                                     1/1     Running     0          2m23s
+noobaa-db-pg-0                                                    1/1     Running     0          2m23s
+noobaa-endpoint-cf67f6789-tlmmg                                   1/1     Running     0          43s
+noobaa-operator-746ddfc79-fcrfz                                   1/1     Running     0          66m
+ocs-metrics-exporter-54b6d689f8-ltxvp                             1/1     Running     0          66m
+ocs-operator-5bcdd97ff4-rgn7f                                     1/1     Running     0          66m
+rook-ceph-crashcollector-ip-10-0-137-183-5859f89db8-56tzl         1/1     Running     0          4m20s
+rook-ceph-crashcollector-ip-10-0-148-220-66d4b9868d-wpdgz         1/1     Running     0          4m37s
+rook-ceph-crashcollector-ip-10-0-168-114-6dc89c87d8-l2ckg         1/1     Running     0          4m52s
+rook-ceph-crashcollector-ip-10-0-172-31-58dd45f7b9-wfjjv          1/1     Running     0          5m8s
+rook-ceph-crashcollector-ip-10-0-212-112-67bcbb8949-vpn6h         1/1     Running     0          4m5s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-64f7cb6dhb68v   2/2     Running     0          2m4s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-96fd85c5vcbhn   2/2     Running     0          2m3s
+rook-ceph-mgr-a-55f6d78b6b-9nvzr                                  2/2     Running     0          3m4s
+rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          5m9s
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          4m52s
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          4m37s
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          4m20s
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          4m5s
+rook-ceph-operator-7dd585bd97-sldkk                               1/1     Running     0          66m
+rook-ceph-osd-0-d75955974-qk5l9                                   2/2     Running     0          2m43s
+rook-ceph-osd-1-7f886fd54-bgjzp                                   2/2     Running     0          2m42s
+rook-ceph-osd-2-546d7986d-n52px                                   2/2     Running     0          2m42s
+rook-ceph-osd-3-666b86f659-sln5d                                  2/2     Running     0          2m34s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-0-data-0ptfjctn6   0/1     Completed   0          3m3s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-1-data-0ffsr9kf5   0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-2-data-0mzrl7rrl   0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Completed   0          3m1s</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_install_rook_toolbox"><a class="anchor" href="#_install_rook_toolbox"></a>4.3. Install Rook Toolbox</h3>
+<div class="paragraph">
+<p>Deploy the <code>rook-ceph-tool</code> pod.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Establish a remote shell to the toolbox pod.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Run <code>ceph status</code> and <code>ceph osd tree</code> to see that status of the cluster.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>  cluster:
+    id:     5f83a66c-3454-474f-9745-8205f01ea504
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 4m)
+    mgr: a(active, since 4m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 4m), 4 in (since 4m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 86 objects, 120 MiB
+    usage:   4.2 GiB used, 9.1 TiB / 9.1 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As shown in <code>ceph status</code> output, the <code>Metro DR stretch cluster</code> is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_install_zone_aware_sample_application"><a class="anchor" href="#_install_zone_aware_sample_application"></a>5. Install Zone Aware Sample Application</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section the <code>ocs-storagecluster-cephfs</code> <strong>StorageClass</strong> will be used to
+create a RWX (ReadWriteMany) <strong>PVC</strong> that can be used by multiple pods at the
+same time. The application we will use is called <code>File Uploader</code>.</p>
+</div>
+<div class="paragraph">
+<p>Because this application will share the same RWX volume for storing files we can demonstrate how an application can be spread across topology zones so that in the event of a site outage it is still available. This works for persistent data access as well because ODF storage configured for <code>Metro DR stretch cluster</code> is also zone aware and highly available.</p>
+</div>
+<div class="paragraph">
+<p>Create a new project:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-shared-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next deploy the example PHP application called <code>file-uploader</code>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-app openshift/php:7.2-ubi8~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Sample Output:</div>
+<div class="content">
+<pre>--&gt; Found image 4f2dcc0 (9 days old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-
+ubi8"
+
+    Apache 2.4 with PHP 7.2
+    -----------------------
+    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and f
+rameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynam
+ically generated web pages. PHP also offers built-in database integration for several commercial and non-commerci
+al database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common
+use of PHP coding is probably as a replacement for CGI scripts.
+
+    Tags: builder, php, php72, php-72
+
+    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be cr
+eated
+      * The resulting image will be pushed to image stream tag "file-uploader:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--&gt; Creating resources ...
+    imagestream.image.openshift.io "file-uploader" created
+    buildconfig.build.openshift.io "file-uploader" created
+    deployment.apps "file-uploader" created
+    service "file-uploader" created
+--&gt; Success
+    Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the comm
+ands below:
+     'oc expose service/file-uploader'
+    Run 'oc status' to view your app.</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Watch the build log and wait for the application to be deployed:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc logs -f bc/file-uploader -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example Output:</div>
+<div class="content">
+<pre>Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
+
+[...]
+
+Generating dockerfile with builder image image-registry.openshift-image-regis
+try.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610c
+0e05b593844b41d5494ea
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@s
+ha256:d97466f33999951739a76bce922ab17088885db610c0e05b593844b41d5494ea
+STEP 2: LABEL "io.openshift.build.commit.author"="Christian Hernandez &lt;christ
+ian.hernandez@yahoo.com&gt;"       "io.openshift.build.commit.date"="Sun Oct 1 1
+7:15:09 2017 -0700"       "io.openshift.build.commit.id"="288eda3dff43b02f7f7
+b6b6b6f93396ffdf34cb2"       "io.openshift.build.commit.ref"="master"       "
+io.openshift.build.commit.message"="trying to modularize"       "io.openshift
+.build.source-location"="https://github.com/christianh814/openshift-php-uploa
+d-demo"       "io.openshift.build.image"="image-registry.openshift-image-regi
+stry.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610
+c0e05b593844b41d5494ea"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="file-uploader-1"     OPENSHIFT_BUILD_NAMESP
+ACE="my-shared-storage"     OPENSHIFT_BUILD_SOURCE="https://github.com/christ
+ianh814/openshift-php-upload-demo"     OPENSHIFT_BUILD_COMMIT="288eda3dff43b0
+2f7f7b6b6b6f93396ffdf34cb2"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+---&gt; Installing application source...
+=&gt; sourcing 20-copy-config.sh ...
+---&gt; 17:24:39     Processing additional arbitrary httpd configuration provide
+d by s2i ...
+=&gt; sourcing 00-documentroot.conf ...
+=&gt; sourcing 50-mpm-tuning.conf ...
+=&gt; sourcing 40-ssl-certs.sh ...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:3
+b83e447
+Getting image source signatures
+
+[...]
+
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/my-share
+d-storage/file-uploader@sha256:929c0ce3dcc65a6f6e8bd44069862858db651358b88065
+fb483d51f5d704e501
+Push successful</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The command prompt returns out of the tail mode once you see <em>Push successful</em>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This use of the <code>new-app</code> command directly asked for application code to
+be built and did not involve a template. That is why it only created a <strong>single
+Pod</strong> deployment with a <strong>Service</strong> and no <strong>Route</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s make our application production ready by exposing it via a <code>Route</code> and
+scale to 4 instances for high availability:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc expose svc/file-uploader -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale --replicas=4 deploy/file-uploader -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should have 4 <code>file-uploader</code> <strong>Pods</strong> in a few minutes. Repeat the command
+above until there are 4 <code>file-uploader</code> <strong>Pods</strong> in <code>Running</code> STATUS.</p>
+</div>
+<div class="paragraph">
+<p>You can create a <strong>PersistentVolumeClaim</strong> and attach it into an application with
+the <code>oc set volume</code> command. Execute the following</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc set volume deploy/file-uploader --add --name=my-shared-storage \
+-t pvc --claim-mode=ReadWriteMany --claim-size=10Gi \
+--claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
+--mount-path=/opt/app-root/src/uploaded \
+-n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This command will:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>create a <strong>PersistentVolumeClaim</strong></p>
+</li>
+<li>
+<p>update the <strong>Deployment</strong> to include a <code>volume</code> definition</p>
+</li>
+<li>
+<p>update the <strong>Deployment</strong> to attach a <code>volumemount</code> into the specified
+<code>mount-path</code></p>
+</li>
+<li>
+<p>cause a new deployment of the 3 application <strong>Pods</strong></p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Now, let&#8217;s look at the result of adding the volume:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example Output:</div>
+<div class="content">
+<pre>NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+my-shared-storage   Bound    pvc-5402cc8a-e874-4d7e-af76-1eb05bd2e7c7   10Gi       RWX            ocs-storagecluster-cephfs   52s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Notice the <code>ACCESSMODE</code> being set to <strong>RWX</strong> (short for <code>ReadWriteMany</code>).</p>
+</div>
+<div class="paragraph">
+<p>All 4 <code>file-uploader</code><strong>Pods</strong> are using the same <strong>RWX</strong> volume. Without this
+<code>ACCESSMODE</code>, OpenShift will not attempt to attach multiple <strong>Pods</strong> to the
+same <strong>PersistentVolume</strong> reliably. If you attempt to scale up deployments that
+are using <strong>RWO</strong> or <code>ReadWriteOnce</code> storage, the <strong>Pods</strong> will actually all
+become co-located on the same node.</p>
+</div>
+<div class="sect2">
+<h3 id="_modify_deployment_to_be_zone_aware"><a class="anchor" href="#_modify_deployment_to_be_zone_aware"></a>5.1. Modify Deployment to be Zone Aware</h3>
+<div class="paragraph">
+<p>Currently the <code>file-upoader</code> <strong>Deployment</strong> is not zone aware and could schedule all of the <strong>Pods</strong> in the same zone. If this happened and there was a site outage then the application would be unavailable.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get deployment -o yaml -n my-shared-storage | less</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Search for <code>containers</code> and repeat the search a few times until your output is similar. There is no pod placement rules in the <strong>Deployment</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example Output:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+      spec:
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
+          imagePullPolicy: IfNotPresent
+          name: file-uploader
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Currently the deployment is not configured to be zone aware. The <strong>Deployment</strong> needs to be modified to use the topology zone labels as shown below. Edit the deployment and add the new lines below.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit deployment -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+      spec:
+        topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                deployment: file-uploader
+            maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+          - labelSelector:
+               matchLabels:
+                 deployment: file-uploader
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
+          imagePullPolicy: IfNotPresent
+          name: file-uploader
+[...]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deployment.apps/file-uploader edited</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now scale the deployment to zero <strong>Pods</strong>. and then back to 4 <strong>Pods</strong>. This is needed because the deployment changed in terms of <strong>Pod</strong> placement.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deployment file-uploader --replicas=0 -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deployment.apps/file-uploader scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And then back to 4 <strong>Pods</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deployment file-uploader --replicas=4 -n my-shared-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deployment.apps/file-uploader scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate now that the 4 <strong>Pods</strong> are spread across the 4 nodes in <code>datacenter1</code> and <code>datacenter2</code> zones.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -o wide -n my-shared-storage | egrep '^file-uploader'| grep -v build | awk '{print $7}' | sort | uniq -c</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>   1 perf1-mz8bt-worker-d2hdm
+   1 perf1-mz8bt-worker-k68rv
+   1 perf1-mz8bt-worker-ntkp8
+   1 perf1-mz8bt-worker-qpwsr</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -L topology.kubernetes.io/zone | grep datacenter | grep -v master</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>perf1-mz8bt-worker-d2hdm   Ready    worker   35d   v1.20.0+5fbfd19   datacenter1
+perf1-mz8bt-worker-k68rv   Ready    worker   35d   v1.20.0+5fbfd19   datacenter1
+perf1-mz8bt-worker-ntkp8   Ready    worker   35d   v1.20.0+5fbfd19   datacenter2
+perf1-mz8bt-worker-qpwsr   Ready    worker   35d   v1.20.0+5fbfd19   datacenter2</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now let&#8217;s use the file uploader web application using your browser to upload
+new files.</p>
+</div>
+<div class="paragraph">
+<p>First, find the <strong>Route</strong> that has been created:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route file-uploader -n my-shared-storage -o jsonpath --template="http://{.spec.host}{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Sample Output:</div>
+<div class="content">
+<pre>http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Point your browser to the web application using your route above. <strong>Your <code>route</code>
+will be different.</strong></p>
+</div>
+<div class="paragraph">
+<p>The web app simply lists all uploaded files and offers the ability to upload
+new ones as well as download the existing data. Right now there is
+nothing.</p>
+</div>
+<div class="paragraph">
+<p>Select an arbitrary file from your local machine and upload it to the app.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/uploader_screen_upload.png" alt="uploader screen upload">
+</div>
+<div class="title">Figure 19. A simple PHP-based file upload tool</div>
+</div>
+<div class="paragraph">
+<p>Once done click <strong><em>List uploaded files</em></strong> to see the list of all currently
+uploaded files.</p>
+</div>
+<div class="paragraph">
+<p>Next step is to use the application to test availability during a site outage.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_arbiter_zone_failure_test"><a class="anchor" href="#_arbiter_zone_failure_test"></a>6. Arbiter Zone Failure Test</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This test is designed to demonstrates that if the failure domain hosting the
+Monitor running in Arbiter mode is subject to a failure the application remains
+available at all time. Both RPO and RTO are equal to 0.</p>
+</div>
+<div class="paragraph">
+<p>TBD</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_data_zone_failure_test"><a class="anchor" href="#_data_zone_failure_test"></a>7. Data Zone Failure Test</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TBD</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_a_openshift_registry_routing_monitoring_zone_aware"><a class="anchor" href="#_appendix_a_openshift_registry_routing_monitoring_zone_aware"></a>8. Appendix A: OpenShift Registry, Routing, Monitoring Zone Aware</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TBD</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_appendix_b_metro_dr_storagecluster_cli_deployment"><a class="anchor" href="#_appendix_b_metro_dr_storagecluster_cli_deployment"></a>9. Appendix B: Metro DR StorageCluster CLI deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>TBD</p>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
