@@ -1,0 +1,739 @@
+= OpenShift Metro Disaster Recovery using Stretch Cluster
+:toc:
+:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+:hide-uri-scheme:
+
+== Overview
+
+In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be `stretched` between two geographically different locations. To do this necessary services including storage must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called `Metro DR stretch cluster` which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.
+
+NOTE: Currently `Metro DR stretch cluster` is designed to be deployed where latencies do not exceed 4 milliseconds round-trip time (RTT) between locations. Contact https://access.redhat.com/support[Red Hat Customer Support] if you are planning to deploy with higher latencies.
+
+The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`(ODF) along with Kubernetes zone topology labels to achieve a highly available platform.
+
+This is a general overview of the steps required to configure and execute `Metro DR stretch cluster` capabilities using ODF *4.7* or greater.
+
+[start=1]
+. *Ensure you have at least 3 OCP master nodes in 3 different locations* +
+Ensure that there is a master node in each of the two locations and that the 3rd master node is in a 3rd location to act as the arbiter in the case of site outage.
+. *Ensure you have at least 4 OCP worker nodes in 2 different locations* +
+Ensure that the worker nodes are evenly split in each of the two locations with a minimum of 2 worker nodes in each location.
+. *Assign kubernetes topology zone labels to each master and worker node* +
+Assign unique topology.kubernetes.io/zone labels to each node to define failure domains as well as the arbiter zone.
+. *Install OpenShift Container Storage operator* +
+Install the OCS operator using OperatorHub in the OpenShift Web console.
+. *Install a sample application for failure testing* +
+Install an OCP application that can be configured to be highly available with critical components deployed in both data zones.
+. *Power off all OCP nodes in one location* +
+Simulate a site outage by powering off all nodes (including master node) and validate sample application availability.
+. *Power on all OCP nodes in failed location* +
+Simulate a recovery by powering back on all nodes and validate sample application availability.
+
+== Metro DR Stretch Cluster Prerequisites 
+
+The diagram shows the most simple deployment for `Metro DR stretch cluster`. The ODF Monitor pod that is the `arbiter` in case of a site outage can be scheduled on a master node. The diagram does not show an additional master nodes in each `Data Zone` which is required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations. 
+
+.OpenShift nodes and ODF daemons
+image::OCS4-metrodr-zones.png[OpenShift nodes and ODF daemons]
+
+NOTE: Refer to the https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.7/html/planning_your_deployment/index[planning guide] for node and storage sizing for ODF.
+
+=== Apply topology zone labels to OCP nodes
+
+Prior to installing ODF the nodes that will be used for storage and the node for the arbiter function must be labeled to define their zone. In our case we will use the label `datacenter1` for one location with storage nodes and `datacenter2` for the other location. The zone that will have the arbiter function in the case of a site outage will use the `arbiter` label. These labels are arbitrary but they do need to be unique for the 3 locations.
+
+For example, you can label the nodes and in the diagram as follows (including master nodes not shown):
+
+topology.kubernetes.io/zone=arbiter for Master3
+topology.kubernetes.io/zone=datacenter1 for Master1 Worker1 & Worker2
+topology.kubernetes.io/zone=datacenter2 for Master2 Worker3 & Worker4
+
+
+To apply the labels to the node using `oc` CLI do the following: 
+----
+oc label node <node_name> topology.kubernetes.io/zone=<label>
+----
+
+To validate the labels run the following commands using the example labels for the 3 zones:
+
+[source,role="execute"]
+----
+oc get nodes -l topology.kubernetes.io/zone=arbiter | awk {'print $1}'
+----
+.Example output:
+----
+NAME
+perf1-mz8bt-master-0
+----
+
+[source,role="execute"]
+----
+oc get nodes -l topology.kubernetes.io/zone=datacenter1 | awk {'print $1}'
+----
+.Example output:
+----
+NAME
+perf1-mz8bt-master-1
+perf1-mz8bt-worker-d2hdm
+perf1-mz8bt-worker-k68rv
+----
+
+[source,role="execute"]
+----
+oc get nodes -l topology.kubernetes.io/zone=datacenter2 | awk {'print $1}'
+----
+.Example output:
+----
+NAME
+perf1-mz8bt-master-2
+perf1-mz8bt-worker-ntkp8
+perf1-mz8bt-worker-qpwsr
+----
+
+You have now created the `Metro DR stretch cluster` topology zones that are required for site outage recovery.
+
+== Local Storage Operator
+
+Now switch over to your *Openshift Web Console*. You can get your URL by
+issuing command below to get the OCP 4 `console` route.
+
+[source,role="execute"]
+----
+oc get -n openshift-console route console
+----
+
+Copy the *Openshift Web Console* route to a browser tab and login using your cluster-admin username (i.e., kubeadmin) and password.
+
+=== Installing the Local Storage Operator v4.7
+
+Once you are logged in, navigate to the *Operators* -> *OperatorHub* menu.
+
+.OCP OperatorHub
+image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
+
+Now type `local storage` in the *Filter by _keyword..._* box.
+
+.OCP OperatorHub filter on OpenShift Data Foundation Operator
+image::OCS4-OCP-OperatorHub-LSOFilter.png[OCP OperatorHub Filter]
+
+Select `Local Storage` and then select *Install*.
+
+.OCP OperatorHub Install OpenShift Data Foundation
+image::OCS4-4.7-OCP4-OperatorHub-LSOInstall.png[OCP OperatorHub Install]
+
+On the next screen make sure the settings are as shown in this figure.
+
+.OCP Subscribe to OpenShift Data Foundation
+image::OCS4-4.7-OCP4-OperatorHub-LSOSubscribe.png[OCP OperatorHub Subscribe]
+
+Click `Install`.
+
+Verify the Local Storage Operator deployment is successful.
+
+[source,role="execute"]
+....
+oc get csv,pod -n openshift-local-storage
+....
+.Example output
+----
+NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/local-storage-operator.4.7.0-202103270130.p0   Local Storage   4.7.0-202103270130.p0              Succeeded
+
+NAME                                          READY   STATUS    RESTARTS   AGE
+pod/local-storage-operator-5879cf9565-r5s7k   1/1     Running   0          31s
+----
+
+IMPORTANT: Do not proceed with the next instructions until the Local Storage Operator is deployed successfully.
+
+== OpenShift Data Foundation Deployment
+
+In this section you will be installing ODF and enabling `arbiter` mode. For instruction specific to you environment reference https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.7/[ODF documentation]. 
+
+NOTE: Currently the `Metro DR stretch cluster` solution is only designed for use on VMware and Bare Metal servers.
+
+The following will be installed:
+
+- The ODF Operator (OCS Operator in OCP Web console)
+- All other ODF resources (Ceph Pods, NooBaa Pods, StorageClasses)
+
+=== ODF Operator Deployment
+
+Start with creating the `openshift-storage` namespace.
+
+[source,role="execute"]
+----
+oc create namespace openshift-storage
+----
+
+You must add the monitoring label to this namespace. This is required to get
+prometheus metrics and alerts for the OCP storage dashboards. To label the
+`openshift-storage` namespace use the following command:
+
+[source,role="execute"]
+----
+oc label namespace openshift-storage "openshift.io/cluster-monitoring=true"
+----
+
+NOTE: The creation of the `openshift-storage` namespace, and the monitoring
+label added to this namespace, can also be done during the OCS operator
+installation using the *Openshift Web Console*.
+
+Navigate to the *Operators* -> *OperatorHub* menu again.
+
+.OCP OperatorHub
+image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
+
+Now type `openshift container storage` in the *Filter by _keyword..._* box.
+
+.OCP OperatorHub filter on OpenShift Data Foundation Operator
+image::OCS4-4.7-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+
+Select `OpenShift Data Foundation Operator` and then select *Install*.
+
+.OCP OperatorHub Install OpenShift Data Foundation
+image::OCS4-4.7-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
+
+On the next screen make sure the settings are as shown in this figure.
+
+.OCP Subscribe to OpenShift Data Foundation
+image::OCS4-4.7-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+
+Click `Install`.
+
+Now you can go back to your terminal window to check the progress of the
+installation. Verify the operator is deployed successfully.
+
+[source,role="execute"]
+....
+oc get pods,csv -n openshift-storage
+....
+.Example output
+----
+NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-746ddfc79-fcrfz         1/1     Running   0          33s
+pod/ocs-metrics-exporter-54b6d689f8-ltxvp   1/1     Running   0          32s
+pod/ocs-operator-5bcdd97ff4-rgn7f           1/1     Running   0          33s
+pod/rook-ceph-operator-7dd585bd97-sldkk     1/1     Running   0          33s
+
+NAME                                                             DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0   OpenShift Container Storage   4.7.0                   Succeeded
+----
+
+CAUTION: Reaching this status shows that the installation of your operator was successful. Reaching this state can take several minutes.
+
+=== ODF Storage Cluster Deployment
+
+Navigate to the *Operators* -> *Installed Operators* menu.
+
+.Locate ODF Operator
+image::OCS4-4.7-OCP-InstalledOperators.png[OCP OperatorHub]
+
+Click on `Storage Cluster` as indicated in the graphic above.
+
+.ODF Storage Cluster
+image::OCS4-4.7-OCP-CreateStorageCluster.png[ODF Storage Cluster]
+
+Click on `Create Storage Cluster` on the far right side.
+
+Select the *Internal - Attached Devices* deployment option.
+
+.Select LSO Based Cluster
+image::OCS4-4.7-OCP4-InternalAttached.png[LSO Based Cluster]
+
+Provide storage cluster details.
+
+.LSO Discovery Parameters
+image::OCS4-4.7-OCP4-StorageClusterDetailsNew.png[LSO Discovery Parameters]
+
+Click *Next* at the bottom of the screen.
+
+.LSO LocalVolumeSet and Storage Class Configuration
+image::OCS4-4.7-OCP4-StorageClusterLSOConfiguration.png[LSO Configuration Parameters]
+
+Enter the desired configuration for your Local Storage Operator and click `Next`.
+
+.LSO Storage Class Confirmation
+image::OCS4-4.7-OCP4-StorageClusterLSOStorageClass.png[LSO Storage Class Confirmation]
+
+Click `Yes` when asked to confirm the storage class creation.
+
+IMPORTANT: The local storage (LSO) configuration will take a few minute. Please be patient.
+
+Next check the `Enable arbiter` checkbox. Select the correct topology zone
+that is to receive the Arbiter Monitor. The zone label is `arbiter` in this case.
+
+.ODF Arbiter Mode Configuration
+image::OCS4-4.7-OCP4-StorageClusterArbiterScreenNew.png[Arbiter Mode Selection]
+
+Select the LSO storage class you created as illustrated in the screen capture. Then click `Next`.
+
+.ODF Storage Class Select
+image::OCS4-4.7-OCP4-ClassArbiterScreen.png[ODF Storage Class Select]
+
+When asked if you want to enable encryption just click *Next* again.
+
+NOTE: You can combine cluster wide encryption with Arbiter mode during a real deployment.
+It is not the topic of this particular exercise.
+
+Review parameters and create the cluster.
+
+.Review Cluster Parameters
+image::OCS4-4.7-OCP4-StorageClusterReviewNew.png[Review Cluster Parameters]
+
+Click *Create* at the bottom of the `Review storage cluster` window.
+
+==== Validate Cluster Deployment
+
+Wait for your storage cluster to become operational. Do these steps to validate successful installation.
+
+[source,role="execute"]
+....
+oc get cephcluster -n openshift-storage
+....
+.Example output
+----
+NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     5          4m55s   Ready   Cluster created successfully   HEALTH_OK
+----
+
+[source,role="execute"]
+....
+oc get pods -n openshift-storage
+....
+.Example output
+----
+NAME                                                              READY   STATUS      RESTARTS   AGE
+csi-cephfsplugin-28n69                                            3/3     Running     0          5m34s
+csi-cephfsplugin-5qfrr                                            3/3     Running     0          5m34s
+csi-cephfsplugin-provisioner-6976556bd7-5nvzz                     6/6     Running     0          5m34s
+csi-cephfsplugin-provisioner-6976556bd7-z2g7w                     6/6     Running     0          5m34s
+csi-cephfsplugin-qwzbs                                            3/3     Running     0          5m34s
+csi-cephfsplugin-wrrm5                                            3/3     Running     0          5m34s
+csi-rbdplugin-44bxs                                               3/3     Running     0          5m35s
+csi-rbdplugin-lzc2x                                               3/3     Running     0          5m35s
+csi-rbdplugin-mdm4n                                               3/3     Running     0          5m35s
+csi-rbdplugin-provisioner-6b8557bd8b-54kvr                        6/6     Running     0          5m35s
+csi-rbdplugin-provisioner-6b8557bd8b-k24sd                        6/6     Running     0          5m35s
+csi-rbdplugin-v66cl                                               3/3     Running     0          5m35s
+noobaa-core-0                                                     1/1     Running     0          2m23s
+noobaa-db-pg-0                                                    1/1     Running     0          2m23s
+noobaa-endpoint-cf67f6789-tlmmg                                   1/1     Running     0          43s
+noobaa-operator-746ddfc79-fcrfz                                   1/1     Running     0          66m
+ocs-metrics-exporter-54b6d689f8-ltxvp                             1/1     Running     0          66m
+ocs-operator-5bcdd97ff4-rgn7f                                     1/1     Running     0          66m
+rook-ceph-crashcollector-ip-10-0-137-183-5859f89db8-56tzl         1/1     Running     0          4m20s
+rook-ceph-crashcollector-ip-10-0-148-220-66d4b9868d-wpdgz         1/1     Running     0          4m37s
+rook-ceph-crashcollector-ip-10-0-168-114-6dc89c87d8-l2ckg         1/1     Running     0          4m52s
+rook-ceph-crashcollector-ip-10-0-172-31-58dd45f7b9-wfjjv          1/1     Running     0          5m8s
+rook-ceph-crashcollector-ip-10-0-212-112-67bcbb8949-vpn6h         1/1     Running     0          4m5s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-64f7cb6dhb68v   2/2     Running     0          2m4s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-96fd85c5vcbhn   2/2     Running     0          2m3s
+rook-ceph-mgr-a-55f6d78b6b-9nvzr                                  2/2     Running     0          3m4s
+rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          5m9s
+rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          4m52s
+rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          4m37s
+rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          4m20s
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          4m5s
+rook-ceph-operator-7dd585bd97-sldkk                               1/1     Running     0          66m
+rook-ceph-osd-0-d75955974-qk5l9                                   2/2     Running     0          2m43s
+rook-ceph-osd-1-7f886fd54-bgjzp                                   2/2     Running     0          2m42s
+rook-ceph-osd-2-546d7986d-n52px                                   2/2     Running     0          2m42s
+rook-ceph-osd-3-666b86f659-sln5d                                  2/2     Running     0          2m34s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-0-data-0ptfjctn6   0/1     Completed   0          3m3s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-1-data-0ffsr9kf5   0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-2-data-0mzrl7rrl   0/1     Completed   0          3m2s
+rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Completed   0          3m1s
+----
+
+=== Install Rook Toolbox
+
+Deploy the `rook-ceph-tool` pod.
+
+[source,role="execute"]
+----
+oc patch ODFInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+----
+
+Establish a remote shell to the toolbox pod.
+
+[source,role="execute"]
+----
+TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+oc rsh -n openshift-storage $TOOLS_POD ceph status
+----
+
+Run `ceph status` and `ceph osd tree` to see that status of the cluster.
+
+.Example output
+----
+  cluster:
+    id:     5f83a66c-3454-474f-9745-8205f01ea504
+    health: HEALTH_OK
+
+  services:
+    mon: 5 daemons, quorum a,b,c,d,e (age 4m)
+    mgr: a(active, since 4m)
+    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+    osd: 4 osds: 4 up (since 4m), 4 in (since 4m)
+
+  task status:
+    scrub status:
+        mds.ocs-storagecluster-cephfilesystem-a: idle
+        mds.ocs-storagecluster-cephfilesystem-b: idle
+
+  data:
+    pools:   3 pools, 192 pgs
+    objects: 86 objects, 120 MiB
+    usage:   4.2 GiB used, 9.1 TiB / 9.1 TiB avail
+    pgs:     192 active+clean
+
+  io:
+    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr
+----    
+
+NOTE: As shown in `ceph status` output, the `Metro DR stretch cluster` is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
+
+== Install Zone Aware Sample Application
+
+In this section the `ocs-storagecluster-cephfs` *StorageClass* will be used to
+create a RWX (ReadWriteMany) *PVC* that can be used by multiple pods at the
+same time. The application we will use is called `File Uploader`. 
+
+Because this application will share the same RWX volume for storing files we can demonstrate how an application can be spread across topology zones so that in the event of a site outage it is still available. This works for persistent data access as well because ODF storage configured for `Metro DR stretch cluster` is also zone aware and highly available.
+
+Create a new project:
+
+[source,role="execute"]
+----
+oc new-project my-shared-storage
+----
+
+Next deploy the example PHP application called `file-uploader`:
+
+[source,role="execute"]
+----
+oc new-app openshift/php:7.2-ubi8~https://github.com/christianh814/openshift-php-upload-demo --name=file-uploader
+----
+
+.Sample Output:
+----
+--> Found image 4f2dcc0 (9 days old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-
+ubi8"
+
+    Apache 2.4 with PHP 7.2
+    -----------------------
+    PHP 7.2 available as container is a base platform for building and running various PHP 7.2 applications and f
+rameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynam
+ically generated web pages. PHP also offers built-in database integration for several commercial and non-commerci
+al database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common
+use of PHP coding is probably as a replacement for CGI scripts.
+
+    Tags: builder, php, php72, php-72
+
+    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be cr
+eated
+      * The resulting image will be pushed to image stream tag "file-uploader:latest"
+      * Use 'oc start-build' to trigger a new build
+
+--> Creating resources ...
+    imagestream.image.openshift.io "file-uploader" created
+    buildconfig.build.openshift.io "file-uploader" created
+    deployment.apps "file-uploader" created
+    service "file-uploader" created
+--> Success
+    Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
+    Application is not exposed. You can expose services to the outside world by executing one or more of the comm
+ands below:
+     'oc expose service/file-uploader'
+    Run 'oc status' to view your app.
+----
+
+Watch the build log and wait for the application to be deployed:
+
+[source,role="execute"]
+----
+oc logs -f bc/file-uploader -n my-shared-storage
+----
+
+.Example Output:
+----
+Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
+
+[...]
+
+Generating dockerfile with builder image image-registry.openshift-image-regis
+try.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610c
+0e05b593844b41d5494ea
+STEP 1: FROM image-registry.openshift-image-registry.svc:5000/openshift/php@s
+ha256:d97466f33999951739a76bce922ab17088885db610c0e05b593844b41d5494ea
+STEP 2: LABEL "io.openshift.build.commit.author"="Christian Hernandez <christ
+ian.hernandez@yahoo.com>"       "io.openshift.build.commit.date"="Sun Oct 1 1
+7:15:09 2017 -0700"       "io.openshift.build.commit.id"="288eda3dff43b02f7f7
+b6b6b6f93396ffdf34cb2"       "io.openshift.build.commit.ref"="master"       "
+io.openshift.build.commit.message"="trying to modularize"       "io.openshift
+.build.source-location"="https://github.com/christianh814/openshift-php-uploa
+d-demo"       "io.openshift.build.image"="image-registry.openshift-image-regi
+stry.svc:5000/openshift/php@sha256:d97466f33999951739a76bce922ab17088885db610
+c0e05b593844b41d5494ea"
+STEP 3: ENV OPENSHIFT_BUILD_NAME="file-uploader-1"     OPENSHIFT_BUILD_NAMESP
+ACE="my-shared-storage"     OPENSHIFT_BUILD_SOURCE="https://github.com/christ
+ianh814/openshift-php-upload-demo"     OPENSHIFT_BUILD_COMMIT="288eda3dff43b0
+2f7f7b6b6b6f93396ffdf34cb2"
+STEP 4: USER root
+STEP 5: COPY upload/src /tmp/src
+STEP 6: RUN chown -R 1001:0 /tmp/src
+STEP 7: USER 1001
+STEP 8: RUN /usr/libexec/s2i/assemble
+---> Installing application source...
+=> sourcing 20-copy-config.sh ...
+---> 17:24:39     Processing additional arbitrary httpd configuration provide
+d by s2i ...
+=> sourcing 00-documentroot.conf ...
+=> sourcing 50-mpm-tuning.conf ...
+=> sourcing 40-ssl-certs.sh ...
+STEP 9: CMD /usr/libexec/s2i/run
+STEP 10: COMMIT temp.builder.openshift.io/my-shared-storage/file-uploader-1:3
+b83e447
+Getting image source signatures
+
+[...]
+
+Writing manifest to image destination
+Storing signatures
+Successfully pushed image-registry.openshift-image-registry.svc:5000/my-share
+d-storage/file-uploader@sha256:929c0ce3dcc65a6f6e8bd44069862858db651358b88065
+fb483d51f5d704e501
+Push successful
+----
+
+The command prompt returns out of the tail mode once you see _Push successful_.
+
+NOTE: This use of the `new-app` command directly asked for application code to
+be built and did not involve a template. That is why it only created a *single
+Pod* deployment with a *Service* and no *Route*.
+
+Let's make our application production ready by exposing it via a `Route` and
+scale to 4 instances for high availability:
+
+[source,role="execute"]
+----
+oc expose svc/file-uploader -n my-shared-storage
+----
+[source,role="execute"]
+----
+oc scale --replicas=4 deploy/file-uploader -n my-shared-storage
+----
+[source,role="execute"]
+----
+oc get pods -n my-shared-storage
+----
+
+You should have 4 `file-uploader` *Pods* in a few minutes. Repeat the command
+above until there are 4 `file-uploader` *Pods* in `Running` STATUS.
+
+You can create a *PersistentVolumeClaim* and attach it into an application with
+the `oc set volume` command. Execute the following
+
+[source,role="execute"]
+----
+oc set volume deploy/file-uploader --add --name=my-shared-storage \
+-t pvc --claim-mode=ReadWriteMany --claim-size=10Gi \
+--claim-name=my-shared-storage --claim-class=ocs-storagecluster-cephfs \
+--mount-path=/opt/app-root/src/uploaded \
+-n my-shared-storage
+----
+
+This command will:
+
+* create a *PersistentVolumeClaim*
+* update the *Deployment* to include a `volume` definition
+* update the *Deployment* to attach a `volumemount` into the specified
+  `mount-path`
+* cause a new deployment of the 3 application *Pods*
+
+Now, let's look at the result of adding the volume:
+
+[source,role="execute"]
+----
+oc get pvc -n my-shared-storage
+----
+.Example Output:
+----
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+my-shared-storage   Bound    pvc-5402cc8a-e874-4d7e-af76-1eb05bd2e7c7   10Gi       RWX            ocs-storagecluster-cephfs   52s
+----
+
+Notice the `ACCESSMODE` being set to *RWX* (short for `ReadWriteMany`).
+
+All 4 `file-uploader`*Pods* are using the same *RWX* volume. Without this
+`ACCESSMODE`, OpenShift will not attempt to attach multiple *Pods* to the
+same *PersistentVolume* reliably. If you attempt to scale up deployments that
+are using *RWO* or `ReadWriteOnce` storage, the *Pods* will actually all
+become co-located on the same node.
+
+=== Modify Deployment to be Zone Aware
+
+Currently the `file-upoader` *Deployment* is not zone aware and could schedule all of the *Pods* in the same zone. If this happened and there was a site outage then the application would be unavailable.
+
+[source,role="execute"]
+----
+oc get deployment -o yaml -n my-shared-storage | less
+----
+
+Search for `containers` and repeat the search a few times until your output is similar. There is no pod placement rules in the *Deployment*.
+
+.Example Output:
+[source,yaml]
+----
+[...]
+      spec:
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
+          imagePullPolicy: IfNotPresent
+          name: file-uploader
+[...]
+----
+
+Currently the deployment is not configured to be zone aware. The *Deployment* needs to be modified to use the topology zone labels as shown below. Edit the deployment and add the new lines below.
+
+[source,role="execute"]
+----
+oc edit deployment -n my-shared-storage
+----
+[source,yaml]
+----
+[...]
+      spec:
+        topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                deployment: file-uploader
+            maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+          - labelSelector:
+               matchLabels:
+                 deployment: file-uploader
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        containers:
+        - image: image-registry.openshift-image-registry.svc:5000/my-shared-storage/file-uploader@sha256:a458ea62f990e431ad7d5f84c89e2fa27bdebdd5e29c5418c70c56eb81f0a26b
+          imagePullPolicy: IfNotPresent
+          name: file-uploader
+[...]
+----
+.Example output:
+----
+deployment.apps/file-uploader edited
+----
+
+Now scale the deployment to zero *Pods*. and then back to 4 *Pods*. This is needed because the deployment changed in terms of *Pod* placement.
+
+[source,role="execute"]
+----
+oc scale deployment file-uploader --replicas=0 -n my-shared-storage
+----
+.Example output:
+----
+deployment.apps/file-uploader scaled
+----
+
+And then back to 4 *Pods*.
+
+[source,role="execute"]
+----
+oc scale deployment file-uploader --replicas=4 -n my-shared-storage
+----
+.Example output:
+----
+deployment.apps/file-uploader scaled
+----
+
+Validate now that the 4 *Pods* are spread across the 4 nodes in `datacenter1` and `datacenter2` zones.
+
+[source,role="execute"]
+----
+oc get pods -o wide -n my-shared-storage | egrep '^file-uploader'| grep -v build | awk '{print $7}' | sort | uniq -c
+----
+.Example output:
+----
+   1 perf1-mz8bt-worker-d2hdm
+   1 perf1-mz8bt-worker-k68rv
+   1 perf1-mz8bt-worker-ntkp8
+   1 perf1-mz8bt-worker-qpwsr
+----
+
+[source,role="execute"]
+----
+oc get nodes -L topology.kubernetes.io/zone | grep datacenter | grep -v master
+----
+.Example output:
+----
+perf1-mz8bt-worker-d2hdm   Ready    worker   35d   v1.20.0+5fbfd19   datacenter1
+perf1-mz8bt-worker-k68rv   Ready    worker   35d   v1.20.0+5fbfd19   datacenter1
+perf1-mz8bt-worker-ntkp8   Ready    worker   35d   v1.20.0+5fbfd19   datacenter2
+perf1-mz8bt-worker-qpwsr   Ready    worker   35d   v1.20.0+5fbfd19   datacenter2
+----
+          
+Now let's use the file uploader web application using your browser to upload
+new files.
+
+First, find the *Route* that has been created:
+
+[source,role="execute"]
+----
+oc get route file-uploader -n my-shared-storage -o jsonpath --template="http://{.spec.host}{'\n'}"
+----
+
+This will return a route similar to this one.
+
+.Sample Output:
+----
+http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com
+----
+
+Point your browser to the web application using your route above. *Your `route`
+will be different.*
+
+The web app simply lists all uploaded files and offers the ability to upload
+new ones as well as download the existing data. Right now there is
+nothing.
+
+Select an arbitrary file from your local machine and upload it to the app.
+
+.A simple PHP-based file upload tool
+image::uploader_screen_upload.png[]
+
+Once done click *_List uploaded files_* to see the list of all currently
+uploaded files.
+
+Next step is to use the application to test availability during a site outage.
+
+== Arbiter Zone Failure Test
+
+This test is designed to demonstrates that if the failure domain hosting the
+Monitor running in Arbiter mode is subject to a failure the application remains
+available at all time. Both RPO and RTO are equal to 0.
+
+TBD
+
+== Data Zone Failure Test
+
+TBD
+
+== Appendix A: OpenShift Registry, Routing, Monitoring Zone Aware
+
+TBD
+
+== Appendix B: Metro DR StorageCluster CLI deployment
+
+TBD
