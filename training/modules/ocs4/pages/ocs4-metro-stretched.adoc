@@ -748,7 +748,7 @@ Next step is to use the application to test availability during a site outage.
 
 == Appendix B: Metro DR StorageCluster for CLI deployment
 
-Example *StorageCluster* CR for `Metro DR stretch cluster`. For each set of 4 OSDs increment the `count` by 1. Creating the ODF `StorageCluster` using `oc` CLI is a replacement for the method described earlier in this document using the *OpenShift Web Console` UI.
+Example *StorageCluster* CR for `Metro DR stretch cluster`. For each set of 4 OSDs increment the `count` by 1. Creating the ODF `StorageCluster` using `oc` CLI is a replacement for the method described earlier in this document using the *OpenShift Web Console* UI to do the deployment.
 
 NOTE: Under the `managedResources` section is the default setting of `manage` for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of `ignore` will not deploy the particular service.
 
