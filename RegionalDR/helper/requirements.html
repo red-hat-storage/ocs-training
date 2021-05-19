@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>RDRhelper install steps :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/RegionalDR/helper/requirements.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="RegionalDR" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">ODF Regional DR</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../training/index.html">Back to general ODF documents</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RDRhelper</span>
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="requirements.html">Requirements for the RDRhelper</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="install.html">Install RDRhelper</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="usage.html">Use RDRhelper</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Manual steps</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manual/ocs4-multisite-replication.html">Manual RegionalDR</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">ODF Regional DR</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <a class="title" href="../../training/index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../training/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <a class="title" href="../index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../training/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">ODF Regional DR</a></li>
+    <li>RDRhelper</li>
+    <li><a href="requirements.html">Requirements for the RDRhelper</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-data-services/RDRhelper/edit/master/docs/modules/helper/pages/requirements.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">RDRhelper install steps</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Regional-DR helper tool (also known as RDRhelper) has a couple of requirements to successfully operate.</p>
+</div>
+<div class="paragraph">
+<p>In short these are:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OpenShift Container Platform 4.7 or newer</p>
+</li>
+<li>
+<p>Openshift Data Foundation 4.7 or newer</p>
+</li>
+<li>
+<p>Networking setup to connect the Pod networks between the two cluster networks</p>
+</li>
+<li>
+<p>A S3 bucket accessible by both clusters</p>
+<div class="ulist">
+<ul>
+<li>
+<p>We recommend using a S3 service in a location outside of the two clusters for this</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Naturally, since this is Regional DR you have two OpenShift Containter Platform (OCP) clusters. One will act as the primary location, which hosts the application under normal circumstances. The other cluster will act as the secondary location, which receives the replication data and is the target of the failover.</p>
+</div>
+<div class="paragraph">
+<p>In addition to this, a S3 bucket is needed to synchronize the metadata of the applications. This synchronization is done using <a href="https://access.redhat.com/articles/5456281">OADP</a> and fully automated in the RDRhelper tool.<br>
+The actual data inside of the PVs are transferred directly using Ceph&#8217;s asynchroneous RBD replication.</p>
+</div>
+<div class="paragraph">
+<p>In the following we will talk more about the requirements.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openshift_container_platform"><a class="anchor" href="#_openshift_container_platform"></a>1. OpenShift Container Platform</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the requirements for the RDRhelper tool is to have a OpenShift Container Platform(OCP) cluster with version 4.7 or newer.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_version_from_the_cli"><a class="anchor" href="#_verify_version_from_the_cli"></a>1.1. Verify version from the CLI</h3>
+<div class="paragraph">
+<p>You can verify this on the commandline like this:</p>
+</div>
+<div class="listingblock execure">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm upgrade</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>Cluster version is 4.7.8   <i class="conum" data-value="1"></i><b>(1)</b>
+
+No updates available. You may force an upgrade to a specific release image, but doing so may not be supported and result in downtime or data loss.</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This is where you see your cluster version</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_version_from_the_web_ui"><a class="anchor" href="#_verify_version_from_the_web_ui"></a>1.2. Verify version from the Web UI</h3>
+<div class="paragraph">
+<p>To check this from the Web UI by logging in as a cluster admin, then going to <code>Administration</code> &#8594; <code>Cluster Settings</code> on the left navigation bar.
+Afterwards you should see a similar picture as this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/requirements/ocp-cluster-version.jpg" alt="OCP cluster version in the Web UI">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openshift_data_foundation"><a class="anchor" href="#_openshift_data_foundation"></a>2. OpenShift Data Foundation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>One of the requirements for the RDRhelper tool is to have a OpenShift Data Foundation(ODF) cluster with version 4.7 or newer.</p>
+</div>
+<div class="sect2">
+<h3 id="_verify_version_from_the_cli_2"><a class="anchor" href="#_verify_version_from_the_cli_2"></a>2.1. Verify version from the CLI</h3>
+<div class="listingblock execure">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                         DISPLAY                       VERSION        REPLACES   PHASE
+ocs-operator.v4.7.0-377.ci   OpenShift Container Storage   4.7.0-377.ci              Succeeded</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_version_from_the_web_ui_2"><a class="anchor" href="#_verify_version_from_the_web_ui_2"></a>2.2. Verify version from the Web UI</h3>
+<div class="paragraph">
+<p>To check this from the Web UI by logging in as a cluster admin, then going to <code>Operators</code> &#8594; <code>Installed Operators</code> on the left navigation bar.<br>
+Make sure that the <code>openshift-storage</code> project is selected
+Afterwards you should see a similar picture as this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/requirements/odf-version.jpg" alt="ODF version in the Web UI">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cluster_networking"><a class="anchor" href="#_cluster_networking"></a>3. Cluster networking</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Both clusters that should be used for regional-DR are supposed to be set up so that their Pod networks are connected to each other.</p>
+</div>
+<div class="paragraph">
+<p>There are multiple ways to achieve that. One popular method to do this is to use <a href="https://submariner.io/">Submariner</a> for this.<br>
+If you intend to use Submariner, you can check out this link which will get you directly to <a href="https://submariner.io/getting-started/quickstart/openshift/">the OpenShift Quickstarts</a></p>
+</div>
+<div class="sect2">
+<h3 id="_verification"><a class="anchor" href="#_verification"></a>3.1. Verification</h3>
+<div class="paragraph">
+<p>Once you have Submariner set up, you can check on the status of the connection with</p>
+</div>
+<div class="listingblock execure">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl show connections</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>Showing information for cluster "source":
+GATEWAY                         CLUSTER                 REMOTE IP       CABLE DRIVER        SUBNETS                                 STATUS
+master0                         target                  192.168.180.10  libreswan           10.16.0.0/16, 10.6.0.0/16               connected</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the <code>STATUS</code> is connected, submariner is set up correctly.</p>
+</div>
+<div class="paragraph">
+<p>Do this test on both clusters and check their status.</p>
+</div>
+<div class="paragraph">
+<p>If you have troubles, check the <a href="https://submariner.io/operations/troubleshooting/">Troubleshooting guide</a></p>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

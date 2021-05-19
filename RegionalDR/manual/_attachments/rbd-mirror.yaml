@@ -1,0 +1,19 @@
+kind: CephRBDMirror
+metadata:
+  name: rbd-mirror
+  namespace: openshift-storage
+spec:
+  # the number of rbd-mirror daemons to deploy
+  count: 1
+  peers:
+    secretNames:
+      # Secret containing the peer token
+      - SECRET
+  resources:
+    # The pod requests and limits
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+    requests:
+      cpu: "1"
+      memory: "2Gi"

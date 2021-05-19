@@ -1,0 +1,20 @@
+apiVersion: ceph.rook.io/v1
+kind: CephBlockPool
+metadata:
+  name: replicapool
+  namespace: openshift-storage
+spec:
+  replicated:
+    size: 3
+  mirroring:
+    enabled: true
+    mode:
+      image
+      # specify the schedules on which snapshots should be taken
+    snapshotSchedules:
+      - interval: 1h
+      #  startTime: 00:00:00-05:00
+  statusCheck:
+    mirror:
+      disabled: false
+      interval: 60s

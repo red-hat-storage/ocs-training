@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>OpenShift Regional Disaster Recovery :: OCS Training</title>
-    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-multisite-replication.html">
+    <title>Manual OpenShift Regional Disaster Recovery :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/RegionalDR/manual/ocs4-multisite-replication.html">
     <meta name="generator" content="Antora 2.3.4">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
@@ -53,58 +53,41 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="training" data-version="master">
+<div class="nav-container" data-component="RegionalDR" data-version="master">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
   <nav class="nav-menu">
-    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+    <h3 class="title"><a href="../index.html">ODF Regional DR</a></h3>
 <ul class="nav-list">
   <li class="nav-item" data-depth="0">
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs.html">General deploy and use</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+    <a class="nav-link" href="../../training/index.html">Back to general ODF documents</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Regional - Disaster Recovery</span>
+    <span class="nav-text">RDRhelper</span>
 <ul class="nav-list">
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../RegionalDR/manual/ocs4-multisite-replication.html">Manual Regional disaster recovery</a>
+    <a class="nav-link" href="../helper/requirements.html">Requirements for the RDRhelper</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../RegionalDR/helper/requirements.html">Regional disaster recovery using the RDRhelper</a>
+    <a class="nav-link" href="../helper/install.html">Install RDRhelper</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../helper/usage.html">Use RDRhelper</a>
   </li>
 </ul>
   </li>
   <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Manual steps</span>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
-  </li>
-</ul>
-  </li>
-  <li class="nav-item" data-depth="0">
-<ul class="nav-list">
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-multisite-replication.html">Manual RegionalDR</a>
   </li>
 </ul>
   </li>
@@ -113,23 +96,23 @@
 </div>
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
-    <span class="title">OCS Installation and Configuration</span>
+    <span class="title">ODF Regional DR</span>
     <span class="version">master</span>
   </div>
   <ul class="components">
-    <li class="component is-current">
-      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+    <li class="component">
+      <a class="title" href="../../training/index.html">OCS Installation and Configuration</a>
       <ul class="versions">
-        <li class="version is-current is-latest">
-          <a href="../index.html">master</a>
+        <li class="version is-latest">
+          <a href="../../training/index.html">master</a>
         </li>
       </ul>
     </li>
-    <li class="component">
-      <a class="title" href="../../RegionalDR/index.html">ODF Regional DR</a>
+    <li class="component is-current">
+      <a class="title" href="../index.html">ODF Regional DR</a>
       <ul class="versions">
-        <li class="version is-latest">
-          <a href="../../RegionalDR/index.html">master</a>
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
         </li>
       </ul>
     </li>
@@ -141,21 +124,22 @@
 <main class="article">
 <div class="toolbar" role="navigation">
 <button class="nav-toggle"></button>
-  <a href="../index.html" class="home-link"></a>
+  <a href="../../training/index.html" class="home-link"></a>
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
-    <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li><a href="ocs4-multisite-replication.html">OpenShift Regional Disaster Recovery</a></li>
+    <li><a href="../index.html">ODF Regional DR</a></li>
+    <li>Manual steps</li>
+    <li><a href="ocs4-multisite-replication.html">Manual RegionalDR</a></li>
   </ul>
 </nav>
-  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-multisite-replication.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-data-services/RDRhelper/edit/master/docs/modules/manual/pages/ocs4-multisite-replication.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">OpenShift Regional Disaster Recovery</h1>
+<h1 class="page">Manual OpenShift Regional Disaster Recovery</h1>
 <div id="toc" class="toc">
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
@@ -911,7 +895,7 @@ The <code>snapshotSchedules</code> is a global value for the specific <strong>Ce
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/replicapool.yaml | oc apply -f -</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-data-services/RDRhelper/master/docs/modules/manual/attachments/replicapool.yaml | oc apply -f -</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1184,7 +1168,7 @@ echo $SECRET</code></pre>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/rbd-mirror.yaml | sed -e "s/SECRET/${SECRET}/g" | oc apply -f -</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-data-services/RDRhelper/master/docs/modules/manual/attachments/rbd-mirror.yaml | sed -e "s/SECRET/${SECRET}/g" | oc apply -f -</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1296,7 +1280,7 @@ volumeBindingMode: Immediate</code></pre>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/ocs-storagecluster-ceph-mirror.yaml | oc apply -f -</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-data-services/RDRhelper/master/docs/modules/manual/attachments/ocs-storagecluster-ceph-mirror.yaml | oc apply -f -</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2007,7 +1991,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/backup.yaml | oc apply -f -</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-data-services/RDRhelper/master/docs/modules/manual/attachments/backup.yaml | oc apply -f -</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2356,7 +2340,7 @@ Make sure to issue this command on the <strong>secondary cluster</strong>. The n
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/restore.yaml | oc apply -f -</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-data-services/RDRhelper/master/docs/modules/manual/attachments/restore.yaml | oc apply -f -</code></pre>
 </div>
 </div>
 <div class="listingblock">

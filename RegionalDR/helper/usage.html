@@ -1,0 +1,536 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>RDRhelper usage :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/RegionalDR/helper/usage.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="RegionalDR" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">ODF Regional DR</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../training/index.html">Back to general ODF documents</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">RDRhelper</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="requirements.html">Requirements for the RDRhelper</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="install.html">Install RDRhelper</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="usage.html">Use RDRhelper</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Manual steps</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../manual/ocs4-multisite-replication.html">Manual RegionalDR</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">ODF Regional DR</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component">
+      <a class="title" href="../../training/index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../training/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component is-current">
+      <a class="title" href="../index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../../training/index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">ODF Regional DR</a></li>
+    <li>RDRhelper</li>
+    <li><a href="usage.html">Use RDRhelper</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-data-services/RDRhelper/edit/master/docs/modules/helper/pages/usage.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">RDRhelper usage</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>The Regional-DR helper tool (also known as RDRhelper) can help you set up and manage Regional-DR replication between two OpenShift clusters based on OpenShift Data Foundation. Once Regional-DR is set up, RDRhelper can help you in doing the Failover of your application from one cluster to the other and failback.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_cluster_connectivity"><a class="anchor" href="#_setting_up_cluster_connectivity"></a>1. Setting up cluster connectivity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>When there is no RDRhelper configuration on your computer yet or there is no connectivity to the clusters, the main menu will display only two items:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Configure Kubeconfigs</p>
+</li>
+<li>
+<p>Quit</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>In this case, the RDRhelper config needs to be updated to include paths to the Kubeconfigs of the primary and secondary cluster. To do so, chose the <code>Configure Kubeconfigs</code> option in the main menu by using the <b class="button">arrow-up</b> and <b class="button">arrow-down</b> buttons on your keyboard and enter this option by pressing <kbd>ENTER</kbd>.</p>
+</div>
+<div class="paragraph">
+<p>You should end up in a window that looks like this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/configureKubeconfigs.jpg" alt="Configure Kubeconfigs page">
+</div>
+</div>
+<div class="paragraph">
+<p>Fill out the path to the primary and secondary Kubeconfig. You can switch between fields with your <kbd>TAB</kbd> key.<br>
+Once the field is populated with a valid location of a Kubeconfig, you will see the clusters name appear in the footer section.</p>
+</div>
+<div class="paragraph">
+<p>After filling out both paths, you should see something similar to this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/configureKubeconfigsPopulated.jpg" alt="Configure Kubeconfigs page with data">
+</div>
+</div>
+<div class="paragraph">
+<p>Once everything is set, click the <b class="button">Go back</b> button by switching to it with <kbd>TAB</kbd> and pressing <kbd>ENTER</kbd><br>
+Alternatively you can exit by pressing the <kbd>ESC</kbd> key on your keyboard</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_setting_up_the_clusters_for_regional_dr"><a class="anchor" href="#_setting_up_the_clusters_for_regional_dr"></a>2. Setting up the clusters for Regional DR</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The RDRhelper tool is able to set up a cluster for Regional-DR. For this to work, there are some requirements, which are explained in the <a href="requirements.html" class="page">Requirements document</a>.<br>
+Make sure at least the following requirements are met:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OpenShift Container Platform 4.7 or newer</p>
+</li>
+<li>
+<p>Openshift Data Foundation 4.7 or newer</p>
+</li>
+<li>
+<p>Networking setup to connect the Pod networks between the two cluster networks</p>
+</li>
+<li>
+<p>A S3 bucket accessible by both clusters (If using OADP application backup)</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>If you think those requirements are met, select the <code>Install</code> option in the main menu. If that option is not available, follow the <a href="#_setting_up_cluster_connectivity">Setting up cluster connectivity</a> section to configure the Kubeconfigs for the RDRhelper.</p>
+</div>
+<div class="paragraph">
+<p>After selecting this option, the RDRhelper will try to verify that all requirements are met.</p>
+</div>
+<div class="paragraph">
+<p>After this has been successfully checked, it proceeds to the first page, where you have two options:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Install OADP<br>
+OADP is an optional part of the RDRhelper but we encourage people to use it if they have no other option to back up their application deployment. If OADP is not installed, RDRhelper will <strong>only</strong> copy over the PVs and their data to the other cluster.</p>
+</li>
+<li>
+<p>Install using the existing or a dedicated CephBlockPool<br>
+During the regular ODF install, the ODF operator already creates a default CephBlockPool (CBP). If you want to keep the default CBP untouched and create a new pool, select the <code>Use Dedicated Block Pool</code> option.</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>If you have chosen to install OADP, you are forwarded to the S3 configuration page.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+As of now, only AWS S3 is supported, but we are planning to add non-AWS S3 support soon.
+</td>
+</tr>
+</table>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<caption class="title">Table 1. S3 fields and their meaning</caption>
+<colgroup>
+<col style="width: 50%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Field name</th>
+<th class="tableblock halign-left valign-top">Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 access key ID</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You get this information from AWS IAM</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 access key secret</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">You get this information from AWS IAM</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 region</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The S3 region of the target bucket</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">S3 bucket name</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">the name of the S3 bucket</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">object name prefix</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">The prefix used when placing objects in the bucket. This will appears as a folder in most S3 clients</p></td>
+</tr>
+</tbody>
+</table>
+<div class="paragraph">
+<p>Once you have filled out all the information, click on <b class="button">Proceed</b> to start the installation.</p>
+</div>
+<div class="paragraph">
+<p>During the installation you will see a log of what is happening. The same output is also recorded in the log.<br>
+If there are any errors during the installation you will be notified either in the log or with an upcoming message.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+All operations during the installation are safe to rerun. If there are any issues during the installation or if you want to enable the default AND dedicated pool for mirroring you can rerun the installation at any time.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once the installation is finished, you can return to the main menu with either the <kbd>ENTER</kbd> or <kbd>ESC</kbd> keys.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_enabling_regional_dr_mirroring_on_pvs"><a class="anchor" href="#_enabling_regional_dr_mirroring_on_pvs"></a>3. Enabling Regional-DR mirroring on PVs</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once the Regional-DR installation is done, you will see the more items in the main menu. Two of them are <code>Configure Primary</code> and <code>Configure Secondary</code>. With these options you can enable and disable PVs for mirroring in either the primary or secondary cluster.<br>
+Usually you would not use <code>Configure Secondary</code> unless you have done a Failover or want to look at the target of the mirroring on the secondary cluster for verification.</p>
+</div>
+<div class="paragraph">
+<p>Once either option is selected, RDRhelper will populate the table with PV information and you will see the message <code>Fetching list of PVCs and their mirroring status</code> above the table.<br>
+After the RDRhelper has collected all the information the message <code>Fetching list of PVCs completed</code> is briefly displayed.<br>
+You can always refresh the list of PVs and their status by pressing the <kbd>s</kbd> key on your keyboard.</p>
+</div>
+<div class="paragraph">
+<p>Once the table is populated, your view should look similar to this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/pvcView.jpg" alt="Populated PVCView from the primary cluster">
+</div>
+</div>
+<div class="paragraph">
+<p>The table displays multiple information:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The left column shows the namespace of the PVC</p>
+</li>
+<li>
+<p>The middle column shows the name of the PVC</p>
+</li>
+<li>
+<p>The right column shows the replication status. If this is active, the PV belonging to this PVC is mirrored between the clusters.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_selecting_pvcs"><a class="anchor" href="#_selecting_pvcs"></a>3.1. Selecting PVCs</h3>
+<div class="paragraph">
+<p>You can use your <b class="button">arrow-up</b> and <b class="button">arrow-down</b> buttons on your keyboard to move your cursor between PVCs in the table.</p>
+</div>
+<div class="paragraph">
+<p>To select PVCs for replication status change, you have multuple options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>To select PVCs one at a time, you can move to the PVC and press the <kbd>ENTER</kbd> key</p>
+</li>
+<li>
+<p>To select all PVCs in a namespace you move to any PVC in that namespace and press the <kbd>n</kbd> key</p>
+</li>
+<li>
+<p>To select all PVCs in all namespaces you press the <kbd>a</kbd> key</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>You can unselect all PVCs with the <kbd>x</kbd> key or unselect specific PVCs by moving to the PVC and using <kbd>ENTER</kbd>.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_changing_pvc_replication_status"><a class="anchor" href="#_changing_pvc_replication_status"></a>3.2. Changing PVC replication status</h3>
+<div class="paragraph">
+<p>Once your selection is correct, you can use the <kbd>r</kbd> key to activate replcation for these PVCs or use the <kbd>u</kbd> key to deactivate replication. If some selected PVCs are already in the desired status, they will be skipped automatically.</p>
+</div>
+<div class="paragraph">
+<p>When activating replication for a PV, several things happen:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Snapshots are activated for the underlying Ceph RBD image</p>
+</li>
+<li>
+<p>The RBD-mirror daemon will start to mirror the image from the primary to the secondary cluster</p>
+</li>
+<li>
+<p>The PV object is copied from the primary to the secondary cluster<br>
+This will make it appear in the <code>Configure secondary</code> view</p>
+</li>
+<li>
+<p>If OADP is installed, the namespace of the PVC will be added to the metadata backup</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Due to this, changing the status of multiple PVCs at the same time might take a while.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_viewing_pvc_information"><a class="anchor" href="#_viewing_pvc_information"></a>3.3. Viewing PVC information</h3>
+<div class="paragraph">
+<p>Each of the listed PVCs has an underlying Ceph RBD image. When moving the cursor to a PVC and pressing the <kbd>i</kbd> key, Ceph&#8217;s internal information about this image will be visible.<br>
+The output will also include information about the replication status of this image.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/RBDinfoExample.jpg" alt="Example of an RBD info view">
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_failing_over_and_back"><a class="anchor" href="#_failing_over_and_back"></a>4. Failing over and back</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The main motivation to use the RDRhelper is to be able to savely fail over to a secondary cluster and back in case of a disaster (or test of such).<br>
+Therefore we invested a lot of thinking into how to make this as useful and easy as possible.</p>
+</div>
+<div class="paragraph">
+<p>What we came up with is a workflow that will make you able to fail over on a namespace level. If OADP is detected on the failover target, we attempt an OADP restore to boot your applications up.</p>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Modifying your load balancer is not part of the RDRhelper</div>
+You will be responsible to modify your global routing to point to the other cluster once failover or failback has been executed.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock warning">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-warning" title="Warning"></i>
+</td>
+<td class="content">
+<div class="title">Some applications are not compatible with the OADP restore</div>
+We are aware that <strong>some applications are not compatible with the OADP restore</strong> and as such will not come up clean after a failover or failback. It is your responsibility to verify that your application is actually running after doing a failover or failback.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>When selecting the failover option in the main menu, you are asked if you are serious about doing a failover. This is to limit the chance of starting a failover by accident and thus invoking downtime on applications in your production cluster.
+You have the choice between these options:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><b class="button">failOVER</b><br>
+Failover from the primary cluster to the secondary cluster.</p>
+</li>
+<li>
+<p><b class="button">failBACK</b><br>
+Failover from the secondary cluster to the primary cluster. You would do this after you did a failover and want to revert to the regular application home.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>After selecting any of these buttons, you are forwarded to the next page that will list all recoverable namespaces.</p>
+</div>
+<div class="sect2">
+<h3 id="_chosing_the_namespaces_to_recover"><a class="anchor" href="#_chosing_the_namespaces_to_recover"></a>4.1. Chosing the namespaces to recover</h3>
+<div class="paragraph">
+<p>Once you have verified that you want to do a failover, the first page that you see will look similar to this:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/failoverChoseNamespace.png" alt="Chose namespaces for Failover">
+</div>
+</div>
+<div class="paragraph">
+<p>In the middle part of the screen you will see a list of namespaces that contain migratable PVCs.<br>
+A namespace in this list will have one or multiple PVCs using the CSI <code>openshift-storage.rbd.csi.ceph.com</code> driver.</p>
+</div>
+<div class="paragraph">
+<p>You can move the cursor with the <b class="button">arrow-up</b> and <b class="button">arrow-down</b> buttons on your keyboard and select items by pressing the <kbd>ENTER</kbd> key.<br>
+Once you have marked all necessary namespaces, you can continue with the <kbd>c</kbd> key.</p>
+</div>
+<div class="paragraph">
+<p>After the namespace selection, the actual failover migration happens. In this view you will see a log, similar to the installation screen.<br>
+The failover will traverse different phases in this order:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Try to demote PVs in the primary cluster<br>
+&#8594; This is OK to fail in case that the primary cluster is not reachable any more</p>
+</li>
+<li>
+<p>Promote the PVs on the secondary cluster<br>
+&#8594; This will enable write support on persistent volumes in the secondary cluster</p>
+</li>
+<li>
+<p>Start the OADP restore of metadata in the selected namespaces<br>
+&#8594; This is an optional step and will only be executed if OADP is detected in the secondary cluster</p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Once everything is done, you can exit back to the main menu with either the <kbd>ENTER</kbd> or <kbd>ESC</kbd> key.</p>
+</div>
+<div class="paragraph">
+<p>This is what a finished failover can look like:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/usage/failoverFinished.png" alt="Finished failover">
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

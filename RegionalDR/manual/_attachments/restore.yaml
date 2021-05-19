@@ -1,0 +1,9 @@
+apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  namespace: oadp-operator
+  name: restore1
+spec:
+  backupName: backup1
+  includedNamespaces:
+    - my-database-app
