@@ -1,3 +1,3 @@
-.Regional - Disaster Recovery
-* xref:RegionalDR:manual:ocs4-multisite-replication.adoc[Manual Regional disaster recovery]
-* xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery using the RDRhelper]
+.Regional disaster recovery
+* xref:RegionalDR:manual:ocs4-multisite-replication.adoc[Regional disaster recovery (manual method)]
+* xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery (RDRhelper)]
