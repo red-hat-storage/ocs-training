@@ -56,7 +56,7 @@ For example, you can label the nodes and in `Figure 1` as follows (including mas
 
 To apply the labels to the node using `oc` CLI do the following: 
 ----
-oc label node <node_name> topology.kubernetes.io/zone=<label>
+oc label node <NODENAME> topology.kubernetes.io/zone=<LABLE>
 ----
 
 To validate the labels run the following commands using the example labels for the 3 zones:
@@ -350,54 +350,54 @@ rook-ceph-osd-prepare-ocs-deviceset-localblock-2-data-0mzrl7rrl   0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Completed   0          3m1s
 ----
 
-=== Install Rook Toolbox
-
-Deploy the `rook-ceph-tool` pod.
-
-[source,role="execute"]
-----
-oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
-----
-
-Establish a remote shell to the toolbox pod.
-
-[source,role="execute"]
-----
-TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD ceph status
-----
-
-Run `ceph status` and `ceph osd tree` to see that status of the cluster.
-
-.Example output
-----
-  cluster:
-    id:     5f83a66c-3454-474f-9745-8205f01ea504
-    health: HEALTH_OK
-
-  services:
-    mon: 5 daemons, quorum a,b,c,d,e (age 4m)
-    mgr: a(active, since 4m)
-    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 4 osds: 4 up (since 4m), 4 in (since 4m)
-
-  task status:
-    scrub status:
-        mds.ocs-storagecluster-cephfilesystem-a: idle
-        mds.ocs-storagecluster-cephfilesystem-b: idle
-
-  data:
-    pools:   3 pools, 192 pgs
-    objects: 86 objects, 120 MiB
-    usage:   4.2 GiB used, 9.1 TiB / 9.1 TiB avail
-    pgs:     192 active+clean
-
-  io:
-    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr
-----    
-
-NOTE: As shown in `ceph status` output, the `Metro DR stretch cluster` is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
-
+//=== Install Rook Toolbox
+//
+//Deploy the `rook-ceph-tool` pod. Once deployed `Ceph` commands can be used for further validation of cluster health and configuration.
+//
+//[source,role="execute"]
+//----
+//oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'
+//----
+// 
+//Establish a remote shell to the toolbox pod.
+// 
+//[source,role="execute"]
+//----
+//TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
+//oc rsh -n openshift-storage $TOOLS_POD ceph status
+//----
+// 
+//Run `ceph status` and `ceph osd tree` to see that status of the cluster.
+//
+//.Example output
+// ----
+//  cluster:
+//    id:     5f83a66c-3454-474f-9745-8205f01ea504
+//    health: HEALTH_OK
+//
+//  services:
+//    mon: 5 daemons, quorum a,b,c,d,e (age 4m)
+//    mgr: a(active, since 4m)
+//    mds: ocs-storagecluster-cephfilesystem:1 //{0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
+//    osd: 4 osds: 4 up (since 4m), 4 in (since 4m)
+//
+//  task status:
+//    scrub status:
+//        mds.ocs-storagecluster-cephfilesystem-a: idle
+//        mds.ocs-storagecluster-cephfilesystem-b: idle
+//
+//  data:
+//    pools:   3 pools, 192 pgs
+//    objects: 86 objects, 120 MiB
+//    usage:   4.2 GiB used, 9.1 TiB / 9.1 TiB avail
+//    pgs:     192 active+clean
+//
+//  io:
+//    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr
+//----    
+//
+//NOTE: As shown in `ceph status` output, the `Metro DR stretch cluster` is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
+//
 == Install Zone Aware Sample Application
 
 In this section the `ocs-storagecluster-cephfs` *StorageClass* will be used to
@@ -731,20 +731,75 @@ image::uploader_screen_upload.png[]
 Once done click *_List uploaded files_* to see the list of all currently
 uploaded files.
 
-Next step is to use the application to test availability during a site outage.
+== Data Zone Failure and Recovery
 
-== Data Zone Failure Test
+Given one of the important goals of the `Metro DR stretch cluster` is to provide resiliency in the face of a complete or partial site outage, it is important to understand the different methods of recovery for applications and their storage. 
 
-*Under Construction*
+How the application is architected will determine how soon it can be available again on the active zone. 
 
-// == Arbiter Zone Failure Test
-// 
-// This test is designed to demonstrates that if the failure domain hosting the
-// Monitor running in Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.
+=== Zone Failure
+
+For purposes of this section we will consider a zone failure to be a failure where all OCP nodes, masters and workers, in a zone are no longer communicating with the resources in the second data zone (e.g., nodes powered down). If communication between data zones is partially still working (intermittent down/up), steps should be taken by cluster, storage, network admins to sever the communication path between the data zones for disaster recovery to succeed. 
+
+=== Recovery for zone-aware HA applications with RWX storage
+
+Applications that are deployed with `topologyKey: topology.kubernetes.io/zone`, have one or more replicas scheduled in each data zone, and are using shared storage (i.e., RWX cephfs volume) will recover on the active zone within 30-60 seconds for new connections. The short pause is for HAProxy to refresh connections if a router pod is now offline in the failed data zone. An example of this type of application is detailed in the <<Install Zone Aware Sample Application>> section. 
+
+NOTE: If you installed the `Sample Application` it is recommended to test the failure of a data zone by powering off the OCP nodes (at least the nodes with ODF storage devices) to validate that your `file-uploader` application is available and that new files can be uploaded.
+
+=== Recovery for HA applications with RWX storage
+
+Applications that are using `topologyKey: kubernetes.io/hostname` or no topology configuration whatsoever, have no protection against all of the application replicas being in the same zone. 
+
+NOTE: This can happen even with *_podAntiAffinity_* and *_topologyKey: kubernetes.io/hostname_* in the *Pod* spec because this anti-affinity rule is host-based and not zone-based.
+
+If this happens, all replicas in the same zone, and there is a zone failure the application using RWX storage will take 6-8 minutes to recover on the active zone. This pause is for the OCP nodes in the failed zone to become `NotReady` (60 seconds) and then for the default pod eviction timeout to expire (300 seconds).
+
+=== Recovery for applications with RWO storage
+
+Applications that use RWO storage (ReadWriteOnce) have a know behavior described in this https://github.com/kubernetes/kubernetes/issues/65392[Kubernetes issue]. Because of this issue, if there is a data zone failure any application *Pods* in that zone mounting RWO volumes (i.e., cephrbd) are stuck in `Terminating` after 6-8 minutes and will not be recreated on the active zone without manual intervention. 
+
+CAUTION: An OCP node can be in the `NotReady` status but still have *Pods* reading and writing to their storage (i.e., cephrbd volume). Verify the OCP nodes are powered off, or if not possible, sever communication to the servers in the failed zone.
+
+To get the `Terminating` *Pods* to recreate on the active zone do one of these two actions:
+
+[start=1]
+. *Force delete the pod* +
+Force deletions do not wait for confirmation from the kubelet that the Pod has been terminated. 
+----
+oc delete pod <PODNAME> --grace-period=0 --force --namespace <NAMESPACE> 
+----
+
+[start=2]
+. *Delete the finalizer on the associated PV* +
+Find the associated PV for the PVC that is mounted by the `Terminating` pod and delete the finalizer using `oc edit` or `oc patch` command. An easy way to find the associated *PV* is to describe the `Terminating`  pod. If you see a `Multi-Attach` warning it should have the *PV* names in the warning (i.e., pvc-0595a8d2-683f-443b-aee0-6e547f5f5a7c).
+----
+oc describe pod <PODNAME> --namespace <NAMESPACE> 
+----
+.Example output:
+----
+[...]
+Events:
+  Type     Reason                  Age   From                     Message
+  ----     ------                  ----  ----                     -------
+  Normal   Scheduled               4m5s  default-scheduler        Successfully assigned openshift-storage/noobaa-db-pg-0 to perf1-mz8bt-worker-d2hdm
+  Warning  FailedAttachVolume      4m5s  attachdetach-controller  Multi-Attach error for volume "pvc-0595a8d2-683f-443b-aee0-6e547f5f5a7c" Volume is already exclusively attached to one node and can't be attached to another
+----
+  
+Once one of these two actions are done the application *Pod* should recreate on the active zone and mount its RWO storage.
+
+=== Recovery for StatefulSet pods
+
+*Pods* that are part of a stateful set have a similar issue as *Pods* mounting RWO volumes. Reference Kubernetes resource https://kubernetes.io/docs/tasks/run-application/force-delete-stateful-set-pod/#statefulset-considerations[StatefulSet considerations] for more information. To get the *Pods* part of a *StatefulSet* to recreate on the active zone after 6-8 minutes, the *Pod* needs to be force deleted with the same requirements (i.e., OCP node powered off or communication severed) as *Pods* with RWO volumes.
+
+//== Arbiter Zone Failure Test
+//
+//This test is designed to demonstrates that if the failure domain hosting the
+//Monitor running in Arbiter mode is subject to a failure the application remains available at all time. Both RPO and RTO are equal to 0.
 
 == Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring 
 
-*Under Construction*
+As of OpenShift version 4.7 the out-of-the box services for registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in *Deployments* nad *StatefulSets* to use `podAntiAffinity` with `topologyKey: kubernetes.io/hostname`. Also, given the anti-affinity is `preferredDuringSchedulingIgnoredDuringExecution` vs `requiredDuringSchedulingIgnoredDuringExecution`, that is no guarantee that *Pods* will even be scheduled on different hosts.
 
 == Appendix B: Metro DR StorageCluster for CLI deployment
 
