@@ -182,7 +182,6 @@
 <li><a href="#_validate_cluster_deployment">4.2.1. Validate Cluster Deployment</a></li>
 </ul>
 </li>
-<li><a href="#_install_rook_toolbox">4.3. Install Rook Toolbox</a></li>
 </ul>
 </li>
 <li><a href="#_install_zone_aware_sample_application">5. Install Zone Aware Sample Application</a>
@@ -190,7 +189,15 @@
 <li><a href="#_modify_deployment_to_be_zone_aware">5.1. Modify Deployment to be Zone Aware</a></li>
 </ul>
 </li>
-<li><a href="#_data_zone_failure_test">6. Data Zone Failure Test</a></li>
+<li><a href="#_data_zone_failure_and_recovery">6. Data Zone Failure and Recovery</a>
+<ul class="sectlevel2">
+<li><a href="#_zone_failure">6.1. Zone Failure</a></li>
+<li><a href="#_recovery_for_zone_aware_ha_applications_with_rwx_storage">6.2. Recovery for zone-aware HA applications with RWX storage</a></li>
+<li><a href="#_recovery_for_ha_applications_with_rwx_storage">6.3. Recovery for HA applications with RWX storage</a></li>
+<li><a href="#_recovery_for_applications_with_rwo_storage">6.4. Recovery for applications with RWO storage</a></li>
+<li><a href="#_recovery_for_statefulset_pods">6.5. Recovery for StatefulSet pods</a></li>
+</ul>
+</li>
 <li><a href="#_appendix_a_resiliency_for_openshift_registry_routing_monitoring">7. Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring</a></li>
 <li><a href="#_appendix_b_metro_dr_storagecluster_for_cli_deployment">8. Appendix B: Metro DR StorageCluster for CLI deployment</a></li>
 </ul>
@@ -303,7 +310,7 @@ Refer to the <a href="https://access.redhat.com/documentation/en-us/red_hat_open
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>oc label node &lt;node_name&gt; topology.kubernetes.io/zone=&lt;label&gt;</pre>
+<pre>oc label node &lt;NODENAME&gt; topology.kubernetes.io/zone=&lt;LABLE&gt;</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -774,69 +781,6 @@ rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Comple
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_install_rook_toolbox"><a class="anchor" href="#_install_rook_toolbox"></a>4.3. Install Rook Toolbox</h3>
-<div class="paragraph">
-<p>Deploy the <code>rook-ceph-tool</code> pod.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch OCSInitialization ocsinit -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/enableCephTools", "value": true }]'</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Establish a remote shell to the toolbox pod.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">TOOLS_POD=$(oc get pods -n openshift-storage -l app=rook-ceph-tools -o name)
-oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Run <code>ceph status</code> and <code>ceph osd tree</code> to see that status of the cluster.</p>
-</div>
-<div class="listingblock">
-<div class="title">Example output</div>
-<div class="content">
-<pre>  cluster:
-    id:     5f83a66c-3454-474f-9745-8205f01ea504
-    health: HEALTH_OK
-
-  services:
-    mon: 5 daemons, quorum a,b,c,d,e (age 4m)
-    mgr: a(active, since 4m)
-    mds: ocs-storagecluster-cephfilesystem:1 {0=ocs-storagecluster-cephfilesystem-a=up:active} 1 up:standby-replay
-    osd: 4 osds: 4 up (since 4m), 4 in (since 4m)
-
-  task status:
-    scrub status:
-        mds.ocs-storagecluster-cephfilesystem-a: idle
-        mds.ocs-storagecluster-cephfilesystem-b: idle
-
-  data:
-    pools:   3 pools, 192 pgs
-    objects: 86 objects, 120 MiB
-    usage:   4.2 GiB used, 9.1 TiB / 9.1 TiB avail
-    pgs:     192 active+clean
-
-  io:
-    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr</pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-As shown in <code>ceph status</code> output, the <code>Metro DR stretch cluster</code> is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
-</td>
-</tr>
-</table>
-</div>
-</div>
 </div>
 </div>
 <div class="sect1">
@@ -1241,17 +1185,129 @@ nothing.</p>
 <p>Once done click <strong><em>List uploaded files</em></strong> to see the list of all currently
 uploaded files.</p>
 </div>
-<div class="paragraph">
-<p>Next step is to use the application to test availability during a site outage.</p>
-</div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_data_zone_failure_test"><a class="anchor" href="#_data_zone_failure_test"></a>6. Data Zone Failure Test</h2>
+<h2 id="_data_zone_failure_and_recovery"><a class="anchor" href="#_data_zone_failure_and_recovery"></a>6. Data Zone Failure and Recovery</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><strong>Under Construction</strong></p>
+<p>Given one of the important goals of the <code>Metro DR stretch cluster</code> is to provide resiliency in the face of a complete or partial site outage, it is important to understand the different methods of recovery for applications and their storage.</p>
+</div>
+<div class="paragraph">
+<p>How the application is architected will determine how soon it can be available again on the active zone.</p>
+</div>
+<div class="sect2">
+<h3 id="_zone_failure"><a class="anchor" href="#_zone_failure"></a>6.1. Zone Failure</h3>
+<div class="paragraph">
+<p>For purposes of this section we will consider a zone failure to be a failure where all OCP nodes, masters and workers, in a zone are no longer communicating with the resources in the second data zone (e.g., nodes powered down). If communication between data zones is partially still working (intermittent down/up), steps should be taken by cluster, storage, network admins to sever the communication path between the data zones for disaster recovery to succeed.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_recovery_for_zone_aware_ha_applications_with_rwx_storage"><a class="anchor" href="#_recovery_for_zone_aware_ha_applications_with_rwx_storage"></a>6.2. Recovery for zone-aware HA applications with RWX storage</h3>
+<div class="paragraph">
+<p>Applications that are deployed with <code>topologyKey: topology.kubernetes.io/zone</code>, have one or more replicas scheduled in each data zone, and are using shared storage (i.e., RWX cephfs volume) will recover on the active zone within 30-60 seconds for new connections. The short pause is for HAProxy to refresh connections if a router pod is now offline in the failed data zone. An example of this type of application is detailed in the <a href="#_install_zone_aware_sample_application">Install Zone Aware Sample Application</a> section.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you installed the <code>Sample Application</code> it is recommended to test the failure of a data zone by powering off the OCP nodes (at least the nodes with ODF storage devices) to validate that your <code>file-uploader</code> application is available and that new files can be uploaded.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_recovery_for_ha_applications_with_rwx_storage"><a class="anchor" href="#_recovery_for_ha_applications_with_rwx_storage"></a>6.3. Recovery for HA applications with RWX storage</h3>
+<div class="paragraph">
+<p>Applications that are using <code>topologyKey: kubernetes.io/hostname</code> or no topology configuration whatsoever, have no protection against all of the application replicas being in the same zone.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This can happen even with <strong><em>podAntiAffinity</em></strong> and <strong><em>topologyKey: kubernetes.io/hostname</em></strong> in the <strong>Pod</strong> spec because this anti-affinity rule is host-based and not zone-based.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>If this happens, all replicas in the same zone, and there is a zone failure the application using RWX storage will take 6-8 minutes to recover on the active zone. This pause is for the OCP nodes in the failed zone to become <code>NotReady</code> (60 seconds) and then for the default pod eviction timeout to expire (300 seconds).</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_recovery_for_applications_with_rwo_storage"><a class="anchor" href="#_recovery_for_applications_with_rwo_storage"></a>6.4. Recovery for applications with RWO storage</h3>
+<div class="paragraph">
+<p>Applications that use RWO storage (ReadWriteOnce) have a know behavior described in this <a href="https://github.com/kubernetes/kubernetes/issues/65392">Kubernetes issue</a>. Because of this issue, if there is a data zone failure any application <strong>Pods</strong> in that zone mounting RWO volumes (i.e., cephrbd) are stuck in <code>Terminating</code> after 6-8 minutes and will not be recreated on the active zone without manual intervention.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+An OCP node can be in the <code>NotReady</code> status but still have <strong>Pods</strong> reading and writing to their storage (i.e., cephrbd volume). Verify the OCP nodes are powered off, or if not possible, sever communication to the servers in the failed zone.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To get the <code>Terminating</code> <strong>Pods</strong> to recreate on the active zone do one of these two actions:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p><strong>Force delete the pod</strong><br>
+Force deletions do not wait for confirmation from the kubelet that the Pod has been terminated.</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc delete pod &lt;PODNAME&gt; --grace-period=0 --force --namespace &lt;NAMESPACE&gt;</pre>
+</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="2">
+<li>
+<p><strong>Delete the finalizer on the associated PV</strong><br>
+Find the associated PV for the PVC that is mounted by the <code>Terminating</code> pod and delete the finalizer using <code>oc edit</code> or <code>oc patch</code> command. An easy way to find the associated <strong>PV</strong> is to describe the <code>Terminating</code>  pod. If you see a <code>Multi-Attach</code> warning it should have the <strong>PV</strong> names in the warning (i.e., pvc-0595a8d2-683f-443b-aee0-6e547f5f5a7c).</p>
+</li>
+</ol>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc describe pod &lt;PODNAME&gt; --namespace &lt;NAMESPACE&gt;</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>[...]
+Events:
+  Type     Reason                  Age   From                     Message
+  ----     ------                  ----  ----                     -------
+  Normal   Scheduled               4m5s  default-scheduler        Successfully assigned openshift-storage/noobaa-db-pg-0 to perf1-mz8bt-worker-d2hdm
+  Warning  FailedAttachVolume      4m5s  attachdetach-controller  Multi-Attach error for volume "pvc-0595a8d2-683f-443b-aee0-6e547f5f5a7c" Volume is already exclusively attached to one node and can't be attached to another</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once one of these two actions are done the application <strong>Pod</strong> should recreate on the active zone and mount its RWO storage.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_recovery_for_statefulset_pods"><a class="anchor" href="#_recovery_for_statefulset_pods"></a>6.5. Recovery for StatefulSet pods</h3>
+<div class="paragraph">
+<p><strong>Pods</strong> that are part of a stateful set have a similar issue as <strong>Pods</strong> mounting RWO volumes. Reference Kubernetes resource <a href="https://kubernetes.io/docs/tasks/run-application/force-delete-stateful-set-pod/#statefulset-considerations">StatefulSet considerations</a> for more information. To get the <strong>Pods</strong> part of a <strong>StatefulSet</strong> to recreate on the active zone after 6-8 minutes, the <strong>Pod</strong> needs to be force deleted with the same requirements (i.e., OCP node powered off or communication severed) as <strong>Pods</strong> with RWO volumes.</p>
+</div>
 </div>
 </div>
 </div>
@@ -1259,7 +1315,7 @@ uploaded files.</p>
 <h2 id="_appendix_a_resiliency_for_openshift_registry_routing_monitoring"><a class="anchor" href="#_appendix_a_resiliency_for_openshift_registry_routing_monitoring"></a>7. Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p><strong>Under Construction</strong></p>
+<p>As of OpenShift version 4.7 the out-of-the box services for registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in <strong>Deployments</strong> nad <strong>StatefulSets</strong> to use <code>podAntiAffinity</code> with <code>topologyKey: kubernetes.io/hostname</code>. Also, given the anti-affinity is <code>preferredDuringSchedulingIgnoredDuringExecution</code> vs <code>requiredDuringSchedulingIgnoredDuringExecution</code>, that is no guarantee that <strong>Pods</strong> will even be scheduled on different hosts.</p>
 </div>
 </div>
 </div>
