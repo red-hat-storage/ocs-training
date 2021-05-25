@@ -1,0 +1,2203 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>At-rest and PersistentVolume encryption with an external KMS :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-encryption.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/manual/ocs4-multisite-replication.html">Regional disaster recovery (manual method)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/helper/requirements.html">Regional disaster recovery (RDRhelper)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-encryption.html">External KMS Encryption</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <a class="title" href="../../RegionalDR/index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../RegionalDR/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-encryption.html">External KMS Encryption</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-encryption.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">At-rest and <strong>PersistentVolume</strong> encryption with an external KMS</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">1. Overview</a></li>
+<li><a href="#_hashicorp_vault_deployment_configuration">2. <strong>HashiCorp Vault</strong> deployment &amp; configuration</a>
+<ul class="sectlevel2">
+<li><a href="#_installation">2.1. Installation</a>
+<ul class="sectlevel3">
+<li><a href="#_using_homebrew">2.1.1. Using <code>homebrew</code></a></li>
+<li><a href="#_downloading">2.1.2. Downloading</a></li>
+</ul>
+</li>
+<li><a href="#_customization">2.2. Customization</a>
+<ul class="sectlevel3">
+<li><a href="#_https_configuration">2.2.1. HTTPS configuration</a></li>
+</ul>
+</li>
+<li><a href="#_general_configuration">2.3. General configuration</a></li>
+<li><a href="#_starting_hashicorp_vault">2.4. Starting <strong>HashiCorp Vault</strong></a></li>
+<li><a href="#_initializing_hashicorp_vault">2.5. Initializing <strong>HashiCorp Vault</strong></a></li>
+<li><a href="#_security_configuration">2.6. Security configuration</a></li>
+<li><a href="#_create_dedicated_kv_store">2.7. Create dedicated KV store</a></li>
+</ul>
+</li>
+<li><a href="#_cluster_wide_at_rest_encryption">3. Cluster-wide at-rest encryption</a>
+<ul class="sectlevel2">
+<li><a href="#_deploy_odf_operator">3.1. Deploy ODF operator</a></li>
+<li><a href="#_create_encrypted_storage_cluster">3.2. Create encrypted storage cluster</a></li>
+<li><a href="#_verify_encryption_keys">3.3. Verify encryption keys</a></li>
+<li><a href="#_expand_odf_cluster">3.4. Expand ODF cluster</a></li>
+</ul>
+</li>
+<li><a href="#_granular_persistentvolume_at_rest_encryption">4. Granular <strong>PersistentVolume</strong> at-rest encryption</a>
+<ul class="sectlevel2">
+<li><a href="#_specific_storage_class">4.1. Specific storage class</a></li>
+<li><a href="#_test_application">4.2. Test application</a></li>
+</ul>
+</li>
+<li><a href="#_cli_deployment">5. CLI deployment</a>
+<ul class="sectlevel2">
+<li><a href="#_deploy_odf_operator_2">5.1. Deploy ODF operator</a></li>
+<li><a href="#_create_kms_configuration">5.2. Create KMS configuration</a>
+<ul class="sectlevel3">
+<li><a href="#_https_cli_configuration">5.2.1. <code>https</code> CLI configuration</a></li>
+<li><a href="#_odf_cli_configuration">5.2.2. ODF CLI configuration</a></li>
+<li><a href="#_csi_configuration">5.2.3. CSI configuration</a></li>
+</ul>
+</li>
+<li><a href="#_create_custom_odf_cluster_configuration">5.3. Create custom ODF cluster configuration</a></li>
+<li><a href="#_deploy_odf_cluster">5.4. Deploy ODF cluster</a></li>
+</ul>
+</li>
+<li><a href="#_granular_persistenvolume_at_rest_encryption_without_cluster_wide_encryption">6. Granular <strong>PersistenVolume</strong> at-rest encryption without cluster-wide encryption</a>
+<ul class="sectlevel2">
+<li><a href="#_https_configuration_2">6.1. <code>https</code> configuration</a></li>
+<li><a href="#_odf_configuration">6.2. ODF configuration</a></li>
+<li><a href="#_csi_configuration_2">6.3. CSI configuration</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The intent of this guide is to detail the steps and commands necessary to
+configure OpenShift Data Foundation (ODF) 4.7 to enable the use of an external
+<strong>HashiCorp Vault</strong> instance for storing the at-rest or <strong>PersistentVolume</strong> encryption keys.</p>
+</div>
+<div class="paragraph">
+<p>The necessary components are one OCP 4.6 (or greater) clusters and the <code>OpenShift Data
+Foundation</code> (ODF) operator installed with version <strong>4.7</strong> (or greater).</p>
+</div>
+<div class="paragraph">
+<p>Encryption at rest can be used to provide protection against the following threats:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Cluster wide encryption to protect the organization against device theft (all server or single device)</p>
+</li>
+<li>
+<p>PV level encryption to guarantee isolation and confidentiality between tenants (applications).</p>
+</li>
+<li>
+<p>Combined PV level encryption on top of cluster-wide encryption to offer both protections above at the same time</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Starting April 2021, <code>OpenShift Container Storage</code> (OCS) has been rebranded
+to <code>OpenShift Data Foundation</code> (ODF).
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p><strong>Deploy HashiCorp Vault.</strong><br>
+Download HashiCorp Vault and configure it so it can be used by ODF.</p>
+</li>
+<li>
+<p><strong>Install ODF 4.7.</strong><br>
+Cluster wide at-rest encryption</p>
+</li>
+<li>
+<p><strong>Create your Storage Cluster.</strong><br>
+Deploy your storage cluster pointing to HashICorp vault to provide cluster wide at-rest encryption.</p>
+</li>
+<li>
+<p><strong>Deploy an application with PV encryption.</strong><br>
+Deploy your application over pointing to HashiCorp Vault to provide <strong>PersistentVolume</strong> granular at-rest encryption.</p>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hashicorp_vault_deployment_configuration"><a class="anchor" href="#_hashicorp_vault_deployment_configuration"></a>2. <strong>HashiCorp Vault</strong> deployment &amp; configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_installation"><a class="anchor" href="#_installation"></a>2.1. Installation</h3>
+<div class="sect3">
+<h4 id="_using_homebrew"><a class="anchor" href="#_using_homebrew"></a>2.1.1. Using <code>homebrew</code></h4>
+<div class="paragraph">
+<p>If your operating system supports <code>homebrew</code> is an easy way to install <strong>HashiCorp Vault</strong>.
+If your system does not support <code>homebrew</code> go to <a href="#_downloading">Downloading</a></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">brew tap hashicorp/tap
+brew install hashicorp/tap/vault
+which vault</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ brew tap hashicorp/tap
+==&gt; Tapping hashicorp/tap
+Cloning into '/usr/local/Homebrew/Library/Taps/hashicorp/homebrew-tap'...
+remote: Enumerating objects: 1090, done.
+remote: Counting objects: 100% (278/278), done.
+remote: Compressing objects: 100% (170/170), done.
+remote: Total 1090 (delta 162), reused 211 (delta 108), pack-reused 812
+Receiving objects: 100% (1090/1090), 212.54 KiB | 1.37 MiB/s, done.
+Resolving deltas: 100% (582/582), done.
+Tapped 1 cask and 8 formulae (52 files, 333.3KB).
+$ brew install hashicorp/tap/vault
+Updating Homebrew...
+==&gt; Auto-updated Homebrew!
+Updated 2 taps (homebrew/core and noobaa/noobaa).
+==&gt; New Formulae
+[...]
+==&gt; Installing vault from hashicorp/tap
+==&gt; Downloading https://releases.hashicorp.com/vault/1.7.0/vault_1.7.0_darwin_amd64.zip
+######################################################################## 100.0%
+[...]
+==&gt; Summary
+🍺  /usr/local/Cellar/vault/1.7.0: 4 files, 188.7MB, built in 12 seconds
+==&gt; `brew cleanup` has not been run in 30 days, running now...
+[...]
+$ which vault
+/usr/local/bin/vault</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_downloading"><a class="anchor" href="#_downloading"></a>2.1.2. Downloading</h4>
+<div class="paragraph">
+<p>You can download the appropriate <strong>HashiCorp Vault</strong> packages for your Operating System by visiting <a href="https://www.vaultproject.io/downloads">this page</a></p>
+</div>
+<div class="paragraph">
+<p>Download the appropriate binary by selecting the aporpriate tab as illustrated below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-4.7-Hashicorp-Vault_DownloadPage.png" alt="Choose correct operating system">
+</div>
+<div class="title">Figure 1. HashiCorp Vault download page</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_customization"><a class="anchor" href="#_customization"></a>2.2. Customization</h3>
+<div class="paragraph">
+<p>In order to configure <code>vault</code> follow the following steps.</p>
+</div>
+<div class="sect3">
+<h4 id="_https_configuration"><a class="anchor" href="#_https_configuration"></a>2.2.1. HTTPS configuration</h4>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This section details the <code>https</code> specific commands using a RHEL node.
+If your OS is different you will have to adapt the steps for installing <code>certbot</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+For <code>certbot</code> to run properly port 80 of the node where <code>vault</code> is running must be reachable.
+from the node where the <code>certbot</code> command runs. If not configuring HTTPS go to <a href="#_general_configuration">General configuration</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mkdir -p ./vault/config/vault-server-tls
+sudo yum install -y certbot
+sudo certbot certonly --standalone --noninteractive --agree-tos -m \{your-email\} -d \{your-vault-dns-name\}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Saving debug log to /var/log/letsencrypt/letsencrypt.log
+Plugins selected: Authenticator standalone, Installer None
+Starting new HTTPS connection (1): acme-v02.api.letsencrypt.org
+Requesting a certificate for external-vault.ocstraining.com
+Performing the following challenges:
+http-01 challenge for external-vault.ocstraining.com
+Waiting for verification...
+Cleaning up challenges
+
+IMPORTANT NOTES:
+ - Congratulations! Your certificate and chain have been saved at:
+   /etc/letsencrypt/live/external-vault.ocstraining.com/fullchain.pem
+   Your key file has been saved at:
+   /etc/letsencrypt/live/external-vault.ocstraining.com/privkey.pem
+   Your certificate will expire on 2021-06-15. To obtain a new or
+   tweaked version of this certificate in the future, simply run
+   certbot again. To non-interactively renew *all* of your
+   certificates, run "certbot renew"
+ - If you like Certbot, please consider supporting our work by:
+
+   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
+   Donating to EFF:                    https://eff.org/donate-le</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Copy the files in <code>/etc/letsencrypt/live/{your-vault-dns-name}</code> to <code>./vault/config/vault-server-tls</code>
+and adjust file permissions so the <code>vault</code> binary has access to them when running.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_general_configuration"><a class="anchor" href="#_general_configuration"></a>2.3. General configuration</h3>
+<div class="paragraph">
+<p>In order to start <code>vault</code>, create a valid configuration file <code>./vault/config/vault-server-hcl</code> using this template.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">disable_mlock = true
+ui = true
+listener "tcp" {
+  address = "{ip_to_bind_to}:8200"
+  tls_disable = "false" 	# &lt;- Change to true if not configuring https
+  tls_cert_file = "{home-directory}/vault/config/vault-server-tls/fullchain.pem" # &lt;- Omit if not doing https
+  tls_key_file  = "{home-directory}/vault/config/vault-server-tls/privkey.pem" # &lt;- Omit if not doing https
+  tls_client_ca_file = "{home-directory}/vault/config/vault-server-tls/chain.pem" # &lt;- Omit if not doing https
+
+}
+
+cluster_name = "localvault"
+api_addr = "https://{fqdn-hostname}:8200" # &lt;- Change to http if not using https
+cluster_addr = "https://{fqdn-hostname}:8201" # &lt;- Change to http if not using https
+
+storage "file" {
+  path = "./vault/data"
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create the required subdirectories for <code>vault</code> and verify the content of your configuration file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">mkdir -p ./vault/data
+mkdir -p ./vault/config
+cat ./vault/config/vault-server-hcl</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ mkdir -p ./vault/data
+$ mkdir -p ./vault/config
+$ cat /etc/vault/vault-server-hcl
+disable_mlock = true
+ui = true
+listener "tcp" {
+  address = "172.31.14.45:8200"
+  tls_disable = "false"
+  tls_cert_file = "/home/ec2-user/vault/config/vault-server-tls/fullchain.pem"
+  tls_key_file  = "/home/ec2-user/vault/config/vault-server-tls/privkey.pem"
+  tls_client_ca_file = "/home/ec2-user/vault/config/vault-server-tls/chain.pem"
+
+}
+
+cluster_name = "localvault"
+api_addr = "https://ip-172-31-14-45.us-east-2.compute.internal:8200"
+cluster_addr = "https://ip-172-31-14-45.us-east-2.compute.internal:8201"
+
+storage "file" {
+  path = "./vault/data"
+}</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_starting_hashicorp_vault"><a class="anchor" href="#_starting_hashicorp_vault"></a>2.4. Starting <strong>HashiCorp Vault</strong></h3>
+<div class="paragraph">
+<p>Start <code>vault</code> with the following command.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+By default <code>vault</code> runs in the foreground so we suggest you to use <code>tmux</code> or <code>screen</code>
+to run the command below.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vault server -config ./vault/config/vault-server-hcl</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>==&gt; Vault server configuration:
+
+             Api Address: https://ip-172-31-14-45.us-east-2.compute.internal:8200
+                     Cgo: disabled
+         Cluster Address: https://ip-172-31-14-45.us-east-2.compute.internal:8201
+              Go Version: go1.15.8
+              Listener 1: tcp (addr: "172.31.14.45:8200", cluster address: "172.31.14.45:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "enabled")
+               Log Level: info
+                   Mlock: supported: true, enabled: false
+           Recovery Mode: false
+                 Storage: file
+                 Version: Vault v1.7.0-rc1
+             Version Sha: 9af08a1c5f0f855984a1fa56d236675d167f578e
+
+==&gt; Vault server started! Log data will stream in below:</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>At this point <code>vault</code> is started but <strong>not initialized</strong>. Check the status of <code>vault</code> before initalizing the KMS.</p>
+</div>
+<div class="paragraph">
+<p>If you have enabled <code>https</code>, export this specific environment variable.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export VAULT_SKIP_VERIFY=true</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If you have enabled <code>https</code>, the <code>-ca-cert ./vault/config/vault-server-tls/cert.pem</code>
+option must be added to every <code>vault</code> command entered. e.g. <code>vault -ca-cert ./vault/config/vault-server-tls/cert.pem status</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export VAULT_ADDR="http://$(hostname):8200"
+vault status</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ vault status
+Key                Value
+---                -----
+Seal Type          shamir
+Initialized        false <i class="conum" data-value="1"></i><b>(1)</b>
+Sealed             true <i class="conum" data-value="2"></i><b>(2)</b>
+Total Shares       0
+Threshold          0
+Unseal Progress    0/0
+Unseal Nonce       n/a
+Version            1.7.0
+Storage Type       file
+HA Enabled         false</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The KMS is not initialized</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The vault is sealed</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_initializing_hashicorp_vault"><a class="anchor" href="#_initializing_hashicorp_vault"></a>2.5. Initializing <strong>HashiCorp Vault</strong></h3>
+<div class="paragraph">
+<p>To initialize your <strong>HashiCorp Vault</strong>, use the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vault operator init</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ vault operator init
+Unseal Key 1: ipjXvCrThyh8WM2wmEIkWWWXRe3IFNPwoxNfNndbLjxU <i class="conum" data-value="1"></i><b>(1)</b>
+Unseal Key 2: ENbgK3UsA+mNWIZ5NKQXlGR+Sd7NzHnPGSRoaZeRRPoE
+Unseal Key 3: mKPWCEU7KMSOpLDdEgxFxLzHrqMi4MI1g1DaPsK2An6O
+Unseal Key 4: 7V2hdNMp+HB9DrQqi0jn1KPjSYfXwPkw4U99N+KUD/wu
+Unseal Key 5: AfQkqT+Z/O+eBcbK1gq2PiVYwzMU6Ijl6oRkUWfQumNC
+
+Initial Root Token: s.BdZ4mPw3J6MdjUyPA5oLum7R <i class="conum" data-value="2"></i><b>(2)</b>
+
+Vault initialized with 5 key shares and a key threshold of 3. Please securely
+distribute the key shares printed above. When the Vault is re-sealed,
+restarted, or stopped, you must supply at least 3 of these keys to unseal it
+before it can start servicing requests.
+
+Vault does not store the generated master key. Without at least 3 key to
+reconstruct the master key, Vault will remain permanently sealed!
+
+It is possible to generate new unseal keys, provided you have a quorum of
+existing unseal keys shares. See "vault operator rekey" for more information.</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>A set of 5 <code>Unseal Keys</code>. You will need at least 3 to unseal the vault</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>The <code>Root Token</code> to grant <code>root</code> access to your KMS and configure it</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Save the information above as it is not saved in any form.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now that the vault is initalized, it must be unsealed so its configuration cabn
+be modified or customized. Use the command below to unseal the vault.
+When prompted, enter one of the <code>Unseal keys</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vault operator unseal</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Unseal Key (will be hidden):
+Key                Value
+---                -----
+Seal Type          shamir
+Initialized        true
+Sealed             true
+Total Shares       5
+Threshold          3
+Unseal Progress    1/3 <i class="conum" data-value="1"></i><b>(1)</b>
+Unseal Nonce       8c3df261-8318-0ed6-d15c-45f62e34c0ab
+Version            1.7.0
+Storage Type       file
+HA Enabled         false</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This field shows the progress of the unsealing sequence.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Repeat the <code>vault operator unseal</code> command two more times entering
+each time a different <code>Unseal key</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once the third <code>Unseal key</code> is successfully entered the status of the vault will
+change as illustrated below.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ vault operator unseal
+Unseal Key (will be hidden):
+Key             Value
+---             -----
+Seal Type       shamir
+Initialized     true
+Sealed          false <i class="conum" data-value="1"></i><b>(1)</b>
+Total Shares    5
+Threshold       3
+Version         1.7.0
+Storage Type    file
+Cluster Name    localvault
+Cluster ID      c4f770b8-b571-8c4f-b668-9dcf7cbf0c33
+HA Enabled      false</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The vault is now unsealed.</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_security_configuration"><a class="anchor" href="#_security_configuration"></a>2.6. Security configuration</h3>
+<div class="paragraph">
+<p>You can enable the user and password login capabilites which are disabled
+by default so you can login through a standard user and password method rather than
+using the <code>Root Token</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vault login {Root Token}
+vault auth enable userpass
+vault write auth/userpass/users/{username} password='{password}' policies=admins</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ vault login s.BdZ4mPw3J6MdjUyPA5oLum7R
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
+
+Key                  Value
+---                  -----
+token                s.BdZ4mPw3J6MdjUyPA5oLum7R
+token_accessor       oy8eRQyt1IdDcUnuHudSh7qX
+token_duration       ∞
+token_renewable      false
+token_policies       ["root"]
+identity_policies    []
+policies             ["root"]
+$ vault auth enable userpass
+Success! Enabled userpass auth method at: userpass/
+$ vault write auth/userpass/users/myuser password='RedHat' policies=admins
+Success! Data written to: auth/userpass/users/myuser</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_dedicated_kv_store"><a class="anchor" href="#_create_dedicated_kv_store"></a>2.7. Create dedicated KV store</h3>
+<div class="paragraph">
+<p>Create a dedicated key-value store engine as a receptacle for the ODF keys
+as they get generated during the deployment of an OSD. Together with the
+key-value store, create a dedicated security policy and a specific security
+token to be used by ODF to interact with the vault.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vault secrets enable -path=ocs kv
+echo 'path "ocs/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+  path "sys/mounts" {
+  capabilities = ["read"]
+ }'| vault policy write ocs -
+vault token create -policy=ocs -format json</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ vault secrets enable -path=ocs kv <i class="conum" data-value="1"></i><b>(1)</b>
+Success! Enabled the kv secrets engine at: ocs/
+$ echo 'path "ocs/*" {
+  capabilities = ["create", "read", "update", "delete", "list"]
+}
+  path "sys/mounts" {
+  capabilities = ["read"]
+ }'| vault policy write ocs -
+Success! Uploaded policy: ocs
+$ vault token create -policy=ocs -format json
+{
+  "request_id": "f3fd9e21-24bd-0685-b9ba-d40c34701abd",
+  "lease_id": "",
+  "lease_duration": 0,
+  "renewable": false,
+  "data": null,
+  "warnings": null,
+  "auth": {
+    "client_token": "s.jEQgA9dTDudlGrTUFnn3c45q", <i class="conum" data-value="2"></i><b>(2)</b>
+    "accessor": "ZtyshPTy4ltNNDXW6s0zl6F0",
+    "policies": [
+      "default",
+      "ocs"
+    ],
+    "token_policies": [
+      "default",
+      "ocs"
+    ],
+    "identity_policies": null,
+    "metadata": null,
+    "orphan": false,
+    "entity_id": "",
+    "lease_duration": 2764800,
+    "renewable": true
+  }
+}</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td><code>ocs</code> is the name of the key-value store dedicated to ODF. It is also known as the KV backend path.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is the token to be used by ODF to authenticate with <code>vault</code>.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+At this point your <code>vault</code> configuration is ready.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cluster_wide_at_rest_encryption"><a class="anchor" href="#_cluster_wide_at_rest_encryption"></a>3. Cluster-wide at-rest encryption</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In this section you will be using an OCP cluster to deploy
+ODF 4.7 using OperatorHub. The following will be installed:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>The ODF Operator</p>
+</li>
+<li>
+<p>The ODF storage cluster (Ceph Pods, NooBaa Pods, StorageClasses)</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_deploy_odf_operator"><a class="anchor" href="#_deploy_odf_operator"></a>3.1. Deploy ODF operator</h3>
+<div class="paragraph">
+<p>Navigate to the <strong>Operators</strong> &#8594; <strong>OperatorHub</strong> menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS-OCP-OperatorHub.png" alt="OCP OperatorHub">
+</div>
+<div class="title">Figure 2. OCP OperatorHub</div>
+</div>
+<div class="paragraph">
+<p>Now type <code>openshift container storage</code> in the <strong>Filter by <em>keyword&#8230;&#8203;</em></strong> box.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-OperatorHub-Filter.png" alt="OCP OperatorHub Filter">
+</div>
+<div class="title">Figure 3. OCP OperatorHub filter on OpenShift Data Foundation Operator</div>
+</div>
+<div class="paragraph">
+<p>Select <code>OpenShift Data Foundation Operator</code> and then select <strong>Install</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-Install.png" alt="OCP OperatorHub Install">
+</div>
+<div class="title">Figure 4. OCP OperatorHub Install OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>On the next screen make sure the settings are as shown in this figure.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-Subscribe.png" alt="OCP OperatorHub Subscribe">
+</div>
+<div class="title">Figure 5. OCP Subscribe to OpenShift Data Foundation</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Install</code>.</p>
+</div>
+<div class="paragraph">
+<p>Verify the operator is deployed successfully.</p>
+</div>
+<div class="paragraph">
+<p>Navigate to the <strong>Operators</strong> &#8594; <strong>Installed operators</strong> menu.</p>
+</div>
+<div class="paragraph">
+<p>Select the <code>openshift-storage</code> namespace in the top of the UI pane as illustrated
+below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP4-OperatorHub-InstalledOperators.png" alt="ODF Operator Deployed">
+</div>
+<div class="title">Figure 6. Successful Operator Deployment</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The operator status should be <code>Succeeded</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>To check using the CLI, use the following command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,csv -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-7d4999c99f-9l88r        1/1     Running   0          71s
+pod/ocs-metrics-exporter-7b499fd65c-m89sc   1/1     Running   0          70s
+pod/ocs-operator-7564cf58b7-jbmfx           1/1     Running   0          71s
+pod/rook-ceph-operator-b58cfd5c-fbjlh       1/1     Running   0          71s
+
+NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-353.ci   OpenShift Container Storage   4.7.0-353.ci              Succeeded</pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The <code>Succeeded</code> phase status is the desired state for the Cluster Service Version (CSV).
+Reaching this state can take several minutes.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Your ODF version might be different from the one used during the creation of this
+lab environment. Just make sure it is version 4.7.0 or higher.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_encrypted_storage_cluster"><a class="anchor" href="#_create_encrypted_storage_cluster"></a>3.2. Create encrypted storage cluster</h3>
+<div class="paragraph">
+<p>Navigate to the <strong>Operators</strong> &#8594; <strong>Installed Operators</strong> menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-InstalledOperatorsEncryption.png" alt="OCP OperatorHub">
+</div>
+<div class="title">Figure 7. Locate ODF Operator</div>
+</div>
+<div class="paragraph">
+<p>Click on <code>Storage Cluster</code> on the right hand side of the UI as indicated
+in the screen capture above.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-CreateStorageCluster.png" alt="ODF create Storage Cluster">
+</div>
+<div class="title">Figure 8. ODF Storage Cluster</div>
+</div>
+<div class="paragraph">
+<p>Click on <code>Create Storage Cluster</code> on the right hand side of the UI.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-StorageCluster-Node.png" alt="ODF node selection">
+</div>
+<div class="title">Figure 9. ODF Select Nodes &amp; Storage Class</div>
+</div>
+<div class="paragraph">
+<p>Select the worker nodes for your <strong>StorageCluster</strong> as illustrated above and clock <code>Next</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-StorageCluster-Basic.png" alt="KMS basic configuration">
+</div>
+<div class="title">Figure 10. ODF Basic External KMS Configuration</div>
+</div>
+<div class="paragraph">
+<p>Enter the basic details for your configuration.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enable encryption by checking this box</p>
+</li>
+<li>
+<p>Select cluster-wide encryption by checking this box</p>
+</li>
+<li>
+<p>Select external KMS by checking this box</p>
+</li>
+<li>
+<p>Provide a unique name for your KMS service (any character string)</p>
+</li>
+<li>
+<p>Provide the url to your <code>vault</code> configuration (can be http or https)</p>
+</li>
+<li>
+<p>Provide the TCP port for your <code>vault</code> configuration (default is 8200)</p>
+</li>
+<li>
+<p>Provide the security token generated for your <code>ocs</code> policy in chapter <a href="#_create_dedicated_kv_store">Create dedicated KV store</a></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Click <code>Advanced Settings</code> to provide the the specific <strong>HashiCorp Vault</strong> parameters.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-StorageCluster-Advanced.png" alt="KMS advanced configuration">
+</div>
+<div class="title">Figure 11. ODF Advanced External KMS Configuration</div>
+</div>
+<div class="paragraph">
+<p>Enter the advanced details for your configuration.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Enter the name of the KV store you created for ODF (<code>ocs</code> in this guide)</p>
+</li>
+<li>
+<p>Enter your <strong>HashiCorp Vault</strong> server FQDN</p>
+</li>
+<li>
+<p>Using the <code>browse</code> button and select the <code>fullchain.pem</code> file generated by <code>certbot</code></p>
+</li>
+<li>
+<p>Using the <code>browse</code> button and select the <code>cert.pem</code> file generated by <code>certbot</code></p>
+</li>
+<li>
+<p>Using the <code>browse</code> button and select the <code>privkey.pem</code> file generated by <code>certbot</code></p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <code>Vault Enterprise Namespace</code> can be ignored for this setup.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If you have not configured <strong>HashiCorp Vault</strong> to use <code>https</code> simply enter
+the <code>Backend Path</code> parameter and ignore the other parameters (2 through 5).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Click <code>Save</code> to return to the previous screen.</p>
+</div>
+<div class="paragraph">
+<p>Click <code>Next</code> to go to the <strong>Storage Cluster Review</strong> screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-StorageCluster-Review.png" alt="Storage Cluster parameter review">
+</div>
+<div class="title">Figure 12. ODF Review Cluster Parameters</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Create</code> to start the deployment of the ODF cluster.</p>
+</div>
+<div class="paragraph">
+<p>After a while the cluster should be deployed and its status should be <strong>Ready</strong> as illustrated below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-StorageCluster-Ready.png" alt="Storage Cluster ready">
+</div>
+<div class="title">Figure 13. ODF Cluster Ready</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_encryption_keys"><a class="anchor" href="#_verify_encryption_keys"></a>3.3. Verify encryption keys</h3>
+<div class="paragraph">
+<p>Open a web browser and point to <code><a href="http://{vault-fqdn}:8200/ui/vault/auth?with=token" class="bare">{vault-fqdn}:8200/ui/vault/auth?with=token</a></code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-VaultLogin.png" alt="Vault login page">
+</div>
+<div class="title">Figure 14. Vault Login UI</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>In the <code>Token</code> field, enter the token you created for your ODF security policy in <a href="#_create_dedicated_kv_store">Create dedicated KV store</a></p>
+</li>
+</ol>
+</div>
+<div class="paragraph">
+<p>Click <code>Sign In</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-VaultSecretEngines.png" alt="Vault secret engines">
+</div>
+<div class="title">Figure 15. Vault Secret Engines</div>
+</div>
+<div class="paragraph">
+<p>Click on the secret engines you have created for ODF, in our example <code>ocs</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-VaultOCSKeyList.png" alt="Vault ODF key list">
+</div>
+<div class="title">Figure 16. Vault ODF Key List</div>
+</div>
+<div class="paragraph">
+<p>As you can see some secret keys were generated for your OSDs in the storage cluster.
+They are physically stored in the <strong>HashiCorp Vault</strong> instance.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_expand_odf_cluster"><a class="anchor" href="#_expand_odf_cluster"></a>3.4. Expand ODF cluster</h3>
+<div class="paragraph">
+<p>Expand the cluster through the UI, as with existing version of ODF and verify
+additional encryption keys are generated and stored in your <strong>HashiCorp Vault</strong>
+instance as illustrated below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-VaultOCSExpansionKeyList.png" alt="Vault ODF additional key list">
+</div>
+<div class="title">Figure 17. Vault ODF Expansion Key List</div>
+</div>
+<div class="paragraph">
+<p>We now have a total of 6 encryption keys.</p>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_granular_persistentvolume_at_rest_encryption"><a class="anchor" href="#_granular_persistentvolume_at_rest_encryption"></a>4. Granular <strong>PersistentVolume</strong> at-rest encryption</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To use <strong>PersistentVolume</strong> encryption, it is required to setup a new storage class
+that will be configured to use the external Key Management System we have configured in
+the previous sectons of this guide.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The current version does not allow <strong>PersistentVolume</strong> level encryption to use
+a separate KMS backend. The only customization allowed for this type of encryption
+feature is the access token used to store the key generated by the applciation.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_specific_storage_class"><a class="anchor" href="#_specific_storage_class"></a>4.1. Specific storage class</h3>
+<div class="paragraph">
+<p>Navigate to the <strong>Storage</strong> &#8594; <strong>Storage Classes</strong> menu.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-SCList.png" alt="OCP Storage Classes">
+</div>
+<div class="title">Figure 18. OCP Storage Classes</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Create Storage Class</code> in the top right of the UI.</p>
+</div>
+<div class="paragraph">
+<p>Enter the details for your new storage class as detailed below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-SC-Basic.png" alt="Encrypted storage class details">
+</div>
+<div class="title">Figure 19. Encrypted Storage Class</div>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Specify the name of your storage class</p>
+</li>
+<li>
+<p>Select the Ceph CSI RBD provisioner</p>
+</li>
+<li>
+<p>Choose the Ceph pool receiving the PersistentVolumes</p>
+</li>
+<li>
+<p>Enable encryption for this storage class</p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The pool can be the same as the default pool.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+CephFS based PV encryption is not yet available.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Click <code>Create</code> in the UI.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_test_application"><a class="anchor" href="#_test_application"></a>4.2. Test application</h3>
+<div class="paragraph">
+<p>Create a new project for your test application using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-rbd-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Now using project "my-rbd-storage" on server "https://api.ocp45.ocstraining.com:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a secret to hold the vault access token specific to this project. Use the following template
+to create the secret.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: ceph-csi-kms-token
+  namespace: my-rbd-storage
+stringData:
+  token: "{application_vault_token}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Replace <code>{application_vault_token}</code> with your actual token.</p>
+</div>
+<div class="paragraph">
+<p>Deploy your application using the dedicated storage class you just created. Use the following command
+to do so:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-cephrbd1
+  namespace: my-rbd-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Gi
+  storageClassName: encrypted-rbd
+---
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: pvc-cephrbd2
+  namespace: my-rbd-storage
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 500Mi
+  storageClassName: encrypted-rbd
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: batch2
+  namespace: my-rbd-storage
+  labels:
+    app: batch2
+spec:
+  template:
+    metadata:
+      labels:
+        app: batch2
+    spec:
+      restartPolicy: OnFailure
+      containers:
+      - name: batch2
+        image: amazon/aws-cli:latest
+        command: ["sh"]
+        args:
+          - '-c'
+          - 'while true; do echo "Creating temporary file"; export mystamp=$(date +%Y%m%d_%H%M%S); dd if=/dev/urandom of=/mnt/file_${mystamp} bs=1M count=1; echo "Copying temporary file"; cp /mnt/file_${mystamp} /tmp/file_${mystamp}; echo "Going to sleep"; sleep 60; echo "Removing temporary file"; rm /mnt/file_${mystamp}; done'
+        volumeMounts:
+        - name: tmp-store
+          mountPath: /tmp
+        - name: tmp-file
+          mountPath: /mnt
+      volumes:
+      - name: tmp-store
+        persistentVolumeClaim:
+          claimName: pvc-cephrbd1
+          readOnly: false
+      - name: tmp-file
+        persistentVolumeClaim:
+          claimName: pvc-cephrbd2
+          readOnly: false
+EOF</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>persistentvolumeclaim/pvc-cephrbd1 created
+persistentvolumeclaim/pvc-cephrbd2 created
+job.batch/batch2 created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the status of the application and its different components.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe pod</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>[...]
+Volumes:
+  tmp-store:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  pvc-cephrbd1
+    ReadOnly:   false
+  tmp-file:
+    Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
+    ClaimName:  pvc-cephrbd2
+    ReadOnly:   false
+  default-token-rghg5:
+    Type:        Secret (a volume populated by a Secret)
+    SecretName:  default-token-rghg5
+    Optional:    false
+QoS Class:       BestEffort
+Node-Selectors:  &lt;none&gt;
+Tolerations:     node.kubernetes.io/not-ready:NoExecute op=Exists for 300s
+                 node.kubernetes.io/unreachable:NoExecute op=Exists for 300s
+Events:
+  Type     Reason                  Age    From                     Message
+  ----     ------                  ----   ----                     -------
+  Warning  FailedScheduling        8m45s  default-scheduler        0/6 nodes are available: 6 pod has unbound immediate PersistentVolumeClaims.
+  Warning  FailedScheduling        8m45s  default-scheduler        0/6 nodes are available: 6 pod has unbound immediate PersistentVolumeClaims.
+  Normal   Scheduled               8m42s  default-scheduler        Successfully assigned my-rbd-storage/batch2-n4cqv to ip-10-0-202-113.us-east-2.compute.internal
+  Normal   SuccessfulAttachVolume  8m43s  attachdetach-controller  AttachVolume.Attach succeeded for volume "pvc-f884eadc-9d37-4111-85ea-123c78b646a7"
+  Normal   SuccessfulAttachVolume  8m43s  attachdetach-controller  AttachVolume.Attach succeeded for volume "pvc-93affaed-40f4-4fba-b907-53fbeefbd03f"
+  Normal   AddedInterface          8m24s  multus                   Add eth0 [10.128.2.19/23]
+  Normal   Pulling                 8m23s  kubelet                  Pulling image "amazon/aws-cli:latest"
+  Normal   Pulled                  8m23s  kubelet                  Successfully pulled image "amazon/aws-cli:latest" in 563.111829ms
+  Normal   Created                 8m23s  kubelet                  Created container batch2
+  Normal   Started                 8m23s  kubelet                  Started container batch2</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+pvc-cephrbd1   Bound    pvc-93affaed-40f4-4fba-b907-53fbeefbd03f   500Gi      RWO            encrypted-rbd   9m30s
+pvc-cephrbd2   Bound    pvc-f884eadc-9d37-4111-85ea-123c78b646a7   500Mi      RWO            encrypted-rbd   9m30s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also verify that the <strong>HashiCorp Vault</strong> scret engine now contains two PersistentVolume specific keys.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-4.7-OCP-Encryption-PV-Keys.png" alt="PV specific keys craeted">
+</div>
+<div class="title">Figure 20. Vault PV Specific Keys</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+When deleting your application make sure you delete your application pods and PVCs before
+deleting the secret that contains your access token to the vault. If you fail to do so you will end up
+with orphans PV keys in your vault.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_cli_deployment"><a class="anchor" href="#_cli_deployment"></a>5. CLI deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>If needed, an encrypted at-rest cluster that uses <strong>HashiCorp Vault</strong> can be deployed using the CLI.
+This section covers this specific procedure:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Deploy ODF operator</p>
+</li>
+<li>
+<p>Create your KMS specific configuration</p>
+</li>
+<li>
+<p>Create your customized <strong>StorageCluster</strong> cofniguration</p>
+</li>
+<li>
+<p>Deploy your ODF cluster</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_deploy_odf_operator_2"><a class="anchor" href="#_deploy_odf_operator_2"></a>5.1. Deploy ODF operator</h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Depending on your environment you might have to deploy the Local Storage Operator
+and configure it. Follow the procedure
+<a href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-install-no-ui.html#_installing_the_local_storage_operator_v4_6">here</a>
+on this web site.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Label the nodes to be used by ODF.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
+node/ip-10-0-134-254.us-east-2.compute.internal labeled
+node/ip-10-0-186-246.us-east-2.compute.internal labeled
+node/ip-10-0-194-104.us-east-2.compute.internal labeled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create Operator Group for ODF Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-storage-operatorgroup
+  namespace: openshift-storage
+spec:
+  targetNamespaces:
+  - openshift-storage
+EOF</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Subscribe to ODF Operator.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc apply -f -
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.6"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
+  sourceNamespace: openshift-marketplace
+EOF</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Verify your ODF Operator has been deployed using the <code>oc get pods -n openshift-storage</code>
+or <code>oc get csv -n openshift-storage</code> commands.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_kms_configuration"><a class="anchor" href="#_create_kms_configuration"></a>5.2. Create KMS configuration</h3>
+<div class="paragraph">
+<p>Create a KMS configuration in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If using <code>https</code> configure secrets</p>
+</li>
+<li>
+<p>Create the external vault configuration map</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>For ODF</p>
+</li>
+<li>
+<p>For CSI</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Create the <code>vault</code> access token secret</p>
+</li>
+</ol>
+</div>
+<div class="sect3">
+<h4 id="_https_cli_configuration"><a class="anchor" href="#_https_cli_configuration"></a>5.2.1. <code>https</code> CLI configuration</h4>
+<div class="paragraph">
+<p>All secrets for <code>https</code> are <code>base64</code> encoded. Encode each of the following files using the following
+command: <code>cat \{filename.pem\} | base64</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>fullchain.pem</p>
+</li>
+<li>
+<p>cert.pem</p>
+</li>
+<li>
+<p>privkey.pem</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Create the following secrets in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you have nit configured <strong>HashiCorp Vault</strong> with <code>https</code> just go to <a href="#_odf_cli_configuration">ODF CLI configuration</a>
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  cert: {fullchain.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-ca-secret
+  namespace: openshift-storage
+type: Opaque
+---
+apiVersion: v1
+data:
+  cert: {cert.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-client-cert
+  namespace: openshift-storage
+type: Opaque
+---
+apiVersion: v1
+data:
+  cert: {privkey.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-client-key
+  namespace: openshift-storage
+type: Opaque
+---
+apiVersion: v1
+data:
+  token: {vault_token_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-token
+  namespace: openshift-storage
+type: Opaque</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>secret/ocs-kms-ca-secret created
+secret/ocs-kms-client-cert created
+secret/ocs-kms-client-key created
+secret/ocs-kms-token created</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_odf_cli_configuration"><a class="anchor" href="#_odf_cli_configuration"></a>5.2.2. ODF CLI configuration</h4>
+<div class="paragraph">
+<p>Create the external <strong>HashiCorp Vault</strong> configuration for ODF using the secrets above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  KMS_PROVIDER: vault
+  KMS_SERVICE_NAME: {vault_service_name} <i class="conum" data-value="1"></i><b>(1)</b>
+  VAULT_ADDR: {vault_url}:{vault_port} <i class="conum" data-value="2"></i><b>(2)</b>
+  VAULT_BACKEND_PATH: {backend_path} <i class="conum" data-value="3"></i><b>(3)</b>
+  VAULT_CACERT: ocs-kms-ca-secret
+  VAULT_CLIENT_CERT: ocs-kms-client-cert
+  VAULT_CLIENT_KEY: ocs-kms-client-key
+  VAULT_NAMESPACE: ""
+  VAULT_TLS_SERVER_NAME: {vault_name} <i class="conum" data-value="4"></i><b>(4)</b>
+kind: ConfigMap
+metadata:
+  name: ocs-kms-connection-details
+  namespace: openshift-storage</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Name your KMS configuration e.g. <code>external-vault</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Replace with your <code>vault</code> FQDN e.g. <a href="https://external-vault.ocstraining.com:8200">https://external-vault.ocstraining.com:8200</a></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Replace with your <code>vault</code> secret engine path e.g. <code>ocs/</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Specify a name for your server e.g. <code>external-vault.ocstraining.com</code></td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <strong>HashiCorp Vault</strong> is not configured with <code>https</code> you can ommit the <code>VAULT_CACERT</code>,
+<code>VAULT_CLIENT_CERT</code>, <code>VAULT_CLIENT_KEY</code> and <code>VAULT_TLS_SERVER_NAME</code> parameters.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_csi_configuration"><a class="anchor" href="#_csi_configuration"></a>5.2.3. CSI configuration</h4>
+<div class="paragraph">
+<p>Create the external <strong>HashiCorp Vault</strong> configuration for CSI using the secrets above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
+kind: ConfigMap
+metadata:
+  name: csi-kms-connection-details
+  namespace: openshift-storage</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Replace the values <code>{vault_service_name}</code>, <code>{vault_url}</code>, <code>{vault_port}</code>, <code>{backend_path}</code> and <code>{vault_name}</code>
+with the values you have configured.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <strong>HashiCorp Vault</strong> is not configured with <code>https</code> assign a <code>""</code> value to the <code>VAULT_CACERT</code>,
+<code>VAULT_CLIENT_CERT</code>, <code>VAULT_CLIENT_KEY</code> and <code>VAULT_TLS_SERVER_NAME</code> parameters.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>configmap/ocs-kms-connection-details created
+configmap/csi-kms-connection-details created</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_custom_odf_cluster_configuration"><a class="anchor" href="#_create_custom_odf_cluster_configuration"></a>5.3. Create custom ODF cluster configuration</h3>
+<div class="paragraph">
+<p>Create a <code>storagecluster.yaml</code> configuration that contains the parameters to
+enable at-rest encryption using an external <strong>Hashicorp Vault</strong> server.
+The template below can be used to create your *StorageCluster` CR.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  annotations:
+    uninstall.ocs.openshift.io/cleanup-policy: delete
+    uninstall.ocs.openshift.io/mode: graceful
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  arbiter: {}
+  encryption:
+    enable: true				# &lt;- Enable at-rest encryption
+    kms:
+      enable: true				# &lt;- Enable external KMS service for your keys
+  externalStorage: {}
+  managedResources:
+    cephBlockPools: {}
+    cephConfig: {}
+    cephFilesystems: {}
+    cephObjectStoreUsers: {}
+    cephObjectStores: {}
+  nodeTopologies: {}
+  storageDeviceSets:
+  - config: {}
+    count: 1
+    dataPVCTemplate:
+      metadata: {}
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}			# &lt;- Use the desired size for your storage class
+        storageClassName: {storageclass}	# &lt;- Use the desired storage class for your environment
+        volumeMode: Block
+    name: ocs-deviceset-{storageclass}		# &lt;- Customize the PVC name for your environment
+    portable: true
+    preparePlacement: {}
+    replica: 3
+  version: 4.7.0</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deploy_odf_cluster"><a class="anchor" href="#_deploy_odf_cluster"></a>5.4. Deploy ODF cluster</h3>
+<div class="paragraph">
+<p>Create your ODF cluster using the template file above.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>oc create -f storagecluster-encrypted-kms.yaml
+storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And monitor the <code>openshift-storage</code> namespace to verify your cluster is coming online.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pod,pvc -n openshift-storage
+oc get storagecluster -n openshift-storage
+oc get cephcluster -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>$ oc get pod,pvc -n openshift-storage
+NAME                                                                  READY   STATUS      RESTARTS   AGE
+pod/csi-cephfsplugin-mjj7b                                            3/3     Running     0          7m26s
+pod/csi-cephfsplugin-p6pff                                            3/3     Running     0          7m26s
+pod/csi-cephfsplugin-provisioner-f975d886c-6trbh                      6/6     Running     0          7m25s
+pod/csi-cephfsplugin-provisioner-f975d886c-8tgws                      6/6     Running     0          7m26s
+pod/csi-cephfsplugin-s7h6g                                            3/3     Running     0          7m26s
+pod/csi-rbdplugin-9bq45                                               3/3     Running     0          7m26s
+pod/csi-rbdplugin-provisioner-6bbf798bfb-9lttr                        6/6     Running     0          7m26s
+pod/csi-rbdplugin-provisioner-6bbf798bfb-n5gxr                        6/6     Running     0          7m26s
+pod/csi-rbdplugin-tpcvv                                               3/3     Running     0          7m26s
+pod/csi-rbdplugin-wkplf                                               3/3     Running     0          7m26s
+pod/noobaa-core-0                                                     1/1     Running     0          4m3s
+pod/noobaa-db-pg-0                                                    1/1     Running     0          4m3s
+pod/noobaa-endpoint-b6f7fb9c8-6mx58                                   1/1     Running     0          2m32s
+pod/noobaa-operator-67dc46d9d5-v9q5m                                  1/1     Running     0          37m
+pod/ocs-metrics-exporter-7c44944fd6-fzdfh                             1/1     Running     0          37m
+pod/ocs-operator-5d55f4d88b-jptqr                                     1/1     Running     0          37m
+pod/rook-ceph-crashcollector-ip-10-0-134-254-6f4545b94b-hz42l         1/1     Running     0          6m39s
+pod/rook-ceph-crashcollector-ip-10-0-186-246-5d8496576-w9vwx          1/1     Running     0          5m43s
+pod/rook-ceph-crashcollector-ip-10-0-194-104-6df5597756-wcwbj         1/1     Running     0          6m14s
+pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-5b9f876cwg59f   2/2     Running     0          3m53s
+pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-5547d7cf9655x   2/2     Running     0          3m52s
+pod/rook-ceph-mgr-a-5bc78f6d94-h6gpq                                  2/2     Running     0          4m55s
+pod/rook-ceph-mon-a-866fdd69b7-gmk5g                                  2/2     Running     0          6m52s
+pod/rook-ceph-mon-b-6bdb9f966c-qj7j2                                  2/2     Running     0          6m14s
+pod/rook-ceph-mon-c-7c9cdc7f47-v4tlc                                  2/2     Running     0          5m43s
+pod/rook-ceph-operator-6ddb556fd7-6pbqs                               1/1     Running     0          37m
+pod/rook-ceph-osd-0-5f8b85475b-cp955                                  2/2     Running     0          4m9s
+pod/rook-ceph-osd-1-7b66f8d755-jzvgp                                  2/2     Running     0          4m8s
+pod/rook-ceph-osd-2-d765b96f5-snkjs                                   2/2     Running     0          4m4s
+pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0vgg9c-j4lrn       0/1     Completed   0          4m53s
+pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-07nkxq-bpmcz       0/1     Completed   0          4m51s
+pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-09x8d4-nrq6h       0/1     Completed   0          4m50s
+
+NAME                                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/db-noobaa-db-pg-0                 Bound    pvc-f903e155-a6be-4272-9780-4057cf1f9146   50Gi       RWO            ocs-storagecluster-ceph-rbd   4m4s
+persistentvolumeclaim/ocs-deviceset-gp2-0-data-0vgg9c   Bound    pvc-356fce40-5f7e-4c88-8744-22e965420bf7   2Ti        RWO            gp2                           4m55s
+persistentvolumeclaim/ocs-deviceset-gp2-1-data-07nkxq   Bound    pvc-2a1e7ae5-20dc-4696-b247-a055d24c0396   2Ti        RWO            gp2                           4m55s
+persistentvolumeclaim/ocs-deviceset-gp2-2-data-09x8d4   Bound    pvc-189d0d6e-707d-4409-bde9-fd303a30940b   2Ti        RWO            gp2                           4m55s
+persistentvolumeclaim/rook-ceph-mon-a                   Bound    pvc-5740c8aa-3a52-4a41-9989-5197fc052c09   10Gi       RWO            gp2                           7m5s
+persistentvolumeclaim/rook-ceph-mon-b                   Bound    pvc-7d870739-1e26-4b50-adde-4c941f4e5551   10Gi       RWO            gp2                           7m5s
+persistentvolumeclaim/rook-ceph-mon-c                   Bound    pvc-57a7906b-33bf-4764-be8a-ab4ac72a9b27   10Gi       RWO            gp2                           7m4s
+$ oc get storagecluster -n openshift-storage
+NAME                 AGE   PHASE   EXTERNAL   CREATED AT             VERSION
+ocs-storagecluster   10m   Ready              2021-04-21T20:55:57Z   4.7.0
+$ oc get cephcluster -n openshift-storage
+NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_granular_persistenvolume_at_rest_encryption_without_cluster_wide_encryption"><a class="anchor" href="#_granular_persistenvolume_at_rest_encryption_without_cluster_wide_encryption"></a>6. Granular <strong>PersistenVolume</strong> at-rest encryption without cluster-wide encryption</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>It is possible to provide PV level encryption on a non at-rest encrypted cluster.</p>
+</div>
+<div class="paragraph">
+<p>Create a KMS configuration in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>If using <code>https</code> configure secrets</p>
+</li>
+<li>
+<p>Create the external vault configuration map</p>
+<div class="olist loweralpha">
+<ol class="loweralpha" type="a">
+<li>
+<p>For ODF</p>
+</li>
+<li>
+<p>For CSI</p>
+</li>
+</ol>
+</div>
+</li>
+<li>
+<p>Create the <strong>HashiCorp Vault</strong> access token secret</p>
+</li>
+</ol>
+</div>
+<div class="sect2">
+<h3 id="_https_configuration_2"><a class="anchor" href="#_https_configuration_2"></a>6.1. <code>https</code> configuration</h3>
+<div class="paragraph">
+<p>All secrets for <code>https</code> are <code>base64</code> encoded. Encode each of the following files using the following
+command: <code>cat \{filename.pem\} | base64</code></p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>fullchain.pem</p>
+</li>
+<li>
+<p>cert.pem</p>
+</li>
+<li>
+<p>privkey.pem</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Create the following secrets in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  cert: {fullchain.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-ca-secret
+  namespace: openshift-storage
+type: Opaque
+---
+apiVersion: v1
+data:
+  cert: {cert.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-client-cert
+  namespace: openshift-storage
+type: Opaque
+---
+apiVersion: v1
+data:
+  cert: {privkey.pem_encoded_value}
+kind: Secret
+metadata:
+  name: ocs-kms-client-key
+  namespace: openshift-storage
+type: Opaque</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The vault access token secret to be used by the application is created in the application
+namespace and not in the <code>openshift-storage</code> namespace. See <a href="#_test_application">Test application</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_odf_configuration"><a class="anchor" href="#_odf_configuration"></a>6.2. ODF configuration</h3>
+<div class="paragraph">
+<p>Create the external vault configuration for ODF using the secrets above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  KMS_PROVIDER: vault
+  KMS_SERVICE_NAME: {vault_service_name} <i class="conum" data-value="1"></i><b>(1)</b>
+  VAULT_ADDR: {vault_url}:{vault_port} <i class="conum" data-value="2"></i><b>(2)</b>
+  VAULT_BACKEND_PATH: {backend_path} <i class="conum" data-value="3"></i><b>(3)</b>
+  VAULT_CACERT: ocs-kms-ca-secret
+  VAULT_CLIENT_CERT: ocs-kms-client-cert
+  VAULT_CLIENT_KEY: ocs-kms-client-key
+  VAULT_NAMESPACE: ""
+  VAULT_TLS_SERVER_NAME: {vault_name} <i class="conum" data-value="4"></i><b>(4)</b>
+kind: ConfigMap
+metadata:
+  name: ocs-kms-connection-details
+  namespace: openshift-storage</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Name your KMS configuration e.g. <code>external-vault</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Replace with your <code>vault</code> FQDN e.g. <a href="https://external-vault.ocstraining.com:8200">https://external-vault.ocstraining.com:8200</a></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Replace with your <code>vault</code> secret engine path e.g. <code>ocs/</code></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>Specify a name for your server e.g. <code>external-vault.ocstraining.com</code></td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <strong>HashiCorp Vault</strong> is not configured with <code>https</code> you can ommit the <code>VAULT_CACERT</code>,
+<code>VAULT_CLIENT_CERT</code>, <code>VAULT_CLIENT_KEY</code> and <code>VAULT_TLS_SERVER_NAME</code> parameters.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_csi_configuration_2"><a class="anchor" href="#_csi_configuration_2"></a>6.3. CSI configuration</h3>
+<div class="paragraph">
+<p>Create the external <code>vault</code> configuration for CSI using the secret above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">apiVersion: v1
+data:
+  1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
+kind: ConfigMap
+metadata:
+  name: csi-kms-connection-details
+  namespace: openshift-storage</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Replace the values <code>{vault_service_name}</code>, <code>{vault_url}</code>, <code>{vault_port}</code>, <code>{backend_path}</code> and <code>{vault_name}</code>
+with the values you have configured.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If <strong>HashiCorp Vault</strong> is not configured with <code>https</code> assign a <code>""</code> value to the <code>VAULT_CACERT</code>,
+<code>VAULT_CLIENT_CERT</code>, <code>VAULT_CLIENT_KEY</code> and <code>VAULT_TLS_SERVER_NAME</code> parameters.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+You can combine PV level encryption that can only be configured with an external
+KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Et voilà!</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
