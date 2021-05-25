@@ -1,9 +1,15 @@
 * xref:ocs.adoc[General deploy and use]
 * xref:ocs4-install-no-ui.adoc[CLI based install]
 * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
-* xref:ocs4-encryption.adoc[External KMS Encryption]
-* xref:ocs4-multisite-replication.adoc[Regional disaster recovery]
+<<<<<<< HEAD
+=======
+
+.Regional disaster recovery
+* xref:RegionalDR:manual:ocs4-multisite-replication.adoc[Regional disaster recovery (manual method)]
+* xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery (RDRhelper)]
+
+>>>>>>> 5eb549cb16250e49854bf2e727ee9f83872ab29e
 // * xref:ocs4-metro-stretched-no-ui.adoc[Metro disaster recovery CLI]
-// * xref:ocs4-metro-stretched-ui.adoc[Metro disaster recovery UI]
+* xref:ocs4-metro-stretched.adoc[Metro disaster recovery]
 * xref:ocs4-cluster-downsize.adoc[Downsize existing OCS cluster]
 * xref:ocs4-enable-rgw.adoc[Use RGW in OCS deployment]

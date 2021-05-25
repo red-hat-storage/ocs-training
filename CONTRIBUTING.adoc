@@ -41,10 +41,11 @@ To test your work locally before we deploy it to master, you can execute this co
 
 [source]
 ----
-podman run -v $PWD:/antora --rm -t antora/antora --cache-dir=./.cache/antora antora-playbook-local.yml    
+# Podman
+podman run -v $PWD:/antora --rm -t antora/antora:Z --cache-dir=./.cache/antora antora-playbook-local.yml
+# Docker
+docker run -v $PWD:/antora --rm -t antora/antora --cache-dir=./.cache/antora antora-playbook-local.yml
 ----
-
-This command should work the same way with `docker` too.
 
 Afterwards you will find a new folder `build`. Point your browser to build/site/index.html in this git repository to preview your changes.
 
