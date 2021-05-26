@@ -799,7 +799,7 @@ Once one of these two actions are done the application *Pod* should recreate on 
 
 == Appendix A: Resiliency for OpenShift Registry, Monitoring, Routing 
 
-As of OpenShift version 4.7 the out-of-the box services for the image registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in *Deployments* nad *StatefulSets* to use `podAntiAffinity` with `topologyKey: kubernetes.io/hostname`. Also, given the anti-affinity is `preferredDuringSchedulingIgnoredDuringExecution` vs `requiredDuringSchedulingIgnoredDuringExecution`, that is no guarantee that *Pods* will even be scheduled on different hosts.
+As of OpenShift version 4.7 the out-of-the box services for the image registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in *Deployments* and *StatefulSets* to use `podAntiAffinity` with `topologyKey: kubernetes.io/hostname`. Also, given the anti-affinity is `preferredDuringSchedulingIgnoredDuringExecution` vs `requiredDuringSchedulingIgnoredDuringExecution`, that is no guarantee that *Pods* will even be scheduled on different hosts.
 
 === OpenShift Registry using topologySpreadConstraints
 
@@ -863,7 +863,7 @@ To schedule the *Pods* equally between zones you will need to scale the replicas
 
 === OpenShift Monitoring using label placement
 
-The prometheus and alertmanager *Pods* are both created from a *StatefulSet*.
+The prometheus and alertmanager *Pods* are both created with a *StatefulSet*.
 
 [source,role="execute"]
 ----
@@ -876,7 +876,7 @@ alertmanager-main   3/3     54d
 prometheus-k8s      2/2     54d
 ----
 
-Because of reconciling back to default configuration (shown for prometheus) that uses host-based placement for scheduling, this configuration cannot be deleted from the *StatefulSet* and replaced with `topologySpreadConstraints` as was done for the image-registry. The same `podAntiAffinity` is used in the alertmanager *Statefulset* which does not guarantee that the *Pods* will be scheduled in both zones.
+Because of the reconciling back to default configuration (shown for prometheus) that uses host-based placement, this configuration cannot be deleted from the *StatefulSet* and replaced with `topologySpreadConstraints` as was done for the image-registry *Deployment*. The same `podAntiAffinity` is used in the alertmanager *Statefulset* which does not guarantee that the *Pods* will be scheduled in both zones.
 
 [source,role="execute"]
 ----
@@ -904,7 +904,7 @@ oc edit statefulset prometheus-k8s -n openshift-monitoring
 [...]
 ----
 
-Therefore a different solution is needed to make monitoring highly available across zones. The method is to use node labeling and create a new (or modify existing) *ConfigMap* named `cluster-monitoring-config` for placement via a `nodeSelector` configuration.
+Therefore a different solution is needed to make monitoring resources highly available across zones. The method is to use node labeling and create a new (or modify existing) *ConfigMap* named `cluster-monitoring-config` for placement via a `nodeSelector` configuration.
 
 First add the labels to the nodes in the different zones.
 
@@ -916,7 +916,7 @@ oc label node {nodename1; zone1} alertmanager=true
 oc label node {nodename2; zone2} alertmanager=true
 ----
 
-NOTE: A node is labeled in each zone. This is so if a node in a zone fails there is another zone (node), for the *Pods* to schedule on.
+NOTE: A node is labeled in each zone. This is done so if a node in a zone fails there is node in a different zone for the *Pods* to schedule on after the `pod-eviction-timeout`.
 
 Now create and then modify the *ConfigMap* `cluster-monitoring-config`.
 
@@ -925,14 +925,14 @@ Now create and then modify the *ConfigMap* `cluster-monitoring-config`.
 oc -n openshift-monitoring create configmap cluster-monitoring-config
 ----
 
-Patch the *ConfigMap* with the labels for prometheus and altermanager *Pod* placement.
+Patch the *ConfigMap* with the labels for prometheus and alertmanager *Pod* placement.
 
 [source,role="execute"]
 ----
 oc patch -n openshift-monitoring --type=merge --patch='{"data":{"config.yaml":"alertmanagerMain:\n  nodeSelector:\n    alertmanager: true\nprometheusK8s:\n  nodeSelector:\n    prometheusk8s: true\nk8sPrometheusAdapter:\n  nodeSelector:\n    prometheusk8s: true\n"}}' cm/cluster-monitoring-config
 ----
 
-Scale the replicas for both alertmanager and prometheus *StatefulSet* to `1` and then back to `3` and `2` respectively. Verify the *Pods* scheduled on the nodes with the new labels.
+Scale the replicas for both alertmanager and prometheus *StatefulSet* to `1` and then back to `3` and `2` respectively. Verify the *Pods* scheduled on the OCP nodes with the new labels.
 
 NOTE: If there is a zone failure or even a node failure that has the new label, the prometheus and/or alertmanager *Pods* can end up all in the same zone. Once all labeled nodes are restored to a healthy state delete the prometheus and/or alertmanager *Pods* one by one until you they are spread across both zones again on the labeled nodes.
 
@@ -969,7 +969,7 @@ Now patch the *IngressController* `default` with the labels for the router *Pod*
 oc patch -n openshift-ingress-operator ingresscontroller.operator.openshift.io default --type json --patch  '[{ "op": "add", "path": "/spec/nodePlacement", value: { "nodeSelector": { "matchLabels": { "routerplacement": "true" }}}}]'
 ----
 
-Scale the replicas for the `router-default` *Deployment* to `1` and then back to `2`. Verify the router *Pods* are scheduled on the nodes with the new labels.
+Scale the replicas for the `router-default` *Deployment* to `1` and then back to `2`. Verify the router *Pods* are scheduled on the OCP nodes with the new labels.
 
 == Appendix B: Metro DR StorageCluster for CLI deployment
 
