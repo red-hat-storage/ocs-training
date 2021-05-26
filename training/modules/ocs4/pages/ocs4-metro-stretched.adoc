@@ -956,8 +956,8 @@ First add the labels to the nodes in the different zones.
 
 [source]
 ----
-oc label node {nodename; zone1} routerplacement=true
-oc label node {nodename; zone2} routerplacement=true
+oc label node {nodename1; zone1} routerplacement=true
+oc label node {nodename2; zone2} routerplacement=true
 ----
 
 NOTE: A node is labeled in each zone. This is because there are two ingress router *Pods* and they must schedule on unique nodes (contrary to monitoring *Pods* that can schedule on the same node).
