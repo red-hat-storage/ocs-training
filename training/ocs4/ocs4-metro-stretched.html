@@ -191,7 +191,13 @@
 <li><a href="#_recovery_for_statefulset_pods">6.5. Recovery for StatefulSet pods</a></li>
 </ul>
 </li>
-<li><a href="#_appendix_a_resiliency_for_openshift_registry_routing_monitoring">7. Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring</a></li>
+<li><a href="#_appendix_a_resiliency_for_openshift_registry_monitoring_routing">7. Appendix A: Resiliency for OpenShift Registry, Monitoring, Routing</a>
+<ul class="sectlevel2">
+<li><a href="#_openshift_registry_using_topologyspreadconstraints">7.1. OpenShift Registry using topologySpreadConstraints</a></li>
+<li><a href="#_openshift_monitoring_using_label_placement">7.2. OpenShift Monitoring using label placement</a></li>
+<li><a href="#_openshift_routers_using_label_placement">7.3. OpenShift Routers using label placement</a></li>
+</ul>
+</li>
 <li><a href="#_appendix_b_metro_dr_storagecluster_for_cli_deployment">8. Appendix B: Metro DR StorageCluster for CLI deployment</a></li>
 </ul>
 </div>
@@ -1240,18 +1246,6 @@ This can happen even with <strong><em>podAntiAffinity</em></strong> and <strong>
 <div class="paragraph">
 <p>Applications that use RWO storage (ReadWriteOnce) have a know behavior described in this <a href="https://github.com/kubernetes/kubernetes/issues/65392">Kubernetes issue</a>. Because of this issue, if there is a data zone failure any application <strong>Pods</strong> in that zone mounting RWO volumes (i.e., cephrbd) are stuck in <code>Terminating</code> after 6-8 minutes and will not be recreated on the active zone without manual intervention.</p>
 </div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-An OCP node can be in the <code>NotReady</code> status but still have <strong>Pods</strong> reading and writing to their storage (i.e., cephrbd volume). Verify the OCP nodes are powered off, or if not possible, sever communication to the servers in the failed zone.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
 <p>To get the <code>Terminating</code> <strong>Pods</strong> to recreate on the active zone do one of these two actions:</p>
 </div>
@@ -1292,6 +1286,18 @@ Events:
   Warning  FailedAttachVolume      4m5s  attachdetach-controller  Multi-Attach error for volume "pvc-0595a8d2-683f-443b-aee0-6e547f5f5a7c" Volume is already exclusively attached to one node and can't be attached to another</pre>
 </div>
 </div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+OCP nodes with a status of <code>NotReady</code> may have an issue that prevents them from communicating with the OpenShift control plane. They may still be performing IO against persistent volumes in spite of this communication issue. If two pods are concurrently writing to the same RWO volume, there is a risk of data corruption. Some measure must be taken to ensure that processes on the <code>NotReady</code> node are terminated or blocked until they can be terminated. Using an out of band management system to power off a node, with confirmation, would be an example of ensuring process termination. Withdrawing a network route that is used by nodes at a failed site to communicate with storage would be an example of blocking. Note that before restoring service to the failed zone or nodes, there must be confirmation that all pods with persistent volumes have terminated successfully.
+</td>
+</tr>
+</table>
+</div>
 <div class="paragraph">
 <p>Once one of these two actions are done the application <strong>Pod</strong> should recreate on the active zone and mount its RWO storage.</p>
 </div>
@@ -1305,10 +1311,247 @@ Events:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_appendix_a_resiliency_for_openshift_registry_routing_monitoring"><a class="anchor" href="#_appendix_a_resiliency_for_openshift_registry_routing_monitoring"></a>7. Appendix A: Resiliency for OpenShift Registry, Routing, Monitoring</h2>
+<h2 id="_appendix_a_resiliency_for_openshift_registry_monitoring_routing"><a class="anchor" href="#_appendix_a_resiliency_for_openshift_registry_monitoring_routing"></a>7. Appendix A: Resiliency for OpenShift Registry, Monitoring, Routing</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As of OpenShift version 4.7 the out-of-the box services for registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in <strong>Deployments</strong> nad <strong>StatefulSets</strong> to use <code>podAntiAffinity</code> with <code>topologyKey: kubernetes.io/hostname</code>. Also, given the anti-affinity is <code>preferredDuringSchedulingIgnoredDuringExecution</code> vs <code>requiredDuringSchedulingIgnoredDuringExecution</code>, that is no guarantee that <strong>Pods</strong> will even be scheduled on different hosts.</p>
+<p>As of OpenShift version 4.7 the out-of-the box services for the image registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in <strong>Deployments</strong> nad <strong>StatefulSets</strong> to use <code>podAntiAffinity</code> with <code>topologyKey: kubernetes.io/hostname</code>. Also, given the anti-affinity is <code>preferredDuringSchedulingIgnoredDuringExecution</code> vs <code>requiredDuringSchedulingIgnoredDuringExecution</code>, that is no guarantee that <strong>Pods</strong> will even be scheduled on different hosts.</p>
+</div>
+<div class="sect2">
+<h3 id="_openshift_registry_using_topologyspreadconstraints"><a class="anchor" href="#_openshift_registry_using_topologyspreadconstraints"></a>7.1. OpenShift Registry using topologySpreadConstraints</h3>
+<div class="paragraph">
+<p>As was described for our sample application the OCP image-registry can use <code>topologySpreadConstraints</code> in the <strong>Deployment</strong> to spread <strong>Pods</strong> between zones equally and then between nodes in a zone.</p>
+</div>
+<div class="paragraph">
+<p>The <code>configs.imageregistry.operator.openshift.io</code> must be edited to use shared storage (i.e., RWX cephfs volume) to scale the number of image-registry <strong>Pods</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Create the <code>ocs4registry</code> <strong>PVC</strong> of the desired size using the <code>ocs-storagecluster-cephfs</code> <strong>StorageClass</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configs.imageregistry.operator.openshift.io</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+  storage:
+    managementState: Managed
+    pvc:
+      claim: ocs4registry
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now the <code>configs.imageregistry.operator.openshift.io</code> must be configured to be <code>Unmanaged</code> so the <strong>Deployment</strong> changes will not reconcile immediately back to default configuration.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch configs.imageregistry.operator.openshift.io cluster --type merge --patch '{"spec":{"managementState":"Unmanaged"}}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once this is done, delete everything under <strong><em>affinity:</em></strong> between <code>spec</code> and <code>containers</code> in the image-registry deployment and replace with the following:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit deployment image-registry -n openshift-image-registry</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+      spec:
+        topologySpreadConstraints:
+          - labelSelector:
+              matchLabels:
+                docker-registry: default
+            maxSkew: 1
+            topologyKey: topology.kubernetes.io/zone
+            whenUnsatisfiable: DoNotSchedule
+          - labelSelector:
+               matchLabels:
+                 docker-registry: default
+            maxSkew: 1
+            topologyKey: kubernetes.io/hostname
+            whenUnsatisfiable: ScheduleAnyway
+        nodeSelector:
+          node-role.kubernetes.io/worker: ""
+        containers:
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To schedule the <strong>Pods</strong> equally between zones you will need to scale the replicas for the <code>image-registry</code> <strong>Deployment</strong> to <code>1</code> and then back to the desired number of <strong>Pods</strong>. Verify the <strong>Pods</strong> are equally scheduled between zones.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_openshift_monitoring_using_label_placement"><a class="anchor" href="#_openshift_monitoring_using_label_placement"></a>7.2. OpenShift Monitoring using label placement</h3>
+<div class="paragraph">
+<p>The prometheus and alertmanager <strong>Pods</strong> are both created from a <strong>StatefulSet</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get statefulset -n openshift-monitoring</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                READY   AGE
+alertmanager-main   3/3     54d
+prometheus-k8s      2/2     54d</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Because of reconciling back to default configuration (shown for prometheus) that uses host-based placement for scheduling, this configuration cannot be deleted from the <strong>StatefulSet</strong> and replaced with <code>topologySpreadConstraints</code> as was done for the image-registry. The same <code>podAntiAffinity</code> is used in the alertmanager <strong>Statefulset</strong> which does not guarantee that the <strong>Pods</strong> will be scheduled in both zones.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit statefulset prometheus-k8s -n openshift-monitoring</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+    spec:
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+          - podAffinityTerm:
+              labelSelector:
+                matchExpressions:
+                - key: prometheus
+                  operator: In
+                  values:
+                  - k8s
+              namespaces:
+              - openshift-monitoring
+              topologyKey: kubernetes.io/hostname
+            weight: 100
+      containers:
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Therefore a different solution is needed to make monitoring highly available across zones. The method is to use node labeling and create a new (or modify existing) <strong>ConfigMap</strong> named <code>cluster-monitoring-config</code> for placement via a <code>nodeSelector</code> configuration.</p>
+</div>
+<div class="paragraph">
+<p>First add the labels to the nodes in the different zones.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node {nodename1; zone1} prometheusk8s=true
+oc label node {nodename2; zone2} prometheusk8s=true
+oc label node {nodename1; zone1} alertmanager=true
+oc label node {nodename2; zone2} alertmanager=true</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A node is labeled in each zone. This is so if a node in a zone fails there is another zone (node), for the <strong>Pods</strong> to schedule on.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now create and then modify the <strong>ConfigMap</strong> <code>cluster-monitoring-config</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n openshift-monitoring create configmap cluster-monitoring-config</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Patch the <strong>ConfigMap</strong> with the labels for prometheus and altermanager <strong>Pod</strong> placement.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch -n openshift-monitoring --type=merge --patch='{"data":{"config.yaml":"alertmanagerMain:\n  nodeSelector:\n    alertmanager: true\nprometheusK8s:\n  nodeSelector:\n    prometheusk8s: true\nk8sPrometheusAdapter:\n  nodeSelector:\n    prometheusk8s: true\n"}}' cm/cluster-monitoring-config</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scale the replicas for both alertmanager and prometheus <strong>StatefulSet</strong> to <code>1</code> and then back to <code>3</code> and <code>2</code> respectively. Verify the <strong>Pods</strong> scheduled on the nodes with the new labels.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If there is a zone failure or even a node failure that has the new label, the prometheus and/or alertmanager <strong>Pods</strong> can end up all in the same zone. Once all labeled nodes are restored to a healthy state delete the prometheus and/or alertmanager <strong>Pods</strong> one by one until you they are spread across both zones again on the labeled nodes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_openshift_routers_using_label_placement"><a class="anchor" href="#_openshift_routers_using_label_placement"></a>7.3. OpenShift Routers using label placement</h3>
+<div class="paragraph">
+<p>The OCP routers have a similar issue as the monitoring <strong>StatefulSets</strong> for prometheus and alertmanager. In the case of the routers it is the <strong>Deployment</strong> that reconciles back to default host-based placement.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get deployment -n openshift-ingress</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME             READY   UP-TO-DATE   AVAILABLE   AGE
+router-default   2/2     2            2           54d</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Given the <strong>Deployment</strong> can not be edited (and have the edits stay) the same method can be used for <strong>Pod</strong> placement as was done for prometheus and alertmanager <strong>Pods</strong>. Label the nodes in each zone and then patch the <strong>IngressController</strong> <code>default</code> to use the label as a <code>nodeSelector</code>.</p>
+</div>
+<div class="paragraph">
+<p>First add the labels to the nodes in the different zones.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node {nodename; zone1} routerplacement=true
+oc label node {nodename; zone2} routerplacement=true</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A node is labeled in each zone. This is because there are two ingress router <strong>Pods</strong> and they must schedule on unique nodes (contrary to monitoring <strong>Pods</strong> that can schedule on the same node).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now patch the <strong>IngressController</strong> <code>default</code> with the labels for the router <strong>Pod</strong> placement.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch -n openshift-ingress-operator ingresscontroller.operator.openshift.io default --type json --patch  '[{ "op": "add", "path": "/spec/nodePlacement", value: { "nodeSelector": { "matchLabels": { "routerplacement": "true" }}}}]'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Scale the replicas for the <code>router-default</code> <strong>Deployment</strong> to <code>1</code> and then back to <code>2</code>. Verify the router <strong>Pods</strong> are scheduled on the nodes with the new labels.</p>
+</div>
 </div>
 </div>
 </div>
