@@ -1314,7 +1314,7 @@ OCP nodes with a status of <code>NotReady</code> may have an issue that prevents
 <h2 id="_appendix_a_resiliency_for_openshift_registry_monitoring_routing"><a class="anchor" href="#_appendix_a_resiliency_for_openshift_registry_monitoring_routing"></a>7. Appendix A: Resiliency for OpenShift Registry, Monitoring, Routing</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As of OpenShift version 4.7 the out-of-the box services for the image registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in <strong>Deployments</strong> nad <strong>StatefulSets</strong> to use <code>podAntiAffinity</code> with <code>topologyKey: kubernetes.io/hostname</code>. Also, given the anti-affinity is <code>preferredDuringSchedulingIgnoredDuringExecution</code> vs <code>requiredDuringSchedulingIgnoredDuringExecution</code>, that is no guarantee that <strong>Pods</strong> will even be scheduled on different hosts.</p>
+<p>As of OpenShift version 4.7 the out-of-the box services for the image registry, ingress routing, and monitoring (prometheus, alertmanger) are not configured for zone anti-affinity. They are configured in <strong>Deployments</strong> and <strong>StatefulSets</strong> to use <code>podAntiAffinity</code> with <code>topologyKey: kubernetes.io/hostname</code>. Also, given the anti-affinity is <code>preferredDuringSchedulingIgnoredDuringExecution</code> vs <code>requiredDuringSchedulingIgnoredDuringExecution</code>, that is no guarantee that <strong>Pods</strong> will even be scheduled on different hosts.</p>
 </div>
 <div class="sect2">
 <h3 id="_openshift_registry_using_topologyspreadconstraints"><a class="anchor" href="#_openshift_registry_using_topologyspreadconstraints"></a>7.1. OpenShift Registry using topologySpreadConstraints</h3>
@@ -1397,7 +1397,7 @@ Create the <code>ocs4registry</code> <strong>PVC</strong> of the desired size us
 <div class="sect2">
 <h3 id="_openshift_monitoring_using_label_placement"><a class="anchor" href="#_openshift_monitoring_using_label_placement"></a>7.2. OpenShift Monitoring using label placement</h3>
 <div class="paragraph">
-<p>The prometheus and alertmanager <strong>Pods</strong> are both created from a <strong>StatefulSet</strong>.</p>
+<p>The prometheus and alertmanager <strong>Pods</strong> are both created with a <strong>StatefulSet</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1413,7 +1413,7 @@ prometheus-k8s      2/2     54d</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Because of reconciling back to default configuration (shown for prometheus) that uses host-based placement for scheduling, this configuration cannot be deleted from the <strong>StatefulSet</strong> and replaced with <code>topologySpreadConstraints</code> as was done for the image-registry. The same <code>podAntiAffinity</code> is used in the alertmanager <strong>Statefulset</strong> which does not guarantee that the <strong>Pods</strong> will be scheduled in both zones.</p>
+<p>Because of the reconciling back to default configuration (shown for prometheus) that uses host-based placement, this configuration cannot be deleted from the <strong>StatefulSet</strong> and replaced with <code>topologySpreadConstraints</code> as was done for the image-registry <strong>Deployment</strong>. The same <code>podAntiAffinity</code> is used in the alertmanager <strong>Statefulset</strong> which does not guarantee that the <strong>Pods</strong> will be scheduled in both zones.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1443,7 +1443,7 @@ prometheus-k8s      2/2     54d</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Therefore a different solution is needed to make monitoring highly available across zones. The method is to use node labeling and create a new (or modify existing) <strong>ConfigMap</strong> named <code>cluster-monitoring-config</code> for placement via a <code>nodeSelector</code> configuration.</p>
+<p>Therefore a different solution is needed to make monitoring resources highly available across zones. The method is to use node labeling and create a new (or modify existing) <strong>ConfigMap</strong> named <code>cluster-monitoring-config</code> for placement via a <code>nodeSelector</code> configuration.</p>
 </div>
 <div class="paragraph">
 <p>First add the labels to the nodes in the different zones.</p>
@@ -1463,7 +1463,7 @@ oc label node {nodename2; zone2} alertmanager=true</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-A node is labeled in each zone. This is so if a node in a zone fails there is another zone (node), for the <strong>Pods</strong> to schedule on.
+A node is labeled in each zone. This is done so if a node in a zone fails there is node in a different zone for the <strong>Pods</strong> to schedule on after the <code>pod-eviction-timeout</code>.
 </td>
 </tr>
 </table>
@@ -1477,7 +1477,7 @@ A node is labeled in each zone. This is so if a node in a zone fails there is an
 </div>
 </div>
 <div class="paragraph">
-<p>Patch the <strong>ConfigMap</strong> with the labels for prometheus and altermanager <strong>Pod</strong> placement.</p>
+<p>Patch the <strong>ConfigMap</strong> with the labels for prometheus and alertmanager <strong>Pod</strong> placement.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1485,7 +1485,7 @@ A node is labeled in each zone. This is so if a node in a zone fails there is an
 </div>
 </div>
 <div class="paragraph">
-<p>Scale the replicas for both alertmanager and prometheus <strong>StatefulSet</strong> to <code>1</code> and then back to <code>3</code> and <code>2</code> respectively. Verify the <strong>Pods</strong> scheduled on the nodes with the new labels.</p>
+<p>Scale the replicas for both alertmanager and prometheus <strong>StatefulSet</strong> to <code>1</code> and then back to <code>3</code> and <code>2</code> respectively. Verify the <strong>Pods</strong> scheduled on the OCP nodes with the new labels.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1550,7 +1550,7 @@ A node is labeled in each zone. This is because there are two ingress router <st
 </div>
 </div>
 <div class="paragraph">
-<p>Scale the replicas for the <code>router-default</code> <strong>Deployment</strong> to <code>1</code> and then back to <code>2</code>. Verify the router <strong>Pods</strong> are scheduled on the nodes with the new labels.</p>
+<p>Scale the replicas for the <code>router-default</code> <strong>Deployment</strong> to <code>1</code> and then back to <code>2</code>. Verify the router <strong>Pods</strong> are scheduled on the OCP nodes with the new labels.</p>
 </div>
 </div>
 </div>
