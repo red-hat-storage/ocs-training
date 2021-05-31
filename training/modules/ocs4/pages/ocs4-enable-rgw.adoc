@@ -35,7 +35,7 @@ The CephObjectStore can be deployed with this YAML file (`oc apply -f cephobject
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: s3a
+  name: ocs-storagecluster-cephobjectstore
   namespace: openshift-storage
 spec:
   dataPool:
@@ -102,40 +102,9 @@ _Note_: the parameters you may want to change are:
 - `failureDomain`: default is `zone` for AWS. You may want to adapt for other infrastructures.
 - `instances`: if you want more than one RGW. In this case, make sure to put some load-balancing in front.
 
-== Create the Service and the Route
+== Service and Route
 
-To access the RGW, you'll need of course at least a Service (for access within the OCP cluster), and a Route if you want to access it from anywhere. So you can apply one or both of those files:
-
-.service.yaml
-[source, yaml]
-----
----
-kind: Service
-apiVersion: v1
-metadata:
-  name: rook-ceph-rgw-ocs-storagecluster-cephobjectstore
-  namespace: openshift-storage
-  labels:
-    app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
-    rook_cluster: openshift-storage
-    rook_object_store: s3a
-spec:
-  ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 80
-  selector:
-    app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
-    rook_cluster: openshift-storage
-    rook_object_store: s3a
-  type: ClusterIP
-  sessionAffinity: None
-----
+To access the RGW internally, you'll need a Service which has already been created automatically with the ObjectStore, and a Route if you want to access it from anywhere. So you can apply this file to create the Route:
 
 .route.yaml
 [source, yaml]
@@ -144,25 +113,54 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: rgw
+  name: s3-rgw
   namespace: openshift-storage
   labels:
     app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
+    ceph_daemon_id: ocs-storagecluster-cephobjectstore
+    ceph_daemon_type: rgw
+    rgw: ocs-storagecluster-cephobjectstore
     rook_cluster: openshift-storage
-    rook_object_store: s3a
+    rook_object_store: ocs-storagecluster-cephobjectstore
 spec:
   to:
     kind: Service
-    name: rook-ceph-rgw-s3a
+    name: rook-ceph-rgw-ocs-storagecluster-cephobjectstore
     weight: 100
   port:
     targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
   wildcardPolicy: None
 ----
 
 The Service or the Route you have created are the endpoints that you can use in your application or code that connects to Object Storage.
+
+== StorageClass
+
+To create ObjectBucketClaims against the RGW (and not against the MCG which is default), you can create the following StorageClass:
+
+.storageclass.yaml
+[source, yaml]
+----
+---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ocs-storagecluster-ceph-rgw
+  annotations:
+    description: Provides Object Bucket Claims (OBCs) using the RGW
+provisioner: openshift-storage.ceph.rook.io/bucket
+parameters:
+  objectStoreName: ocs-storagecluster-cephobjectstore
+  objectStoreNamespace: openshift-storage
+  region: us-east-1
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+----
+
+If you want to use the RGW when creating an ObjectBucketClaim, you can now select `ocs-storagecluster-ceph-rgw` as the storage class.
 
 // == Ceph toolbox
 
