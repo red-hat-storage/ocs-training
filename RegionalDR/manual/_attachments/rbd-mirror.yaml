@@ -1,3 +1,4 @@
+apiVersion: ceph.rook.io/v1
 kind: CephRBDMirror
 metadata:
   name: rbd-mirror
@@ -5,6 +6,19 @@ metadata:
 spec:
   # the number of rbd-mirror daemons to deploy
   count: 1
+  # The affinity rules to apply to the mirror deployment
+  placement:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: cluster.ocs.openshift.io/openshift-storage
+            operator: Exists
+    tolerations:
+    - effect: NoSchedule
+      key: node.ocs.openshift.io/storage
+      operator: Equal
+      value: "true"
   peers:
     secretNames:
       # Secret containing the peer token

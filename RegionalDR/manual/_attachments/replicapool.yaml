@@ -12,7 +12,7 @@ spec:
       image
       # specify the schedules on which snapshots should be taken
     snapshotSchedules:
-      - interval: 1h
+      - interval: 5m
       #  startTime: 00:00:00-05:00
   statusCheck:
     mirror:

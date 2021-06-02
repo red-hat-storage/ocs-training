@@ -572,7 +572,18 @@ All <code>subctl</code> commands can be executed from any node that has network 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre> ✓ Deploying broker
+<pre> ✓ Setting up broker RBAC
+ ✓ Deploying the Submariner operator
+ ✓ Created operator CRDs
+ ✓ Created operator namespace: submariner-operator
+ ✓ Created operator service account and role
+ ✓ Updated the privileged SCC
+ ✓ Created lighthouse service account and role
+ ✓ Updated the privileged SCC
+ ✓ Created Lighthouse service accounts and roles
+ ✓ Deployed the operator successfully
+ ✓ Deploying the broker
+ ✓ The broker has been deployed
  ✓ Creating broker-info.subm file
  ✓ A new IPsec PSK will be generated for broker-info.subm</pre>
 </div>
@@ -587,14 +598,14 @@ All <code>subctl</code> commands can be executed from any node that has network 
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>--disable-nat</code> flag is used when the connection between the two OCP clusters does not involve <code>NAT</code> (Network Address Translation). Reference <a href="https://submariner.io/operations/deployment">Submariner documentation</a> for how to <code>subctl join</code> OCP clusters using <code>NAT</code>.
+The <code>--natt=false</code> flag is used when the connection between the two OCP clusters does not involve <code>NAT</code> (Network Address Translation). Reference <a href="https://submariner.io/operations/deployment">Submariner documentation</a> for how to <code>subctl join</code> OCP clusters using <code>NAT</code>.
 </td>
 </tr>
 </table>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl join --kubeconfig site1/auth/kubeconfig --clusterid site1 broker-info.subm --disable-nat</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl join --kubeconfig site1/auth/kubeconfig --clusterid site1 broker-info.subm --natt=false</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -610,14 +621,7 @@ The <code>--disable-nat</code> flag is used when the connection between the two 
  ✓ Validating Globalnet configurations
  ✓ Discovering multi cluster details
  ✓ Deploying the Submariner operator
- ✓ Created operator CRDs
- ✓ Created operator namespace: submariner-operator
- ✓ Created operator service account and role
- ✓ Updated the privileged SCC
- ✓ Created lighthouse service account and role
- ✓ Updated the privileged SCC
  ✓ Created Lighthouse service accounts and roles
- ✓ Deployed the operator successfully
  ✓ Creating SA for cluster
  ✓ Deploying Submariner
  ✓ Submariner is up and running</pre>
@@ -628,7 +632,7 @@ The <code>--disable-nat</code> flag is used when the connection between the two 
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl join --kubeconfig site2/auth/kubeconfig --clusterid site2 broker-info.subm --disable-nat</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subctl join --kubeconfig site2/auth/kubeconfig --clusterid site2 broker-info.subm --natt=false</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -718,7 +722,8 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>site2-lc8kr-worker-8j2qk        site2                   10.70.56.173    libreswan           10.112.0.0/16, 10.12.0.0/16             connected</pre>
+<pre>site2-wsj9g-worker-4c446  site2    10.70.56.142  no   libreswan     10.112.0.0/16, 10.12.0.0/16  connected  560.701µ
+[...]</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -732,7 +737,8 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>site1-fqldq-worker-975qq        site1                   10.70.56.191    libreswan           10.16.0.0/16, 10.6.0.0/16               connected</pre>
+<pre>site1-vwgpp-worker-fd4gs  site1    10.70.56.202  no   libreswan     10.16.0.0/16, 10.6.0.0/16  connected  459.831µs
+[...]</pre>
 </div>
 </div>
 <div class="admonitionblock caution">
