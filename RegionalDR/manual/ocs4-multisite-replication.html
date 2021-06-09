@@ -443,39 +443,22 @@ networking:
 }</code></pre>
 </div>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Once the two OCP clusters are created, note the location of their unique <code>kubeconfig</code> (i.e.~/site1/auth/kubeconfig).
+</td>
+</tr>
+</table>
+</div>
 <div class="sect4">
 <h5 id="_on_aws_clusters"><a class="anchor" href="#_on_aws_clusters"></a>On AWS clusters</h5>
 <div class="paragraph">
-<p>For OCP on AWS the following packages needs to be available on your deploy host to install <code>Submariner</code>:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>AWS CLI</p>
-</li>
-<li>
-<p>Terraform version 0.12 (maximum version is 0.12.12)</p>
-</li>
-<li>
-<p>wget</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>You also need to download the <code>prep_for_subm.sh</code> script to install <code>Submariner</code> when one or both of your OCP clusters are on AWS.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl https://raw.githubusercontent.com/submariner-io/submariner/devel/tools/openshift/ocp-ipi-aws/prep_for_subm.sh -L -O</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now make <code>prep_for_subm.sh</code> executable.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">chmod a+x ./prep_for_subm.sh</code></pre>
-</div>
+<p>For installing <code>Submariner</code> on AWS the <a href="https://docs.aws.amazon.com/cli/latest/userguide/cli-chap-install.html">AWS Command Line Interface</a> needs to be installed on your deploy host.</p>
 </div>
 <div class="paragraph">
 <p>Refer to these links for additional information about prerequisites when at least one OCP instance is installed on AWS.</p>
@@ -494,13 +477,13 @@ networking:
 <div class="sect4">
 <h5 id="_on_non_aws_clusters"><a class="anchor" href="#_on_non_aws_clusters"></a>On non-AWS clusters</h5>
 <div class="paragraph">
-<p>For non-AWS OCP clusters the only requirement is to download the <code>subctl</code> client that will be used for most <code>Submariner</code> commands.</p>
+<p>For non-AWS OCP clusters the only requirement is to download and install the <code>subctl</code> client that will be used for most <code>Submariner</code> commands.</p>
 </div>
 </div>
 <div class="sect4">
 <h5 id="_on_all_platforms"><a class="anchor" href="#_on_all_platforms"></a>On all platforms</h5>
 <div class="paragraph">
-<p>Install the <code>subctl</code> to control the submariner installation</p>
+<p>Install the <code>subctl</code> to install and maintain the submariner installation</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -527,9 +510,6 @@ Add exported path for <code>subctl</code> in your deploy host <code>.profile</co
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>Once the two OCP clusters are created, note the location of their unique <code>kubeconfig</code> (i.e.~/site1/auth/kubeconfig).</p>
-</div>
 </div>
 </div>
 <div class="sect3">
@@ -537,11 +517,11 @@ Add exported path for <code>subctl</code> in your deploy host <code>.profile</co
 <div class="paragraph">
 <p>The <code>Submariner</code> installation detailed in this guide is for two non-AWS OCP clusters installed on VMware.</p>
 </div>
-<div class="admonitionblock note">
+<div class="admonitionblock caution">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
 Make sure to delete any prior <code>broker-info.subm</code> file before creating a new <code>broker-info.subm</code>.
@@ -556,7 +536,7 @@ Make sure to delete any prior <code>broker-info.subm</code> file before creating
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-All <code>subctl</code> commands can be executed from any node that has network access to the API endpoint of both clusters
+All <code>subctl</code> commands can be executed from any node that has network access to the API endpoint for both clusters
 </td>
 </tr>
 </table>
@@ -1772,7 +1752,7 @@ images: 0 total</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>every 1h</pre>
+<pre>every 5m</pre>
 </div>
 </div>
 <div class="paragraph">
