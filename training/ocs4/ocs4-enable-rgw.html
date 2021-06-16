@@ -193,7 +193,7 @@ The following steps will show you how to do this deployment manually.</p>
 apiVersion: ceph.rook.io/v1
 kind: CephObjectStore
 metadata:
-  name: s3a
+  name: ocs-storagecluster-cephobjectstore
   namespace: openshift-storage
 spec:
   dataPool:
@@ -273,41 +273,10 @@ spec:
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_the_service_and_the_route"><a class="anchor" href="#_create_the_service_and_the_route"></a>3. Create the Service and the Route</h2>
+<h2 id="_service_and_route"><a class="anchor" href="#_service_and_route"></a>3. Service and Route</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>To access the RGW, you&#8217;ll need of course at least a Service (for access within the OCP cluster), and a Route if you want to access it from anywhere. So you can apply one or both of those files:</p>
-</div>
-<div class="listingblock">
-<div class="title">service.yaml</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
-kind: Service
-apiVersion: v1
-metadata:
-  name: rook-ceph-rgw-ocs-storagecluster-cephobjectstore
-  namespace: openshift-storage
-  labels:
-    app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
-    rook_cluster: openshift-storage
-    rook_object_store: s3a
-spec:
-  ports:
-    - name: http
-      protocol: TCP
-      port: 80
-      targetPort: 80
-  selector:
-    app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
-    rook_cluster: openshift-storage
-    rook_object_store: s3a
-  type: ClusterIP
-  sessionAffinity: None</code></pre>
-</div>
+<p>To access the RGW internally, you&#8217;ll need a Service which has already been created automatically with the ObjectStore, and a Route if you want to access it from anywhere. So you can apply this file to create the Route:</p>
 </div>
 <div class="listingblock">
 <div class="title">route.yaml</div>
@@ -316,29 +285,63 @@ spec:
 kind: Route
 apiVersion: route.openshift.io/v1
 metadata:
-  name: rgw
+  name: s3-rgw
   namespace: openshift-storage
   labels:
     app: rook-ceph-rgw
-    ceph_daemon_id: s3a
-    rgw: s3a
+    ceph_daemon_id: ocs-storagecluster-cephobjectstore
+    ceph_daemon_type: rgw
+    rgw: ocs-storagecluster-cephobjectstore
     rook_cluster: openshift-storage
-    rook_object_store: s3a
+    rook_object_store: ocs-storagecluster-cephobjectstore
 spec:
   to:
     kind: Service
-    name: rook-ceph-rgw-s3a
+    name: rook-ceph-rgw-ocs-storagecluster-cephobjectstore
     weight: 100
   port:
     targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
   wildcardPolicy: None</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The Service or the Route you have created are the endpoints that you can use in your application or code that connects to Object Storage.</p>
 </div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_storageclass"><a class="anchor" href="#_storageclass"></a>4. StorageClass</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>To create ObjectBucketClaims against the RGW (and not against the MCG which is default), you can create the following StorageClass:</p>
+</div>
+<div class="listingblock">
+<div class="title">storageclass.yaml</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
+kind: StorageClass
+apiVersion: storage.k8s.io/v1
+metadata:
+  name: ocs-storagecluster-ceph-rgw
+  annotations:
+    description: Provides Object Bucket Claims (OBCs) using the RGW
+provisioner: openshift-storage.ceph.rook.io/bucket
+parameters:
+  objectStoreName: ocs-storagecluster-cephobjectstore
+  objectStoreNamespace: openshift-storage
+  region: us-east-1
+reclaimPolicy: Delete
+volumeBindingMode: Immediate</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If you want to use the RGW when creating an ObjectBucketClaim, you can now select <code>ocs-storagecluster-ceph-rgw</code> as the storage class.</p>
+</div>
 <div class="sect2">
-<h3 id="_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"><a class="anchor" href="#_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"></a>3.1. Using the Rook-Ceph toolbox to check on the Ceph backing storage</h3>
+<h3 id="_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"><a class="anchor" href="#_using_the_rook_ceph_toolbox_to_check_on_the_ceph_backing_storage"></a>4.1. Using the Rook-Ceph toolbox to check on the Ceph backing storage</h3>
 <div class="paragraph">
 <p>Since the Rook-Ceph <strong>toolbox</strong> is not shipped with OCS, we need to deploy it
 manually.</p>
@@ -355,10 +358,10 @@ manually.</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_a_s3_user"><a class="anchor" href="#_create_a_s3_user"></a>4. Create a S3 user</h2>
+<h2 id="_create_a_s3_user"><a class="anchor" href="#_create_a_s3_user"></a>5. Create a S3 user</h2>
 <div class="sectionbody">
 <div class="sect2">
-<h3 id="_method_1"><a class="anchor" href="#_method_1"></a>4.1. Method 1</h3>
+<h3 id="_method_1"><a class="anchor" href="#_method_1"></a>5.1. Method 1</h3>
 <div class="paragraph">
 <p>To create a new S3 user interactively, log into the Ceph toolbox using the command below:</p>
 </div>
@@ -389,7 +392,7 @@ manually.</p>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_method_2"><a class="anchor" href="#_method_2"></a>4.2. Method 2</h3>
+<h3 id="_method_2"><a class="anchor" href="#_method_2"></a>5.2. Method 2</h3>
 <div class="paragraph">
 <p>To be honest, it&#8217;s the same as the previous one, but in one line&#8230;&#8203;</p>
 </div>
