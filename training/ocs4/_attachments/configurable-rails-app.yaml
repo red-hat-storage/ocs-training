@@ -13,7 +13,7 @@ metadata:
       information about using this template, including OpenShift considerations, see
       https://github.com/sclorg/rails-ex/blob/master/README.md.
     iconClass: icon-ruby
-    openshift.io/display-name: Rails + PostgreSQL + Congigigurable StorageClass
+    openshift.io/display-name: Rails + PostgreSQL + Configurable StorageClass
     openshift.io/documentation-url: https://github.com/sclorg/rails-ex
     openshift.io/long-description: This template defines resources needed to develop
       a Rails application, including a build configuration, application deployment
