@@ -1266,3 +1266,402 @@ IMPORTANT: You can combine PV level encryption that can only be configured with 
 KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
 
 Et voilà!
+
+== Granular *PersistentVolume* at-rest encryption without cluster-wide encryption: Kubernetes Auth Method - ServiceAccounts
+
+In ODF 4.7.2+, it is possible to configure PV encryption using the Kubernetes Auth Method to authenticate with Vault using the Kubernetes Service Account Token. This section covers this specific procedure:
+
+ 1. Configure ServiceAccounts used for authenticating to Vault
+ 2. Configure Vault: Kubernetes Auth Method, Policies and Secrets Engine
+ 3. Configure a StorageClass to use this method
+ 4. Create a PVC using this storageclass.
+
+Please gather the following information:
+
+  1. Your Vault Address (i.e. http://vault.default.svc.cluster.local:8200)
+  2. If your Vault instance is external to your cluster please ensure:
+     a. Your Vault instance has access to your cluster api endpoint.
+     b. Include the cluster ca cert for Vault write operations. Details provided below.
+  3. A root Vault token or other token that allows secrets and policies to be configured. If you do not have a Vault token with admin rights, your Vault administrator may apply these changes on your behalf (see vault-init.sh in the yaml below).
+
+
+=== Configure Service Accounts used for authenticating to Vault
+
+Apply the following to your Openshift cluster:
+
+[source,shell]
+----
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: rbd-csi-vault-token-review
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-csi-vault-token-review
+rules:
+  - apiGroups: ["authentication.k8s.io"]
+    resources: ["tokenreviews"]
+    verbs: ["create", "get", "list"]
+
+---
+kind: ClusterRoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-csi-vault-token-review
+subjects:
+  - kind: ServiceAccount
+    name: rbd-csi-vault-token-review
+    namespace: default
+  - kind: ServiceAccount
+    name: default
+    namespace: openshift-storage
+roleRef:
+  kind: ClusterRole
+  name: rbd-csi-vault-token-review
+  apiGroup: rbac.authorization.k8s.io
+----
+
+=== Configure Vault: Kubernetes Auth Method, Policies and Secrets Engine
+
+Apply the following to your cluster:
+
+[source,shell]
+----
+---
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: rbd-csi-vault-token-review-psp
+spec:
+  fsGroup:
+    rule: RunAsAny
+  runAsUser:
+    rule: RunAsAny
+  seLinux:
+    rule: RunAsAny
+  supplementalGroups:
+    rule: RunAsAny
+  volumes:
+    - 'configMap'
+    - 'secret'
+
+---
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  # replace with non-default namespace name
+  namespace: default
+  name: rbd-csi-vault-token-review-psp
+rules:
+  - apiGroups: ['policy']
+    resources: ['podsecuritypolicies']
+    verbs: ['use']
+    resourceNames: ['rbd-csi-vault-token-review-psp']
+
+---
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: rbd-csi-vault-token-review-psp
+  # replace with non-default namespace name
+  namespace: openshift-storage
+subjects:
+  - kind: ServiceAccount
+    name: rbd-csi-vault-token-review
+    # replace with non-default namespace name
+    namespace: openshift-storage
+roleRef:
+  kind: Role
+  name: rbd-csi-vault-token-review-psp
+  apiGroup: rbac.authorization.k8s.io
+----
+
+Apply the follow to configure Vault to allow the Kubernetes auth method, service account authentication and related policies:
+
+[source,shell]
+----
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vault
+  labels:
+    app: vault-api
+spec:
+  ports:
+    - name: vault-api
+      port: 8200
+  clusterIP: None
+  selector:
+    app: vault
+    role: server
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vault
+  labels:
+    app: vault
+    role: server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vault
+      role: server
+  template:
+    metadata:
+      labels:
+        app: vault
+        role: server
+    spec:
+      containers:
+        - name: vault
+          image: docker.io/library/vault:latest
+          imagePullPolicy: "IfNotPresent"
+          securityContext:
+            runAsUser: 100
+          env:
+            - name: VAULT_DEV_ROOT_TOKEN_ID
+              value: sample_root_token <1>
+            - name: SKIP_SETCAP
+              value: any
+          livenessProbe:
+            exec:
+              command:
+                - pidof
+                - vault
+            initialDelaySeconds: 5
+            timeoutSeconds: 2
+          ports:
+            - containerPort: 8200
+              name: vault-api
+---
+apiVersion: v1
+items:
+  - apiVersion: v1
+    data:
+      init-vault.sh: |
+        set -x -e
+
+        timeout 300 sh -c 'until vault status; do sleep 5; done'
+
+        # login into vault to retrieve token
+        vault login ${VAULT_DEV_ROOT_TOKEN_ID}
+
+        # enable kubernetes auth method under specific path:
+        vault auth enable -path="/${CLUSTER_IDENTIFIER}" kubernetes
+
+        # write configuration to use your cluster
+        vault write auth/${CLUSTER_IDENTIFIER}/config \
+          token_reviewer_jwt=@${SERVICE_ACCOUNT_TOKEN_PATH}/token \
+          kubernetes_host="${K8S_HOST}" \
+          kubernetes_ca_cert=@${SERVICE_ACCOUNT_TOKEN_PATH}/ca.crt
+
+        # create policy to use keys related to the cluster
+        vault policy write "${CLUSTER_IDENTIFIER}" - << EOS
+        path "secret/data/ceph-csi/*" {
+          capabilities = ["create", "update", "delete", "read", "list"]
+        }
+
+        path "secret/metadata/ceph-csi/*" {
+          capabilities = ["read", "delete", "list"]
+        }
+
+        path "sys/mounts" {
+          capabilities = ["read"]
+        }
+        EOS
+
+        # create a role
+        vault write "auth/${CLUSTER_IDENTIFIER}/role/${PLUGIN_ROLE}" \
+            bound_service_account_names="${SERVICE_ACCOUNTS}" \
+            bound_service_account_namespaces="${SERVICE_ACCOUNTS_NAMESPACE}" \
+            policies="${CLUSTER_IDENTIFIER}"
+
+        # disable iss validation
+        # from: external-secrets/kubernetes-external-secrets#721
+        vault write auth/kubernetes/config \
+          kubernetes_host="${K8S_HOST}" \
+        # UNCOMMENT if your Vault instance is external to your cluster:
+        #  kubernetes_ca_cert=@${SERVICE_ACCOUNT_TOKEN_PATH}/ca.crt
+          disable_iss_validation=true
+    kind: ConfigMap
+    metadata:
+      creationTimestamp: null
+      name: init-scripts
+kind: List
+metadata: {}
+
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: vault-init-job
+spec:
+  parallelism: 1
+  completions: 1
+  template:
+    metadata:
+      name: vault-init-job
+    spec:
+      serviceAccount: rook-csi-rbd-plugin-sa
+      volumes:
+        - name: init-scripts-volume
+          configMap:
+            name: init-scripts
+      containers:
+        - name: vault-init-job
+          image: docker.io/library/vault:latest
+          volumeMounts:
+            - mountPath: /init-scripts
+              name: init-scripts-volume
+          env:
+            - name: HOME
+              value: /tmp
+            - name: CLUSTER_IDENTIFIER
+              value: kubernetes
+            - name: SERVICE_ACCOUNT_TOKEN_PATH
+              value: /var/run/secrets/kubernetes.io/serviceaccount
+            - name: K8S_HOST
+              value: https://kubernetes.default.svc.cluster.local
+            - name: PLUGIN_ROLE
+              value: csi-kubernetes
+            - name: SERVICE_ACCOUNTS
+              value: rbd-csi-nodeplugin,rbd-csi-provisioner,csi-rbdplugin,csi-rbdplugin-provisioner,rook-csi-rbd-provisioner-sa,rook-csi-rbd-plugin-sa
+            - name: SERVICE_ACCOUNTS_NAMESPACE
+              value: openshift-storage
+            - name: VAULT_ADDR
+              value: {your_vault_url} <2>
+            - name: VAULT_DEV_ROOT_TOKEN_ID
+              value: sample_root_token <1>
+          command:
+            - /bin/sh
+            - /init-scripts/init-vault.sh
+          imagePullPolicy: "IfNotPresent"
+      restartPolicy: Never
+----
+
+<1> Replace with your Vault root token.
+<2> Replace with your vault url. (i.e. http://vault.default.svc.cluster.local:8200/)
+
+
+Verify the job in the yaml above completed without error:
+[source,shell]
+----
+oc -n openshift-storage get pods | grep vault-init
+oc -n openshift-storage logs pods/{POD from previous command}
+----
+
+=== Create a StorageClass to use this method
+
+A storageclass can be configured to use the Kubernetes Auth Method for encryption must have a encryptionKMSID that is defined in the csi-kms-connection-detail configmap.
+
+Create the csi-kms-connection-detail configmap by applying the yaml below. If you change "vault-test" to a more meaningful name for your environment please do not forget to also use your new name in the storageclass encryptionKMSID field.
+
+[source,shell]
+----
+---
+apiVersion: v1
+kind: ConfigMap
+data:
+  vault-test : |-
+    {
+      "encryptionKMSType": "vault",
+      "vaultAddress": "{URL to your vault address and port}", <1>
+      "vaultAuthPath": "/v1/auth/kubernetes/login",
+      "vaultRole": "csi-kubernetes",
+      "vaultPassphraseRoot": "/v1/secret",
+      "vaultPassphrasePath": "ceph-csi/",
+      "vaultCAVerify": "false"
+    }
+  vault-tokens-test: |-
+    {
+      "KMS_PROVIDER": "vaulttokens",
+      "VAULT_ADDR": "{URL to your vault address and port}", <1>
+      "VAULT_BACKEND_PATH": "secret",
+      "VAULT_SKIP_VERIFY": "true"
+    }
+metadata:
+  name: csi-kms-connection-details
+----
+
+<1> Replace with your Vault URL.
+
+Create a StorageClass that uses the service account for authentication.
+
+----
+allowVolumeExpansion: false
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: {NEW STORAGECLASS NAME} <1>
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  encrypted: "true"
+  encryptionKMSID: vault-test
+  imageFeatures: layering
+  imageFormat: "2"
+  pool: ocs-storagecluster-cephblockpool
+provisioner: openshift-storage.rbd.csi.ceph.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+----
+
+<1> Replace with what you would like to call your new storageclass.
+
+=== Create a PVC using this StorageClass
+
+Apply the following to create PVC using your new storageclass that uses the Kubernetes Auth Method with Vault:
+
+[source,shell]
+----
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {PVC NAME} <1>
+  namespace: {YOUR NAMESPACE} <2>
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: {NEW STORAGECLASS NAME} <3>
+  volumeMode: Filesystem
+----
+
+<1> Name your new PVC
+<2> Replace with your desired namespace
+<3> Replace with the storageclass name you previously created.
+
+Your PVC should be bound very quickly. If your PVC is stuck in Pending review the events and logs for possible reasons. Look for mismatches between namespace, sa and Vault policy and role.
+
+If you need to troubleshoot, try these steps:
+
+[source,shell]
+----
+oc -n openshift-storage run tmp --rm -i --tty  --serviceaccount=rook-csi-rbd-plugin-sa --image ubi8/ubi-minimal
+----
+to start a container with attached SA rook-csi-rbd-plugin-sa. Install jq if you need it:
+[source,shell]
+----
+export VAULT_ADDR={VAULT ADDR i.e. http://vault.default.svc.cluster.local:8200}
+export KUBE_TOKEN=$(cat /var/run/secrets/kubernetes.io/serviceaccount/token)
+export VT=$(curl -s --request POST --data '{"jwt": "'"$KUBE_TOKEN"'", "role": "csi-kubernetes"}' $VAULT_ADDR/v1/auth/kubernetes/login | jq -r '.auth.client_token')
+echo $VT
+----
+
+$VT should not be empty. If $VT is empty, there is a mismatch between the SA and namespace the pod is running as, and how the Vault policy was configured. Double check for typos.
+
