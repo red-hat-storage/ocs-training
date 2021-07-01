@@ -1569,13 +1569,14 @@ data:
       "vaultRole": "csi-kubernetes",
       "vaultPassphraseRoot": "/v1/secret",
       "vaultPassphrasePath": "ceph-csi/",
-      "vaultCAVerify": "false"
+      "vaultCAVerify": "false" <2>
     }
 metadata:
   name: csi-kms-connection-details
 ----
 
 <1> Replace with your Vault URL.
+<2> Change to "true" your Vault CA should be verified.
 
 Create a StorageClass that uses the service account for authentication.
 
