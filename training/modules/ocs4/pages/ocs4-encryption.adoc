@@ -1520,7 +1520,7 @@ spec:
             - name: SERVICE_ACCOUNT_TOKEN_PATH
               value: /var/run/secrets/kubernetes.io/serviceaccount
             - name: K8S_HOST
-              value: https://kubernetes.default.svc.cluster.local
+              value: https://{your_openshift_APIServer_external_endpoint} <2>
             - name: PLUGIN_ROLE
               value: csi-kubernetes
             - name: SERVICE_ACCOUNTS
@@ -1528,7 +1528,7 @@ spec:
             - name: SERVICE_ACCOUNTS_NAMESPACE
               value: openshift-storage
             - name: VAULT_ADDR
-              value: {your_vault_url} <2>
+              value: {your_vault_url} <3>
             - name: VAULT_DEV_ROOT_TOKEN_ID
               value: sample_root_token <1>
           command:
@@ -1539,8 +1539,8 @@ spec:
 ----
 
 <1> Replace with a Vault token that allows policy creation. This token is only used during Vault configuration and may be revoked after the job above completes.
-<2> Replace with your vault url. (i.e. http://vault.myvault.com:8200/)
-
+<2> Replace with your Openshift API server external endpoint. (i.e. https://api.ocp47.myopenshift.com:6443)
+<3> Replace with your vault url. (i.e. http://vault.myvault.com:8200/)
 
 Verify the job in the yaml above completed without error:
 [source,shell]
