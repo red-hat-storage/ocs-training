@@ -1538,7 +1538,7 @@ spec:
       restartPolicy: Never
 ----
 
-<1> Replace with a Vault token that allows policy creation.
+<1> Replace with a Vault token that allows policy creation. This token is only used during Vault configuration and may be revoked after the job above completes.
 <2> Replace with your vault url. (i.e. http://vault.myvault.com:8200/)
 
 
