@@ -50,7 +50,7 @@ ____
 
 == Creating a ClusterResourceQuota
 
-To begin, We will create a *ClusterResourceQuota* to manage the maximum amount of storage that will be allocated for the cluster. In the example below, we have identified "40Gi" as the maximum amount of storage we want to be allocated across all *Projects* with the _"clusterstoragequota: enabled"_ annotation. The _requests.storage_ for your cluster will vary based on your specific storage constraints. Create a file called `clusterresourcequota-storage.yaml` and place the following data in it. Be sure to update the requests.storage field for your needs.
+To begin, We will create a *ClusterResourceQuota* to manage the maximum amount of storage that will be allocated for the cluster. In the example below, we have identified "40Gi" as the maximum amount of storage we want to be allocated across all *Projects* with the _"clusterstoragequota: enabled"_ annotation. The _requests.storage_ for your cluster will vary based on your specific storage constraints. Create a file called `clusterresourcequota-storage.yaml` and place the following data in it.
 
 .clusterresourcequota-storage.yaml
 [source,yaml]
@@ -67,6 +67,10 @@ spec:
     annotations:
       clusterstoragequota: enabled
 ----
+
+In the example above, we are setting the quota to 40GB. This works well to illustrate how ClusterResourceQuotas will work on your cluster, but does not reflect a real-world scenario. When determining the value for your cluster-wide quota setting you should take into account the total amount of _usable_ storage available to the cluster. For example:
+
+If you have an OCS Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. ODF is configured in ceph to have a hard limit at 85% (cluster becomes RO) then the requests.storage should be lower, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
 
 Apply the *ClusterResourceQuota* to your cluster by running the following command:
 
@@ -178,7 +182,7 @@ Create the *PVC* in your project `oc create -f storageclaim1.yaml`. Now see how 
 
 [source,shell]
 ----
-$ oc create -f storageclaim1.yaml
+$ oc create -f storageclaim1.yaml -n myproject
 persistentvolumeclaim/storageclaim1 created
 $ oc describe AppliedClusterResourceQuota
 Name:		totalclusterstorage
@@ -191,7 +195,7 @@ AnnotationSelector: clusterstoragequota=enabled
 Resource            Used	Hard
 --------            ----	----
 requests.storage    5Gi	40Gi
-$ oc describe quota
+$ oc describe quota -n myproject
 Name:             storage-consumption
 Namespace:        myproject
 Resource          Used  Hard
@@ -219,11 +223,11 @@ Resource            Used	Hard
 requests.storage    25Gi	40Gi
 ----
 
-Note that the used storage for the cluster has increased by 20Gi. To validate that the *ClusterResourceQuota* is enforcing our quota across multiple projects, create one more pvc file called _storageclaim3.yaml_ and change the storage request to 20Gi. This request is within the project level quota we have remaining but will exceed the maximum amount of cluster storage we want to allocate.
+Note that the used storage for the cluster has increased by 20Gi. To validate that the *ClusterResourceQuota* is enforcing our quota across multiple projects, create one more pvc file called _storageclaim3.yaml_ and change the storage request to 20Gi. We will apply this storage claim to the _myproject_ project which is currently using 5Gi of its 30Gi quota, thus within the project level quota we have remaining. It will however exceed the maximum amount of cluster storage we want to allocate.
 
 [source,role="execute"]
 ----
-$ oc create -f storageclaim3.yaml
+$ oc create -f storageclaim3.yaml -n myproject
 ----
 .Example output
 ----
@@ -341,10 +345,10 @@ spec:
 
 The YAML above creates a cluster level quota for storage that does the following:
 
-* Allow no more than 100Gi of storage to be assigned in your cluster (perhaps your backup service has a max capacity of 100Gi)
-* Allow no more than 40Gi of storage to be assigned in your cluster from the "thin" storage class
-* Allow no more than 80Gi of storage to be assigned in your cluster from the "ocs-storagecluster-cephfs" class
-* Do not allow provisioning of any "ocs-storagecluster-ceph-rbd" storage class
+* Ensures no more than 100Gi of storage can be assigned in your cluster (perhaps your backup service has a max capacity of 100Gi)
+* Ensures no more than 40Gi of storage can be assigned in your cluster from the "thin" storage class
+* Ensures no more than 80Gi of storage can be assigned in your cluster from the "ocs-storagecluster-cephfs" class
+* Does not allow provisioning of any "ocs-storagecluster-ceph-rbd" storage class
 
 Validate this by getting the *AppliedClusterResourceQuota*:
 
