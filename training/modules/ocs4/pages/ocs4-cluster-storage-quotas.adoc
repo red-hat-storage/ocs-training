@@ -103,7 +103,7 @@ By adding the annotation _clusterstoragequota=enabled_ to both projects, they ar
 
 == Create a Namespace quota
 
-The creation of a *ClusterResourceQuota* allows us to control the overall use of storage in the cluster, but it does not keep one *Project* from consuming all that storage. To control storage at a *Project* level, we will create a *ResourceQuota*. Leveraging the test projects we created in the last step, we will create a separate quota for each test project. Create two project quotas, one on _myproject_ and a different quota on _myproject2_:
+The creation of a *ClusterResourceQuota* allows us to control the overall use of storage in the cluster, but it does not keep one *Project* from consuming all that storage. To control storage at a *Project* level, we will create a *ResourceQuota*. **ResourceQuota**s are Kubernetes constructs that can be used to limit the amount of resources that can be consumed within a given *Project*. Leveraging the test projects we created in the last step, we will create a separate quota for each test project. Create two project quotas, one on _myproject_ and a different quota on _myproject2_:
 
 [source,shell]
 ----
@@ -117,7 +117,7 @@ resourcequota/myproject2storagequota created
 
 Now that we have applied our *ClusterResourceQuota* as well as a quota to individual *Projects*, lets take a look at how these quotas are reflected in your cluster. Using the oc command ensure you are on the "myproject" project we created earlier.
 
-Now, review the *ClusterResourceQuota* that is assigned:
+Now, review the *ClusterResourceQuota* that is assigned by describing the *AppliedResourceQuota*:
 
 [source,role="execute"]
 ----
@@ -142,11 +142,11 @@ ____
 *Note* all the projects that are summed up in the *ClusterResourceQuota* are displayed.
 ____
 
-Check the project quota:
+We can also look at the quota that has been applied at the *Project* level. To check the project quota run:
 
 [source,role="execute"]
 ----
-$ oc describe quota
+$ oc describe quota -n myproject
 ----
 .Example output
 ----
@@ -202,6 +202,8 @@ Resource          Used  Hard
 --------          ----  ----
 requests.storage  5Gi   30Gi
 ----
+
+In the above output we can see that the *ClusterResourceQuota* is showing that 5Gi has been allocated across the entire cluster. We can also see that for the project, 5Gi has been allocated from the project level quota. This leaves 25Gi of available storage to be allocated at the project level, and 35Gi available to be allocated for the over all cluster.
 
 Create a second *PVC* file called _storageclaim2.yaml_, and change the storage request to 20Gi. We will apply this to our second *Project* _myproject2_ and then see how the *ClusterResourceQuota* reflects this change.
 
