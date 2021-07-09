@@ -70,7 +70,7 @@ spec:
 
 In the example above, we are setting the quota to 40GB. This works well to illustrate how ClusterResourceQuotas will work on your cluster, but does not reflect a real-world scenario. When determining the value for your cluster-wide quota setting you should take into account the total amount of _usable_ storage available to the cluster. For example:
 
-If you have an OCS Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. ODF is configured in ceph to have a hard limit at 85% (cluster becomes RO) then the requests.storage should be lower, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
+If you have an ODF Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. ODF is configured in ceph to have a hard limit at 85% (cluster becomes RO) then the requests.storage should be lower, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
 
 Apply the *ClusterResourceQuota* to your cluster by running the following command:
 
@@ -325,7 +325,7 @@ Note that the newly created _myproject3_ is automatically added to the *ClusterR
 
 == Cluster Quotas with Multiple Storage Classes
 
-The *ClusterResourceQuota* and project quotas that we have created thus far aggregate all cluster storage classes together. What if you want to set quotas on a per-class basis? This can be done by calling out the storage classes that you want to set the quotas on. Let's start with the *ClusterResourceQuota* we have been using thus far and add some additional targeted classes by adding individual lines to the hard quota in the form _<storageClassName>.storageclass.storage.k8s.io/requests.storage: <value>_. Use the `oc edit ClusterResourceQuota/totalclusterstorage` command to edit the quota directly.
+The *ClusterResourceQuota* and project quotas that we have created thus far aggregate all cluster storage classes together. What if you want to set quotas on a per-class basis? This can be done by calling out the specific storage classes that you want to set the quotas on. Let's start with the *ClusterResourceQuota* we have been using thus far and add some additional targeted classes by adding individual lines to the hard quota in the form _<storageClassName>.storageclass.storage.k8s.io/requests.storage: <value>_. Use the `oc edit ClusterResourceQuota/totalclusterstorage` command to edit the quota directly.
 
 [source,yaml]
 ----
@@ -336,7 +336,6 @@ metadata:
 spec:
   quota:
     hard:
-      requests.storage: "100Gi"
       thin.storageclass.storage.k8s.io/requests.storage: "40Gi"
       ocs-storagecluster-cephfs.storageclass.storage.k8s.io/requests.storage: "80Gi"
       ocs-storagecluster-ceph-rbd.storageclass.storage.k8s.io/requests.storage: "0Gi"
@@ -347,7 +346,6 @@ spec:
 
 The YAML above creates a cluster level quota for storage that does the following:
 
-* Ensures no more than 100Gi of storage can be assigned in your cluster (perhaps your backup service has a max capacity of 100Gi)
 * Ensures no more than 40Gi of storage can be assigned in your cluster from the "thin" storage class
 * Ensures no more than 80Gi of storage can be assigned in your cluster from the "ocs-storagecluster-cephfs" class
 * Does not allow provisioning of any "ocs-storagecluster-ceph-rbd" storage class
