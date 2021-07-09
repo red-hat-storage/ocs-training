@@ -70,7 +70,7 @@ spec:
 
 In the example above, we are setting the quota to 40GB. This works well to illustrate how ClusterResourceQuotas will work on your cluster, but does not reflect a real-world scenario. When determining the value for your cluster-wide quota setting you should take into account the total amount of _usable_ storage available to the cluster. For example:
 
-If you have an ODF Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. ODF is configured in ceph to have a hard limit at 85% (cluster becomes RO) then the requests.storage should be lower, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
+If you have an ODF Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. Ceph is configured in ODF to have a hard limit at 85%. At the 85% mark, the cluster becomes read only. Because of this, we should ensure that the requests.storage is lower than 85%, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* in this manner would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
 
 Apply the *ClusterResourceQuota* to your cluster by running the following command:
 
@@ -377,9 +377,3 @@ Feel free to jump back to the <<exercise-the-quotas,Exercise the quotas>> sectio
 == Summary
 
 By combining OpenShift *Project Templates*, and *ClusterResouceQuotas* along with project quotas OpenShift cluster administrators can take back control and manage storage allocated within their cluster. Remember that you will need to retrofit all existing projects that use *PVCs* to have the annotation on the project following the steps in the <<create-and-annotate-projects,Create and Annotate Projects>> section of this document. Use caution when applying annotations to existing projects to ensure that you do not adversely effect applications deployed in these projects. The concepts that are shown here apply to any object type that can have a quota applied.
-
-== References
-
-* https://docs.openshift.com/container-platform/4.7/applications/quotas/quotas-setting-across-multiple-projects.html[Quota Setting Across Multiple Projects]
-* https://docs.openshift.com/container-platform/4.7/applications/quotas/quotas-setting-per-project.html[Quota Settings Per Project]
-* https://docs.openshift.com/container-platform/4.7/applications/projects/configuring-project-creation.html[Configuring Project Creation]
