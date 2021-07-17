@@ -510,7 +510,7 @@ installation.</p>
 <div class="title">Example output:</div>
 <div class="content">
 <pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0                Succeeded</pre>
+ocs-operator.v4.7.2   OpenShift Container Storage   4.7.2                Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
@@ -558,48 +558,31 @@ rook-ceph-operator-59f7fb95d6-sdjd8    1/1     Running   0          108s</pre>
 installation for OCS 4.</p>
 </div>
 <div class="paragraph">
-<p>Select <code>View Operator</code> in figure below to get to the OCS configuration screen.</p>
+<p>Select <code>Create Storage Cluster</code> in figure below to get to the OCS configuration screen.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-OCP4-View-Operator.png" alt="View Operator in openshift-storage namespacee">
+<img src="_images/OCS4-OCP4-View-Operator.png" alt="Create storage cluster in openshift-storage namespace">
 </div>
-<div class="title">Figure 6. View Operator in openshift-storage namespace</div>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/OCS4-OCP4-config-screen-all.png" alt="OCS configuration screen">
-</div>
-<div class="title">Figure 7. OCS configuration screen</div>
-</div>
-<div class="paragraph">
-<p>On the top of the OCS configuration screen, scroll over to the right and click
-on <code>Storage Cluster</code> and then click on <code>Create Storage Cluster</code> to the far
-right. If you do not see <code>Create Storage Cluster</code> refresh your browser window.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/OCS4-OCP4-config-screen-storage-cluster.png" alt="Create Storage Cluster">
-</div>
-<div class="title">Figure 8. Create Storage Cluster</div>
+<div class="title">Figure 6. Create storage cluster in openshift-storage namespace</div>
 </div>
 <div class="paragraph">
 <p>The <code>Create Storage Cluster</code> screen will display.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-config-screen-partial1.png" alt="Create Storage Cluster default settings">
+<img src="_images/OCS4-config-screen-partial1.png" alt="Configure storage cluster settings">
 </div>
-<div class="title">Figure 9. Create Storage Cluster default settings</div>
+<div class="title">Figure 7. Configure storage cluster settings</div>
 </div>
 <div class="paragraph">
-<p>Leave the default selection of <code>Internal</code>, <code>gp2</code>, <code>2 TiB</code> and Encryption <code>Disabled</code>.</p>
+<p>Leave the default selection of <code>Internal</code>, <code>gp2</code>, <code>2 TiB</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/OCS4-config-screen-partial2.png" alt="Create a new storage cluster">
+<img src="_images/OCS4-config-screen-partial2.png" alt="Select nodes for new storage cluster">
 </div>
-<div class="title">Figure 10. Create a new storage cluster</div>
+<div class="title">Figure 8. Select nodes for new storage cluster</div>
 </div>
 <div class="paragraph">
 <p>There should be 3 worker nodes already selected that had the OCS label
@@ -612,8 +595,17 @@ selected.</p>
 </div>
 </div>
 <div class="paragraph">
-<p>Then click on the button <code>Create</code> below the dialog box with the 3 workers
-selected with a <code>checkmark</code>.</p>
+<p>Then click on the button <code>Next</code> below the dialog box with the 3 workers
+selected with a <code>checkmark</code>. Click <code>Next</code> one more time until you see the figure below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCS4-config-screen-partial3.png" alt="Review and create new storage cluster">
+</div>
+<div class="title">Figure 9. Review and create new storage cluster</div>
+</div>
+<div class="paragraph">
+<p>Click <code>Create</code>.</p>
 </div>
 <div class="paragraph">
 <p>You can watch the deployment using the <strong>Openshift Web Console</strong> by going
@@ -628,7 +620,7 @@ see all instances shown below as <code>Ready</code> Status in the Web Console as
 <div class="content">
 <img src="_images/OCS4-OCP4-finished-cluster-install.png" alt="OCS instance overview after cluster install is finished">
 </div>
-<div class="title">Figure 11. OCS instance overview after cluster install is finished</div>
+<div class="title">Figure 10. OCS instance overview after cluster install is finished</div>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -757,7 +749,7 @@ this by clicking on <code>Overview</code> on your left navigation bar, then sele
 <div class="content">
 <img src="_images/OCS4-OCP4-Overview-Location.png" alt="Location of OCS Dashboards">
 </div>
-<div class="title">Figure 12. Location of OCS Dashboards</div>
+<div class="title">Figure 11. Location of OCS Dashboards</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -776,7 +768,7 @@ for your <strong>Dashboards</strong> to fully populate. Different versions of OC
 <div class="content">
 <img src="_images/OCS-dashboard-healthy.png" alt="Storage Dashboard after successful storage installation">
 </div>
-<div class="title">Figure 13. Storage Dashboard after successful storage installation</div>
+<div class="title">Figure 12. Storage Dashboard after successful storage installation</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -830,7 +822,7 @@ navigation bar of the content page.</p>
 <div class="content">
 <img src="_images/OCS-noobaa-dashboard-healthy.png" alt="OCS Multi-Cloud-Gateway Dashboard after successful installation">
 </div>
-<div class="title">Figure 14. OCS Multi-Cloud-Gateway Dashboard after successful installation</div>
+<div class="title">Figure 13. OCS Multi-Cloud-Gateway Dashboard after successful installation</div>
 </div>
 <table class="tableblock frame-all grid-all stretch">
 <colgroup>
@@ -1344,7 +1336,7 @@ crosses the 75% full threshold.</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-pvcnearfull-alert.png" alt="PVC nearfull alert">
 </div>
-<div class="title">Figure 15. OpenShift Container Platform Events</div>
+<div class="title">Figure 14. OpenShift Container Platform Events</div>
 </div>
 <div class="sect3">
 <h4 id="_expand_applying_a_modified_pvc_yaml_file"><a class="anchor" href="#_expand_applying_a_modified_pvc_yaml_file"></a>3.2.1. Expand applying a modified PVC YAML file</h4>
@@ -1558,7 +1550,7 @@ Web Console</strong>. Proceed as follow:</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-select-project.png" alt="Select project">
 </div>
-<div class="title">Figure 16. Select the appropriate project</div>
+<div class="title">Figure 15. Select the appropriate project</div>
 </div>
 <div class="paragraph">
 <p>Choose <code>Expand PVC</code> from the contextual menu.</p>
@@ -1567,7 +1559,7 @@ Web Console</strong>. Proceed as follow:</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-choose-expand-menu.png" alt="Choose expand from the contextual menu">
 </div>
-<div class="title">Figure 17. Choose Expand from menu</div>
+<div class="title">Figure 16. Choose Expand from menu</div>
 </div>
 <div class="paragraph">
 <p>In the dialog box that appears enter the new capacity for the <strong>PVC</strong>.</p>
@@ -1588,7 +1580,7 @@ You can NOT reduce the size of a <strong>PVC</strong>.
 <div class="content">
 <img src="_images/OCS-PVCResize-enter-new-size.png" alt="Enter new size">
 </div>
-<div class="title">Figure 18. Enter the new size for the <strong>PVC</strong></div>
+<div class="title">Figure 17. Enter the new size for the <strong>PVC</strong></div>
 </div>
 <div class="paragraph">
 <p>You now simply have to wait for the expansion to complete and for the new size
@@ -1598,7 +1590,7 @@ to be reflected in the console (15 GiB).</p>
 <div class="content">
 <img src="_images/OCS-PVCResize-verify-resize-worked2.png" alt="Wait for expansion">
 </div>
-<div class="title">Figure 19. Wait for the expansion to complete</div>
+<div class="title">Figure 18. Wait for the expansion to complete</div>
 </div>
 </div>
 </div>
@@ -1879,7 +1871,7 @@ nothing.</p>
 <div class="content">
 <img src="_images/uploader_screen_upload.png" alt="uploader screen upload">
 </div>
-<div class="title">Figure 20. A simple PHP-based file upload tool</div>
+<div class="title">Figure 19. A simple PHP-based file upload tool</div>
 </div>
 <div class="paragraph">
 <p>Once done click <strong><em>List uploaded files</em></strong> to see the list of all currently
@@ -2078,7 +2070,7 @@ spec:
 <div class="content">
 <img src="_images/OCP4-OCS4-Clone-PVC.png" alt="Persistent Volume Claim clone PVC using UI">
 </div>
-<div class="title">Figure 21. Persistent Volume Claim clone PVC using UI</div>
+<div class="title">Figure 20. Persistent Volume Claim clone PVC using UI</div>
 </div>
 <div class="paragraph">
 <p>Size of new clone <strong>PVC</strong> is greyed out. The new <strong>PVC</strong> will be the same size as the original.</p>
@@ -2087,7 +2079,7 @@ spec:
 <div class="content">
 <img src="_images/OCP4-OCS4-Clone-PVC-config.png" alt="Persistent Volume Claim clone configuration">
 </div>
-<div class="title">Figure 22. Persistent Volume Claim clone configuration</div>
+<div class="title">Figure 21. Persistent Volume Claim clone configuration</div>
 </div>
 <div class="paragraph">
 <p>Now create a <strong>PVC</strong> clone for <code>postgresql</code>.</p>
@@ -2124,7 +2116,7 @@ spec:
 <div class="content">
 <img src="_images/OCP4-OCS4-Clone-PVC-view.png" alt="Persistent Volume Claim clone view in UI">
 </div>
-<div class="title">Figure 23. Persistent Volume Claim clone view in UI</div>
+<div class="title">Figure 22. Persistent Volume Claim clone view in UI</div>
 </div>
 </div>
 <div class="sect3">
@@ -2182,7 +2174,7 @@ DROP TABLE
 <div class="content">
 <img src="_images/rails-postgresql-failed.png" alt="Application failed because database table removed">
 </div>
-<div class="title">Figure 24. Application failed because database table removed</div>
+<div class="title">Figure 23. Application failed because database table removed</div>
 </div>
 <div class="paragraph">
 <p>Remember a <strong>PVC</strong> clone is an exact duplica of the original <strong>PVC</strong> at the time the clone was created. Therefore you can use you <code>postgresql</code> clone to recover the application.</p>
@@ -2333,7 +2325,7 @@ spec:
 <div class="content">
 <img src="_images/OCP4-OCS4-Snapshot.png" alt="Persistent Volume Claim snapshot using UI">
 </div>
-<div class="title">Figure 25. Persistent Volume Claim snapshot using UI</div>
+<div class="title">Figure 24. Persistent Volume Claim snapshot using UI</div>
 </div>
 <div class="paragraph">
 <p>Now create a snapshot for CephFS volume <code>my-shared-storage</code>.</p>
@@ -2374,7 +2366,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="content">
 <img src="_images/OCP4-OCS4-Snapshot-restore.png" alt="Persistent Volume Claim snapshot restore in UI">
 </div>
-<div class="title">Figure 26. Persistent Volume Claim snapshot restore in UI</div>
+<div class="title">Figure 25. Persistent Volume Claim snapshot restore in UI</div>
 </div>
 <div class="paragraph">
 <p>Chose the correct <strong>StorageClass</strong> to create the new clone from snapshot <strong>PVC</strong> and select <code>Restore</code>. The size of the new <strong>PVC</strong> is greyed out and is same as the <code>parent</code> or original <strong>PVC</strong> <code>my-shared-storage</code>.</p>
@@ -2383,7 +2375,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="content">
 <img src="_images/OCP4-OCS4-Snapshot-restore-config.png" alt="Persistent Volume Claim snapshot restore configuration">
 </div>
-<div class="title">Figure 27. Persistent Volume Claim snapshot restore configuration</div>
+<div class="title">Figure 26. Persistent Volume Claim snapshot restore configuration</div>
 </div>
 <div class="paragraph">
 <p>Check to see if there is a new <strong>PVC</strong> restored from the <strong>VolumeSnapshot</strong>.</p>
@@ -2649,107 +2641,119 @@ command.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 5.6.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0
-INFO[0000] Namespace: openshift-storage
-INFO[0000]
-INFO[0000] CRD Status:
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
-INFO[0000]
-INFO[0000] Operator Status:
-INFO[0000] ✅ Exists: Namespace "openshift-storage"
-INFO[0000] ✅ Exists: ServiceAccount "noobaa"
-INFO[0000] ✅ Exists: Role "ocs-operator.v4.6.0-noobaa-6649766bf4"
-INFO[0000] ✅ Exists: RoleBinding "ocs-operator.v4.6.0-noobaa-6649766bf4"
-INFO[0000] ✅ Exists: ClusterRole "ocs-operator.v4.6.0-65577bfbc"
-INFO[0000] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.6.0-65577bfbc"
-INFO[0000] ✅ Exists: Deployment "noobaa-operator"
-INFO[0000]
-INFO[0000] System Status:
-INFO[0000] ✅ Exists: NooBaa "noobaa"
-INFO[0000] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0000] ✅ Exists: Service "noobaa-mgmt"
-INFO[0000] ✅ Exists: Service "s3"
-INFO[0000] ✅ Exists: StatefulSet "noobaa-db"
-INFO[0000] ✅ Exists: Service "noobaa-db"
-INFO[0000] ✅ Exists: Secret "noobaa-server"
-INFO[0000] ✅ Exists: Secret "noobaa-operator"
-INFO[0000] ✅ Exists: Secret "noobaa-endpoints"
-INFO[0000] ✅ Exists: Secret "noobaa-admin"
-INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
-INFO[0000] ✅ Exists: BucketClass "noobaa-default-bucket-class"
-INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"
-INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
-INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
-INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
-INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
-INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
-INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
-INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
-INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
-INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-service-monitor"
-INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"
-INFO[0000] ✅ (Optional) Exists: Route "s3"
-INFO[0000] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-0"
-INFO[0000] ✅ System Phase is "Ready"
-INFO[0000] ✅ Exists:  "noobaa-admin"
+<pre>INFO[0001] CLI version: 5.7.0
+INFO[0001] noobaa-image: registry.redhat.io/ocs4/mcg-core-rhel8@sha256:6ff8645efdde95fa97d496084d3555b768089
+5f0b79c147f2a880b43742af3a4
+INFO[0001] operator-image: registry.redhat.io/ocs4/mcg-rhel8-operator@sha256:6faecc43b775d9083d01f11705334e2
+afdee11eb585b7761851781c94df124ee
+INFO[0001] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:f486bbe07f1ddef166bab5a2a6bdcd0e63
+e6e14d15b42d2425762f83627747bf
+INFO[0001] Namespace: openshift-storage
+INFO[0001]
+INFO[0001] CRD Status:
+INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "namespacestores.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0001] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0001]
+INFO[0001] Operator Status:
+INFO[0001] ✅ Exists: Namespace "openshift-storage"
+INFO[0001] ✅ Exists: ServiceAccount "noobaa"
+INFO[0001] ✅ Exists: Role "ocs-operator.v4.7.2-noobaa-79b9f54f59"
+INFO[0001] ✅ Exists: RoleBinding "ocs-operator.v4.7.2-noobaa-79b9f54f59"
+INFO[0001] ✅ Exists: ClusterRole "ocs-operator.v4.7.2-6d97965cd4"
+INFO[0001] ✅ Exists: ClusterRoleBinding "ocs-operator.v4.7.2-6d97965cd4"
+INFO[0001] ✅ Exists: Deployment "noobaa-operator"
+INFO[0001]
+INFO[0001] System Status:
+INFO[0001] ✅ Exists: NooBaa "noobaa"
+INFO[0001] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0001] ✅ Exists: Service "noobaa-mgmt"
+INFO[0001] ✅ Exists: Service "s3"
+INFO[0001] ✅ Exists: Secret "noobaa-db"
+INFO[0001] ✅ Exists: StatefulSet "noobaa-db-pg"
+INFO[0001] ✅ Exists: Service "noobaa-db-pg"
+INFO[0001] ✅ Exists: Secret "noobaa-server"
+INFO[0001] ✅ Exists: Secret "noobaa-operator"
+INFO[0001] ✅ Exists: Secret "noobaa-endpoints"
+INFO[0001] ✅ Exists: Secret "noobaa-admin"
+INFO[0001] ✅ Exists: Secret "noobaa-root-master-key"
+INFO[0001] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0001] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0001] ✅ Exists: Deployment "noobaa-endpoint"
+INFO[0001] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
+INFO[0001] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
+INFO[0001] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
+INFO[0001] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
+INFO[0001] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
+INFO[0001] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
+INFO[0001] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
+INFO[0001] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0001] ✅ (Optional) Exists: ServiceMonitor "noobaa-mgmt-service-monitor"
+INFO[0001] ✅ (Optional) Exists: ServiceMonitor "s3-service-monitor"
+INFO[0001] ✅ (Optional) Exists: Route "noobaa-mgmt"
+INFO[0001] ✅ (Optional) Exists: Route "s3"
+INFO[0001] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-pg-0"
+INFO[0001] ✅ System Phase is "Ready"
+INFO[0001] ✅ Exists:  "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com https://af3f0dd25ab0f4c7ba70f101f112ef0c-11
-5712529.us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-ocs4-51af.ocs4-51af.sandbox899.opentlc.com
+ https://adab90f297fb14613a664b1e9265e801-915596537.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.209.53:31759]
+NodePorts   : [https://10.0.131.234:31726]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.22.156:443]
-PodPorts    : [https://10.131.2.11:8443]
+InternalIP  : [https://172.30.48.41:443]
+PodPorts    : [https://10.130.2.17:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : Mph5Mhg/r2lCWj99O4jWjw==
+password : 9rEEE9bjw+o9l8myraxpwQ==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com https://a2087e1ee6e754d70bb96dd8922435b3-1451584877.
-us-east-2.elb.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-ocs4-51af.ocs4-51af.sandbox899.opentlc.com https://
+a91eba9e06d8649c684907cdac7041b1-381423410.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.147.230:32297]
+NodePorts   : [https://10.0.131.234:30496]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.54.94:443]
-PodPorts    : [https://10.130.2.70:6443]
+InternalIP  : [https://172.30.25.11:443]
+PodPorts    : [https://10.130.2.19:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : SBC4HsLagqAy7IrGK2A3
-AWS_SECRET_ACCESS_KEY : anilMy0atqj/QlVXMwNwbGasUpRJTXDM7/Mmt/AN
+AWS_ACCESS_KEY_ID     : a0pwpf0vvE3E8U9dezYu
+AWS_SECRET_ACCESS_KEY : 4qGN6Nj47A7G7weOMINnq1fEdjby3LMC/Lfvd4lJ
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
 NAME                           TYPE     TARGET-BUCKET                                       PHASE   AGE
-noobaa-default-backing-store   aws-s3   nb.1610563076824.ocs4-8613.sandbox944.opentlc.com   Ready   7h9m5s
+
+noobaa-default-backing-store   aws-s3   nb.1626480406832.ocs4-51af.sandbox899.opentlc.com   Ready   15m43s
+
 
 #------------------#
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT                                                             PHASE   AGE
-noobaa-default-bucket-class   {Tiers:[{Placement: BackingStores:[noobaa-default-backing-store]}]}   Ready   7h9m5s
+NAME                          PLACEMENT                                                        NAMESPACE-POL
+ICY   PHASE   AGE
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}   null
+      Ready   15m43s
 
 #-----------------#
 #- Bucket Claims -#
@@ -3057,7 +3061,7 @@ spec:
 <div class="content">
 <img src="_images/photo-album-select-upload.png" alt="Select Photo and Upload">
 </div>
-<div class="title">Figure 28. Select Photo and Upload</div>
+<div class="title">Figure 27. Select Photo and Upload</div>
 </div>
 <div class="paragraph">
 <p>Select one or more photos of your choosing on your local machine. Then make sure to click the <code>Upload</code> button for each photo.</p>
@@ -3066,7 +3070,7 @@ spec:
 <div class="content">
 <img src="_images/photo-album-images.png" alt="View photos after uploading">
 </div>
-<div class="title">Figure 29. View photos after uploading</div>
+<div class="title">Figure 28. View photos after uploading</div>
 </div>
 <div class="paragraph">
 <p>To view the photos in your object bucket navigate to the <code>MCG Console</code> by viewing the <strong>Object Service</strong> dashboard viewed previously. Select the <code>Mulitcloud Object Gateway</code> link under <code>System Name</code>.</p>
@@ -3075,7 +3079,7 @@ spec:
 <div class="content">
 <img src="_images/System-Name-MCG-Console.png" alt="Launch MCG console from Object Service dashboard">
 </div>
-<div class="title">Figure 30. Launch MCG console from Object Service dashboard</div>
+<div class="title">Figure 29. Launch MCG console from Object Service dashboard</div>
 </div>
 <div class="paragraph">
 <p>Login to the <code>MCG Console</code> using <code>username</code> kubeadmin and your <code>password</code>. You can navigate to the bucket details by selecting the <code>Buckets</code> on the far right side. Now select <code>Object Buckets</code>.</p>
@@ -3084,7 +3088,7 @@ spec:
 <div class="content">
 <img src="_images/MCG-Console-photo-album-buckets.png" alt="Login to MCG Console and select Buckets">
 </div>
-<div class="title">Figure 31. Login to MCG Console and select Buckets</div>
+<div class="title">Figure 30. Login to MCG Console and select Buckets</div>
 </div>
 <div class="paragraph">
 <p>Select your bucket name under <code>Object Buckets</code> and then select the <code>Objects</code> tab to view the individual objects create when you uploaded your photos.</p>
@@ -3093,7 +3097,7 @@ spec:
 <div class="content">
 <img src="_images/MCG-Console-photo-album-objects.png" alt="Validate uploaded photos are in your object bucket">
 </div>
-<div class="title">Figure 32. Validate uploaded photos are in your Object Bucket</div>
+<div class="title">Figure 31. Validate uploaded photos are in your Object Bucket</div>
 </div>
 </div>
 </div>
@@ -3266,7 +3270,7 @@ reach the OCS storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 33. Add Capacity dialog</div>
+<div class="title">Figure 32. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
 <p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
@@ -3490,7 +3494,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Monitoring Menu">
 </div>
-<div class="title">Figure 34. OCP Monitoring Menu</div>
+<div class="title">Figure 33. OCP Monitoring Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -3499,7 +3503,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 35. OCP Alerting Homepage</div>
+<div class="title">Figure 34. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window using the filters at your
@@ -3588,7 +3592,7 @@ persists for more than the amount of time configured in the alert definition
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 36. OCP Alerting Status Filtering</div>
+<div class="title">Figure 35. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3611,13 +3615,13 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 37. OCP Alert Contextual Menu</div>
+<div class="title">Figure 36. OCP Alert Contextual Menu</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 38. OCP Alert Detail Display</div>
+<div class="title">Figure 37. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3643,7 +3647,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 39. OCP Metrics Menu</div>
+<div class="title">Figure 38. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3652,7 +3656,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 40. OCP Monitoring Metrics Homepage</div>
+<div class="title">Figure 39. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search for
@@ -3669,7 +3673,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 41. Simple Ceph Query</div>
+<div class="title">Figure 40. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3678,7 +3682,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 42. Simple Ceph Graph</div>
+<div class="title">Figure 41. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -3689,7 +3693,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 43. Complex Ceph Query</div>
+<div class="title">Figure 42. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3698,7 +3702,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 44. Complex Ceph Graph</div>
+<div class="title">Figure 43. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3709,7 +3713,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 45. Complex OCP Graph</div>
+<div class="title">Figure 44. Complex OCP Graph</div>
 </div>
 <div class="paragraph">
 <p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
@@ -3759,7 +3763,7 @@ that runs storage specific commands.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.6</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/ocs4/ocs-must-gather-rhel8:v4.7</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3869,7 +3873,7 @@ Command</code>.</p>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 46. Copy Login command menu entry</div>
+<div class="title">Figure 45. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
@@ -3901,9 +3905,9 @@ cluster:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Client Version: 4.6.12
-Server Version: 4.6.12
-Kubernetes Version: v1.19.0+7070803</pre>
+<pre>Client Version: 4.7.16
+Server Version: 4.7.16
+Kubernetes Version: v1.20.0+2817867</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3936,13 +3940,13 @@ version might be higher than the version in the example output.
 <div class="listingblock">
 <div class="title">Mac steps without Homebrew</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-mac-v5.6.0 ; chmod +x noobaa-mac-v5.6.0 ; sudo mv noobaa-mac-v5.6.0 /usr/local/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.7.0/noobaa-mac-v5.7.0 ; chmod +x noobaa-mac-v5.7.0 ; sudo mv noobaa-mac-v5.7.0 /usr/local/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.6.0/noobaa-linux-v5.6.0 ; chmod +x noobaa-linux-v5.6.0 ; sudo mv noobaa-linux-v5.6.0 /usr/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.7.0/noobaa-linux-v5.7.0 ; chmod +x noobaa-linux-v5.7.0 ; sudo mv noobaa-linux-v5.7.0 /usr/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3956,9 +3960,9 @@ version might be higher than the version in the example output.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 5.6.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.6.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.6.0</pre>
+<pre>INFO[0000] CLI version: 5.7.0
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.7.0
+INFO[0000] operator-image: noobaa/noobaa-operator:5.7.0</pre>
 </div>
 </div>
 </div>
@@ -3998,7 +4002,7 @@ outside of OCP 4.
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 47. Ceph Project History</div>
+<div class="title">Figure 46. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -4017,7 +4021,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 48. Ceph Architecture</div>
+<div class="title">Figure 47. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -4116,7 +4120,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 49. RADOS as it stands</div>
+<div class="title">Figure 48. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -4135,7 +4139,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 50. Different Storage Types Supported</div>
+<div class="title">Figure 49. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -4155,7 +4159,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 51. Application Native Object API</div>
+<div class="title">Figure 50. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -4182,7 +4186,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 52. kRBD Diagram</div>
+<div class="title">Figure 51. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -4197,7 +4201,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 53. librbd Diagram</div>
+<div class="title">Figure 52. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -4212,7 +4216,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 54. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 53. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -4231,7 +4235,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 55. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 54. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -4309,7 +4313,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 56. Pools and PGs</div>
+<div class="title">Figure 55. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -4339,7 +4343,7 @@ pool.
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 57. Ceph Data Protection</div>
+<div class="title">Figure 56. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -4383,7 +4387,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 58. Data Distribution</div>
+<div class="title">Figure 57. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
