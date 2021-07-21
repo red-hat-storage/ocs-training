@@ -1267,20 +1267,26 @@ KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
 
 == Granular *PersistentVolume* at-rest encryption without cluster-wide encryption: Kubernetes Auth Method - ServiceAccounts
 
-In ODF 4.7.2+, it is possible to configure PV encryption using the Kubernetes Auth Method to authenticate with Vault using the Kubernetes Service Account Token. This section covers this specific procedure:
+This section outlines steps for using an external Vault instance with the following configuration options:
 
- 1. Configure ServiceAccounts used for authenticating with Vault
- 2. Configure Vault: Kubernetes Auth Method, Policies and Secrets Engine
- 3. Configure a StorageClass to use this method
- 4. Create a PVC using this storageclass.
+  * Vault instance external the Openshift cluster
+  * Openshift ServiceAccount token is used to authenticate with Vault via the Kubernetes Authentication method
+  * Vault namespace for reading/writing secrets used for encryption (optional)
+  * Secrets engine not enabled under Vault namespace but to a different path (optional)
+  * Vault Backend is kv v2 (optional)
+  * HTTPS (optional)
+  * Vault Certificate Authority verified (optional)
 
-Please gather the following information:
+Please gather the following information and verify the following:
 
-  1. Your Vault Address (i.e. http://vault.myvault.com:8200)
-  2. If your Vault instance is external to your cluster please ensure your Vault instance has access to your cluster api endpoint.
-  3. A root Vault token or other token that allows secrets and policies to be configured. If you do not have a Vault token with admin rights, your Vault administrator may apply these changes on your behalf (see vault-init.sh in the yaml below).
+  1. Your *Vault Address* (i.e. http://vault.myvault.com:8200)
+  2. Ensure your *Vault instance* has access to your *cluster api endpoint*.
+  3. Access to configure *Vault auth, policies and secrets engine enablement* or via a Vault administrator.
+  4. If you are verifying the *Vault CA certificate*, please have your Vault CA cert (PEM) available as you will need to base64 encode this cert in a secret. Detailed steps below.
 
-=== Configure Service Accounts used for authenticating with Vault
+=== ServiceAccounts, bindings and roles
+
+Setup for using Kubernetes Authentication method must be configured before ODF can authenticate with and start using Vault. The instructions below create and configure ServiceAccounts, ClusterRole and ClusterRoleBinding required to allow ODF default ServiceAccount to authenticate with Vault.
 
 Apply the following to your Openshift cluster:
 
@@ -1313,16 +1319,22 @@ subjects:
   - kind: ServiceAccount
     name: default
     namespace: openshift-storage
+  - kind: ServiceAccount
+    name: rook-csi-rbd-plugin-sa
+    namespace: openshift-storage
 roleRef:
   kind: ClusterRole
   name: rbd-csi-vault-token-review
   apiGroup: rbac.authorization.k8s.io
 ----
 
-=== Configure Vault: Kubernetes Auth Method, Policies and Secrets Engine
+=== Configure/Verify Vault Authentication
 
-Apply the following to your cluster:
+As mentioned in the previous step, setup for using Kubernetes Authentication method must be configured before ODF can authenticate with and start using Vault. In addition to the previous step, ensure Vault has the right roles and policies created by apply the steps below.
 
+The steps below assume you have root access to Vault. If you do not have root access to Vault (i.e. Vault is administered by another team) please forward these instructions to your Vault administrator.
+
+.Apply the following to your cluster:
 [source,yaml]
 ----
 ---
@@ -1371,8 +1383,11 @@ roleRef:
   apiGroup: rbac.authorization.k8s.io
 ----
 
-Apply the following to configure Vault to allow the Kubernetes auth method, service account authentication and related policies:
+=== Configure/Verify Vault Policies for ODF
 
+The following step requires customization to your exact environment. Please do not apply to your cluster until after making all necessary changes. Details for each configuration option are below.
+
+.Apply the following for psp, role, and Vault setup configuration:
 [source,yaml]
 ----
 ---
@@ -1549,11 +1564,11 @@ oc -n openshift-storage get pods | grep vault-init
 oc -n openshift-storage logs pods/{POD from previous command}
 ----
 
-=== Create a StorageClass to use this method
+=== Create a StorageClass
 
-A storageclass can be configured to use the Kubernetes Auth Method for encryption must have a encryptionKMSID that is defined in the csi-kms-connection-detail configmap.
+In order to create a storageclass that uses our external Vault, we must create and configure a configmap named csi-kms-connection-details that will hold all the information needed to establish the connect. Our storageclass needs to contain the field "encryptionKMSID" whose value is used as a lookup into cm/csi-kms-connection-details.
 
-Create the csi-kms-connection-detail configmap by applying the yaml below. If you change "vault-test" to a more meaningful name for your environment please do not forget to also use your new name in the storageclass encryptionKMSID field.
+Create the csi-kms-connection-detail configmap by applying the yaml below. If you change "vault-test" to a more meaningful name for your environment please do not forget to also use your new name in the storageclass encryptionKMSID field in your new storageclass.
 
 [source,yaml]
 ----
@@ -1561,22 +1576,23 @@ Create the csi-kms-connection-detail configmap by applying the yaml below. If yo
 apiVersion: v1
 kind: ConfigMap
 data:
-  vault-test : |-
+  vault-test : |- <1>
     {
       "encryptionKMSType": "vault",
-      "vaultAddress": "{URL to your vault address, http or https, and port}", <1>
+      "vaultAddress": "{URL to your vault address, http or https, and port}", <2>
       "vaultAuthPath": "/v1/auth/kubernetes/login",
       "vaultRole": "csi-kubernetes",
       "vaultPassphraseRoot": "/v1/secret",
       "vaultPassphrasePath": "ceph-csi/",
-      "vaultCAVerify": "false" <2>
+      "vaultCAVerify": "true" <3>
     }
 metadata:
   name: csi-kms-connection-details
 ----
 
-<1> Replace with your Vault URL.
-<2> Change to "true" your Vault CA should be verified.
+<1> You may change vault-test to a more meaningful name for your environment. Just remember to use the same value for encryptionKMSID in your StorageClass.
+<2> Replace with your Vault URL.
+<3> Change to "false" if your Vault CA should not be verified.
 
 Create a StorageClass that uses the service account for authentication.
 
@@ -1597,7 +1613,7 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
   encrypted: "true"
-  encryptionKMSID: vault-test
+  encryptionKMSID: vault-test <2>
   imageFeatures: layering
   imageFormat: "2"
   pool: ocs-storagecluster-cephblockpool
@@ -1607,6 +1623,7 @@ volumeBindingMode: Immediate
 ----
 
 <1> Replace with what you would like to call your new storageclass.
+<2> Make sure this value matches the entry in cm/csi-kms-connection-details you want this storageclass to use. See item 1 in the yaml for cm/csi-kms-connect-details above.
 
 === Create a PVC using this StorageClass
 
