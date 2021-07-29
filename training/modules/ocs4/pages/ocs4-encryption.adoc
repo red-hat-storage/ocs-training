@@ -1323,6 +1323,9 @@ subjects:
   - kind: ServiceAccount
     name: rook-csi-rbd-plugin-sa
     namespace: openshift-storage
+  - kind: ServiceAccount
+    name: rook-csi-rbd-provisioner-sa
+    namespace: openshift-storage
 roleRef:
   kind: ClusterRole
   name: rbd-csi-vault-token-review
