@@ -1288,6 +1288,7 @@ Please gather the following information and verify the following:
 
 Setup for using Kubernetes Authentication method must be configured before ODF can authenticate with and start using Vault. The instructions below create and configure ServiceAccounts, ClusterRole and ClusterRoleBinding required to allow ODF default ServiceAccount to authenticate with Vault.
 
+
 Apply the following to your Openshift cluster:
 
 [source,yaml]
@@ -1594,6 +1595,7 @@ metadata:
 <2> Replace with your Vault URL.
 <3> Change to "false" if your Vault CA should not be verified.
 
+
 Create a StorageClass that uses the service account for authentication.
 
 [source,yaml]
@@ -1614,6 +1616,7 @@ parameters:
   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
   encrypted: "true"
   encryptionKMSID: vault-test <2>
+
   imageFeatures: layering
   imageFormat: "2"
   pool: ocs-storagecluster-cephblockpool
@@ -1624,6 +1627,7 @@ volumeBindingMode: Immediate
 
 <1> Replace with what you would like to call your new storageclass.
 <2> Make sure this value matches the entry in cm/csi-kms-connection-details you want this storageclass to use. See item 1 in the yaml for cm/csi-kms-connect-details above.
+
 
 === Create a PVC using this StorageClass
 

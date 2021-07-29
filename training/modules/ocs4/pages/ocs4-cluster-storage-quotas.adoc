@@ -1,0 +1,379 @@
+= Cluster Wide Storage Management
+:icons: font
+:source-language: bash
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Introduction 
+
+When it comes to persistent storage in your OpenShift clusters, there is usually only so much of it to go around. As an OpenShift cluster admin, you want to ensure that in the age of self-service, your consumers do not take more storage than their fair share. More importantly you want to ensure that your users don't oversubscribe and consume more storage than you have. This is especially true when the storage system you are using leverages "Thin Provisioning." How do you go about controlling this in OpenShift? Enter the *ClusterResourceQuota* and Project level *ResourceQuotas*.
+
+A *ClusterResourceQuota* object allows quotas to be applied across multiple projects in OpenShift. *ClusterResourceQuotas* aggregate resources used in all projects selected by the quota and can limit resources across all the selected projects. To make this an effective solution for managing storage across your entire cluster all projects will need to have an annotation added which makes it a part of the *ClusterResourceQuota*. By utilizing a default Project template we can ensure that all Projects are created by default with this annotation.
+
+____
+*_NOTE_:*
+Selecting more than 100 projects under a single multi-project quota can have detrimental effects on API server responsiveness in those projects!
+____
+
+== Prerequisites
+
+These requirements need to be met before proceeding:
+
+* An OCP 4.x cluster 
+* At least one StorageClass defined
+* Administrator rights on the cluster
+
+== Identifying Storage Classes
+
+To begin we are going to need to identify the types of storage available within your cluster. This can be done by running `oc get storageclass` command:
+
+[source,role="execute"]
+----
+$ oc get storageclass
+----
+.Example output
+----
+NAME                          PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete          Immediate           true                   8m15s
+ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete          Immediate           false                  8m15s
+ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete          Immediate           true                   8m15s
+openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete          Immediate           false                  6d23h
+thin (default)                kubernetes.io/vsphere-volume            Delete          Immediate           false                  27d
+----
+
+As you can see in our example above, there are multiple storage classes available in this cluster including _ocs-storagecluster-cephfs_, _ocs-storagecluster-ceph-rbd_ and _thin_. We will see how these different storage classes come into play with our ClusterResourceQuota later in this post.
+
+____
+*_Note_* The CSI driver that handles your storage provisioning must support quotas and quota enforcement for this to work properly. Check with your CSI provider to validate if storage quota is supported.
+____
+
+== Creating a ClusterResourceQuota
+
+To begin, We will create a *ClusterResourceQuota* to manage the maximum amount of storage that will be allocated for the cluster. In the example below, we have identified "40Gi" as the maximum amount of storage we want to be allocated across all *Projects* with the _"clusterstoragequota: enabled"_ annotation. The _requests.storage_ for your cluster will vary based on your specific storage constraints. Create a file called `clusterresourcequota-storage.yaml` and place the following data in it.
+
+.clusterresourcequota-storage.yaml
+[source,yaml]
+----
+apiVersion: v1
+kind: ClusterResourceQuota
+metadata:
+  name: totalclusterstorage
+spec:
+  quota:
+    hard:
+      requests.storage: "40Gi"
+  selector:
+    annotations:
+      clusterstoragequota: enabled
+----
+
+In the example above, we are setting the quota to 40GB. This works well to illustrate how ClusterResourceQuotas will work on your cluster, but does not reflect a real-world scenario. When determining the value for your cluster-wide quota setting you should take into account the total amount of _usable_ storage available to the cluster. For example:
+
+If you have an ODF Cluster with 3x2TB volumes and it is replica=3 the effective storage is 2TB. Ceph is configured in ODF to have a hard limit at 85%. At the 85% mark, the cluster becomes read only. Because of this, we should ensure that the requests.storage is lower than 85%, say 75% of 2TB or 1.5TB. Setting the *ClusterResourceQuota* in this manner would ensure that your storage usage does not go above the 85% mark and switch to a read-only state. Be sure if you implement this control in your cluster that you choose the proper quota settings and to update the requests.storage field for your needs.
+
+Apply the *ClusterResourceQuota* to your cluster by running the following command:
+
+[source,role="execute"]
+----
+$ oc create -f clusterresourcequota-storage.yaml
+----
+.Example output
+----
+clusterresourcequota.quota.openshift.io/totalclusterstorage created
+----
+
+== Create and Annotate Projects
+
+We have now created a *ClusterResourceQuota*, but it does not have any projects to select, and include as part of the quota. We will create two new projects and manually add a annotation to these projects for our testing:
+
+[source,shell]
+----
+$ oc new-project myproject
+Now using project "myproject" on server "https://api.ocp47.example.com:6443".
+$ oc new-project myproject2
+Now using project "myproject2" on server "https://api.ocp47.example.com:6443".
+$ oc annotate namespace myproject clusterstoragequota=enabled
+namespace/myproject annotated
+$ oc annotate namespace myproject2 clusterstoragequota=enabled
+namespace/myproject2 annotated
+----
+
+By adding the annotation _clusterstoragequota=enabled_ to both projects, they are now subject to the control of the *ClusterResourceQuota*.
+
+== Create a Namespace quota
+
+The creation of a *ClusterResourceQuota* allows us to control the overall use of storage in the cluster, but it does not keep one *Project* from consuming all that storage. To control storage at a *Project* level, we will create a *ResourceQuota*. **ResourceQuota**s are Kubernetes constructs that can be used to limit the amount of resources that can be consumed within a given *Project*. Leveraging the test projects we created in the last step, we will create a separate quota for each test project. Create two project quotas, one on _myproject_ and a different quota on _myproject2_:
+
+[source,shell]
+----
+$ oc create quota myprojectstoragequota --hard=requests.storage=30Gi -n myproject
+resourcequota/myprojectstoragequota created
+$ oc create quota myproject2storagequota --hard=requests.storage=25Gi -n myproject2
+resourcequota/myproject2storagequota created
+----
+
+== Checking quotas
+
+Now that we have applied our *ClusterResourceQuota* as well as a quota to individual *Projects*, lets take a look at how these quotas are reflected in your cluster. Using the oc command ensure you are on the "myproject" project we created earlier.
+
+Now, review the *ClusterResourceQuota* that is assigned by describing the *AppliedResourceQuota*:
+
+[source,role="execute"]
+----
+$ oc project myproject
+$ oc describe AppliedClusterResourceQuota
+----
+.Example output
+----
+Name:		totalclusterstorage
+Created:	2 days ago
+Labels:		<none>
+Annotations:	<none>
+Namespace Selector: ["myproject" "myproject2"]
+Label Selector:
+AnnotationSelector: clusterstoragequota=enabled
+Resource            Used	Hard
+--------            ----	----
+requests.storage    0Gi	40Gi
+----
+
+____
+*Note* all the projects that are summed up in the *ClusterResourceQuota* are displayed.
+____
+
+We can also look at the quota that has been applied at the *Project* level. To check the project quota run:
+
+[source,role="execute"]
+----
+$ oc describe quota -n myproject
+----
+.Example output
+----
+Name:             storage-consumption
+Namespace:        myproject
+Resource          Used  Hard
+--------          ----  ----
+requests.storage  0Gi   30Gi
+----
+
+We have validated that both the *ClusterResourceQuota* and the *ResourceQuota* is applied to our cluster. We will now see how they affect storage creation.
+
+== Exercise the quotas
+
+With our storage quotas in place at both the cluster level and the project level, we will test them out to see how they work together to ensure that they are controlling storage use. Start by creating a *PersistentVolumeClaim* (PVC) that is less than the quota applied at the project level. Create a file called `storageclaim1.yaml` with the following contents ensuring that you update <storageClassName> with a storage class present in your cluster:
+
+[source,yaml]
+----
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: storageclaim1
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: <storageClassName>
+----
+
+Create the *PVC* in your project `oc create -f storageclaim1.yaml`. Now see how the *PVC* you just created is reflected in both your *Project* and cluster quotas:
+
+[source,shell]
+----
+$ oc create -f storageclaim1.yaml -n myproject
+persistentvolumeclaim/storageclaim1 created
+$ oc describe AppliedClusterResourceQuota
+Name:		totalclusterstorage
+Created:	2 days ago
+Labels:		<none>
+Annotations:	<none>
+Namespace Selector: ["myproject" "myproject2"]
+Label Selector:
+AnnotationSelector: clusterstoragequota=enabled
+Resource            Used	Hard
+--------            ----	----
+requests.storage    5Gi	40Gi
+$ oc describe quota -n myproject
+Name:             storage-consumption
+Namespace:        myproject
+Resource          Used  Hard
+--------          ----  ----
+requests.storage  5Gi   30Gi
+----
+
+In the above output we can see that the *ClusterResourceQuota* is showing that 5Gi has been allocated across the entire cluster. We can also see that for the project, 5Gi has been allocated from the project level quota. This leaves 25Gi of available storage to be allocated at the project level, and 35Gi available to be allocated for the over all cluster.
+
+Create a second *PVC* file called _storageclaim2.yaml_, and change the storage request to 20Gi. We will apply this to our second *Project* _myproject2_ and then see how the *ClusterResourceQuota* reflects this change.
+
+.storageclaim2.yaml
+[source,shell]
+----
+$ oc create -f storageclaim2.yaml -n myproject2
+persistentvolumeclaim/storageclaim2 created
+$ oc describe AppliedClusterResourceQuota
+Name:		totalclusterstorage
+Created:	2 days ago
+Labels:		<none>
+Annotations:	<none>
+Namespace Selector: ["myproject" "myproject2"]
+Label Selector:
+AnnotationSelector: clusterstoragequota=enabled
+Resource            Used	Hard
+--------            ----	----
+requests.storage    25Gi	40Gi
+----
+
+Note that the used storage for the cluster has increased by 20Gi. To validate that the *ClusterResourceQuota* is enforcing our quota across multiple projects, create one more pvc file called _storageclaim3.yaml_ and change the storage request to 20Gi. We will apply this storage claim to the _myproject_ project which is currently using 5Gi of its 30Gi quota, thus within the project level quota we have remaining. It will however exceed the maximum amount of cluster storage we want to allocate.
+
+[source,role="execute"]
+----
+$ oc create -f storageclaim3.yaml -n myproject
+----
+.Example output
+----
+persistentvolumeclaim/storageclaim3 created
+Error from server (Forbidden): error when creating "storageclaim3.yaml": persistentvolumeclaims "storageclaimclaim3" is forbidden: exceeded quota: totalclusterstorage, requested: requests.storage=20Gi, used: requests.storage=25Gi, limited: requests.storage=40Gi
+----
+
+Success! We have ensured that the total storage allocated across multiple projects does not exceed our *ClusterResourceRequest* limit. The only issue at this point, is that we need to add an annotation to each new project as it is created. This is where *Project Templates* come in to help us manage this step automatically.
+
+== Creating a Project Template that includes storage annotation
+
+Now that we have seen how you can manually apply annotations to projects, and how those annotations affect our *ClusterResourceQuota*, we will make sure that all future projects that are created include the annotation that adds it to our *ClusterResourceQuota*.
+
+We will start be creating a default project template:
+
+[source,role="execute"]
+----
+$ oc adm create-bootstrap-project-template -o yaml > template.yaml
+----
+
+Edit the template.yaml file we just created updating the name of the template, and adding our "clusterstoragequota: enabled" annotation to the section _objects.metadata.annotations_:
+
+.template.yaml
+[source,yaml]
+----
+apiVersion: template.openshift.io/v1
+kind: Template
+metadata:
+  creationTimestamp: null
+  name: <template_name>
+objects:
+- apiVersion: project.openshift.io/v1
+  kind: Project
+  metadata:
+    annotations:
+      clusterstoragequota: enabled
+      openshift.io/description: ${PROJECT_DESCRIPTION}
+      openshift.io/display-name: ${PROJECT_DISPLAYNAME}
+      openshift.io/requester: ${PROJECT_REQUESTING_USER}
+    creationTimestamp: null
+    name: ${PROJECT_NAME}
+----
+
+Now apply the newly created template to your cluster:
+
+[source,role="execute"]
+----
+$ oc create -f template.yaml -n openshift-config
+----
+.Example output
+----
+template.template.openshift.io/<template_name> created
+----
+
+Finally, edit the cluster config to start using the new template.
+
+[source,role="execute"]
+----
+$ oc edit project.config.openshift.io/cluster
+----
+
+In the "spec" section add the following, ensuring to update _<template_name>_ with the name you selected when you created your template:
+
+[source,yaml]
+----
+spec:
+ projectRequestTemplate:
+    name: <template_name>
+----
+
+To validate that the project template properly applies our annotation, create a new project _myproject3_ and validate that it is a part of the *ClusterResourceQuota*:
+
+[source,role="execute"]
+----
+$ oc new-project myproject3
+$ oc describe AppliedClusterResourceQuota
+----
+.Example output
+----
+Name:		totalclusterstorage
+Created:	2 days ago
+Labels:		<none>
+Annotations:	<none>
+Namespace Selector: ["myproject" "myproject2" "myproject3"]
+Label Selector:
+AnnotationSelector: clusterstoragequota=enabled
+Resource            Used	Hard
+--------            ----	----
+requests.storage    25Gi	40Gi
+----
+
+Note that the newly created _myproject3_ is automatically added to the *ClusterResourceQuota*.
+
+== Cluster Quotas with Multiple Storage Classes
+
+The *ClusterResourceQuota* and project quotas that we have created thus far aggregate all cluster storage classes together. What if you want to set quotas on a per-class basis? This can be done by calling out the specific storage classes that you want to set the quotas on. Let's start with the *ClusterResourceQuota* we have been using thus far and add some additional targeted classes by adding individual lines to the hard quota in the form _<storageClassName>.storageclass.storage.k8s.io/requests.storage: <value>_. Use the `oc edit ClusterResourceQuota/totalclusterstorage` command to edit the quota directly.
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ClusterResourceQuota
+metadata:
+  name: totalclusterstorage
+spec:
+  quota:
+    hard:
+      thin.storageclass.storage.k8s.io/requests.storage: "40Gi"
+      ocs-storagecluster-cephfs.storageclass.storage.k8s.io/requests.storage: "80Gi"
+      ocs-storagecluster-ceph-rbd.storageclass.storage.k8s.io/requests.storage: "0Gi"
+  selector:
+    annotations:
+      clusterstoragequota: enabled
+----
+
+The YAML above creates a cluster level quota for storage that does the following:
+
+* Ensures no more than 40Gi of storage can be assigned in your cluster from the "thin" storage class
+* Ensures no more than 80Gi of storage can be assigned in your cluster from the "ocs-storagecluster-cephfs" class
+* Does not allow provisioning of any "ocs-storagecluster-ceph-rbd" storage class
+
+Validate this by getting the *AppliedClusterResourceQuota*:
+
+[source,role="execute"]
+----
+$ oc describe AppliedClusterResourceQuota
+----
+.Example output
+----
+Name:		totalclusterstorage
+Created:	21 seconds ago
+Labels:		<none>
+Annotations:	<none>
+Namespace Selector: ["myproject" "myproject3" "myproject2"]
+Label Selector:
+AnnotationSelector: clusterstoragequota=enabled
+Resource						                                  Used	Hard
+--------						                                  ----	----
+managed-nfs-storage.storage.k8s.io/requests.storage	  0	    80Gi
+requests.storage					                            14Gi	100Gi
+thin.storageclass.storage.k8s.io/requests.storage	    10Gi	40Gi
+----
+
+Feel free to jump back to the <<exercise-the-quotas,Exercise the quotas>> section and target the additional storage classes you created to see how they work.
+
+== Summary
+
+By combining OpenShift *Project Templates*, and *ClusterResouceQuotas* along with project quotas OpenShift cluster administrators can take back control and manage storage allocated within their cluster. Remember that you will need to retrofit all existing projects that use *PVCs* to have the annotation on the project following the steps in the <<create-and-annotate-projects,Create and Annotate Projects>> section of this document. Use caution when applying annotations to existing projects to ensure that you do not adversely effect applications deployed in these projects. The concepts that are shown here apply to any object type that can have a quota applied.
