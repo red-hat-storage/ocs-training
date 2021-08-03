@@ -1267,6 +1267,8 @@ KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
 
 == Granular *PersistentVolume* at-rest encryption without cluster-wide encryption: Kubernetes Auth Method - ServiceAccounts
 
+Before ODF can use external Vault with service account tokens, we have to configure the authentcation method and Vault roles and policies. Details of the Kubernetes Authentication Method are out of scope for this document but are well explained by https://cloud.redhat.com/blog/vault-integration-using-kubernetes-authentication-method[Vault Integration Using Kubernetes Authentication Method]. In addition, Hashicorp Vault provides tutorials on general https://learn.hashicorp.com/tutorials/vault/kubernetes-external-vault?in=vault/kubernetes[integration between Vault and Kubernetes]. 
+
 This section outlines steps for using an external Vault instance with the following configuration options:
 
   * Vault instance external the Openshift cluster
@@ -1568,7 +1570,7 @@ oc -n openshift-storage get pods | grep vault-init
 oc -n openshift-storage logs pods/{POD from previous command}
 ----
 
-=== Create a StorageClass
+=== Create an Encrypted StorageClass
 
 In order to create a storageclass that uses our external Vault, we must create and configure a configmap named csi-kms-connection-details that will hold all the information needed to establish the connect. Our storageclass needs to contain the field "encryptionKMSID" whose value is used as a lookup into cm/csi-kms-connection-details.
 
