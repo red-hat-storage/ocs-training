@@ -10,3 +10,4 @@
 * xref:ocs4-cluster-downsize.adoc[Downsize existing OCS cluster]
 * xref:ocs4-enable-rgw.adoc[Use RGW in OCS deployment]
 * xref:ocs4-cluster-storage-quotas.adoc[Cluster wide storage management]
+* xref:ocs4-additionalfeatures.adoc[Development preview features]

@@ -1,0 +1,125 @@
+=== Mixed OSD device type configuration
+
+With ODF 4.7 you can customize the deployment of your OSDs to consume different device
+types. This feature can be combined with the BlueStore placement customization and
+it is illustrated below.
+
+[source,yaml]
+----
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  managedResources:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: ocs-deviceset-nvme
+    portable: false
+    replica: 3
+    deviceType: nvme <1>
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: ocs-deviceset-hdd
+    portable: false
+    replica: 3
+    deviceType: hdd <2>
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: ocs-deviceset-mix
+    portable: false
+    replica: 3
+    deviceType: ssd <3>
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    walPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+----
+<1> The authorized values for the device types are `hdd`, `ssd` and `nvme`. Those device types will be used
+to assign a CRUSH device class within your underlying cluster. See the xref:ocs4-additionalfeatures.adoc#_data_segregation[]
+chapter.
+
+Here is an example of the CRUSH tree being generated in the underlying cluster with the
+specific CRUSH device class value assigned.
+
+.CRUSH tree
+----
+ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
+ -1       39.75000 root default
+ -7       39.75000     region us-east-2
+-18       13.25000         zone us-east-2a
+-33        8.50000             host ip-10-0-149-187
+  0   hdd  8.50000                 osd.0                up  1.00000 1.00000
+-17        4.75000             host ip-10-0-152-149
+  3  nvme  0.50000                 osd.3                up  1.00000 1.00000
+  5   ssd  4.25000                 osd.5                up  1.00000 1.00000
+ -6       13.25000         zone us-east-2b
+-41        8.50000             host ip-10-0-161-186
+  8   hdd  8.50000                 osd.8                up  1.00000 1.00000
+ -5        4.75000             host ip-10-0-179-156
+  1  nvme  0.50000                 osd.1                up  1.00000 1.00000
+  2   ssd  4.25000                 osd.2                up  1.00000 1.00000
+-26       13.25000         zone us-east-2c
+-25        4.75000             host ip-10-0-196-12
+  4  nvme  0.50000                 osd.4                up  1.00000 1.00000
+  7   ssd  4.25000                 osd.7                up  1.00000 1.00000
+-37        8.50000             host ip-10-0-211-21
+  6   hdd  8.50000                 osd.6                up  1.00000 1.00000
+----
+
+//NOTE: The CRUSH weight assigned to the OSDs does not reflect the reality of what was
+//allocated in the *StorageCluster* definition when using `metadataPVCTemplate`
+//and `dataPVCTTemplate`. A bug report was filed to address this
+//minor issue https://bugzilla.redhat.com/show_bug.cgi?id=1952661[here].

@@ -1,0 +1,41 @@
+=== Ceph configuration override
+
+ODF 4.7 allows you to create a custom configuration map containing Ceph configuration
+parameters that will be added to the default Ceph configuration parameters when deployed
+via the ODF operator.
+
+To achieve this, your *StorageCluster* CR must be configured specifically to inform 
+the ODF operator that a custom configuration was created for the cluster.
+
+[source,yaml]
+----
+spec:
+  managedResources:
+    cephConfig:
+      reconcileStrategy: ignore
+[...]
+----
+
+Once this parameter is added to your *StorageClkuster* CR you simply have to create
+a specific ConfigurationMap to be used by the operator during the deployment.
+
+[source,shell]
+----
+apiVersion: v1
+data:
+  config: |2
+
+    [global]
+    mon_osd_full_ratio = .85
+    mon_osd_backfillfull_ratio = .80
+    mon_osd_nearfull_ratio = .75
+    mon_max_pg_per_osd = 600
+    [osd]
+    osd_pool_default_min_size = 1
+    osd_pool_default_size = 2
+    osd_memory_target_cgroup_limit_ratio = 0.5
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: openshift-storage
+----

@@ -1,0 +1,95 @@
+=== OSD BlueStore RocksDB metadata and WAL placement
+
+With ODF 4.7 you can customized the deployment of your OSDs when it comes to what device to use
+for what part of BlueStore. Let's consider a standard *StorageCluster* Custom Resource below:
+
+[source,yaml]
+----
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: {deviceset-prefix}
+    portable: false
+    replica: 3
+----
+
+This will deploy a cluster in a very standard way where every piece of the OSD is collocated
+on the PVC that will be provisioned using the storage class `\{storageclass\}`. The size of
+the PersistentVolume that will be provisioned is specified as `\{size\}`.
+
+==== RocksDB metadata placement
+
+IMPORTANT: This feature is Development Preview.
+
+You can now add the following section to your `storageDeviceSets` parameter to customize
+the placement of RocksDB at deployment time.
+
+[source,yaml]
+----
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+----
+
+When added to your storage cluster the following will happen:
+
+. Each OSD data will claim a PVC as `\{deviceset-prefix-x-data-y\}`
+. Each OSD RockDB metadata will claim a PVC as `\{deviceset-prefix-x-metadata-y\}`
+
+CAUTION: The deployment process will provision PVC and will not be able to partition
+an existing device. Make sure to configure your RocksDB metadata partitions
+before configuring LSO and before deploying your storage cluster.
+
+==== RocksDB WAL placement
+
+IMPORTANT: This feature is Development Preview.
+
+You can now add the following section to your `storageDeviceSets` parameter to customize
+the placement of the RocksDB Write Ahead Log (WAL) at deployment time.
+
+[source,yaml]
+----
+    walPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+----
+
+When added to your storage cluster the following will happen:
+
+. Each OSD data will claim a PVC as `\{deviceset-prefix-x-data-y\}`
+. Each OSD RockDB WAL will claim a PVC as `\{deviceset-prefix-x-wal-y\}`
+
+NOTE: The WAL placement can be combined with the RocksDB metadata placement.
+
+CAUTION: The deployment process will provision PVC and will not be able to partition
+an existing device. Make sure to configure your RocksDB WAL partitions before configuringLSO
+and before deploying your storage cluster.
