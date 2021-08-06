@@ -1,7 +1,11 @@
 === OSD BlueStore RocksDB metadata and WAL placement
 
-With ODF 4.7 you can customized the deployment of your OSDs when it comes to what device to use
-for what part of BlueStore. Let's consider a standard *StorageCluster* Custom Resource below:
+Starting with ODF 4.7 you can customize the deployment of your OSDs when it comes to what device to use
+for what part of BlueStore. 
+
+This is useful if you want to offload the OSD's metadata onto a different disk for performance reasons.
+
+Let's consider a standard *StorageCluster* Custom Resource below:
 
 [source,yaml]
 ----

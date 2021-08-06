@@ -1,7 +1,7 @@
 === Mixed OSD device type configuration
 
-With ODF 4.7 you can customize the deployment of your OSDs to consume different device
-types. This feature can be combined with the BlueStore placement customization and
+Starting with ODF 4.7 you can customize the deployment of your OSDs to consume different device
+types. This feature can be combined with xref:ocs4-additionalfeatures-dbwal.adoc[the BlueStore placement customization] and
 it is illustrated below.
 
 [source,yaml]

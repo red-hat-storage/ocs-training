@@ -7,7 +7,7 @@ only map to OSD that are in specific hosts or of a specific device type.
 
 ==== Prerequisites
 
-The OpenShift Data Foundation operator has been installed and need be the
+The OpenShift Data Foundation operator has been installed and you also need the
 Local Storage Operator. Note that this feature works with both dynamic provisioning
 based deployments (e.g. AWS `gp2`) and LSO based deployments.
 
@@ -234,7 +234,7 @@ all PersistentVolumes are created if the count is different!
 
 ==== Storage Cluster Configuration
 
-Deploy the OpenShift Data Foundation storage cluster using the following `CustomResource` file or equivalent based
+After installing the OpenShift Data Foundation Operator via OperatorHub. Deploy the OpenShift Data Foundation storage cluster using the following `CustomResource` file or equivalent based
 on your exact configuration.
 
 [source,yaml]
@@ -309,6 +309,7 @@ spec:
               operator: In
               values:
               - "set2"
+EOF
 ----
 <1> Count is the number of replicas to deploy for this `storageDeviceSet`
 <2> Replica for this `storageDeviceSet` (how many OSDs to deploy each time `count` is increased by 1)

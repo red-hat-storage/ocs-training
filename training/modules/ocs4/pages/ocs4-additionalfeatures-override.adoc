@@ -1,6 +1,6 @@
 === Ceph configuration override
 
-ODF 4.7 allows you to create a custom configuration map containing Ceph configuration
+ODF 4.7 and above allows you to create a custom configuration map containing Ceph configuration
 parameters that will be added to the default Ceph configuration parameters when deployed
 via the ODF operator.
 
@@ -16,7 +16,7 @@ spec:
 [...]
 ----
 
-Once this parameter is added to your *StorageClkuster* CR you simply have to create
+Once this parameter is added to your *StorageCluster* CR you simply have to create
 a specific ConfigurationMap to be used by the operator during the deployment.
 
 [source,shell]
