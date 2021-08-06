@@ -1,0 +1,56 @@
+= Ceph configuration override
+//:toc:
+//:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+//:hide-uri-scheme:
+
+ODF 4.7 and above allows you to create a custom configuration map containing Ceph configuration
+parameters that will be added to the default Ceph configuration parameters when deployed
+via the ODF operator.
+
+Once the Red Hat OpenShift Data Foundation operator is deployed, create a specific
+ConfigMap in the `openshift-storage` namespace.
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  config: |2
+
+    [global]
+    mon_osd_full_ratio = .85
+    mon_osd_backfillfull_ratio = .80
+    mon_osd_nearfull_ratio = .75
+    mon_max_pg_per_osd = 600
+    [osd]
+    osd_pool_default_min_size = 1
+    osd_pool_default_size = 2
+    osd_memory_target_cgroup_limit_ratio = 0.5
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: openshift-storage
+----
+
+CAUTION: Once the ConfigMap is created, you *MUST deploy the storage cluster via the CLI*.
+
+IMPORTANT: Deploying your storage cluster via the UI will overwrite your customized
+ConfigMap.
+
+Add the following parameters to your *StorageCluster* CR yaml file.
+
+[source,yaml]
+----
+spec:
+  managedResources:
+    cephConfig:
+      reconcileStrategy: ignore
+[...]
+----
+
+This will make sure your custonized ConfigMap is injected into the underlying Ceph cluster.
