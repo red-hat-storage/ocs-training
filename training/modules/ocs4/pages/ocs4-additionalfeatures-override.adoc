@@ -1,4 +1,13 @@
-=== Ceph configuration override
+= Ceph configuration override
+//:toc:
+//:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+//:hide-uri-scheme:
 
 ODF 4.7 and above allows you to create a custom configuration map containing Ceph configuration
 parameters that will be added to the default Ceph configuration parameters when deployed

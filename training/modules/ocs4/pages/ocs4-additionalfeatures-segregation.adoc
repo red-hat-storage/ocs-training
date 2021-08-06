@@ -1,17 +1,26 @@
-=== Data Segregation
+= Data Segregation
+//:toc:
+//:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+//:hide-uri-scheme:
 
 IMPORTANT: This feature is Development Preview.
 
 This feature allows you to create a custom Ceph block pool to have the pool
 only map to OSD that are in specific hosts or of a specific device type.
 
-==== Prerequisites
+== Prerequisites
 
 The OpenShift Data Foundation operator has been installed and you also need the
 Local Storage Operator. Note that this feature works with both dynamic provisioning
 based deployments (e.g. AWS `gp2`) and LSO based deployments.
 
-==== Label Nodes
+== Label Nodes
 
 The first step prior to deployment is to label your OpenShift Data Foundation nodes
 with a specific label that will provide a placement tag for your device set. In the
@@ -66,7 +75,7 @@ ip-10-0-220-5.us-east-2.compute.internal     Ready    worker   141m   v1.21.1+05
 In this document we use a Local Storage Operator based deployment on AWS. Each node is an `i3.4xlarge` instance
 with 2 NVMe drives for each node.
 
-==== Local Storage Operator Configuration
+== Local Storage Operator Configuration
 
 Deploy the Local Storage Operator using the following command.
 
@@ -232,7 +241,7 @@ on the ODF labelled nodes.
 IMPORTANT: You should have as many PersistentVolumes as you have local disk devices. Wait until
 all PersistentVolumes are created if the count is different!
 
-==== Storage Cluster Configuration
+== Storage Cluster Configuration
 
 After installing the OpenShift Data Foundation Operator via OperatorHub. Deploy the OpenShift Data Foundation storage cluster using the following `CustomResource` file or equivalent based
 on your exact configuration.

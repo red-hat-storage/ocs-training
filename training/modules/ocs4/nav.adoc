@@ -10,4 +10,10 @@
 * xref:ocs4-cluster-downsize.adoc[Downsize existing OCS cluster]
 * xref:ocs4-enable-rgw.adoc[Use RGW in OCS deployment]
 * xref:ocs4-cluster-storage-quotas.adoc[Cluster wide storage management]
-* xref:ocs4-additionalfeatures.adoc[Development preview features]
+// * xref:ocs4-additionalfeatures.adoc[Development preview features]
+
+.Development preview features
+* xref:ocs4-additionalfeatures-dbwal.adoc[BlueStore RocksDB metadata and WAL placement]
+* xref:ocs4-additionalfeatures-devtype.adoc[Mixed OSD device type configuration]
+* xref:ocs4-additionalfeatures-override.adoc[Ceph configuration override]
+* xref:ocs4-additionalfeatures-segregation.adoc[Data Segregation]
