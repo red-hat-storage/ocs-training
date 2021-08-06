@@ -4,22 +4,10 @@ ODF 4.7 allows you to create a custom configuration map containing Ceph configur
 parameters that will be added to the default Ceph configuration parameters when deployed
 via the ODF operator.
 
-To achieve this, your *StorageCluster* CR must be configured specifically to inform 
-the ODF operator that a custom configuration was created for the cluster.
+Once the Red Hat OpenShift Data Foundation operator is deployed, create a specific
+ConfigMap in the `openshift-storage` namespace.
 
 [source,yaml]
-----
-spec:
-  managedResources:
-    cephConfig:
-      reconcileStrategy: ignore
-[...]
-----
-
-Once this parameter is added to your *StorageClkuster* CR you simply have to create
-a specific ConfigurationMap to be used by the operator during the deployment.
-
-[source,shell]
 ----
 apiVersion: v1
 data:
@@ -39,3 +27,21 @@ metadata:
   name: rook-config-override
   namespace: openshift-storage
 ----
+
+CAUTION: Once the ConfigMap is created, you *MUST deploy the storage cluster via the CLI*.
+
+IMPORTANT: Deploying your storage cluster via the UI will overwrite your customized
+ConfigMap.
+
+Add the following parameters to your *StorageCluster* CR yaml file.
+
+[source,yaml]
+----
+spec:
+  managedResources:
+    cephConfig:
+      reconcileStrategy: ignore
+[...]
+----
+
+This will make sure your custonized ConfigMap is injected into the underlying Ceph cluster.

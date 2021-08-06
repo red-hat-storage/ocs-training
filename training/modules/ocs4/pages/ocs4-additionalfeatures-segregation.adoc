@@ -323,6 +323,10 @@ spec:
 storagecluster.ocs.openshift.io/ocs-storagecluster created
 ----
 
+TIP: The `deviceClass` parameter allows you to override the `deviceType` parameter
+described in the ODF 4.7 xref:ocs4-additionalfeatures.adoc#_mixed_osd_device_type_configuration[] chapter.
+As a result you can now choose customized character strings outside of the `hdd, ssd or nvme` options.
+
 Wait for your cluster to be fully deployed.
 
 [source,shell]

@@ -1,6 +1,6 @@
 === OSD BlueStore RocksDB metadata and WAL placement
 
-With ODF 4.7 you can customized the deployment of your OSDs when it comes to what device to use
+With ODF 4.7 and above you can customized the deployment of your OSDs when it comes to what device to use
 for what part of BlueStore. Let's consider a standard *StorageCluster* Custom Resource below:
 
 [source,yaml]
@@ -59,9 +59,9 @@ When added to your storage cluster the following will happen:
 . Each OSD data will claim a PVC as `\{deviceset-prefix-x-data-y\}`
 . Each OSD RockDB metadata will claim a PVC as `\{deviceset-prefix-x-metadata-y\}`
 
-CAUTION: The deployment process will provision PVC and will not be able to partition
-an existing device. Make sure to configure your RocksDB metadata partitions
-before configuring LSO and before deploying your storage cluster.
+CAUTION: The LSO discovery and subsequent provisioning will create new PVs using the entire disk
+and you cannot create partitions after this process. Make sure to configure your RocksDB metadata disk partitions
+before LSO discovery to create the data and metadata PVs to be used to deploy your storage cluster.
 
 ==== RocksDB WAL placement
 
@@ -90,6 +90,6 @@ When added to your storage cluster the following will happen:
 
 NOTE: The WAL placement can be combined with the RocksDB metadata placement.
 
-CAUTION: The deployment process will provision PVC and will not be able to partition
-an existing device. Make sure to configure your RocksDB WAL partitions before configuringLSO
-and before deploying your storage cluster.
+CAUTION: The LSO discovery and subsequent provisioning will create new PVs using the entire disk
+and you cannot create partitions after this process. Make sure to configure your RocksDB metadata disk partitions
+before LSO discovery to create the data and wal PVs to be used to deploy your storage cluster.

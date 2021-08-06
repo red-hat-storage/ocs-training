@@ -1,8 +1,8 @@
 === Mixed OSD device type configuration
 
-With ODF 4.7 you can customize the deployment of your OSDs to consume different device
-types. This feature can be combined with the BlueStore placement customization and
-it is illustrated below.
+With ODF 4.7 and above you can customize the deployment of your OSDs to consume different device
+types. This feature can be combined with the BlueStore RocksDB metadata and WAL placement
+customization and it is illustrated below.
 
 [source,yaml]
 ----
@@ -25,7 +25,7 @@ spec:
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-nvme}
         volumeMode: Block
     name: ocs-deviceset-nvme
     portable: false
@@ -39,12 +39,12 @@ spec:
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-hdd}
         volumeMode: Block
     name: ocs-deviceset-hdd
     portable: false
     replica: 3
-    deviceType: hdd <2>
+    deviceType: hdd <1>
     metadataPVCTemplate:
       spec:
         accessModes:
@@ -52,7 +52,7 @@ spec:
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-ssd}
         volumeMode: Block
   - count: 1
     dataPVCTemplate:
@@ -62,12 +62,12 @@ spec:
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-hdd}
         volumeMode: Block
     name: ocs-deviceset-mix
     portable: false
     replica: 3
-    deviceType: ssd <3>
+    deviceType: ssd <1>
     metadataPVCTemplate:
       spec:
         accessModes:
@@ -75,21 +75,23 @@ spec:
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-ssd}
         volumeMode: Block
-    walPVCTemplate:
+    walPVCTemplate: <2>
       spec:
         accessModes:
         - ReadWriteOnce
         resources:
           requests:
             storage: {size}
-        storageClassName: {storageclass}
+        storageClassName: {storageclass-nvme}
         volumeMode: Block
 ----
 <1> The authorized values for the device types are `hdd`, `ssd` and `nvme`. Those device types will be used
 to assign a CRUSH device class within your underlying cluster. See the xref:ocs4-additionalfeatures.adoc#_data_segregation[]
 chapter.
+<2> Following the recommendations used for Red Hat Ceph Storage the only interest in separating the WAL placement
+is if the WAL can reside on a faster device than the device where the metadata lives.
 
 Here is an example of the CRUSH tree being generated in the underlying cluster with the
 specific CRUSH device class value assigned.
