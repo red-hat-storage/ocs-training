@@ -1,7 +1,20 @@
-=== OSD BlueStore RocksDB metadata and WAL placement
+= OSD BlueStore RocksDB metadata and WAL placement
+//:toc:
+//:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+//:hide-uri-scheme:
 
-With ODF 4.7 and above you can customized the deployment of your OSDs when it comes to what device to use
-for what part of BlueStore. Let's consider a standard *StorageCluster* Custom Resource below:
+Starting with ODF 4.7 you can customize the deployment of your OSDs when it comes to what device to use
+for what part of BlueStore. 
+
+This is useful if you want to offload the OSD's metadata onto a different disk for performance reasons.
+
+Let's consider a standard *StorageCluster* Custom Resource below:
 
 [source,yaml]
 ----
@@ -34,7 +47,7 @@ This will deploy a cluster in a very standard way where every piece of the OSD i
 on the PVC that will be provisioned using the storage class `\{storageclass\}`. The size of
 the PersistentVolume that will be provisioned is specified as `\{size\}`.
 
-==== RocksDB metadata placement
+== RocksDB metadata placement
 
 IMPORTANT: This feature is Development Preview.
 
@@ -63,7 +76,7 @@ CAUTION: The LSO discovery and subsequent provisioning will create new PVs using
 and you cannot create partitions after this process. Make sure to configure your RocksDB metadata disk partitions
 before LSO discovery to create the data and metadata PVs to be used to deploy your storage cluster.
 
-==== RocksDB WAL placement
+== RocksDB WAL placement
 
 IMPORTANT: This feature is Development Preview.
 

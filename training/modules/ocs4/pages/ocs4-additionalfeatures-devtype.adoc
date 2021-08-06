@@ -1,8 +1,17 @@
-=== Mixed OSD device type configuration
+= Mixed OSD device type configuration
+//:toc:
+//:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+//:hide-uri-scheme:
 
-With ODF 4.7 and above you can customize the deployment of your OSDs to consume different device
-types. This feature can be combined with the BlueStore RocksDB metadata and WAL placement
-customization and it is illustrated below.
+Starting with ODF 4.7 you can customize the deployment of your OSDs to consume different device
+types. This feature can be combined with xref:ocs4-additionalfeatures-dbwal.adoc[the BlueStore placement customization] and
+it is illustrated below.
 
 [source,yaml]
 ----
@@ -88,8 +97,7 @@ spec:
         volumeMode: Block
 ----
 <1> The authorized values for the device types are `hdd`, `ssd` and `nvme`. Those device types will be used
-to assign a CRUSH device class within your underlying cluster. See the xref:ocs4-additionalfeatures.adoc#_data_segregation[]
-chapter.
+to assign a CRUSH device class within your underlying cluster. See the xref:ocs4-additionalfeatures-segregation.adoc[document on data segregation] for more information on this.
 <2> Following the recommendations used for Red Hat Ceph Storage the only interest in separating the WAL placement
 is if the WAL can reside on a faster device than the device where the metadata lives.
 
