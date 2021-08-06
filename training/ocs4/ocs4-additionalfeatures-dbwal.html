@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>OpenShift Regional Disaster Recovery :: OCS Training</title>
-    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-multisite-replication.html">
+    <title>OSD BlueStore RocksDB metadata and WAL placement :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-additionalfeatures-dbwal.html">
     <meta name="generator" content="Antora 2.3.4">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
@@ -98,7 +98,7 @@
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Development preview features</span>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="ocs4-additionalfeatures-dbwal.html">BlueStore RocksDB metadata and WAL placement</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -163,17 +163,67 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li><a href="ocs4-multisite-replication.html">OpenShift Regional Disaster Recovery</a></li>
+    <li>Development preview features</li>
+    <li><a href="ocs4-additionalfeatures-dbwal.html">BlueStore RocksDB metadata and WAL placement</a></li>
   </ul>
 </nav>
-  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-multisite-replication.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-additionalfeatures-dbwal.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">OpenShift Regional Disaster Recovery</h1>
+<h1 class="page">OSD BlueStore RocksDB metadata and WAL placement</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with ODF 4.7 you can customize the deployment of your OSDs when it comes to what device to use
+for what part of BlueStore.</p>
+</div>
+<div class="paragraph">
+<p>This is useful if you want to offload the OSD&#8217;s metadata onto a different disk for performance reasons.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s consider a standard <strong>StorageCluster</strong> Custom Resource below:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-storagecluster
+  namespace: openshift-storage
+spec:
+  manageNodes: false
+  monDataDirHostPath: /var/lib/rook
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block
+    name: {deviceset-prefix}
+    portable: false
+    replica: 3</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will deploy a cluster in a very standard way where every piece of the OSD is collocated
+on the PVC that will be provisioned using the storage class <code>{storageclass}</code>. The size of
+the PersistentVolume that will be provisioned is specified as <code>{size}</code>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rocksdb_metadata_placement"><a class="anchor" href="#_rocksdb_metadata_placement"></a>1. RocksDB metadata placement</h2>
+<div class="sectionbody">
 <div class="admonitionblock important">
 <table>
 <tr>
@@ -181,10 +231,129 @@
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-This document has moved to <a href="../../RegionalDR/manual/ocs4-multisite-replication.html" class="page">this location</a>
+This feature is Development Preview.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>You can now add the following section to your <code>storageDeviceSets</code> parameter to customize
+the placement of RocksDB at deployment time.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When added to your storage cluster the following will happen:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Each OSD data will claim a PVC as <code>{deviceset-prefix-x-data-y}</code></p>
+</li>
+<li>
+<p>Each OSD RockDB metadata will claim a PVC as <code>{deviceset-prefix-x-metadata-y}</code></p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The LSO discovery and subsequent provisioning will create new PVs using the entire disk
+and you cannot create partitions after this process. Make sure to configure your RocksDB metadata disk partitions
+before LSO discovery to create the data and metadata PVs to be used to deploy your storage cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_rocksdb_wal_placement"><a class="anchor" href="#_rocksdb_wal_placement"></a>2. RocksDB WAL placement</h2>
+<div class="sectionbody">
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+This feature is Development Preview.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>You can now add the following section to your <code>storageDeviceSets</code> parameter to customize
+the placement of the RocksDB Write Ahead Log (WAL) at deployment time.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">    walPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass}
+        volumeMode: Block</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>When added to your storage cluster the following will happen:</p>
+</div>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Each OSD data will claim a PVC as <code>{deviceset-prefix-x-data-y}</code></p>
+</li>
+<li>
+<p>Each OSD RockDB WAL will claim a PVC as <code>{deviceset-prefix-x-wal-y}</code></p>
+</li>
+</ol>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The WAL placement can be combined with the RocksDB metadata placement.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The LSO discovery and subsequent provisioning will create new PVs using the entire disk
+and you cannot create partitions after this process. Make sure to configure your RocksDB metadata disk partitions
+before LSO discovery to create the data and wal PVs to be used to deploy your storage cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
 </div>
 </article>
   </div>

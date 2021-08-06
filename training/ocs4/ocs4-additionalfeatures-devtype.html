@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Mixed OSD device type configuration :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-additionalfeatures-devtype.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/manual/ocs4-multisite-replication.html">Regional disaster recovery (manual method)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/helper/requirements.html">Regional disaster recovery (RDRhelper)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-encryption.html">External KMS Encryption</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-storage-quotas.html">Cluster wide storage management</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development preview features</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-dbwal.html">BlueStore RocksDB metadata and WAL placement</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-devtype.html">Mixed OSD device type configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-override.html">Ceph configuration override</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-segregation.html">Data Segregation</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <a class="title" href="../../RegionalDR/index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../RegionalDR/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li>Development preview features</li>
+    <li><a href="ocs4-additionalfeatures-devtype.html">Mixed OSD device type configuration</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-additionalfeatures-devtype.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Mixed OSD device type configuration</h1>
+<div id="preamble">
+<div class="sectionbody">
+<div class="paragraph">
+<p>Starting with ODF 4.7 you can customize the deployment of your OSDs to consume different device
+types. This feature can be combined with <a href="ocs4-additionalfeatures-dbwal.html" class="page">the BlueStore placement customization</a> and
+it is illustrated below.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hardware_configuration_hddssd"><a class="anchor" href="#_hardware_configuration_hddssd"></a>1. Hardware Configuration (HDD+SSD)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Your hardware configuration allows you to create partitions on an NVMe device for the OSD metadata
+and you want to assign a CRUSH Device Class as <code>hdd</code> for these OSDs. To achieve this configuration
+you would create a <code>storageDeviceSet</code> configuration illustrated below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+spec:
+[...]
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass-hdd}
+        volumeMode: Block
+    name: ocs-deviceset-hdd
+    portable: false
+    replica: 3
+    deviceType: hdd <i class="conum" data-value="1"></i><b>(1)</b>
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass-ssd}
+        volumeMode: Block</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The authorized values for the device types are <code>hdd</code>, <code>ssd</code> and <code>nvme</code>. Those device types will be used
+to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="page">document on data segregation</a> for more information on this.</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_hardware_configuration_hddssdnvme"><a class="anchor" href="#_hardware_configuration_hddssdnvme"></a>2. Hardware Configuration (HDD+SSD+NVMe)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Your hardware configuration allows you to create partitions on an NVMe device for the OSD WAL,
+create partitions on an SSD for OSD metadata and you will also want to assign a CRUSH Device Class as <code>ssd</code>
+for these OSDs. To achieve this configuration you would create a <code>storageDeviceSet</code>
+configuration illustrated below.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
+spec:
+[...]
+  storageDeviceSets:
+  - count: 1
+    dataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass-hdd}
+        volumeMode: Block
+    name: ocs-deviceset-mix
+    portable: false
+    replica: 3
+    deviceType: hdd <i class="conum" data-value="1"></i><b>(1)</b>
+    metadataPVCTemplate:
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass-ssd}
+        volumeMode: Block
+    walPVCTemplate: <i class="conum" data-value="2"></i><b>(2)</b>
+      spec:
+        accessModes:
+        - ReadWriteOnce
+        resources:
+          requests:
+            storage: {size}
+        storageClassName: {storageclass-nvme}
+        volumeMode: Block</code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>The authorized values for the device types are <code>hdd</code>, <code>ssd</code> and <code>nvme</code>. Those device types will be used
+to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="page">document on data segregation</a> for more information on this.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Following the recommendations used for Red Hat Ceph Storage the only interest in separating the WAL placement
+is if the WAL can reside on a faster device than the device where the metadata lives.</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If you do not specify a <code>deviceType</code> value the OSD will auto-detect the type of device using
+the value contained in <code>/sys/block/{devicename}/queue/rotational</code>. If the file contains a <code>0</code> the device
+type assigned will be <code>ssd</code> but if the value is <code>1</code> the device type assigned will be <code>hdd</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+There is no built-in mechanism in the OSD to detect a difference between a SSD and a NVMe. Both
+will be assigend a type <code>ssd</code> without your customization.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_crush_tree_example"><a class="anchor" href="#_crush_tree_example"></a>3. CRUSH Tree Example</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Here is an example of the CRUSH tree being generated in the underlying cluster with the
+specific CRUSH device class value assigned in our lab. This is an example to illustrate
+the CRUSH device class that gets assigned to each OSD and does not reflect the actual
+<code>yaml</code> example in this chapter.</p>
+</div>
+<div class="listingblock">
+<div class="title">CRUSH tree</div>
+<div class="content">
+<pre>ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
+ -1       39.75000 root default
+ -7       39.75000     region us-east-2
+-18       13.25000         zone us-east-2a
+-33        8.50000             host ip-10-0-149-187
+  0   hdd  8.50000                 osd.0                up  1.00000 1.00000
+-17        4.75000             host ip-10-0-152-149
+  3  nvme  0.50000                 osd.3                up  1.00000 1.00000
+  5   ssd  4.25000                 osd.5                up  1.00000 1.00000
+ -6       13.25000         zone us-east-2b
+-41        8.50000             host ip-10-0-161-186
+  8   hdd  8.50000                 osd.8                up  1.00000 1.00000
+ -5        4.75000             host ip-10-0-179-156
+  1  nvme  0.50000                 osd.1                up  1.00000 1.00000
+  2   ssd  4.25000                 osd.2                up  1.00000 1.00000
+-26       13.25000         zone us-east-2c
+-25        4.75000             host ip-10-0-196-12
+  4  nvme  0.50000                 osd.4                up  1.00000 1.00000
+  7   ssd  4.25000                 osd.7                up  1.00000 1.00000
+-37        8.50000             host ip-10-0-211-21
+  6   hdd  8.50000                 osd.6                up  1.00000 1.00000</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+You can see that different CRUSH device class values are assigned to your OSDs
+based on the <code>deviceType</code> field value in your <code>yaml</code> configuration.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+You can leverage the CRUSH device class assigned to the OSDs to write specific
+CRUSH rules that will target specific OSDs in a Ceph cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

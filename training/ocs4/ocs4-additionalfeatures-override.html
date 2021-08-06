@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>OpenShift Regional Disaster Recovery :: OCS Training</title>
-    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-multisite-replication.html">
+    <title>Ceph configuration override :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-additionalfeatures-override.html">
     <meta name="generator" content="Antora 2.3.4">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
@@ -104,7 +104,7 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="ocs4-additionalfeatures-devtype.html">Mixed OSD device type configuration</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="ocs4-additionalfeatures-override.html">Ceph configuration override</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -163,17 +163,60 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li><a href="ocs4-multisite-replication.html">OpenShift Regional Disaster Recovery</a></li>
+    <li>Development preview features</li>
+    <li><a href="ocs4-additionalfeatures-override.html">Ceph configuration override</a></li>
   </ul>
 </nav>
-  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-multisite-replication.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-additionalfeatures-override.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">OpenShift Regional Disaster Recovery</h1>
+<h1 class="page">Ceph configuration override</h1>
+<div class="paragraph">
+<p>ODF 4.7 and above allows you to create a custom configuration map containing Ceph configuration
+parameters that will be added to the default Ceph configuration parameters when deployed
+via the ODF operator.</p>
+</div>
+<div class="paragraph">
+<p>Once the Red Hat OpenShift Data Foundation operator is deployed, create a specific
+ConfigMap in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  config: |2
+
+    [global]
+    mon_osd_full_ratio = .85
+    mon_osd_backfillfull_ratio = .80
+    mon_osd_nearfull_ratio = .75
+    mon_max_pg_per_osd = 600
+    [osd]
+    osd_pool_default_min_size = 1
+    osd_pool_default_size = 2
+    osd_memory_target_cgroup_limit_ratio = 0.5
+kind: ConfigMap
+metadata:
+  name: rook-config-override
+  namespace: openshift-storage</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Once the ConfigMap is created, you <strong>MUST deploy the storage cluster via the CLI</strong>.
+</td>
+</tr>
+</table>
+</div>
 <div class="admonitionblock important">
 <table>
 <tr>
@@ -181,10 +224,26 @@
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-This document has moved to <a href="../../RegionalDR/manual/ocs4-multisite-replication.html" class="page">this location</a>
+Deploying your storage cluster via the UI will overwrite your customized
+ConfigMap.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>Add the following parameters to your <strong>StorageCluster</strong> CR yaml file.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">spec:
+  managedResources:
+    cephConfig:
+      reconcileStrategy: ignore
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will make sure your custonized ConfigMap is injected into the underlying Ceph cluster.</p>
 </div>
 </article>
   </div>
