@@ -55,7 +55,7 @@ to assign a CRUSH device class within your underlying cluster. See the xref:ocs4
 == Hardware Configuration (HDD+SSD+NVMe)
 
 Your hardware configuration allows you to create partitions on an NVMe device for the OSD WAL,
-caete partitions on an SSD for OSD metadata and you want to assign a CRUSH Device Class as `ssd`
+create partitions on an SSD for OSD metadata and you will also want to assign a CRUSH Device Class as `ssd`
 for these OSDs. To achieve this configuration you would create a `storageDeviceSet`
 configuration illustrated below.
 
@@ -105,7 +105,7 @@ is if the WAL can reside on a faster device than the device where the metadata l
 
 IMPORTANT: If you do not specify a `deviceType` value the OSD will auto-detect the type of device using
 the value contained in `/sys/block/{devicename}/queue/rotational`. If the file contains a `0` the device
-type assigned will be `ssd` but if the value is `1` teh device type assigned will be `hdd`.
+type assigned will be `ssd` but if the value is `1` the device type assigned will be `hdd`.
 
 CAUTION: There is no built-in mechanism in the OSD to detect a difference between a SSD and a NVMe. Both
 will be assigend a type `ssd` without your customization.
