@@ -13,33 +13,18 @@ Starting with ODF 4.7 you can customize the deployment of your OSDs to consume d
 types. This feature can be combined with xref:ocs4-additionalfeatures-dbwal.adoc[the BlueStore placement customization] and
 it is illustrated below.
 
+== Hardware Configuration (HDD+SSD)
+
+Your hardware configuration allows you to create partitions on an NVMe device for the OSD metadata
+and you want to assign a CRUSH Device Class as `hdd` for these OSDs. To achieve this configuration
+you would create a `storageDeviceSet` configuration illustrated below.
+
 [source,yaml]
 ----
----
-apiVersion: ocs.openshift.io/v1
-kind: StorageCluster
-metadata:
-  name: ocs-storagecluster
-  namespace: openshift-storage
+[...]
 spec:
-  managedResources:
-  manageNodes: false
-  monDataDirHostPath: /var/lib/rook
+[...]
   storageDeviceSets:
-  - count: 1
-    dataPVCTemplate:
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: {size}
-        storageClassName: {storageclass-nvme}
-        volumeMode: Block
-    name: ocs-deviceset-nvme
-    portable: false
-    replica: 3
-    deviceType: nvme <1>
   - count: 1
     dataPVCTemplate:
       spec:
@@ -63,6 +48,23 @@ spec:
             storage: {size}
         storageClassName: {storageclass-ssd}
         volumeMode: Block
+----
+<1> The authorized values for the device types are `hdd`, `ssd` and `nvme`. Those device types will be used
+to assign a CRUSH device class within your underlying cluster. See the xref:ocs4-additionalfeatures-segregation.adoc[document on data segregation] for more information on this.
+
+== Hardware Configuration (HDD+SSD+NVMe)
+
+Your hardware configuration allows you to create partitions on an NVMe device for the OSD WAL,
+caete partitions on an SSD for OSD metadata and you want to assign a CRUSH Device Class as `ssd`
+for these OSDs. To achieve this configuration you would create a `storageDeviceSet`
+configuration illustrated below.
+
+[source,yaml]
+----
+[...]
+spec:
+[...]
+  storageDeviceSets:
   - count: 1
     dataPVCTemplate:
       spec:
@@ -76,7 +78,7 @@ spec:
     name: ocs-deviceset-mix
     portable: false
     replica: 3
-    deviceType: ssd <1>
+    deviceType: hdd <1>
     metadataPVCTemplate:
       spec:
         accessModes:
@@ -101,8 +103,19 @@ to assign a CRUSH device class within your underlying cluster. See the xref:ocs4
 <2> Following the recommendations used for Red Hat Ceph Storage the only interest in separating the WAL placement
 is if the WAL can reside on a faster device than the device where the metadata lives.
 
+IMPORTANT: If you do not specify a `deviceType` value the OSD will auto-detect the type of device using
+the value contained in `/sys/block/{devicename}/queue/rotational`. If the file contains a `0` the device
+type assigned will be `ssd` but if the value is `1` teh device type assigned will be `hdd`.
+
+CAUTION: There is no built-in mechanism in the OSD to detect a difference between a SSD and a NVMe. Both
+will be assigend a type `ssd` without your customization.
+
+== CRUSH Tree Example
+
 Here is an example of the CRUSH tree being generated in the underlying cluster with the
-specific CRUSH device class value assigned.
+specific CRUSH device class value assigned in our lab. This is an example to illustrate
+the CRUSH device class that gets assigned to each OSD and does not reflect the actual
+`yaml` example in this chapter.
 
 .CRUSH tree
 ----
@@ -128,6 +141,12 @@ ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
 -37        8.50000             host ip-10-0-211-21
   6   hdd  8.50000                 osd.6                up  1.00000 1.00000
 ----
+
+NOTE: You can see that different CRUSH device class values are assigned to your OSDs
+based on the `deviceType` field value in your `yaml` configuration.
+
+TIP: You can leverage the CRUSH device class assigned to the OSDs to write specific
+CRUSH rules that will target specific OSDs in a Ceph cluster.
 
 //NOTE: The CRUSH weight assigned to the OSDs does not reflect the reality of what was
 //allocated in the *StorageCluster* definition when using `metadataPVCTemplate`
