@@ -1071,8 +1071,9 @@ is deleted, the associated *PV* will be deleted as well as the associated image 
 In order to failback to the *primary cluster* (OCP-A) from the *secondary cluster* (OCP-DR) repeat the steps for
 failover except reverse the order.
 
-CAUTION: When failing back it is imperative that the applicatiobn be stopped in cluster OCP-DR and that no
+CAUTION: When failing back it is imperative that the application be stopped in cluster OCP-DR and that no
 application accesses the PVs from that cluster.
+
 === Un-Fencing OCP-A Cluster
 
 Only exception to the procedure is that after fencing the OCP-DR cluster you will need to recreate the `cephx`
