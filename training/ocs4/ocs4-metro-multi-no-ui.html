@@ -1,0 +1,2574 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Metro Multi-Cluster disaster recovery :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-metro-multi-no-ui.html">
+    <meta name="generator" content="Antora 2.3.4">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs.html">General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/manual/ocs4-multisite-replication.html">Regional disaster recovery (manual method)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../../RegionalDR/helper/requirements.html">Regional disaster recovery (RDRhelper)</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-encryption.html">External KMS Encryption</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-downsize.html">Downsize existing OCS cluster</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-storage-quotas.html">Cluster wide storage management</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-dbwal.html">BlueStore RocksDB metadata and WAL placement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-devtype.html">Mixed OSD device type configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-override.html">Ceph configuration override</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-segregation.html">Data Segregation</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <a class="title" href="../../RegionalDR/index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../RegionalDR/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li><a href="ocs4-metro-multi-no-ui.html">Metro Multi-Cluster disaster recovery</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-metro-multi-no-ui.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">Metro Multi-Cluster disaster recovery</h1>
+<div class="sect1">
+<h2 id="_introduction"><a class="anchor" href="#_introduction"></a>1. Introduction</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The intent of this guide is to detail the different steps and commands required to achieve the deployment
+of a Multi Red Hat OpenShift Container Platform Cluster highly available architecture backed by an external
+Red Hat Ceph Storage cluster. This setup is referred to as the Red Hat OpenShift Data Foundation (ODF)
+Multi-Cluster Metro DR Disaster Recovery solution. This procedure allows you to failover an application
+from one <code>Red Hat OpenShift Container Platform</code> (OCP) cluster to another and then failback the same application
+to the original OCP cluster.</p>
+</div>
+<div class="sect2">
+<h3 id="_prerequisites"><a class="anchor" href="#_prerequisites"></a>1.1. Prerequisites</h3>
+<div class="paragraph">
+<p>The necessary components are two OCP 4.6 (or greater) clusters, <code>OpenShift Data Foundation</code> (ODF) installed
+on both OCP clusters. ODF version <strong>4.7</strong> (or greater) is required. In order to replicate the Kubernetes
+resources (pods, services, routes, etc.) from one cluster to another, this guide will make use of the Velero
+<code>Backup</code> and <code>Restore</code> APIs exposed via the OCP community operator <code>OpenShift APIs for Data Protection</code> or <code>OADP</code>.</p>
+</div>
+<div class="paragraph">
+<p>You must have access to a Red Hat Ceph Storage (RHCS) cluster.</p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_high_level_procedure"><a class="anchor" href="#_high_level_procedure"></a>1.2. High level procedure</h3>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+These steps are considered Development Preview in ODF 4.7 and 4.8, and are provided for POCs purposes.
+They will be supported for production usage in a later ODF release.
+</td>
+</tr>
+</table>
+</div>
+<div class="olist arabic">
+<ol class="arabic" start="1">
+<li>
+<p><strong>Install ODF 4.7.</strong><br>
+Install ODF 4.7 on primary and secondary OCP clusters and validate deployment.</p>
+</li>
+<li>
+<p><strong>Configure RHCS cephx authentication.</strong><br>
+There is currently no automatic fencing of an OCP cluster in case it becomes unavailable thus preventing a cluster from accessing a PV. As a workaround each cluster is configured to access the cluster with a specific <code>cephx</code> username that will be disabled during the failover to another cluster or enabled when falling back to the original cluster.</p>
+</li>
+<li>
+<p><strong>Read Affinity Configuration.</strong><br>
+This step is recommended only if you are in an active-active configuration and each OCP cluster uses a dedicated RBD pool. This configuration is recommended to customize the RHCS CRUSH configuration to make sure each clusters issues its read IO operations against a set of RHCS OSDs located in the same network availability zone as the OCP cluster.</p>
+</li>
+<li>
+<p><strong>Configure ODF CSI driver.</strong><br>
+The CSI driver has to be configured to add some metadata to each PV created to preserve the original characteristics of the volume when accessed by the application restarted in another OCP cluster.</p>
+</li>
+<li>
+<p><strong>Storage Class Customizaton.</strong><br>
+Specific storage classes are created or existing storage classes are modified to use the specific <code>cephx</code> username created for each cluster and each storage class requires the <code>retainPolicy</code> to be set to <code>Retain</code>. The specifc storage classes must have the same name in each OCP cluster.</p>
+</li>
+<li>
+<p><strong>Deploy Sample Application.</strong><br>
+In the example, we will create a Sample Application which will use a single PVC claimed from the StorageClass mirror.</p>
+</li>
+<li>
+<p><strong>Install OADP (OpenShift API for Data Protection).</strong><br>
+Using OperatorHub, install OADP on both OCP clusters. We will use OADP for copying target application metadata resources (Kubernetes CRs) from the primary to the secondary OCP cluster.</p>
+</li>
+<li>
+<p><strong>Backup OpenShift resources to S3 target.</strong><br>
+Using the Backup API from OADP, we will backup all Kubernetes resources (CRs) for the Sample Application on the primary cluster to a S3 compatible object bucket.</p>
+</li>
+<li>
+<p><strong>Simulate Primary OCP cluster failure event.</strong><br>
+In our example, we will simulate a failure event simply by scaling the deployment(s) for our Sample Application to zero. This makes the application on the primary cluster unavailable.</p>
+</li>
+<li>
+<p><strong>Fence Primary Cluster.</strong><br>
+Change the <code>cephx</code> capabilities for the user used by the Primary cluster and shutdown all nodes in the primary cluster to prevent any access to the volumes from the Primary OCP cluster.</p>
+</li>
+<li>
+<p><strong>Restore OpenShift resources from S3 target</strong>.<br>
+Using OADP and the Restore API copy all Kubernetes resources for the <code>Sample Application</code> from the <code>S3</code> combatible object bucket to the secondary cluster. The Backup and Restore could be scheduled to run at a desired frequency to ensure that the secondary cluster always has the most recent metadata from the applications targeted for failover on the primary cluster.</p>
+</li>
+<li>
+<p><strong>Verify application availability on the secondary cluster.</strong><br>
+Verify the Sample Application now is operational on the secondary cluster and that new data can be saved.</p>
+</li>
+</ol>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_reference_architecture"><a class="anchor" href="#_reference_architecture"></a>1.3. Reference Architecture</h3>
+<div class="paragraph">
+<p>The diagram below illustrates the global architecture of the solution.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-4.7-OCP4-multicluster-dr-architecture.png" alt="Multi-Cluster General Architecture">
+</div>
+<div class="title">Figure 1. Multi-Cluster Metro DR General Architecture</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The external cluster can be a cluster with Arbiter mode
+enabled or a regular 3 failure domain cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_solution_guide_architecture"><a class="anchor" href="#_solution_guide_architecture"></a>1.4. Solution Guide Architecture</h3>
+<div class="paragraph">
+<p>The diagram below illustrates the specific details of the setup used for this solution
+guide.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-4.7-OCP4-multicluster-dr-lab.png" alt="Soution Guide Architecture">
+</div>
+<div class="title">Figure 2. Solution Guide Architecture</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+This rudimentary architecture was chosen to simplify demonstrations and limit
+the cost of the test environment. This is NOT a supported configuration.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_solution_prerequisites"><a class="anchor" href="#_solution_prerequisites"></a>2. Solution Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The following technical prerequisites must be met:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Red Hat Ceph Storage cluster</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Ports to be opened</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Monitors: 6789 and 3300</p>
+</li>
+<li>
+<p>OSDs: 6800-7100</p>
+</li>
+<li>
+<p>Prometheus: 9283</p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>Red Hat OpenShift Container Platform</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Two OCP clusters</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Network connectivity from each to external RHCS cluster</p>
+</li>
+<li>
+<p>ODF deployed in external mode (see <a href="#ocs4-metro-multi-rhcs-aws.adoc#_odf_external_cluster_aws_based" class="page unresolved">procedure</a>)</p>
+</li>
+<li>
+<p>Same ODF storage classes exists in each OCP cluster</p>
+</li>
+<li>
+<p>ODF shares the same underlying pools</p>
+<div class="ulist">
+<ul>
+<li>
+<p>No specific action needed</p>
+</li>
+</ul>
+</div>
+</li>
+<li>
+<p>ODF do not share the same underlying pools</p>
+<div class="ulist">
+<ul>
+<li>
+<p>Setup read affinity for each OCP cluster <a href="https://github.com/red-hat-storage/read-affinty-scripts">here</a></p>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>For this procedure we will refer to the clusters as:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>OCP-A (Active OCP <strong>primary cluster</strong>)</p>
+</li>
+<li>
+<p>OCP-DR (Standby OCP <strong>secondary cluster</strong>)</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_verify_odf_is_deployed"><a class="anchor" href="#_verify_odf_is_deployed"></a>3. Verify ODF Is Deployed</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On OCP-A</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre>$ oc get pods -n openshift-storage
+NAME                                            READY   STATUS    RESTARTS   AGE
+csi-cephfsplugin-296jn                          3/3     Running   0          2m1s
+csi-cephfsplugin-c5ll4                          3/3     Running   0          2m1s
+csi-cephfsplugin-provisioner-76b7c894b9-8kq7m   6/6     Running   0          2m1s
+csi-cephfsplugin-provisioner-76b7c894b9-jnf9j   6/6     Running   0          2m1s
+csi-cephfsplugin-wk8sp                          3/3     Running   0          2m1s
+csi-rbdplugin-9scp7                             3/3     Running   0          2m2s
+csi-rbdplugin-provisioner-5866f86d44-dghsc      6/6     Running   0          2m2s
+csi-rbdplugin-provisioner-5866f86d44-sb9hp      6/6     Running   0          2m2s
+csi-rbdplugin-sgg52                             3/3     Running   0          2m2s
+csi-rbdplugin-wkq9s                             3/3     Running   0          2m2s
+noobaa-core-0                                   1/1     Running   0          2m1s
+noobaa-db-pg-0                                  1/1     Running   0          2m1s
+noobaa-endpoint-7bb9d49898-fms5r                1/1     Running   0          46s
+noobaa-operator-8b6c658f-gl82f                  1/1     Running   0          123m
+ocs-metrics-exporter-5f5679bdb8-66gzd           1/1     Running   0          123m
+ocs-operator-8664f5945f-6djbv                   1/1     Running   0          123m
+rook-ceph-operator-74795b5c46-2gv2c             1/1     Running   0          123m</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>On OCP-DR</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example</div>
+<div class="content">
+<pre>$ oc get pods -n openshift-storage
+NAME                                            READY   STATUS    RESTARTS   AGE
+csi-cephfsplugin-f5snt                          3/3     Running   0          5m43s
+csi-cephfsplugin-gkqdw                          3/3     Running   0          5m43s
+csi-cephfsplugin-provisioner-76b7c894b9-pk9jb   6/6     Running   0          5m42s
+csi-cephfsplugin-provisioner-76b7c894b9-sk5sd   6/6     Running   0          5m42s
+csi-cephfsplugin-ttnt2                          3/3     Running   0          5m43s
+csi-rbdplugin-8l6lh                             3/3     Running   0          5m44s
+csi-rbdplugin-ft6m2                             3/3     Running   0          5m44s
+csi-rbdplugin-m9n4l                             3/3     Running   0          5m44s
+csi-rbdplugin-provisioner-5866f86d44-tlrxq      6/6     Running   0          5m43s
+csi-rbdplugin-provisioner-5866f86d44-zr2nv      6/6     Running   0          5m43s
+noobaa-core-0                                   1/1     Running   0          5m43s
+noobaa-db-pg-0                                  1/1     Running   0          5m43s
+noobaa-endpoint-c9878c9d6-mkq92                 1/1     Running   0          4m19s
+noobaa-operator-8b6c658f-wgd8t                  1/1     Running   0          68m
+ocs-metrics-exporter-5f5679bdb8-xj2js           1/1     Running   0          68m
+ocs-operator-8664f5945f-vrp8n                   1/1     Running   0          68m
+rook-ceph-operator-74795b5c46-cbmtk             1/1     Running   0          68m</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configure_rhcs_cephx_authentication"><a class="anchor" href="#_configure_rhcs_cephx_authentication"></a>4. Configure RHCS <code>cephx</code> Authentication</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For Multi-Cluster Metro DR architecture to be operational and proceed with the failover, the <strong>primary
+cluster</strong> must be prevented from accessing the PVs to preserve the coherence of
+the data hosted in the RHCS cluster. This will be achieved by dedicating a specific set of <code>cephx</code>
+keys for each OCP cluster to access the external RHCS cluster.</p>
+</div>
+<div class="paragraph">
+<p>Connect to your RHCS management node or any RHCS node that has the <code>client.admin</code> keyring.</p>
+</div>
+<div class="sect2">
+<h3 id="_ocp_a_cephx_keys"><a class="anchor" href="#_ocp_a_cephx_keys"></a>4.1. OCP-A <code>cephx</code> Keys</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph auth get-or-create client.rbd.ocpa mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpa.keyring
+ceph auth get-or-create client.cephfs-k.ocpa mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpa.keyring
+ceph auth list</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre># ceph auth get-or-create client.rbd.ocpa mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpa.keyring
+# ceph auth get-or-create client.cephfs-k.ocpa mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpa.keyring
+# ceph auth list
+...[Truncated]...
+client.cephfs-k.ocpa
+        key: AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==
+        caps: [mds] allow rw
+        caps: [mgr] allow rw
+        caps: [mon] allow r
+        caps: [osd] allow rw tag cephfs *=*
+  ...[Truncated]...
+client.rbd.ocpa
+        key: AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==
+        caps: [mgr] allow rw
+        caps: [mon] profile rbd
+        caps: [osd] profile rbd
+...[Truncated]...</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_ocp_dr_cephx_keys"><a class="anchor" href="#_ocp_dr_cephx_keys"></a>4.2. OCP-DR <code>cephx</code> Keys</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph auth get-or-create client.rbd.ocpdr mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpdr.keyring
+ceph auth get-or-create client.cephfs-k.ocpdr mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpdr.keyring
+ceph auth list</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre># ceph auth get-or-create client.rbd.ocpdr mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpdr.keyring
+# ceph auth get-or-create client.cephfs-k.ocpdr mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpdr.keyring
+# ceph auth list
+...[Truncated]...
+client.cephfs-k.ocpdr
+        key: AQBRh2NgRVi2BhAAxiJKSMhQtWUL219TudGdtQ==
+        caps: [mds] allow rw
+        caps: [mgr] allow rw
+        caps: [mon] allow r
+        caps: [osd] allow rw tag cephfs *=*
+  ...[Truncated]...
+client.rbd.ocpdr
+        key: AQBQh2NgURtIFxAA+VSKMLcUNgidRQu6K8ufgQ==
+        caps: [mgr] allow rw
+        caps: [mon] profile rbd
+        caps: [osd] profile rbd
+...[Truncated]...</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configure_csi_driver"><a class="anchor" href="#_configure_csi_driver"></a>5. Configure CSI Driver</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_enable_omap_generator"><a class="anchor" href="#_enable_omap_generator"></a>5.1. Enable OMAP Generator</h3>
+<div class="paragraph">
+<p>Omap generator is a sidecar container that, when deployed with the CSI provisioner pod, generates
+the internal CSI <code>omaps</code> between the PV and the RBD image. The name of the new container is
+<code>csi-omap-generator</code>. This is required as static <strong>PVs</strong> are transferred across peer clusters in
+the DR use case, and hence is needed to preserve <strong>PVC</strong> to storage mappings.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Execute these steps on the <strong>primary cluster</strong> (OCP-A) and the <strong>seconday cluster</strong> (OCP-DR).
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Edit the rook-ceph-operator-config configmap and add <code>CSI_ENABLE_OMAP_GENERATOR</code> set to true.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_OMAP_GENERATOR", "value": "true" }]'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>configmap/rook-ceph-operator-config patched</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate that there are now 7 sidecar containers and that the <code>csi-omap-generator</code> container is now running.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are two <code>csi-rbdplugin-provisioner</code> pods for availability so there should be two groups
+of the same 7 containers for each pod.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Repeat these steps for the <strong>secondary cluster</strong> (OCP-DR) before proceeding and also
+repeat the validation for the new <code>csi-omap-generator</code> container.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_customize_storage_classes"><a class="anchor" href="#_customize_storage_classes"></a>5.2. Customize Storage Classes</h3>
+<div class="sect3">
+<h4 id="_ocp_a_csi_secrets"><a class="anchor" href="#_ocp_a_csi_secrets"></a>5.2.1. OCP-A CSI Secrets</h4>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+The name of the secrets on both OCP cluster has to be identical. The only
+thing that is different between the two clusters are the credentials embedded
+in the secrets.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Create a secret for your CSI RBD Plugin.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat rbd-secret-ocpa.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client.rbd.metrodr
+  namespace: openshift-storage
+stringData:
+  # Key values correspond to a user name and its key, as defined in the
+  # ceph cluster. User ID should have required access to the 'pool'
+  # specified in the storage class
+  userID: {your-rbd-cephx-user-id}
+  userKey: {cephx-key-for-user}
+
+  # Encryption passphrase
+  encryptionPassphrase: test_passphrase
+oc create -f rbd-secret-ocpa.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; apiVersion: v1
+&gt; kind: Secret
+&gt; metadata:
+&gt;   name: client.rbd.metrodr
+&gt;   namespace: openshift-storage
+&gt; stringData:
+&gt;   # Key values correspond to a user name and its key, as defined in the
+&gt;   # ceph cluster. User ID should have required access to the 'pool'
+&gt;   # specified in the storage class
+&gt;   userID: rbd.ocpa
+&gt;   userKey: AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==
+&gt;
+&gt;   # Encryption passphrase
+&gt;   encryptionPassphrase: test_passphrase
+EOF
+secret/client.rbd.metrodr created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a secret for your CSI CephFS Plugin.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat cephfs-secret-ocpa.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client.cephfs.metrodr
+  namespace: openshift-storage
+stringData:
+  # Key values correspond to a user name and its key, as defined in the
+  # ceph cluster. User ID should have required access to the 'pool'
+  # specified in the storage class
+  userID: {your-cephfs-cephx-user-id}
+  userKey: {cephx-key-for-user}
+
+  # Encryption passphrase
+  encryptionPassphrase: test_passphrase
+oc create -f cephfs-secret-ocpa.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; apiVersion: v1
+&gt; kind: Secret
+&gt; metadata:
+&gt;   name: client.cephfs.metrodr
+&gt;   namespace: openshift-storage
+&gt; stringData:
+&gt;   # Key values correspond to a user name and its key, as defined in the
+&gt;   # ceph cluster. User ID should have required access to the 'pool'
+&gt;   # specified in the storage class
+&gt;   userID: cephfs-k.ocpa
+&gt;   userKey: AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==
+&gt;
+&gt;   # Encryption passphrase
+&gt;   encryptionPassphrase: test_passphrase
+EOF
+secret/client.cephfs.metrodr created</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_ocp_dr_csi_secrets"><a class="anchor" href="#_ocp_dr_csi_secrets"></a>5.2.2. OCP-DR CSI Secrets</h4>
+<div class="paragraph">
+<p>Create a secret for your CSI RBD Plugin.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat rbd-secret-ocpdr.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client.rbd.metrodr
+  namespace: openshift-storage
+stringData:
+  # Key values correspond to a user name and its key, as defined in the
+  # ceph cluster. User ID should have required access to the 'pool'
+  # specified in the storage class
+  userID: {your-rbd-cephx-user-id}
+  userKey: {cephx-key-for-user}
+
+  # Encryption passphrase
+  encryptionPassphrase: test_passphrase
+oc create -f rbd-secret-ocpdr.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; apiVersion: v1
+&gt; kind: Secret
+&gt; metadata:
+&gt;   name: client.rbd.metrodr
+&gt;   namespace: openshift-storage
+&gt; stringData:
+&gt;   # Key values correspond to a user name and its key, as defined in the
+&gt;   # ceph cluster. User ID should have required access to the 'pool'
+&gt;   # specified in the storage class
+&gt;   userID: rbd.ocpdr
+&gt;   userKey: AQBQh2NgURtIFxAA+VSKMLcUNgidRQu6K8ufgQ==
+&gt;
+&gt;   # Encryption passphrase
+&gt;   encryptionPassphrase: test_passphrase
+EOF
+secret/client.rbd.metrodr created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a secret for your CSI CephFS Plugin.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat cephfs-secret-ocpdr.yaml
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: client.cephfs.metrodr
+  namespace: openshift-storage
+stringData:
+  # Key values correspond to a user name and its key, as defined in the
+  # ceph cluster. User ID should have required access to the 'pool'
+  # specified in the storage class
+  userID: {your-cephfs-cephx-user-id}
+  userKey: {cephx-key-for-user}
+
+  # Encryption passphrase
+  encryptionPassphrase: test_passphrase
+oc create -f cephfs-secret-ocpdr.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; apiVersion: v1
+&gt; kind: Secret
+&gt; metadata:
+&gt;   name: client.cephfs.metrodr
+&gt;   namespace: openshift-storage
+&gt; stringData:
+&gt;   # Key values correspond to a user name and its key, as defined in the
+&gt;   # ceph cluster. User ID should have required access to the 'pool'
+&gt;   # specified in the storage class
+&gt;   userID: cephfs-k.ocpdr
+&gt;   userKey: AQBRh2NgRVi2BhAAxiJKSMhQtWUL219TudGdtQ==
+&gt;
+&gt;   # Encryption passphrase
+&gt;   encryptionPassphrase: test_passphrase
+EOF
+secret/client.cephfs.metrodr created</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_customize_ocp_a_storage_classes"><a class="anchor" href="#_customize_ocp_a_storage_classes"></a>5.2.3. Customize OCP-A Storage Classes</h4>
+<div class="paragraph">
+<p>Create a new storage class configured with the secret we created for RBD access.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat sc-rbd-ocpa.yaml
+---
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    description: Provides RWO Filesystem volumes, and RWO and RWX Block volumes
+  name: ocs-external-storagecluster-ceph-rbd-dr
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: client.rbd.metrodr
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  imageFeatures: layering
+  imageFormat: "2"
+  pool: {your-rbd-pool-name}
+provisioner: openshift-storage.rbd.csi.ceph.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+oc create -f sc-rbd-ocpa.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; allowVolumeExpansion: true
+&gt; apiVersion: storage.k8s.io/v1
+&gt; kind: StorageClass
+&gt; metadata:
+&gt;   annotations:
+&gt;     description: Provides RWO Filesystem volumes, and RWO and RWX Block volumes
+&gt;   name: ocs-external-storagecluster-ceph-rbd-dr
+&gt; parameters:
+&gt;   clusterID: openshift-storage
+&gt;   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+&gt;   csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/fstype: ext4
+&gt;   csi.storage.k8s.io/node-stage-secret-name: client.rbd.metrodr
+&gt;   csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+&gt;   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+&gt;   imageFeatures: layering
+&gt;   imageFormat: "2"
+&gt;   pool: rbd
+&gt; provisioner: openshift-storage.rbd.csi.ceph.com
+&gt; reclaimPolicy: Retain
+&gt; volumeBindingMode: Immediate
+EOF
+storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd-dr created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a new storage class configured with the secret we created for CephFS access.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat sc-cephfs-ocpa.yaml
+---
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    description: Provides RWO and RWX Filesystem volumes
+  name: ocs-external-storagecluster-cephfs-dr
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/node-stage-secret-name: client.cephfs.metrodr
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  fsName: {your-cephfs-fs-name}
+  pool: {your-cephfs-data-pool}
+provisioner: openshift-storage.cephfs.csi.ceph.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+oc create -f sc-cephfs-ocpa.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; allowVolumeExpansion: true
+&gt; apiVersion: storage.k8s.io/v1
+&gt; kind: StorageClass
+&gt; metadata:
+&gt;   annotations:
+&gt;     description: Provides RWO and RWX Filesystem volumes
+&gt;   name: ocs-external-storagecluster-cephfs-dr
+&gt; parameters:
+&gt;   clusterID: openshift-storage
+&gt;   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+&gt;   csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/node-stage-secret-name: client.cephfs.metrodr
+&gt;   csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+&gt;   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+&gt;   fsName: cephfs
+&gt;   pool: cephfs_data
+&gt; provisioner: openshift-storage.cephfs.csi.ceph.com
+&gt; reclaimPolicy: Retain
+&gt; volumeBindingMode: Immediate
+EOF
+storageclass.storage.k8s.io/ocs-external-storagecluster-cephfs-dr created</pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_test_ocp_a_storage_classes"><a class="anchor" href="#_test_ocp_a_storage_classes"></a>5.2.4. Test OCP-A Storage Classes</h4>
+<div class="paragraph">
+<p>Make sure the new storage classes work as expected with the specific credentials
+that were created and configured into the RBD and CephFS storage classes.</p>
+</div>
+<div class="sect4">
+<h5 id="_verify_storage_classes"><a class="anchor" href="#_verify_storage_classes"></a>Verify Storage Classes</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get sc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Exmaple output</div>
+<div class="content">
+<pre>NAME                                      PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+gp2 (default)                             kubernetes.io/aws-ebs                   Delete          WaitForFirstConsumer   true                   3h45m
+gp2-csi                                   ebs.csi.aws.com                         Delete          WaitForFirstConsumer   true                   3h45m
+ocs-external-storagecluster-ceph-rbd      openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   28m
+ocs-external-storagecluster-ceph-rbd-dr   openshift-storage.rbd.csi.ceph.com      Retain          Immediate              true                   5m32s
+ocs-external-storagecluster-ceph-rgw      openshift-storage.ceph.rook.io/bucket   Delete          Immediate              false                  28m
+ocs-external-storagecluster-cephfs        openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   28m
+ocs-external-storagecluster-cephfs-dr     openshift-storage.cephfs.csi.ceph.com   Retain          Immediate              true                   5m21s
+openshift-storage.noobaa.io               openshift-storage.noobaa.io/obc         Delete          Immediate              false                  26m</pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_verify_rbd_provisioning"><a class="anchor" href="#_verify_rbd_provisioning"></a>Verify RBD Provisioning</h5>
+<div class="paragraph">
+<p>Create a RBD based PVC using the new RBD storage class <code>ocs-external-storagecluster-ceph-rbd-dr</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwo
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteOnce
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim/testrwo created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd      35m
+testrwo             Bound    pvc-294995a7-ebee-4d9e-9b98-f6c708ff0cac   10Gi       RWO            ocs-external-storagecluster-ceph-rbd-dr   0s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clean up the environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwo
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteOnce
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim "testrwo" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   34m</pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_verify_cephfs_provisioning"><a class="anchor" href="#_verify_cephfs_provisioning"></a>Verify CephFS Provisioning</h5>
+<div class="paragraph">
+<p>Create a CephFS based PVC using the new CephFS storage class <code>ocs-external-storagecluster-cephfs-dr</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwx
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteMany
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim/testrwx created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                            AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd    39m
+testrwx             Bound    pvc-2f7c19c9-8fc9-4d9d-aba8-8810e77d8b96   10Gi       RWX            ocs-external-storagecluster-cephfs-dr   0s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clean up the environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwx
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteMany
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim "testrwx" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   40m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Once the testing is complete you can clean up the left over <strong>PersistentVolumes</strong> as
+a result of the <strong>ReclaimPolicy</strong> specific to the new storage classes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_customize_ocp_dr_storage_classes"><a class="anchor" href="#_customize_ocp_dr_storage_classes"></a>5.2.5. Customize OCP-DR Storage Classes</h4>
+<div class="paragraph">
+<p>Create a new storage class configured with the secret we created for RBD access.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat sc-rbd-ocpdr.yaml
+---
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    description: Provides RWO Filesystem volumes, and RWO and RWX Block volumes
+  name: ocs-external-storagecluster-ceph-rbd-dr
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: client.rbd.metrodr
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  imageFeatures: layering
+  imageFormat: "2"
+  pool: {your-rbd-pool-name}
+provisioner: openshift-storage.rbd.csi.ceph.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+oc create -f sc-rbd-ocpdr.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; allowVolumeExpansion: true
+&gt; apiVersion: storage.k8s.io/v1
+&gt; kind: StorageClass
+&gt; metadata:
+&gt;   annotations:
+&gt;     description: Provides RWO Filesystem volumes, and RWO and RWX Block volumes
+&gt;   name: ocs-external-storagecluster-ceph-rbd-dr
+&gt; parameters:
+&gt;   clusterID: openshift-storage
+&gt;   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+&gt;   csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/fstype: ext4
+&gt;   csi.storage.k8s.io/node-stage-secret-name: client.rbd.metrodr
+&gt;   csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+&gt;   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+&gt;   imageFeatures: layering
+&gt;   imageFormat: "2"
+&gt;   pool: rbd
+&gt; provisioner: openshift-storage.rbd.csi.ceph.com
+&gt; reclaimPolicy: Retain
+&gt; volumeBindingMode: Immediate
+EOF
+storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd-dr created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a new storage class configured with the secret we created for CephFS access.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat sc-cephfs-ocpdr.yaml
+---
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  annotations:
+    description: Provides RWO and RWX Filesystem volumes
+  name: ocs-external-storagecluster-cephfs-dr
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/node-stage-secret-name: client.cephfs.metrodr
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  fsName: {your-cephfs-fs-name}
+  pool: {your-cephfs-data-pool}
+provisioner: openshift-storage.cephfs.csi.ceph.com
+reclaimPolicy: Retain
+volumeBindingMode: Immediate
+oc create -f sc-cephfs-ocpdr.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>cat &lt;&lt;EOF | oc create -f -
+&gt; ---
+&gt; allowVolumeExpansion: true
+&gt; apiVersion: storage.k8s.io/v1
+&gt; kind: StorageClass
+&gt; metadata:
+&gt;   annotations:
+&gt;     description: Provides RWO and RWX Filesystem volumes
+&gt;   name: ocs-external-storagecluster-cephfs-dr
+&gt; parameters:
+&gt;   clusterID: openshift-storage
+&gt;   csi.storage.k8s.io/controller-expand-secret-name: rook-csi-cephfs-provisioner
+&gt;   csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/node-stage-secret-name: client.cephfs.metrodr
+&gt;   csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+&gt;   csi.storage.k8s.io/provisioner-secret-name: rook-csi-cephfs-provisioner
+&gt;   csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+&gt;   fsName: cephfs
+&gt;   pool: cephfs_data
+&gt; provisioner: openshift-storage.cephfs.csi.ceph.com
+&gt; reclaimPolicy: Retain
+&gt; volumeBindingMode: Immediate
+EOF
+storageclass.storage.k8s.io/ocs-external-storagecluster-cephfs-dr created</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The name of the storage classes have to be identical on both clusters.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect4">
+<h5 id="_verify_storage_classes_2"><a class="anchor" href="#_verify_storage_classes_2"></a>Verify Storage Classes</h5>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get sc</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Exmaple output</div>
+<div class="content">
+<pre>NAME                                      PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+gp2 (default)                             kubernetes.io/aws-ebs                   Delete          WaitForFirstConsumer   true                   3h45m
+gp2-csi                                   ebs.csi.aws.com                         Delete          WaitForFirstConsumer   true                   3h45m
+ocs-external-storagecluster-ceph-rbd      openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   28m
+ocs-external-storagecluster-ceph-rbd-dr   openshift-storage.rbd.csi.ceph.com      Retain          Immediate              true                   5m32s
+ocs-external-storagecluster-ceph-rgw      openshift-storage.ceph.rook.io/bucket   Delete          Immediate              false                  28m
+ocs-external-storagecluster-cephfs        openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   28m
+ocs-external-storagecluster-cephfs-dr     openshift-storage.cephfs.csi.ceph.com   Retain          Immediate              true                   5m21s
+openshift-storage.noobaa.io               openshift-storage.noobaa.io/obc         Delete          Immediate              false                  26m</pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_verify_rbd_provisioning_2"><a class="anchor" href="#_verify_rbd_provisioning_2"></a>Verify RBD Provisioning</h5>
+<div class="paragraph">
+<p>Create a RBD based PVC using the new RBD storage class <code>ocs-external-storagecluster-ceph-rbd-dr</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwo
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteOnce
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim/testrwo created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd      35m
+testrwo             Bound    pvc-294995a7-ebee-4d9e-9b98-f6c708ff0cac   10Gi       RWO            ocs-external-storagecluster-ceph-rbd-dr   0s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clean up the environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwo
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteOnce
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim "testrwo" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   34m</pre>
+</div>
+</div>
+</div>
+<div class="sect4">
+<h5 id="_verify_cephfs_provisioning_2"><a class="anchor" href="#_verify_cephfs_provisioning_2"></a>Verify CephFS Provisioning</h5>
+<div class="paragraph">
+<p>Create a CephFS based PVC using the new CephFS storage class <code>ocs-external-storagecluster-cephfs-dr</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwx
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteMany
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim/testrwx created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                            AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd    39m
+testrwx             Bound    pvc-2f7c19c9-8fc9-4d9d-aba8-8810e77d8b96   10Gi       RWX            ocs-external-storagecluster-cephfs-dr   0s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Clean up the environment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>&gt; ---
+&gt; apiVersion: v1
+&gt; kind: PersistentVolumeClaim
+&gt; metadata:
+&gt;   name: testrwx
+&gt; spec:
+&gt;   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+&gt;   accessModes:
+&gt;     - ReadWriteMany
+&gt;   resources:
+&gt;     requests:
+&gt;       storage: 10Gi
+&gt; EOF
+persistentvolumeclaim "testrwx" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   40m</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Once the testing is complete you can clean up the left over <strong>PersistentVolumes</strong> as
+a result of the <strong>ReclaimPolicy</strong> specific to the new storage classes.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deploy_sample_application"><a class="anchor" href="#_deploy_sample_application"></a>6. Deploy Sample Application</h2>
+<div class="sectionbody">
+
+</div>
+</div>
+<div class="sect1">
+<h2 id="_sample_application_deployment"><a class="anchor" href="#_sample_application_deployment"></a>7. Sample Application Deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to test failing over from one OCP cluster to another we need a simple application to and verify that replication is working.</p>
+</div>
+<div class="paragraph">
+<p>Start by creating a new project on the <strong>primary cluster</strong>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then use the <code>rails-pgsql-persistent</code> template to create the new application. The new <code>postgresql</code> volume will be claimed from the new <strong>StorageClass</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/configurable-rails-app.yaml | oc new-app -p STORAGE_CLASS=ocs-external-storagecluster-ceph-rbd-dr -p VOLUME_CAPACITY=5Gi -f -</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After the deployment is started you can monitor with these commands.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc status</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check the PVC is created.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pvc -n my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This step could take 5 or more minutes. Wait until there are 2 <strong>Pods</strong> in
+<code>Running</code> STATUS and 4 <strong>Pods</strong> in <code>Completed</code> STATUS as shown below.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">watch oc get pods -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                    READY   STATUS      RESTARTS   AGE
+pod/postgresql-1-deploy                 0/1     Completed   0          2m4s
+pod/postgresql-1-r8j9z                  1/1     Running     0          2m2s
+pod/rails-pgsql-persistent-1-build      0/1     Completed   0          2m5s
+pod/rails-pgsql-persistent-1-deploy     0/1     Completed   0          35s
+pod/rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          33s
+pod/rails-pgsql-persistent-1-tgvds      1/1     Running     0          23s
+
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+persistentvolumeclaim/postgresql   Bound    pvc-35f21284-cc83-479e-97db-3f778980908f   5Gi        RWO            ocs-external-storagecluster-ceph-rbd-dr   2m6s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can exit by pressing <span class="keyseq"><kbd>Ctrl</kbd>+<kbd>C</kbd></span>.</p>
+</div>
+<div class="paragraph">
+<p>Once the deployment is complete you can now test the application and the
+persistent storage on ODF.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your route (different than above) to a browser window to create articles.</p>
+</div>
+<div class="paragraph">
+<p>Click the <code>New Article</code> link.</p>
+</div>
+<div class="paragraph">
+<p>Enter the <code>username</code> and <code>password</code> below to create articles and comments.
+The articles and comments are saved in a PostgreSQL database which stores its
+table spaces on the RBD volume provisioned using the
+<code>ocs-storagecluster-ceph-rbd</code> <strong>StorageClass</strong> during the application
+deployment.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>username: openshift
+password: secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have added a new article you can verify it exists in the <code>postgresql</code> database by issuing this command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "\d+" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+                               List of relations
+ Schema |         Name         |   Type   |  Owner  |    Size    | Description
+--------+----------------------+----------+---------+------------+-------------
+ public | ar_internal_metadata | table    | userAAF | 16 kB      |
+ public | articles             | table    | userAAF | 16 kB      |
+ public | articles_id_seq      | sequence | userAAF | 8192 bytes |
+ public | comments             | table    | userAAF | 8192 bytes |
+ public | comments_id_seq      | sequence | userAAF | 8192 bytes |
+ public | schema_migrations    | table    | userAAF | 16 kB      |
+(6 rows)
+
+ id |           title            |                                                              body                                                              |         created_at         |         updated_at
+
+----+----------------------------+--------------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------
+-----
+  1 | Test Metro Multicluster DR | This article is to prove that we can restart the application in the OCP-DR cluster when the OCP-A cluster becomes unavailable. | 2021-04-13 22:17:53.602252 | 2021-04-13 22:17:53.60
+2252
+(1 row)</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_install_oadp_openshift_api_for_data_protection"><a class="anchor" href="#_install_oadp_openshift_api_for_data_protection"></a>8. Install OADP (OpenShift API for Data Protection)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>OADP (OpenShift APIs for Data Protection) is a community operator and is available in <strong>OperatorHub</strong>.</p>
+</div>
+<div class="paragraph">
+<p>We will be using OADP for the <code>Backup</code> and <code>Restore</code> APIs for collecting the Kubernetes objects at a namespace level. The collection or backup of resources is needed to restore the application on the <strong>secondary cluster</strong>.</p>
+</div>
+<div class="sect2">
+<h3 id="_installing_oadp_operator"><a class="anchor" href="#_installing_oadp_operator"></a>8.1. Installing OADP Operator</h3>
+<div class="paragraph">
+<p>First is to find OADP in <strong>OperatorHub</strong>. Login to your <strong>OpenShift Web Console</strong> and navigate to <strong>OperatorHub</strong>. Filter for <code>OADP</code> as shown below:</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OADP-operatorhub-filter.png" alt="OperatorHub filter for OADP">
+</div>
+<div class="title">Figure 3. OperatorHub filter for OADP</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If you are not finding OADP in <strong>OperatorHub</strong> most likely the <code>community-operator</code> catalogsource is not deployed in your cluster.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Select <code>Continue</code> on next screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OADP-operatorhub-continue.png" alt="OADP operator support statement">
+</div>
+<div class="title">Figure 4. OADP operator support statement</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+OADP is a community operator and as such is not supported by Red Hat. More information can be found at <a href="https://github.com/konveyor/oadp-operator" class="bare">https://github.com/konveyor/oadp-operator</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Select <code>Install</code> on next screen.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OADP-operatorhub-install.png" alt="OADP install screen">
+</div>
+<div class="title">Figure 5. OADP install screen</div>
+</div>
+<div class="paragraph">
+<p>Now you will create the new namespace <code>oadp-operator</code> and install the OADP operator into this namespace. Select <code>Install</code> again.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OADP-operatorhub-install2.png" alt="OADP create namespace and install operator">
+</div>
+<div class="title">Figure 6. OADP create namespace and install operator</div>
+</div>
+<div class="paragraph">
+<p>Wait for operator to install. When you see this screen the OADP operator is installed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/OCP4-OADP-operator-installed.png" alt="OADP operator installed and ready">
+</div>
+<div class="title">Figure 7. OADP operator installed and ready</div>
+</div>
+<div class="paragraph">
+<p>The next step is to create the <code>Velero</code> <strong>CustomResource</strong> or CR. For this you will need to have a <code>S3</code> compatible object bucket created that you know the <code>bucket name</code> as well as the credentials to access the bucket.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It is not recommended to use OCS object buckets (MCG or RGW) as the <code>S3</code> <strong>BackingStorageLocation</strong> for <code>Velero</code> CR. If your remote or secondary clusters become unavailable and the <code>S3</code> bucket is created on that cluster there is no way to recover to alternate cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_s3_target_bucket_credentials_secret"><a class="anchor" href="#_creating_s3_target_bucket_credentials_secret"></a>8.2. Creating S3 Target Bucket Credentials Secret</h3>
+<div class="paragraph">
+<p>Before creating the  <code>Velero</code> CR you must create the <code>cloud-credentials</code> file with the creditials for your <code>S3</code> bucket. The format of the file needs to be this:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>[default]
+aws_access_key_id=VELERO_ACCESS_KEY_ID
+aws_secret_access_key=VELERO_SECRET_ACCESS_KEY</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your unique credentials into file <code>cloud-credentials</code> and save file.</p>
+</div>
+<div class="paragraph">
+<p>Now use this new <code>cloud-credentials</code> file to create a new <strong>Secret</strong>. Replace <code>&lt;CREDENTIALS_FILE_PATH&gt;</code> with path to file you created with <code>S3</code> credentials.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc create secret generic cloud-credentials --namespace oadp-operator --from-file cloud=&lt;CREDENTIALS_FILE_PATH&gt;/cloud-credentials</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_configuring_velero_s3_target"><a class="anchor" href="#_configuring_velero_s3_target"></a>8.3. Configuring Velero S3 Target</h3>
+<div class="paragraph">
+<p>The <code>velero</code> configuration needs to be modified so it can use your <code>S3</code> bucket. The example is for a <code>S3</code> bucket on <strong>AWS</strong> saved as file <code>velero-aws.yaml</code>. It is recommended to use an object bucket <code>off-platform</code> meaning not backed by storage in the <strong>primary cluster</strong> (OCP-A) or the <strong>secondary cluster</strong> (OCP-DR).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Your <code>velero</code> YAML file will be slightly different if using a <code>S3</code> object bucket from a different provider (GCP, Azure), from an external Ceph cluster with <code>RGW</code>, or from ODF <code>MCG</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: konveyor.openshift.io/v1alpha1
+kind: Velero
+metadata:
+  name: oadp-velero
+  namespace: oadp-operator
+spec:
+  olm_managed: true
+  backup_storage_locations:
+    - config:
+        profile: default
+        region: us-east-2  # &lt;-- Modify to bucket AWS region or region for your provider
+      credentials_secret_ref:
+        name: cloud-credentials
+        namespace: oadp-operator
+      name: default
+      object_storage:
+        bucket: oadp-xxxxxx # Modify to your bucket name
+        prefix: velero
+      provider: aws
+  default_velero_plugins:
+    - aws
+    - openshift
+  enable_restic: false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have your unique values copied into your YAML file create the <code>Velero</code> CR.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If using a <code>MCG</code> object bucket instead of a bucket <code>off-platform</code> (i.e. AWS) as recommended, reference these <a href="https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md">instructions</a>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc create -f velero-aws.yaml -n oadp-operator</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate that the <code>velero</code> pod is <code>Running</code> and that the <strong>BackingStorageLocation</strong> have been created as well that has the details to access your <code>S3</code> bucket for Kubernetes object storage.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,backupstoragelocation -n oadp-operator</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                           READY   STATUS    RESTARTS   AGE
+pod/oadp-default-aws-registry-88f556c5-2mk6h   1/1     Running   0          4m59s
+pod/oadp-operator-6bb9fb6cfc-mc6vw             1/1     Running   0          49m
+pod/velero-6c6fd6d84d-mbct9                    1/1     Running   0          5m3s
+
+NAME                                      PHASE       LAST VALIDATED   AGE
+backupstoragelocation.velero.io/default   Available   9s               5m1s</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Repeat these steps and install <strong>OADP</strong> on the <strong>secondary cluster</strong> (OCP-DR). Make sure to use the same <code>S3</code> bucket and credentials as for the <strong>primary cluster</strong> (OCP-A) when creating the <code>Velero</code> CR.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_failover_from_ocp_a_to_ocp_dr"><a class="anchor" href="#_failover_from_ocp_a_to_ocp_dr"></a>9. Failover from OCP-A to OCP-DR</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_backup_application_metadata"><a class="anchor" href="#_backup_application_metadata"></a>9.1. Backup Application Metadata</h3>
+<div class="paragraph">
+<p>The Kubernetese objects or resources for the OpenShift namespace <code>my-database-app</code> have to be
+backed up and stored in a location where the <strong>secondary cluster</strong> can access. In this case
+using the <code>OADP</code> or <code>Velero</code> <strong>Backup</strong> API is how this will be done.</p>
+</div>
+<div class="paragraph">
+<p>Here is a sample <code>backup.yaml</code> file for the sample application.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: velero.io/v1
+kind: Backup
+metadata:
+  namespace: oadp-operator
+  name: backup1
+spec:
+  includedNamespaces:
+  - my-database-app
+  excludedResources:
+  - imagetags.image.openshift.io
+  snapshotVolumes: false</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Given the persistent data lives in a single external cluster shared by the <strong>primary cluster</strong> (OCP-A)
+and the <strong>secondary cluster</strong> (OCP-DR) clusters, we do not need the <code>OADP</code> <strong>Backup</strong> to include the data
+and therefore set <code>snapshotVolumes: false</code>.</p>
+</div>
+<div class="paragraph">
+<p>There is one additional resource to exclude that will be done by adding a label to the specific <code>configmap</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label -n my-database-app configmaps rails-pgsql-persistent-1-ca velero.io/exclude-from-backup=true</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>configmap/rails-pgsql-persistent-1-ca labeled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now create the <strong>Backup</strong> for <code>my-database-app</code> namespace.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/backup.yaml | oc apply -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>backup.velero.io/backup1 created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the <strong>Backup</strong> completed successfully using your <code>S3</code> bucket using the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe backup backup1 -n oadp-operator</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>Name:         backup1
+Namespace:    oadp-operator
+Labels:       velero.io/storage-location=default
+Annotations:  velero.io/source-cluster-k8s-gitversion: v1.20.0+bafe72f
+              velero.io/source-cluster-k8s-major-version: 1
+              velero.io/source-cluster-k8s-minor-version: 20
+API Version:  velero.io/v1
+Kind:         Backup
+
+[...]
+Spec:
+  Default Volumes To Restic:  false
+  Excluded Resources:
+    imagetags.image.openshift.io <i class="conum" data-value="1"></i><b>(1)</b>
+  Hooks:
+  Included Namespaces:
+    my-database-app <i class="conum" data-value="2"></i><b>(2)</b>
+  Snapshot Volumes:  false
+  Storage Location:  default
+  Ttl:               720h0m0s
+Status:
+  Completion Timestamp:  2021-04-14T21:32:28Z
+  Expiration:            2021-05-14T21:31:44Z
+  Format Version:        1.1.0
+  Phase:                 Completed <i class="conum" data-value="3"></i><b>(3)</b>
+  Progress:
+    Items Backed Up:  101 <i class="conum" data-value="4"></i><b>(4)</b>
+    Total Items:      101
+  Start Timestamp:    2021-04-14T21:31:44Z
+  Version:            1
+  Warnings:           8
+Events:               &lt;none&gt;</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Excluded resources for backup</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Namespace for which resources copied to object bucket</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Successul backup with Completed status</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="4"></i><b>4</b></td>
+<td>The number of Kubernetes resources backed up</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_shutdown_ocp_a"><a class="anchor" href="#_shutdown_ocp_a"></a>9.2. Shutdown OCP-A</h3>
+<div class="sect3">
+<h4 id="_scaling_application_down_on_primary_cluster"><a class="anchor" href="#_scaling_application_down_on_primary_cluster"></a>9.2.1. Scaling application down on primary cluster</h4>
+<div class="paragraph">
+<p>The reason for Disaster Recovery (DR) of an OCP cluster or application would usually happen
+because the <strong>primary cluster</strong> has become partially or completely unavailable. In order to
+simulate this behavior for our sample application the easiest way is to scale the deployments
+down on the <strong>primary cluster</strong> so as to make the application unavailable and to shutdown down
+the nodes of the cluster.</p>
+</div>
+<div class="paragraph">
+<p>Let&#8217;s take a look at the <strong>DeploymentConfig</strong> for our application.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get deploymentconfig -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                     REVISION   DESIRED   CURRENT   TRIGGERED BY
+postgresql               1          1         1         config,image(postgresql:10)
+rails-pgsql-persistent   1          1         1         config,image(rails-pgsql-persistent:latest)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>There are two <strong>DeploymentConfig</strong> to scale to zero.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig postgresql -n my-database-app --replicas=0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/postgresql scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now scale the second deployment to zero.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check to see the <strong>Pods</strong> are deleted. The following command should return <strong><em>no</em></strong> results
+if both <strong>DeploymentConfig</strong> are scaled to zero.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n my-database-app | grep Running</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Test that the application is down on the <strong>primary cluster</strong> by refreshing the route in
+your browser or get route again and copy to browser tab.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You show see something like this now.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/sample-app-down-primary.png" alt="Sample application is offline">
+</div>
+<div class="title">Figure 8. Sample application is offline</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_fencing_ocp_a_cluster"><a class="anchor" href="#_fencing_ocp_a_cluster"></a>9.2.2. Fencing OCP-A Cluster</h4>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Shutdown all nodes in cluster OCP-A.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once this is done, make sure the <code>cephx</code> user configured
+in the cluster in <strong>down</strong> status can not longer access the external RHCS cluster. This is
+to prevent any risk of concurrent access to block devices hosted in the RHCS cluster shared
+by the two OCP clusters.</p>
+</div>
+<div class="paragraph">
+<p>Connect to your RHCS management node and delete the <code>client.rbd.ocpa</code> and <code>client.cephfs-k.ocpa</code>
+<code>cephx</code> user names after backing them up.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph auth export {rbd_ocpa_user_name} &gt;client.rbd.data
+ceph auth del {rbd_ocpa_user_name}
+ceph auth export {cephfs_ocpa_user_name} &gt;client.cephfs.data
+ceph auth del {cephfs_ocpa_user_name}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre># ceph auth export client.rbd.ocpa &gt;client.rbd.ocpa.data
+export auth(key=AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==)
+# ceph auth del client.rbd.ocpa
+updated
+# ceph auth export client.cephfs-k.ocpa &gt;client.cephfs.ocpa.data
+export auth(key=AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==)
+# ceph auth del client.cephfs-k.ocpa
+updated</pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+When needed you can easily import the old <code>cephx</code> definition that you exported to
+make sure the <code>cephx</code> user is recreated indentically.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_restore_application_on_ocp_dr"><a class="anchor" href="#_restore_application_on_ocp_dr"></a>9.3. Restore Application on OCP-DR</h3>
+<div class="paragraph">
+<p>The last step in the process to failover to the <strong>secondary cluster</strong> (OCP-DR) is to now use <code>OADP</code> and
+the <strong>Restore</strong> CR to copy the application metadata to the <strong><em>remote</em></strong> cluster. The persistent data is
+already present in the external RHCS cluster and therefore does not need to be restored.</p>
+</div>
+<div class="paragraph">
+<p>Here is a the <code>restore.yaml</code> file for the sample application.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: velero.io/v1
+kind: Restore
+metadata:
+  namespace: oadp-operator
+  name: restore1
+spec:
+  backupName: backup1
+  includedNamespaces:
+  - my-database-app</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now create the <strong>Restore</strong> on the <strong>secondary cluster</strong> (OCP-DR) for the <code>my-database-app</code> namespace.
+You notice in the <strong>Restore</strong> that the <code>backup1</code> created earlier is referenced.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Make sure to issue this command on the <strong>secondary cluster</strong> (OCP-DR). The namespace
+<code>my-database-app</code> should not exist on this cluster at this point.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/restore.yaml | oc apply -f -</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>restore.velero.io/restore1 created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Verify the <strong>Restore</strong> completed successfully using your <code>S3</code> bucket using the following command.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe restore restore1 -n oadp-operator</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre>Name:         restore1
+Namespace:    oadp-operator
+Labels:       &lt;none&gt;
+Annotations:  &lt;none&gt;
+API Version:  velero.io/v1
+Kind:         Restore
+
+[...]
+Spec:
+  Backup Name:  backup1 <i class="conum" data-value="1"></i><b>(1)</b>
+  Excluded Resources:
+    nodes
+    events
+    events.events.k8s.io
+    backups.velero.io
+    restores.velero.io
+    resticrepositories.velero.io
+  Included Namespaces:
+    my-database-app <i class="conum" data-value="2"></i><b>(2)</b>
+Status:
+  Completion Timestamp:  2021-04-14T23:11:40Z
+  Phase:                 Completed <i class="conum" data-value="3"></i><b>(3)</b>
+  Start Timestamp:       2021-04-14T23:11:26Z
+  Warnings:              7
+Events:                  &lt;none&gt;</pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Name of backup used for restore operation</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Namespace to be restored from backup1</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="3"></i><b>3</b></td>
+<td>Successul restore with Completed status</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Check to see that the <strong>PODs</strong> and <strong>PVC</strong> are created correctly in `my-database-app`namespace
+on <strong>secondary cluster</strong> (OCP-DR).</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n my-database-app</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>NAME                                    READY   STATUS      RESTARTS   AGE
+pod/postgresql-1-bthzg                  1/1     Running     0          111s
+pod/postgresql-1-deploy                 0/1     Completed   0          115s
+pod/rails-pgsql-persistent-1-build      1/1     Running     0          107s
+pod/rails-pgsql-persistent-1-deploy     0/1     Completed   0          107s
+pod/rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          104s
+pod/rails-pgsql-persistent-1-x9ktb      1/1     Running     0          56s
+
+NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+persistentvolumeclaim/postgresql   Bound    pvc-35f21284-cc83-479e-97db-3f778980908f   5Gi        RWO            ocs-external-storagecluster-ceph-rbd-dr   119s</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_application_running_on_ocp_dr"><a class="anchor" href="#_verify_application_running_on_ocp_dr"></a>9.4. Verify Application Running on OCP-DR</h3>
+<div class="paragraph">
+<p>To verify the application on the <strong>secondary cluster</strong> you will want to access the
+application again and create a new article.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>http://rails-pgsql-persistent-my-database-app.apps.ocp45dr.ocstraining.com/articles</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your route (different than above) to a browser window to create another article on the <strong>secondary cluster</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Enter the <code>username</code> and <code>password</code> below to create articles and comments.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>username: openshift
+password: secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have added a new article you can verify it exists in the <code>postgresql</code> database by issuing this command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+ id |           title            |                                                              body                                                              |         created_at         |         updated_at
+
+----+----------------------------+--------------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------
+-----
+  1 | Test Metro Multicluster DR | This article is to prove that we can restart the application in the OCP-DR cluster when the OCP-A cluster becomes unavailable. | 2021-04-14 21:27:35.537882 | 2021-04-14 21:27:35.53
+7882
+  2 | Second Article             | Creating a new article in the second OCP cluster while the original cluster is down.                                           | 2021-04-14 23:17:10.971044 | 2021-04-14 23:17:10.97
+1044
+(2 rows)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see your first article created on the <strong>primary cluster</strong> (OCP-A) and the second article created on
+the <strong>secondary cluster</strong> (OCP-DR). The application is now verified and the failover is completed.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If you want to delete the <code>my-database-app</code> project from the both clusters, it is important to modify
+the associated <strong>PV</strong> <code>reclaimPolicy</code> from <code>Retain</code> to <code>Delete</code>. Then, when the <code>my-database-app</code> project and <strong>PVC</strong>
+is deleted, the associated <strong>PV</strong> will be deleted as well as the associated image in Ceph.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_failback_from_ocp_dr_to_ocp_a"><a class="anchor" href="#_failback_from_ocp_dr_to_ocp_a"></a>10. Failback from OCP-DR to OCP-A</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to failback to the <strong>primary cluster</strong> (OCP-A) from the <strong>secondary cluster</strong> (OCP-DR) repeat the steps for
+failover except reverse the order.</p>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+When failing back it is imperative that the application be stopped in cluster OCP-DR and that no
+application accesses the PVs from that cluster.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_un_fencing_ocp_a_cluster"><a class="anchor" href="#_un_fencing_ocp_a_cluster"></a>10.1. Un-Fencing OCP-A Cluster</h3>
+<div class="paragraph">
+<p>Only exception to the procedure is that after fencing the OCP-DR cluster you will need to recreate the <code>cephx</code>
+user names for the original cluster in your RHCS cluster. Use the following commands to recreate the correct
+user name definition.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph auth import -i client.rbd.data
+ceph auth get {your_rbd_username}
+ceph auth import -i client.cephfs.data
+ceph auth get {your_cephfs_username}</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output</div>
+<div class="content">
+<pre># ceph auth import -i client.rbd.ocpa.data
+imported keyring
+# ceph auth get client.rbd.ocpa
+[client.rbd.ocpa]
+	key = AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==
+	caps mgr = "allow rw"
+	caps mon = "profile rbd"
+	caps osd = "profile rbd"
+# ceph auth import -i client.cephfs.ocpa.data
+imported keyring
+# ceph auth get client.cephfs-k.ocpa
+exported keyring for client.cephfs-k.ocpa
+[client.cephfs-k.ocpa]
+	key = AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==
+	caps mds = "allow rw"
+	caps mgr = "allow rw"
+	caps mon = "allow r"
+	caps osd = "allow rw tag cephfs *=*"</pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+Make sure your user name capabilities and keys are identical to what they used to be
+before you deleted them.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_verify_application_running_on_ocp_a"><a class="anchor" href="#_verify_application_running_on_ocp_a"></a>10.2. Verify Application Running on OCP-A</h3>
+<div class="paragraph">
+<p>To verify the application on the <strong>primary cluster</strong> (OCP-A) you will want to access the application again
+and verify that the article you created on the <strong>secondary custer</strong> (OCP-DR) is present.</p>
+</div>
+<div class="paragraph">
+<p>There are two <strong>DeploymentConfig</strong> to scale to 1.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig postgresql -n my-database-app --replicas=1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/postgresql scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now scale the second deployment to 1.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=1</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Check to see the <strong>Pods</strong> are running. The following command should return two pods if both
+<strong>DeploymentConfig</strong> are scaled corerctly.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n my-database-app | grep Running</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Copy your route (different than above) to a browser window to create another article
+on the <strong>primary cluster</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Enter the <code>username</code> and <code>password</code> below to create articles and comments.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>username: openshift
+password: secret</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Once you have added a new article you can verify it exists in the <code>postgresql</code> database together with the original
+article, the one added after the failover and the last one you just added by issuing this command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "select * from articles"</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>You are now connected to database "root" as user "postgres".
+ id |           title            |                                                              body                                                              |         created_at         |         updated_at
+
+----+----------------------------+--------------------------------------------------------------------------------------------------------------------------------+----------------------------+-----------------------
+-----
+  1 | Test Metro Multicluster DR | This article is to prove that we can restart the application in the OCP-DR cluster when the OCP-A cluster becomes unavailable. | 2021-04-14 21:27:35.537882 | 2021-04-14 21:27:35.53
+7882
+  2 | Second Article             | Creating a new article in the second OCP cluster while the original cluster is down.                                           | 2021-04-14 23:17:10.971044 | 2021-04-14 23:17:10.97
+1044
+  3 | Third Article              | Created after we failed over to the original OCP cluster (OCP-A).                                                              | 2021-04-14 23:44:08.454192 | 2021-04-14 23:44:42.53
+0012
+(3 rows)</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You should see all three (3) articles. The application is now verified and the failback is completed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-4.7-OCP4-ApplicationArticles-FO-FB.png" alt="Verify Application After Failback">
+</div>
+<div class="title">Figure 9. Articles After Failover and Failback</div>
+</div>
+<div class="paragraph">
+<p>Et voilà!!!</p>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
