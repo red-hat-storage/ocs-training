@@ -1,6 +1,11 @@
 = Metro Multi-Cluster disaster recovery
+<<<<<<< HEAD
 //:toc: right
 //:toclevels: 3
+=======
+:toc: right
+:toclevels: 3
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 :icons: font
 :source-highlighter: pygments
 :source-language: shell
@@ -42,7 +47,11 @@ This step is recommended only if you are in an active-active configuration and e
 . *Configure ODF CSI driver.* +
 The CSI driver has to be configured to add some metadata to each PV created to preserve the original characteristics of the volume when accessed by the application restarted in another OCP cluster.
 . *Storage Class Customizaton.* +
+<<<<<<< HEAD
 Specific storage classes are created or existing storage classes are modified to use the specific `cephx` username created for each cluster and each storage class requires the `retainPolicy` to be set to `Retain`. The specifc storage classes must have the same name in each OCP cluster.
+=======
+Specific storage classes are created or existing storage classes are modified to use the specific `cephx` username craeted for each cluster and each storage class requires the `retainPolicy` to be set to `Retain`. The specifc storage classes must have the same name in each OCP cluster.
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 . *Deploy Sample Application.* +
 In the example, we will create a Sample Application which will use a single PVC claimed from the StorageClass mirror.
 . *Install OADP (OpenShift API for Data Protection).* +
@@ -710,7 +719,11 @@ IMPORTANT: The name of the storage classes have to be identical on both clusters
 
 include::partial$metro-multi-basictesting.adoc[]
 
+<<<<<<< HEAD
 IMPORTANT: Once the testing is complete you can clean up the left over *PersistentVolumes* as
+=======
+IMPORTANT: Once the testong is complete you can clean up the left over *PersistentVolumes* as
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 a result of the *ReclaimPolicy* specific to the new storage classes.
 
 == Deploy Sample Application
@@ -905,6 +918,7 @@ ceph auth del {cephfs_ocpa_user_name}
 ----
 .Example output
 ----
+<<<<<<< HEAD
 # ceph auth export client.rbd.ocpa >client.rbd.ocpa.data
 export auth(key=AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==)
 # ceph auth del client.rbd.ocpa
@@ -916,6 +930,19 @@ updated
 ----
 
 NOTE: When needed you can easily import the old `cephx` definition that you exported to
+=======
+ceph auth export client.rbd.ocpa >client.rbd.ocpa.data
+export auth(key=AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==)
+ceph auth del client.rbd.ocpa
+updated
+ceph auth export client.cephfs-k.ocpa >client.cephfs.ocpa.data
+export auth(key=AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==)
+ceph auth del client.cephfs-k.ocpa
+updated
+----
+
+NOTE: When needed you cam easily import the old `cephx` definition that you exported to
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 make sure the `cephx` user is recreated indentically.
 
 === Restore Application on OCP-DR
@@ -1071,9 +1098,12 @@ is deleted, the associated *PV* will be deleted as well as the associated image 
 In order to failback to the *primary cluster* (OCP-A) from the *secondary cluster* (OCP-DR) repeat the steps for
 failover except reverse the order.
 
+<<<<<<< HEAD
 CAUTION: When failing back it is imperative that the applicatiobn be stopped in cluster OCP-DR and that no
 application accesses the PVs from that cluster.
 
+=======
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 === Un-Fencing OCP-A Cluster
 
 Only exception to the procedure is that after fencing the OCP-DR cluster you will need to recreate the `cephx`
@@ -1091,7 +1121,11 @@ ceph auth get {your_cephfs_username}
 ----
 # ceph auth import -i client.rbd.ocpa.data
 imported keyring
+<<<<<<< HEAD
 # ceph auth get client.rbd.ocpa
+=======
+# ceph auth get client.rbd.ocpa.data
+>>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 [client.rbd.ocpa]
 	key = AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==
 	caps mgr = "allow rw"
