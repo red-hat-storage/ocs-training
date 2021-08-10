@@ -1,11 +1,6 @@
 = Metro Multi-Cluster disaster recovery
-<<<<<<< HEAD
-//:toc: right
-//:toclevels: 3
-=======
 :toc: right
 :toclevels: 3
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 :icons: font
 :source-highlighter: pygments
 :source-language: shell
@@ -47,11 +42,7 @@ This step is recommended only if you are in an active-active configuration and e
 . *Configure ODF CSI driver.* +
 The CSI driver has to be configured to add some metadata to each PV created to preserve the original characteristics of the volume when accessed by the application restarted in another OCP cluster.
 . *Storage Class Customizaton.* +
-<<<<<<< HEAD
 Specific storage classes are created or existing storage classes are modified to use the specific `cephx` username created for each cluster and each storage class requires the `retainPolicy` to be set to `Retain`. The specifc storage classes must have the same name in each OCP cluster.
-=======
-Specific storage classes are created or existing storage classes are modified to use the specific `cephx` username craeted for each cluster and each storage class requires the `retainPolicy` to be set to `Retain`. The specifc storage classes must have the same name in each OCP cluster.
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 . *Deploy Sample Application.* +
 In the example, we will create a Sample Application which will use a single PVC claimed from the StorageClass mirror.
 . *Install OADP (OpenShift API for Data Protection).* +
@@ -117,7 +108,7 @@ For this procedure we will refer to the clusters as:
 
 On OCP-A
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods -n openshift-storage
 ----
@@ -146,7 +137,7 @@ rook-ceph-operator-74795b5c46-2gv2c             1/1     Running   0          123
 
 On OCP-DR
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods -n openshift-storage
 ----
@@ -184,7 +175,7 @@ Connect to your RHCS management node or any RHCS node that has the `client.admin
 
 === OCP-A `cephx` Keys
 
-[source,role="execute"]
+[source,shell]
 ----
 ceph auth get-or-create client.rbd.ocpa mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpa.keyring
 ceph auth get-or-create client.cephfs-k.ocpa mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpa.keyring
@@ -213,7 +204,7 @@ client.rbd.ocpa
 
 === OCP-DR `cephx` Keys
 
-[source,role="execute"]
+[source,shell]
 ----
 ceph auth get-or-create client.rbd.ocpdr mon 'profile rbd' osd 'profile rbd' mgr 'allow rw' -o /etc/ceph/ceph.client.rbd.ocpdr.keyring
 ceph auth get-or-create client.cephfs-k.ocpdr mon 'allow r' osd 'allow rw tag cephfs *=*' mgr 'allow rw' mds 'allow rw'   -o /etc/ceph/ceph.client.cephfs-k.ocpdr.keyring
@@ -253,7 +244,7 @@ NOTE: Execute these steps on the *primary cluster* (OCP-A) and the *seconday clu
 
 Edit the rook-ceph-operator-config configmap and add `CSI_ENABLE_OMAP_GENERATOR` set to true.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_OMAP_GENERATOR", "value": "true" }]'
 ----
@@ -264,7 +255,7 @@ configmap/rook-ceph-operator-config patched
 
 Validate that there are now 7 sidecar containers and that the `csi-omap-generator` container is now running.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}
 ----
@@ -289,7 +280,7 @@ in the secrets.
 
 Create a secret for your CSI RBD Plugin.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat rbd-secret-ocpa.yaml
 ---
@@ -333,7 +324,7 @@ secret/client.rbd.metrodr created
 
 Create a secret for your CSI CephFS Plugin.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat cephfs-secret-ocpa.yaml
 ---
@@ -379,7 +370,7 @@ secret/client.cephfs.metrodr created
 
 Create a secret for your CSI RBD Plugin.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat rbd-secret-ocpdr.yaml
 ---
@@ -423,7 +414,7 @@ secret/client.rbd.metrodr created
 
 Create a secret for your CSI CephFS Plugin.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat cephfs-secret-ocpdr.yaml
 ---
@@ -469,7 +460,7 @@ secret/client.cephfs.metrodr created
 
 Create a new storage class configured with the secret we created for RBD access.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat sc-rbd-ocpa.yaml
 ---
@@ -529,7 +520,7 @@ storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd-dr created
 
 Create a new storage class configured with the secret we created for CephFS access.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat sc-cephfs-ocpa.yaml
 ---
@@ -599,7 +590,7 @@ a result of the *ReclaimPolicy* specific to the new storage classes.
 
 Create a new storage class configured with the secret we created for RBD access.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat sc-rbd-ocpdr.yaml
 ---
@@ -659,7 +650,7 @@ storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd-dr created
 
 Create a new storage class configured with the secret we created for CephFS access.
 
-[source,role="execute"]
+[source,shell]
 ----
 cat sc-cephfs-ocpdr.yaml
 ---
@@ -719,11 +710,7 @@ IMPORTANT: The name of the storage classes have to be identical on both clusters
 
 include::partial$metro-multi-basictesting.adoc[]
 
-<<<<<<< HEAD
 IMPORTANT: Once the testing is complete you can clean up the left over *PersistentVolumes* as
-=======
-IMPORTANT: Once the testong is complete you can clean up the left over *PersistentVolumes* as
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 a result of the *ReclaimPolicy* specific to the new storage classes.
 
 == Deploy Sample Application
@@ -765,7 +752,7 @@ and therefore set `snapshotVolumes: false`.
 
 There is one additional resource to exclude that will be done by adding a label to the specific `configmap`. 
 
-[source,role="execute"]
+[source,shell]
 ----
 oc label -n my-database-app configmaps rails-pgsql-persistent-1-ca velero.io/exclude-from-backup=true
 ----
@@ -776,7 +763,7 @@ configmap/rails-pgsql-persistent-1-ca labeled
 
 Now create the *Backup* for `my-database-app` namespace.
 
-[source,role="execute"]
+[source,shell]
 ----
 curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/backup.yaml | oc apply -f -
 ----
@@ -787,7 +774,7 @@ backup.velero.io/backup1 created
 
 Verify the *Backup* completed successfully using your `S3` bucket using the following command:
 
-[source,role="execute"]
+[source,shell]
 ----
 oc describe backup backup1 -n oadp-operator
 ----
@@ -843,7 +830,7 @@ the nodes of the cluster.
 
 Let's take a look at the *DeploymentConfig* for our application.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get deploymentconfig -n my-database-app
 ----
@@ -856,7 +843,7 @@ rails-pgsql-persistent   1          1         1         config,image(rails-pgsql
 
 There are two *DeploymentConfig* to scale to zero.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc scale deploymentconfig postgresql -n my-database-app --replicas=0
 ----
@@ -867,7 +854,7 @@ deploymentconfig.apps.openshift.io/postgresql scaled
 
 Now scale the second deployment to zero.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=0
 ----
@@ -879,7 +866,7 @@ deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
 Check to see the *Pods* are deleted. The following command should return *_no_* results
 if both *DeploymentConfig* are scaled to zero.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods -n my-database-app | grep Running
 ----
@@ -887,7 +874,7 @@ oc get pods -n my-database-app | grep Running
 Test that the application is down on the *primary cluster* by refreshing the route in
 your browser or get route again and copy to browser tab.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
 ----
@@ -909,7 +896,7 @@ by the two OCP clusters.
 Connect to your RHCS management node and delete the `client.rbd.ocpa` and `client.cephfs-k.ocpa`
 `cephx` user names after backing them up.
 
-[source,role="execute"]
+[source,shell]
 ----
 ceph auth export {rbd_ocpa_user_name} >client.rbd.data
 ceph auth del {rbd_ocpa_user_name}
@@ -918,7 +905,6 @@ ceph auth del {cephfs_ocpa_user_name}
 ----
 .Example output
 ----
-<<<<<<< HEAD
 # ceph auth export client.rbd.ocpa >client.rbd.ocpa.data
 export auth(key=AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==)
 # ceph auth del client.rbd.ocpa
@@ -930,19 +916,6 @@ updated
 ----
 
 NOTE: When needed you can easily import the old `cephx` definition that you exported to
-=======
-ceph auth export client.rbd.ocpa >client.rbd.ocpa.data
-export auth(key=AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==)
-ceph auth del client.rbd.ocpa
-updated
-ceph auth export client.cephfs-k.ocpa >client.cephfs.ocpa.data
-export auth(key=AQBuhmNgaSXMBxAA5OMASYxgUs6xkhGAuebnAw==)
-ceph auth del client.cephfs-k.ocpa
-updated
-----
-
-NOTE: When needed you cam easily import the old `cephx` definition that you exported to
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 make sure the `cephx` user is recreated indentically.
 
 === Restore Application on OCP-DR
@@ -972,7 +945,7 @@ You notice in the *Restore* that the `backup1` created earlier is referenced.
 IMPORTANT: Make sure to issue this command on the *secondary cluster* (OCP-DR). The namespace
 `my-database-app` should not exist on this cluster at this point.
 
-[source,role="execute"]
+[source,shell]
 ----
 curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/restore.yaml | oc apply -f -
 ----
@@ -983,11 +956,11 @@ restore.velero.io/restore1 created
 
 Verify the *Restore* completed successfully using your `S3` bucket using the following command.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc describe restore restore1 -n oadp-operator
 ----
-.Example output:
+.Example output
 ----
 Name:         restore1
 Namespace:    oadp-operator
@@ -1022,7 +995,7 @@ Events:                  <none>
 Check to see that the *PODs* and *PVC* are created correctly in `my-database-app`namespace
 on *secondary cluster* (OCP-DR).
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods,pvc -n my-database-app
 ----
@@ -1045,7 +1018,7 @@ persistentvolumeclaim/postgresql   Bound    pvc-35f21284-cc83-479e-97db-3f778980
 To verify the application on the *secondary cluster* you will want to access the
 application again and create a new article. 
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
 ----
@@ -1068,7 +1041,7 @@ password: secret
 
 Once you have added a new article you can verify it exists in the `postgresql` database by issuing this command:
 
-[source,role="execute"]
+[source,shell]
 ----
 oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "select * from articles"
 ----
@@ -1098,12 +1071,8 @@ is deleted, the associated *PV* will be deleted as well as the associated image 
 In order to failback to the *primary cluster* (OCP-A) from the *secondary cluster* (OCP-DR) repeat the steps for
 failover except reverse the order.
 
-<<<<<<< HEAD
 CAUTION: When failing back it is imperative that the applicatiobn be stopped in cluster OCP-DR and that no
 application accesses the PVs from that cluster.
-
-=======
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 === Un-Fencing OCP-A Cluster
 
 Only exception to the procedure is that after fencing the OCP-DR cluster you will need to recreate the `cephx`
@@ -1121,11 +1090,7 @@ ceph auth get {your_cephfs_username}
 ----
 # ceph auth import -i client.rbd.ocpa.data
 imported keyring
-<<<<<<< HEAD
 # ceph auth get client.rbd.ocpa
-=======
-# ceph auth get client.rbd.ocpa.data
->>>>>>> 54a9d163fe31fa95bc89429cf9889b6766f3c243
 [client.rbd.ocpa]
 	key = AQBthmNgeGFMGBAAXELMMDLzqUJqBhPp0xSfmQ==
 	caps mgr = "allow rw"
@@ -1153,7 +1118,7 @@ and verify that the article you created on the *secondary custer* (OCP-DR) is pr
 
 There are two *DeploymentConfig* to scale to 1.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc scale deploymentconfig postgresql -n my-database-app --replicas=1
 ----
@@ -1164,7 +1129,7 @@ deploymentconfig.apps.openshift.io/postgresql scaled
 
 Now scale the second deployment to 1.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc scale deploymentconfig rails-pgsql-persistent -n my-database-app --replicas=1
 ----
@@ -1176,12 +1141,12 @@ deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled
 Check to see the *Pods* are running. The following command should return two pods if both
 *DeploymentConfig* are scaled corerctly.
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get pods -n my-database-app | grep Running
 ----
 
-[source,role="execute"]
+[source,shell]
 ----
 oc get route rails-pgsql-persistent -n my-database-app -o jsonpath --template="http://{.spec.host}/articles{'\n'}"
 ----
@@ -1206,7 +1171,7 @@ password: secret
 Once you have added a new article you can verify it exists in the `postgresql` database together with the original
 article, the one added after the failover and the last one you just added by issuing this command:
 
-[source,role="execute"]
+[source,shell]
 ----
 oc rsh -n my-database-app $(oc get pods -n my-database-app|grep postgresql | grep -v deploy | awk {'print $1}') psql -c "\c root" -c "select * from articles"
 ----
