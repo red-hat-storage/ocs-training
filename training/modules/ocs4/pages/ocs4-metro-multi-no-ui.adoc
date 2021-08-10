@@ -29,7 +29,7 @@ You must have access to a Red Hat Ceph Storage (RHCS) cluster.
 
 === High level procedure 
 
-NOTE: These steps are considered Dev Preview in ODF 4.7, and are provided for POCs purposes.
+IMPORTANT: These steps are considered Development Preview in ODF 4.7 and 4.8, and are provided for POCs purposes.
 They will be supported for production usage in a later ODF release.
 
 [start=1]
