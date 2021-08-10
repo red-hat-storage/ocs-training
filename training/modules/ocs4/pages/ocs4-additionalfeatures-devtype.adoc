@@ -104,8 +104,9 @@ to assign a CRUSH device class within your underlying cluster. See the xref:ocs4
 is if the WAL can reside on a faster device than the device where the metadata lives.
 
 IMPORTANT: If you do not specify a `deviceType` value the OSD will auto-detect the type of device using
-the value contained in `/sys/block/{devicename}/queue/rotational`. If the file contains a `0` the device
-type assigned will be `ssd` but if the value is `1` the device type assigned will be `hdd`.
+the value contained in `/sys/block/\{devicename\}/queue/rotational`. If the file contains a `0` the device
+type assigned will be `ssd` but if the value is `1` the device type assigned will be `hdd`. Another
+easy way to check if to use `lsblk -d -o name,rota`.
 
 CAUTION: There is no built-in mechanism in the OSD to detect a difference between a SSD and a NVMe. Both
 will be assigend a type `ssd` without your customization.

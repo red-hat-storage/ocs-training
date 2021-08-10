@@ -123,7 +123,7 @@ HEALTH_OK
 # oc patch storagecluster ocs-storagecluster -n openshift-storage --type json --patch '[{ "op": "replace", "path": "/spec/storageDeviceSets/0/count", "value": {n} }]'
 ----
 
-**Note:** Make `{n}` as `${deviceset} - 1`. In this example `{n}` will be a value of `1`. See thee example below.
+**Note:** Make `\{n\}` as `$\{deviceset\} - 1`. In this example `\{n\}` will be a value of `1`. See thee example below.
 
 [source,role="execute"]
 ----
