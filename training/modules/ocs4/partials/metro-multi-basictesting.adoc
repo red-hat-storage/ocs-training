@@ -1,0 +1,187 @@
+
+[source,shell]
+----
+oc get sc
+----
+.Exmaple output
+----
+NAME                                      PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE      ALLOWVOLUMEEXPANSION   AGE
+gp2 (default)                             kubernetes.io/aws-ebs                   Delete          WaitForFirstConsumer   true                   3h45m
+gp2-csi                                   ebs.csi.aws.com                         Delete          WaitForFirstConsumer   true                   3h45m
+ocs-external-storagecluster-ceph-rbd      openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   28m
+ocs-external-storagecluster-ceph-rbd-dr   openshift-storage.rbd.csi.ceph.com      Retain          Immediate              true                   5m32s
+ocs-external-storagecluster-ceph-rgw      openshift-storage.ceph.rook.io/bucket   Delete          Immediate              false                  28m
+ocs-external-storagecluster-cephfs        openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   28m
+ocs-external-storagecluster-cephfs-dr     openshift-storage.cephfs.csi.ceph.com   Retain          Immediate              true                   5m21s
+openshift-storage.noobaa.io               openshift-storage.noobaa.io/obc         Delete          Immediate              false                  26m
+----
+
+===== Verify RBD Provisioning
+
+Create a RBD based PVC using the new RBD storage class `ocs-external-storagecluster-ceph-rbd-dr`.
+
+[source,shell]
+----
+cat <<EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage
+----
+.Example output
+----
+> ---
+> apiVersion: v1
+> kind: PersistentVolumeClaim
+> metadata:
+>   name: testrwo
+> spec:
+>   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+>   accessModes:
+>     - ReadWriteOnce
+>   resources:
+>     requests:
+>       storage: 10Gi
+> EOF
+persistentvolumeclaim/testrwo created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd      35m
+testrwo             Bound    pvc-294995a7-ebee-4d9e-9b98-f6c708ff0cac   10Gi       RWO            ocs-external-storagecluster-ceph-rbd-dr   0s
+----
+
+Clean up the environment.
+
+[source,shell]
+----
+cat <<EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage
+----
+.Example output
+----
+> ---
+> apiVersion: v1
+> kind: PersistentVolumeClaim
+> metadata:
+>   name: testrwo
+> spec:
+>   storageClassName: "ocs-external-storagecluster-ceph-rbd-dr"
+>   accessModes:
+>     - ReadWriteOnce
+>   resources:
+>     requests:
+>       storage: 10Gi
+> EOF
+persistentvolumeclaim "testrwo" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   34m
+----
+
+===== Verify CephFS Provisioning
+
+Create a CephFS based PVC using the new CephFS storage class `ocs-external-storagecluster-cephfs-dr`.
+
+[source,shell]
+----
+cat <<EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage
+----
+.Example output
+----
+> ---
+> apiVersion: v1
+> kind: PersistentVolumeClaim
+> metadata:
+>   name: testrwx
+> spec:
+>   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+>   accessModes:
+>     - ReadWriteMany
+>   resources:
+>     requests:
+>       storage: 10Gi
+> EOF
+persistentvolumeclaim/testrwx created
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                            AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd    39m
+testrwx             Bound    pvc-2f7c19c9-8fc9-4d9d-aba8-8810e77d8b96   10Gi       RWX            ocs-external-storagecluster-cephfs-dr   0s
+----
+
+Clean up the environment.
+
+[source,shell]
+----
+cat <<EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs-dr"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc -n openshift-storage
+----
+.Example output
+----
+> ---
+> apiVersion: v1
+> kind: PersistentVolumeClaim
+> metadata:
+>   name: testrwx
+> spec:
+>   storageClassName: "ocs-external-storagecluster-cephfs-dr"
+>   accessModes:
+>     - ReadWriteMany
+>   resources:
+>     requests:
+>       storage: 10Gi
+> EOF
+persistentvolumeclaim "testrwx" deleted
+$ oc get pvc -n openshift-storage
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-d23d18a1-f525-45ee-bc57-aec5b30440b1   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   40m
+----

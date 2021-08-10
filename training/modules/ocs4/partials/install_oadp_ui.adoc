@@ -1,0 +1,117 @@
+OADP (OpenShift APIs for Data Protection) is a community operator and is available in *OperatorHub*. 
+
+We will be using OADP for the `Backup` and `Restore` APIs for collecting the Kubernetes objects at a namespace level. The collection or backup of resources is needed to restore the application on the *secondary cluster*.
+
+=== Installing OADP Operator
+
+First is to find OADP in *OperatorHub*. Login to your *OpenShift Web Console* and navigate to *OperatorHub*. Filter for `OADP` as shown below:
+
+.OperatorHub filter for OADP
+image::OCP4-OADP-operatorhub-filter.png[OperatorHub filter for OADP]
+
+NOTE: If you are not finding OADP in *OperatorHub* most likely the `community-operator` catalogsource is not deployed in your cluster.
+
+Select `Continue` on next screen.
+
+.OADP operator support statement
+image::OCP4-OADP-operatorhub-continue.png[OADP operator support statement]
+
+CAUTION: OADP is a community operator and as such is not supported by Red Hat. More information can be found at https://github.com/konveyor/oadp-operator.
+
+Select `Install` on next screen.
+
+.OADP install screen
+image::OCP4-OADP-operatorhub-install.png[OADP install screen]
+
+Now you will create the new namespace `oadp-operator` and install the OADP operator into this namespace. Select `Install` again.
+
+.OADP create namespace and install operator
+image::OCP4-OADP-operatorhub-install2.png[OADP create namespace and install operator]
+
+Wait for operator to install. When you see this screen the OADP operator is installed.
+
+.OADP operator installed and ready
+image::OCP4-OADP-operator-installed.png[OADP operator installed and ready]
+
+The next step is to create the `Velero` *CustomResource* or CR. For this you will need to have a `S3` compatible object bucket created that you know the `bucket name` as well as the credentials to access the bucket.
+
+NOTE: It is not recommended to use OCS object buckets (MCG or RGW) as the `S3` *BackingStorageLocation* for `Velero` CR. If your remote or secondary clusters become unavailable and the `S3` bucket is created on that cluster there is no way to recover to alternate cluster.
+
+=== Creating S3 Target Bucket Credentials Secret
+
+Before creating the  `Velero` CR you must create the `cloud-credentials` file with the creditials for your `S3` bucket. The format of the file needs to be this:
+
+----
+[default]
+aws_access_key_id=VELERO_ACCESS_KEY_ID
+aws_secret_access_key=VELERO_SECRET_ACCESS_KEY
+----
+
+Copy your unique credentials into file `cloud-credentials` and save file.
+
+Now use this new `cloud-credentials` file to create a new *Secret*. Replace `<CREDENTIALS_FILE_PATH>` with path to file you created with `S3` credentials.
+
+----
+oc create secret generic cloud-credentials --namespace oadp-operator --from-file cloud=<CREDENTIALS_FILE_PATH>/cloud-credentials
+----
+
+=== Configuring Velero S3 Target
+
+The `velero` configuration needs to be modified so it can use your `S3` bucket. The example is for a `S3` bucket on *AWS* saved as file `velero-aws.yaml`. It is recommended to use an object bucket `off-platform` meaning not backed by storage in the *primary cluster* (OCP-A) or the *secondary cluster* (OCP-DR).
+
+NOTE: Your `velero` YAML file will be slightly different if using a `S3` object bucket from a different provider (GCP, Azure), from an external Ceph cluster with `RGW`, or from ODF `MCG`.
+
+[source,yaml]
+----
+apiVersion: konveyor.openshift.io/v1alpha1
+kind: Velero
+metadata:
+  name: oadp-velero
+  namespace: oadp-operator
+spec:
+  olm_managed: true
+  backup_storage_locations:
+    - config:
+        profile: default
+        region: us-east-2  # <-- Modify to bucket AWS region or region for your provider
+      credentials_secret_ref:
+        name: cloud-credentials
+        namespace: oadp-operator
+      name: default
+      object_storage:
+        bucket: oadp-xxxxxx # Modify to your bucket name
+        prefix: velero
+      provider: aws
+  default_velero_plugins:
+    - aws
+    - openshift
+  enable_restic: false
+----
+
+Once you have your unique values copied into your YAML file create the `Velero` CR.
+
+NOTE: If using a `MCG` object bucket instead of a bucket `off-platform` (i.e. AWS) as recommended, reference these https://github.com/konveyor/oadp-operator/blob/master/docs/noobaa/install_oadp_noobaa.md[instructions].
+
+----
+oc create -f velero-aws.yaml -n oadp-operator
+----
+
+Validate that the `velero` pod is `Running` and that the *BackingStorageLocation* have been created as well that has the details to access your `S3` bucket for Kubernetes object storage.
+
+[source,role="execute"]
+----
+oc get pods,backupstoragelocation -n oadp-operator
+----
+.Example output:
+----
+NAME                                           READY   STATUS    RESTARTS   AGE
+pod/oadp-default-aws-registry-88f556c5-2mk6h   1/1     Running   0          4m59s
+pod/oadp-operator-6bb9fb6cfc-mc6vw             1/1     Running   0          49m
+pod/velero-6c6fd6d84d-mbct9                    1/1     Running   0          5m3s
+
+NAME                                      PHASE       LAST VALIDATED   AGE
+backupstoragelocation.velero.io/default   Available   9s               5m1s
+----
+
+IMPORTANT: Repeat these steps and install *OADP* on the *secondary cluster* (OCP-DR). Make sure to use the same `S3` bucket and credentials as for the *primary cluster* (OCP-A) when creating the `Velero` CR.
+
