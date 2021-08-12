@@ -1,0 +1,1062 @@
+= ODF External Cluster AWS Based
+:toc: right
+:toclevels: 3
+:icons: font
+:source-highlighter: pygments
+:source-language: shell
+:numbered:
+:imagesdir: ../docs/imgs/
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+
+== Introduction
+
+In order to test the OpenShift Data Foundation (*ODF*) 4.7 Multi-Cluster Metro DR solution you will need to setup an external
+Red Hat Ceph Storage (*RHCS*) cluster. This solution guide details how you can achieve such setup using AWS to make your testing
+and your presentation easier.
+
+== Prerequisites
+
+To setup the environment you will need:
+
+* A bastion node to run a standalone `docker` registry
+** A copy of the RHCS container images on your bastion node
+** Access to a repository to deploy `podman`
+** Access to the Red Hat regsitry
+* An AWS instance with the following for your RHCS cluster
+** 8 CPUs
+** 32 GB RAM
+** At last two (2) additional disk drives attached to the instance
+** Access to the RHCS repositories to avoid modifying the `ceph-ansible` playbook
+
+NOTE: An AWS `m5.2xlarge` will be adequate and used in this guide.
+
+In terms of network you will need the following:
+
+* Port 5000 on yoru bastion node is reachable
+* Port 3300 on your RHCS instance is reachable
+* Port 9283 on your RHCS instance is reachable
+* Port range 6789-7100 on your RHCS instance is reachable
+* VPC Peering must be established between your OCP cluster and your RHCS instance
+
+IMPORTANT: This solution guide will walk you through the entire setup.
+
+== Private registry setup
+
+On your bastion node, perform the following actions.
+
+[source,role="execute"]
+....
+sudo -i
+yum install -y podman
+....
+.Example output:
+----
+[ec2-user@ip-172-31-14-45 ~]$ sudo -i
+[root@ip-172-31-14-45 ~]# yum install -y podman
+Loaded plugins: product-id, search-disabled-repos, subscription-manager
+epel/x86_64/metalink                                                                                                                                                                                       | 7.1 kB  00:00:00
+epel                                                                                                                                                                                                       | 4.7 kB  00:00:00
+rhel-7-server-extras-rpms                                                                                                                                                                                  | 3.4 kB  00:00:00
+rhel-7-server-htb-rpms                                                                                                                                                                                     | 3.7 kB  00:00:00
+rhel-7-server-optional-rpms                                                                                                                                                                                | 3.2 kB  00:00:00
+rhel-7-server-rpms                                                                                                                                                                                         | 3.5 kB  00:00:00
+(1/3): epel/x86_64/group_gz                                                                                                                                                                                |  96 kB  00:00:00
+(2/3): epel/x86_64/updateinfo                                                                                                                                                                              | 1.0 MB  00:00:00
+(3/3): epel/x86_64/primary_db                                                                                                                                                                              | 6.9 MB  00:00:00
+Resolving Dependencies
+--> Running transaction check
+---> Package podman.x86_64 0:1.6.4-29.el7_9 will be installed
+--> Processing Dependency: containers-common >= 0.1.29-3 for package: podman-1.6.4-29.el7_9.x86_64
+--> Running transaction check
+---> Package containers-common.x86_64 1:0.1.40-12.el7_9 will be installed
+--> Finished Dependency Resolution
+
+Dependencies Resolved
+
+==================================================================================================================================================================================================================================
+ Package                                                Arch                                        Version                                                  Repository                                                      Size
+==================================================================================================================================================================================================================================
+Installing:
+ podman                                                 x86_64                                      1.6.4-29.el7_9                                           rhel-7-server-extras-rpms                                       13 M
+...[ Truncated ]...
+Installed:
+  podman.x86_64 0:1.6.4-29.el7_9
+
+Dependency Installed:
+  containers-common.x86_64 1:0.1.40-12.el7_9
+
+Complete!
+----
+
+Start a private registry container
+
+[source,role="execute"]
+....
+podman run -d -p 5000:5000 --restart always --name registry registry:2
+....
+.Example output:
+----
+[root@ip-172-31-14-45 ~]# podman run -d -p 5000:5000 --restart always --name registry registry:2
+86f11f225b1c6425c59deedca5ec3ede86af40c11a3d7b5fa8069108bc40b949
+----
+
+Login into `registry.redhat.io` to pull RHCS container images
+
+[source,role="execute"]
+....
+podman login registry.redhat.io
+....
+.Example output:
+----
+[root@ip-172-31-14-45 ~]# podman login registry.redhat.io
+Username: {your RHNID}
+Password:
+Login Succeeded!
+----
+
+Check the network configuration on your registry node
+
+[source,role="execute"]
+....
+echo "Local IP is $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4)"
+echo "Public IP is $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)"
+....
+.Example output:
+----
+Local IP is 172.31.14.45
+Public IP is 3.135.198.72
+----
+
+Load the RHCS container images into your private registry
+
+NOTE: YOu can also use a `podman load` command if you have the appropriate `tar` files at hand.
+
+[source,role="execute"]
+....
+podman pull registry.redhat.io/rhceph/rhceph-4-rhel8
+podman tag registry.redhat.io/rhceph/rhceph-4-rhel8 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-rhel8:latest
+....
+.Example output:
+----
+[root@ip-172-31-14-45 ~]# podman pull registry.redhat.io/rhceph/rhceph-4-rhel8
+Trying to pull registry.redhat.io/rhceph/rhceph-4-rhel8...
+Getting image source signatures
+Copying blob cca21acb641a done
+Copying blob d9e72d058dc5 done
+Copying blob d6057918126a done
+Copying config 980fa2e3ed [======================================] 4.0KiB / 4.0KiB
+Writing manifest to image destination
+Storing signatures
+980fa2e3ed4c8f5fe96da407c4bf80c8627dfe66f1e79bc10fe516f9f9d50d92
+[root@ip-172-31-14-45 ~]# podman tag registry.redhat.io/rhceph/rhceph-4-rhel8 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-rhel8:latest
+----
+
+Pull and tag remaining RHCS container images
+
+[source,role="execute"]
+....
+podman pull registry.redhat.io/rhceph/rhceph-4-dashboard-rhel8:4
+podman tag registry.redhat.io/rhceph/rhceph-4-dashboard-rhel8:4 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-dashboard-rhel8:4
+podman pull registry.redhat.io/openshift4/ose-prometheus-node-exporter:v4.1
+podman tag registry.redhat.io/openshift4/ose-prometheus-node-exporter:v4.1 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus-node-exporter:v4.1
+podman pull registry.redhat.io/openshift4/ose-prometheus:4.1
+podman tag registry.redhat.io/openshift4/ose-prometheus:4.1 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus:4.1
+podman pull registry.redhat.io/openshift4/ose-prometheus-alertmanager:4.1
+podman tag registry.redhat.io/openshift4/ose-prometheus-alertmanager:4.1 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus-alertmanager:4.1
+....
+
+Push all RHCS container images to your local registry
+
+[source,role="execute"]
+....
+podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-rhel8:latest
+podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-dashboard-rhel8:4
+podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus-node-exporter:v4.1
+podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus:4.1
+podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/openshift4/ose-prometheus-alertmanager:4.1
+....
+
+== Bring up your RHCS node
+
+Use the EC2 console to provision a node with 32GB of RAM and 8 vCPUs. Choose an AMI that uses
+RHEL 8.2 minimum. e.g. `ami-01cf88867e5951c0a` used in this solution guide.
+
+.Select AMI This Instance
+image::AWS_InstanceAMI.png[AWS instance ami]
+
+Click `Select` on the right-hand side of the UI
+
+.Select Instance Type
+image::AWS_InstanceType.png[AWS instance selection]
+
+Click `Next` to select configuration details.
+
+.Select Same VPC As Batsion Node
+image::AWS_InstanceStep3.png[AWS VPC selection]
+
+NOTE: Make sure you assign your instance to the same VPC as the bastion node where your local registry
+is running as illustrated above.
+
+.Select Storage
+image::AWS_InstanceStorage.png[AWS instance storage]
+
+Make sure to provision an instance that has both a boot volume and at least 2 additional devices (e.g. m5.2xlarge).
+
+.Select Key Pair
+image::AWS_InstanceKeyPair.png[AWS instance security]
+
+NOTE: Make sure you select or create a security group that restrict access to your RHCS instace.
+Later in this guide we will modify the security group to allow your RHCS cluster to be
+reachable from your OCP clusters.
+
+=== Registration and repositories
+
+Log into your Red Hat Ceph Storage single node via SSH.
+
+[source,shell]
+....
+ssh -i ~/.ssh/aws_bastion.pem ec2-user@{your_instance_public_dns}
+....
+.Example output
+----
+Last login: Mon Mar 29 18:18:06 2021 from {your_piblic_ip_dns}
+[ec2-user@ip-172-31-10-213 ~]$
+----
+
+First step is to register your system using `subscription-manager`.
+
+[source,role="execute"]
+....
+subscription-manager register --force
+....
+.Example output:
+----
+Unregistering from: subscription.rhsm.redhat.com:443/subscription
+The system with UUID 31a01727-de14-4060-8439-d902b3a1b5a4 has been unregistered
+All local data removed
+Registering to: subscription.rhsm.redhat.com:443/subscription
+Username: {your_rhnid}
+Password:
+The system has been registered with ID: f09a8143-b71c-4ad1-aa31-bb9ff831dd4a
+The registered system name is: ip-172-31-10-213.us-east-2.compute.internal
+----
+
+Then attach the correct pool for your Employee SKU. Use the following commands
+to find the correct \{poolid\} for your configuration.
+
+[source,role="execute"]
+....
+subscription-manager list --available >subs.txt
+vi subs.txt
+subscription-manager attach --pool={yourpoolid}
+....
+
+Enable the correct repositories for Red Hat Ceph Storage 4
+[source,role="execute"]
+....
+for repo in $(subscription-manager repos --list | grep 'rhceph-4' | grep -v source | grep -v debug | awk '{ print $3 }'); do subscription-manager repos --enable=${repo}; done
+subscription-manager repos --enable=ansible-2.9-for-rhel-8-x86_64-rpms
+yum repolist
+....
+.Example output:
+----
+# for repo in $(subscription-manager repos --list | grep 'rhceph-4' | grep -v source | grep -v debug | awk '{ print $3 }'); do subscription-manager repos --enable=${repo}; done
+Repository 'rhceph-4-tools-for-rhel-8-x86_64-rpms' is enabled for this system.
+Repository 'rhceph-4-mon-for-rhel-8-x86_64-rpms' is enabled for this system.
+Repository 'rhceph-4-osd-for-rhel-8-x86_64-rpms' is enabled for this system.
+# subscription-manager repos --enable=ansible-2.9-for-rhel-8-x86_64-rpms
+Repository 'ansible-2.9-for-rhel-8-x86_64-rpms' is enabled for this system.
+# yum repolist
+Updating Subscription Management repositories.
+repo id                                                                                            repo name
+ansible-2.9-for-rhel-8-x86_64-rpms                                                                 Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 (RPMs)
+rhceph-4-mon-for-rhel-8-x86_64-rpms                                                                Red Hat Ceph Storage MON 4 for RHEL 8 x86_64 (RPMs)
+rhceph-4-osd-for-rhel-8-x86_64-rpms                                                                Red Hat Ceph Storage OSD 4 for RHEL 8 x86_64 (RPMs)
+rhceph-4-tools-for-rhel-8-x86_64-rpms                                                              Red Hat Ceph Storage Tools 4 for RHEL 8 x86_64 (RPMs)
+rhel-8-appstream-rhui-rpms                                                                         Red Hat Enterprise Linux 8 for x86_64 - AppStream from RHUI (RPMs)
+rhel-8-baseos-rhui-rpms                                                                            Red Hat Enterprise Linux 8 for x86_64 - BaseOS from RHUI (RPMs)
+rhel-8-for-x86_64-appstream-rpms                                                                   Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)
+rhel-8-for-x86_64-baseos-rpms                                                                      Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)
+rhui-client-config-server-8                                                                        Red Hat Update Infrastructure 3 Client Configuration Server 8
+----
+
+Install the `ceph-ansible` package
+[source,role="execute"]
+....
+yum -y install ceph-ansible
+yum -y install podman
+....
+.Example output:
+----
+# yum -y install ceph-ansible
+Updating Subscription Management repositories.
+Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 (RPMs)                                                                                                                                               1.2 MB/s | 1.4 MB     00:01
+Red Hat Ceph Storage Tools 4 for RHEL 8 x86_64 (RPMs)                                                                                                                                              11 kB/s | 3.8 kB     00:00
+Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)                                                                                                                                              14 kB/s | 4.1 kB     00:00
+Red Hat Ceph Storage MON 4 for RHEL 8 x86_64 (RPMs)                                                                                                                                                13 kB/s | 4.0 kB     00:00
+Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)                                                                                                                                           14 kB/s | 4.5 kB     00:00
+Red Hat Ceph Storage OSD 4 for RHEL 8 x86_64 (RPMs)                                                                                                                                                11 kB/s | 4.0 kB     00:00
+Dependencies resolved.
+==================================================================================================================================================================================================================================
+ Package                                             Architecture                              Version                                             Repository                                                                Size
+==================================================================================================================================================================================================================================
+Installing:
+ ceph-ansible                                        noarch                                    4.0.41-1.el8cp                                      rhceph-4-tools-for-rhel-8-x86_64-rpms                                    210 k
+...[ Truncated ]...
+Installed:
+  ansible-2.9.19-1.el8ae.noarch            ceph-ansible-4.0.41-1.el8cp.noarch            python3-jmespath-0.9.0-11.el8.noarch            python3-netaddr-0.7.19-8.el8.noarch            sshpass-1.06-3.el8ae.x86_64
+
+Complete!
+# yum -y install podman
+Updating Subscription Management repositories.
+Last metadata expiration check: 0:18:36 ago on Thu 25 Mar 2021 11:45:51 PM UTC.
+Dependencies resolved.
+==================================================================================================================================================================================================================================
+ Package                                                  Architecture                       Version                                                                 Repository                                              Size
+==================================================================================================================================================================================================================================
+Installing:
+ podman                                                   x86_64                             2.2.1-7.module+el8.3.1+9857+68fb1526                                    rhel-8-appstream-rhui-rpms                              14 M
+...[ Truncated ]...
+Installed:
+  conmon-2:2.0.22-3.module+el8.3.1+9857+68fb1526.x86_64                  container-selinux-2:2.155.0-1.module+el8.3.1+9857+68fb1526.noarch        containernetworking-plugins-0.9.0-1.module+el8.3.1+9857+68fb1526.x86_64
+  containers-common-1:1.2.0-9.module+el8.3.1+9857+68fb1526.x86_64        criu-3.15-1.module+el8.3.1+9857+68fb1526.x86_64                          fuse-common-3.2.1-12.el8.x86_64
+  fuse-overlayfs-1.3.0-2.module+el8.3.1+9857+68fb1526.x86_64             fuse3-3.2.1-12.el8.x86_64                                                fuse3-libs-3.2.1-12.el8.x86_64
+  iptables-1.8.4-10.el8.x86_64                                           libnet-1.1.6-15.el8.x86_64                                               libnetfilter_conntrack-1.0.6-5.el8.x86_64
+  libnfnetlink-1.0.1-13.el8.x86_64                                       libnftnl-1.1.5-4.el8.x86_64                                              libslirp-4.3.1-1.module+el8.3.1+9803+64eb0fd6.x86_64
+  libvarlink-18-3.el8.x86_64                                             nftables-1:0.9.3-16.el8.x86_64                                           podman-2.2.1-7.module+el8.3.1+9857+68fb1526.x86_64
+  podman-catatonit-2.2.1-7.module+el8.3.1+9857+68fb1526.x86_64           policycoreutils-python-utils-2.9-9.el8.noarch                            protobuf-c-1.3.0-4.el8.x86_64
+  runc-1.0.0-70.rc92.module+el8.3.1+9857+68fb1526.x86_64                 slirp4netns-1.1.8-1.module+el8.3.1+9857+68fb1526.x86_64
+
+Complete!
+----
+
+Prepare node for Ansible
+
+[source,role="execute"]
+....
+ssh-keygen -N ""  -f ~/.ssh/id_rsa
+cat ~/.ssh/id_rsa.pub >>~/.ssh/authorized_keys
+....
+.Example output:
+----
+# ssh-keygen -N ""  -f ~/.ssh/id_rsa
+Generating public/private rsa key pair.
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:YFg17aRVfCviumZeJQ9DZxJuC2Vd59i3J0l2IAbQxWQ root@ip-172-31-10-213.us-east-2.compute.internal
+The key's randomart image is:
++---[RSA 3072]----+
+|      ..++=OE.o .|
+|     o   ==++..* |
+|    . o .== o.+.=|
+|     . ..+o=.o.oo|
+|        S.=...o..|
+|          .*   ..|
+|         .. .    |
+|        +.       |
+|       +o.       |
++----[SHA256]-----+
+# cat ~/.ssh/id_rsa.pub >>~/.ssh/authorized_keys
+----
+
+Modify the configuration in `/etc/containers/registries.conf` to read the following entries
+
+[source,role="execute"]
+....
+[registries.search]
+registries = ['{your_local_registry_node}:5000', 'registry.access.redhat.com', 'registry.redhat.io', 'docker.io']
+... truncated ...
+[registries.insecure]
+registries = ['{your_local_registry_node}:5000']
+....
+
+Verify you can pull from your remote registry
+
+[source,role="execute"]
+....
+podman pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8
+....
+.Example output
+----
+# podman pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8
+Trying to pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8:latest...
+Getting image source signatures
+Copying blob 0dbe531b0d7b done
+Copying blob 55e827cc6c85 done
+Copying blob 18198709554e done
+Copying config 980fa2e3ed done
+Writing manifest to image destination
+Storing signatures
+980fa2e3ed4c8f5fe96da407c4bf80c8627dfe66f1e79bc10fe516f9f9d50d92
+----
+
+=== RHCS Deployment
+
+Your node is now ready for RHCS deployment. Configure your `ceph-ansible` playbook to proceed.
+
+IMPORTANT: Use you RHCS instance AWS internal hostname to configur `ceph-ansible`.
+
+[source,role="execute"]
+....
+cat /etc/ansible/hosts
+....
+.Example output
+----
+# cat /etc/ansible/hosts
+[mons]
+ip-172-31-10-213.us-east-2.compute.internal
+
+[mgr]
+ip-172-31-10-213.us-east-2.compute.internal
+
+[osds]
+ip-172-31-10-213.us-east-2.compute.internal
+
+[mdss]
+ip-172-31-10-213.us-east-2.compute.internal
+
+[rgws]
+ip-172-31-10-213.us-east-2.compute.internal
+
+[grafana-server]
+ip-172-31-10-213.us-east-2.compute.internal
+----
+
+NOTE: Use your local IP address in your Ansible host file. It can be obtained using the `ip a` command.
+
+Verify your Ansible configuration is operational.
+
+[source,role="execute"]
+....
+ansible -m ping mons
+ansible mons -m command -a id
+ansible mons -m command -a id -b
+....
+.Example output
+----
+# ansible -m ping mons
+172.31.10.213 | SUCCESS => {
+    "changed": false,
+    "ping": "pong"
+}
+# ansible mons -m command -a id
+ip-172-31-10-213.us-east-2.compute.internal | CHANGED | rc=0 >>
+uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+# ansible mons -m command -a id -b
+ip-172-31-10-213.us-east-2.compute.internal | CHANGED | rc=0 >>
+uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
+----
+
+Configure `/usr/share/ceph-ansible/group_vars/all.yml`
+
+[source,role="execute"]
+....
+---
+fetch_directory: ~/ceph-ansible-keys
+
+configure_firewall: True
+ntp_service_enabled: false
+#ntp_daemon_type: chronyd
+
+ceph_repository_type: cdn
+ceph_origin: repository
+ceph_repository: rhcs
+ceph_rhcs_version: 4
+
+fsid: "{{ cluster_uuid.stdout }}"
+generate_fsid: true
+monitor_interface: eth0
+ip_version: ipv4
+mon_use_fqdn: false
+
+public_network: 172.31.10.0/24
+
+radosgw_frontend_type: beast # For additionnal frontends see: http://docs.ceph.com/docs/nautilus/radosgw/frontends/
+radosgw_frontend_port: "{{ radosgw_civetweb_port if radosgw_frontend_type == 'civetweb' else '8080' }}"
+radosgw_interface: eth0
+
+common_single_host_mode: true
+
+ceph_conf_overrides:
+  global:
+    mon_allow_pool_delete: true
+    osd_pool_default_size: 2
+    osd_pool_default_min_size: 1
+
+ceph_docker_image: "rhceph/rhceph-4-rhel8"
+ceph_docker_image_tag: "latest"
+ceph_docker_registry: "{your_local_registry_node}:5000"
+ceph_docker_registry_auth: false
+#ceph_docker_registry_username:
+#ceph_docker_registry_password:
+containerized_deployment: true
+
+dashboard_enabled: false
+# Choose http or https
+# For https, you should set dashboard.crt/key and grafana.crt/key
+# If you define the dashboard_crt and dashboard_key variables, but leave them as '',
+# then we will autogenerate a cert and keyfile
+dashboard_protocol: http
+dashboard_port: 8081
+dashboard_admin_user: admin
+dashboard_admin_password: p@ssw0rd
+dashboard_rgw_api_user_id: ceph-dashboard
+#dashboard_frontend_vip: ''
+node_exporter_container_image: ""{your_local_registry_node}:5000/openshift4/ose-prometheus-node-exporter:v4.1"
+grafana_container_image: "{your_local_registry_node}:5000/rhceph/rhceph-4-dashboard-rhel8:4"
+prometheus_container_image: "{your_local_registry_node}:5000/openshift4/ose-prometheus:4.1"
+alertmanager_container_image: "{your_local_registry_node}":5000/openshift4/ose-prometheus-alertmanager:4.1"
+....
+
+Configure `/usr/share/ceph-ansible/group_vars/osds.yml`
+
+[source,role="execute"]
+....
+---
+copy_admin_key: true
+
+devices:
+  - /dev/nvme1n1
+  - /dev/nvme2n1
+  - /dev/nvme3n1
+....
+
+Start the deployment of your cluster.
+
+[source,role="execute"]
+....
+cd /usr/share/ceph-ansible
+cp ./site-container.yml.sample ./site-container.yml
+ansible-playbook site-container.yml
+....
+.Example output
+----
+# ansible-playbook site-container.yml
+...[ Truncated ]...
+INSTALLER STATUS *****************************************************************************************************************************************************************************************************************
+Install Ceph Monitor           : Complete (0:00:47)
+Install Ceph OSD               : Complete (0:01:00)
+Install Ceph MDS               : Complete (0:00:57)
+Install Ceph RGW               : Complete (0:00:22)
+
+Friday 26 March 2021  03:59:03 +0000 (0:00:00.029)       0:08:53.175 **********
+===============================================================================
+ceph-handler : restart ceph osds daemon(s) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 69.56s
+ceph-handler : restart ceph osds daemon(s) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 38.66s
+ceph-handler : restart ceph osds daemon(s) ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 38.57s
+ceph-handler : restart ceph mon daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 23.88s
+ceph-handler : restart ceph mon daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 23.62s
+ceph-handler : restart ceph mon daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 23.44s
+ceph-osd : use ceph-volume lvm batch to create bluestore osds ------------------------------------------------------------------------------------------------------------------------------------------------------------ 17.86s
+ceph-mds : wait for mds socket to exist ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 16.10s
+ceph-container-engine : install container packages ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- 12.56s
+ceph-handler : restart ceph rgw daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 12.51s
+ceph-handler : restart ceph mds daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 12.18s
+ceph-handler : restart ceph mds daemon(s) -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 12.16s
+ceph-osd : wait for all osd to be up ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 11.64s
+ceph-handler : restart the ceph-crash service ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 11.29s
+ceph-mon : waiting for the monitor(s) to form the quorum... -------------------------------------------------------------------------------------------------------------------------------------------------------------- 10.75s
+ceph-container-engine : install lvm2 package ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ 9.69s
+ceph-infra : ensure logrotate is installed -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 7.39s
+ceph-mon : fetch ceph initial keys ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 5.96s
+ceph-mds : create filesystem pools ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.52s
+ceph-config : create ceph initial directories ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.06s
+----
+
+To make easily access your cluster, install the client package.
+
+[source,role="execute"]
+....
+yum install -y ceph-common
+ceph -s
+....
+.Example output
+----
+# yum install -y ceph-common
+Updating Subscription Management repositories.
+Last metadata expiration check: 0:09:15 ago on Fri 26 Mar 2021 03:50:43 AM UTC.
+Dependencies resolved.
+==================================================================================================================================================================================================================================
+ Package                                           Architecture                       Version                                                             Repository                                                         Size
+==================================================================================================================================================================================================================================
+Installing:
+ ceph-common                                       x86_64                             2:14.2.11-95.el8cp                                                  rhceph-4-tools-for-rhel-8-x86_64-rpms                              20 M
+...[ Truncated ]...
+Installed:
+  ceph-common-2:14.2.11-95.el8cp.x86_64    gperftools-libs-2.6.3-2.el8+7.x86_64   leveldb-1.20-1.el8+7.x86_64                      libbabeltrace-1.5.4-3.el8.x86_64          libcephfs2-2:14.2.11-95.el8cp.x86_64
+  libibverbs-29.0-3.el8.x86_64             liboath-2.6.1-5.el8+5.x86_64           librabbitmq-0.9.0-2.el8.x86_64                   librados2-2:14.2.11-95.el8cp.x86_64       libradosstriper1-2:14.2.11-95.el8cp.x86_64
+  librbd1-2:14.2.11-95.el8cp.x86_64        librdkafka-0.11.4-1.el8.x86_64         librdmacm-29.0-3.el8.x86_64                      librgw2-2:14.2.11-95.el8cp.x86_64         libunwind-1.2.1-5.el8.x86_64
+  lttng-ust-2.8.1-11.el8.x86_64            nspr-4.25.0-2.el8_2.x86_64             nss-3.53.1-17.el8_3.x86_64                       nss-softokn-3.53.1-17.el8_3.x86_64        nss-softokn-freebl-3.53.1-17.el8_3.x86_64
+  nss-sysinit-3.53.1-17.el8_3.x86_64       nss-util-3.53.1-17.el8_3.x86_64        python3-ceph-argparse-2:14.2.11-95.el8cp.x86_64  python3-cephfs-2:14.2.11-95.el8cp.x86_64  python3-pip-9.0.3-16.el8.noarch
+  python3-rados-2:14.2.11-95.el8cp.x86_64  python3-rbd-2:14.2.11-95.el8cp.x86_64  python3-rgw-2:14.2.11-95.el8cp.x86_64            python3-setuptools-39.2.0-5.el8.noarch    python36-3.6.8-2.module+el8.1.0+3334+5cb623d7.x86_64
+  rdma-core-29.0-3.el8.x86_64              userspace-rcu-0.10.1-2.el8.x86_64
+
+Complete!
+# ceph -s
+  cluster:
+    id:     00af947a-7f58-41cc-967e-45cb481e73e2
+    health: HEALTH_OK
+
+  services:
+    mon: 1 daemons, quorum ip-172-31-10-213 (age 2m)
+    mgr: ip-172-31-10-213(active, since 8m)
+    mds: cephfs:1 {0=ip-172-31-10-213=up:active}
+    osd: 3 osds: 3 up (since 110s), 3 in (since 7m)
+    rgw: 1 daemon active (ip-172-31-10-213.rgw0)
+
+  task status:
+    scrub status:
+        mds.ip-172-31-10-213: idle
+
+  data:
+    pools:   6 pools, 144 pgs
+    objects: 241 objects, 6.9 KiB
+    usage:   3.0 GiB used, 1.5 TiB / 1.5 TiB avail
+    pgs:     144 active+clean
+----
+
+Once your cluster is up and running you will have to collect the information that must be encoded
+in a Kubernetes secret.
+
+You can download a copy of the script https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/external-script-47.py[here].
+
+[source,role="execute"]
+....
+wget -O /tmp/external-script-47.py https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/external-script-47.py
+python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name {rbd_pool_name} --rgw-endpoint {rgw_ip_address}:{rgw_port}
+....
+.Example output
+----
+# wget -O /tmp/external-script-47.py https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/external-script-47.py
+--2021-04-12 20:15:11--  https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments//tmp/external-script-47.py
+Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.110.133, 185.199.111.133, ...
+Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 51563 (50.4K) [text/plain]
+Saving to: ‘/tmp/external-script-47.py’
+
+100%[=============================================================================================================================================================================>] 51,563       --.-K/s   in 0s
+
+2021-04-12 20:15:12 (57.8 MB/s) - ‘/tmp/external-script-47.py’ saved [51563/51563]
+# python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name rbd --rgw-endpoint 172.31.10.213:8080
+[{"name": "rook-ceph-mon-endpoints", "kind": "ConfigMap", "data": {"data": "ip-172-31-10-213=172.31.10.213:6789", "maxMonId": "0", "mapping": "{}"}}, {"name": "rook-ceph-mon", "kind": "Secret", "data": {"admin-secret": "admin-secret", "fsid": "00af947a-7f58-41cc-967e-45cb481e73e2", "mon-secret": "mon-secret"}}, {"name": "rook-ceph-operator-creds", "kind": "Secret", "data": {"userID": "client.healthchecker", "userKey": "AQDiZV5gf7lwFhAA5YmPq+ka6yJtQ3ux8qOE0w=="}}, {"name": "rook-csi-rbd-node", "kind": "Secret", "data": {"userID": "csi-rbd-node", "userKey": "AQDiZV5g9223FhAAlpm5tcu49R1PoPdAkvkSNw=="}}, {"name": "ceph-rbd", "kind": "StorageClass", "data": {"pool": "rbd"}}, {"name": "monitoring-endpoint", "kind": "CephCluster", "data": {"MonitoringEndpoint": "172.31.10.213", "MonitoringPort": "9283"}}, {"name": "rook-csi-rbd-provisioner", "kind": "Secret", "data": {"userID": "csi-rbd-provisioner", "userKey": "AQDiZV5g/LQAFxAAtReS4HyVH6wN7PWndpmK4Q=="}}, {"name": "rook-csi-cephfs-provisioner", "kind": "Secret", "data": {"adminID": "csi-cephfs-provisioner", "adminKey": "AQDiZV5ghM+AFxAASg2ArV4bXIwuQbkyFFWE2A=="}}, {"name": "rook-csi-cephfs-node", "kind": "Secret", "data": {"adminID": "csi-cephfs-node", "adminKey": "AQDiZV5g5ek9FxAANb4hDNxKMJ+n/qhvswJa7w=="}}, {"name": "cephfs", "kind": "StorageClass", "data": {"fsName": "cephfs", "pool": "cephfs_data"}}, {"name": "ceph-rgw", "kind": "StorageClass", "data": {"endpoint": "172.31.10.213:8080", "poolPrefix": "default"}}]
+----
+
+NOTE: Save this JSON output to your OpenShift client machine. You can also directly encode the
+information by appending `| base64 -w 0` to your command. See example below.
+
+.Example output
+----
+# python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name rbd --rgw-endpoint 172.31.10.213:8080 | base64 -w 0 | tee ./external-cluster.json
+W3sibmFtZSI6ICJyb29rLWNlcGgtbW9uLWVuZHBvaW50cyIsICJraW5kIjogIkNvbmZpZ01hcCIsICJkYXRhIjogeyJkYXRhIjogImlwLTE3Mi0zMS0xMC0yMTM9MTcyLjMxLjEwLjIxMzo2Nzg5IiwgIm1heE1vbklkIjogIjAiLCAibWFwcGluZyI6ICJ7fSJ9fSwgeyJuYW1lIjogInJvb2stY2VwaC1tb24iLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW4tc2VjcmV0IjogImFkbWluLXNlY3JldCIsICJmc2lkIjogIjAwYWY5NDdhLTdmNTgtNDFjYy05NjdlLTQ1Y2I0ODFlNzNlMiIsICJtb24tc2VjcmV0IjogIm1vbi1zZWNyZXQifX0sIHsibmFtZSI6ICJyb29rLWNlcGgtb3BlcmF0b3ItY3JlZHMiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsidXNlcklEIjogImNsaWVudC5oZWFsdGhjaGVja2VyIiwgInVzZXJLZXkiOiAiQVFEaVpWNWdmN2x3RmhBQTVZbVBxK2thNnlKdFEzdXg4cU9FMHc9PSJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1ub2RlIiwgImtpbmQiOiAiU2VjcmV0IiwgImRhdGEiOiB7InVzZXJJRCI6ICJjc2ktcmJkLW5vZGUiLCAidXNlcktleSI6ICJBUURpWlY1ZzkyMjNGaEFBbHBtNXRjdTQ5UjFQb1BkQWt2a1NOdz09In19LCB7Im5hbWUiOiAiY2VwaC1yYmQiLCAia2luZCI6ICJTdG9yYWdlQ2xhc3MiLCAiZGF0YSI6IHsicG9vbCI6ICJyYmQifX0sIHsibmFtZSI6ICJtb25pdG9yaW5nLWVuZHBvaW50IiwgImtpbmQiOiAiQ2VwaENsdXN0ZXIiLCAiZGF0YSI6IHsiTW9uaXRvcmluZ0VuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTMiLCAiTW9uaXRvcmluZ1BvcnQiOiAiOTI4MyJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1wcm92aXNpb25lciIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJ1c2VySUQiOiAiY3NpLXJiZC1wcm92aXNpb25lciIsICJ1c2VyS2V5IjogIkFRRGlaVjVnL0xRQUZ4QUF0UmVTNEh5Vkg2d043UFduZHBtSzRRPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtcHJvdmlzaW9uZXIiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW5JRCI6ICJjc2ktY2VwaGZzLXByb3Zpc2lvbmVyIiwgImFkbWluS2V5IjogIkFRRGlaVjVnaE0rQUZ4QUFTZzJBclY0YlhJd3VRYmt5RkZXRTJBPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtbm9kZSIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJhZG1pbklEIjogImNzaS1jZXBoZnMtbm9kZSIsICJhZG1pbktleSI6ICJBUURpWlY1ZzVlazlGeEFBTmI0aEROeEtNSituL3FodnN3SmE3dz09In19LCB7Im5hbWUiOiAiY2VwaGZzIiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImZzTmFtZSI6ICJjZXBoZnMiLCAicG9vbCI6ICJjZXBoZnNfZGF0YSJ9fSwgeyJuYW1lIjogImNlcGgtcmd3IiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImVuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTM6ODA4MCIsICJwb29sUHJlZml4IjogImRlZmF1bHQifX1dCgo=
+----
+
+== Red Hat OpenShift Data Foundation Setup
+
+Deploy an OCP cluster, version 4.7.x, so you can support all ODF 4.7 features.
+
+=== Post OCP Deploywemnt tasks
+
+For the external ODF configuration to be operational you will have to perform the following tasks:
+
+* Authorize the following ports on your RHCS security group
+** RADOS Gateway endpoint port
+** 6789
+** 3300
+** 6800-7100
+** 9283 (Prometheus)
+* Create a VPC Peering between your RHCS Instance VPC and the OCP cluster VPC
+* Add a route to your OCP VPC table
+** Subnet is your RHCs instance subnet (`172.31.0.0/16` in example below)
+** Target is your Peering entry (`pcx-0d70723fe820ce280` in example below)
+
+==== Authorize Ports into the RHCS cluster
+
+You will need to make sure the following Red Hat Ceph Storage ports are accessible from outside 
+the RHCS instance. In the example below the RADOS Gateway endpoint is using port `8080`
+but could be different for your environment.
+
+.Security Group parameters for RHCS instance
+image::AWS_RHCS_SecurityGroup.png[AWS Security Group settings]
+
+==== Create Route Between OCP and RHCS
+
+To enable communication between your OCP cluster and your RHCS cluster you need to create a Peering 
+relationship between your OCP VPC and your RHCS VPC.
+
+.Create Peering request between OCP and RHCS
+image::AWS-VPC-Peering.png[AWS VPC Peering]
+
+CAUTION: Once you have created the VPC peering request it must be accepted by the remote VPC to become operartional.
+Go back to your AWS VPC dashboard page and accept the VPC Peering request.
+
+Once the VPC Peering is active, go to your *Route Tables* dashboard. Select your OCP cluster entry as illustrated below.
+
+.Create Route between OCP and RHCS subnets
+image::AWS-VPC-Route.png[AWS VPC Route]
+
+Modify the *Routes* tab and add your RHCS instance subnet as a destination.
+
+==== Verify Connectivity Between Environments
+
+Connect to one of your OCP nodes using the `oc debug` command and issue the `ncat \{rhcs-node-name\} 6789`.
+If your connectivity is correct you will see the RHCS Monitor returning some information on studout.
+
+.Example output
+----
+$ oc debug node/ip-10-0-139-26.us-east-2.compute.internal
+Starting pod/ip-10-0-139-26us-east-2computeinternal-debug ...
+To use host binaries, run `chroot /host`
+Pod IP: 10.0.139.26
+If you don't see a command prompt, try pressing enter.
+sh-4.4# ncat ip-172-31-10-213 6789
+ceph v027��
+��`
+�
+----
+
+=== Deploy Red Hat OpenShift Data Foundation
+
+To be able to leverage ODF Multi-Cluster Metro DR you will need to deploy the ODF 4.7 Operator.
+
+[source,role="execute"]
+....
+cat <<EOF | oc apply -f -
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  labels:
+    openshift.io/cluster-monitoring: "true"
+  name: openshift-storage
+spec: {}
+---
+apiVersion: operators.coreos.com/v1
+kind: OperatorGroup
+metadata:
+  name: openshift-storage-operatorgroup
+  namespace: openshift-storage
+spec:
+  serviceAccount:
+    metadata:
+      creationTimestamp: null
+  targetNamespaces:
+  - openshift-storage
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: Subscription
+metadata:
+  name: ocs-operator
+  namespace: openshift-storage
+spec:
+  channel: "stable-4.7"
+  installPlanApproval: Automatic
+  name: ocs-operator
+  source: redhat-operators # <-- Specify the correct catalogsource if using RC version
+  sourceNamespace: openshift-marketplace
+EOF
+....
+
+Verify the ODF operator is deployed successfully.
+
+[source,shell]
+....
+oc project openshift-storage
+oc get pod,pvc
+....
+.Example output
+----
+# oc project openshift-storage
+Now using project "openshift-storage" on server "https://api.ocp45.ocstraining.com:6443".
+# oc get pod,csv
+NAME                                        READY   STATUS    RESTARTS   AGE
+pod/noobaa-operator-fb44b58b6-rmrbj         1/1     Running   0          32s
+pod/ocs-metrics-exporter-5549d7f894-z4btx   1/1     Running   0          32s
+pod/ocs-operator-6b76fb4dff-x5g9g           1/1     Running   0          32s
+pod/rook-ceph-operator-7bd78b8dff-8dp4c     1/1     Running   0          32s
+
+NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-324.ci   OpenShift Container Storage   4.7.0-324.ci              Succeeded
+----
+
+Once the ODF Operator is up and running, you will have to deploy your external cluster via the CLI
+as the UI prevents you from deploying an external cluster in Cloud based environment. In order to proceed,
+perform the following steps.
+
+Create the OpenShift secret that will contain the information for connecting to your external RHCS cluster.
+
+[source,role="execute"]
+....
+cat <<EOF | oc create -f -
+---
+kind: Secret
+apiVersion: v1
+metadata:
+  name: rook-ceph-external-cluster-details
+  namespace: openshift-storage
+data:
+  external_cluster_details: >-
+    {your_encoded_json}
+type: Opaque
+EOF
+....
+.Example output
+----
+# oc create -f ./external-secret.yaml
+secret/rook-ceph-external-cluster-details created
+----
+
+Once your secret is created, deploy your external cluster.
+
+[source,role="execute"]
+....
+cat <<EOF | oc create -f -
+---
+apiVersion: ocs.openshift.io/v1
+kind: StorageCluster
+metadata:
+  name: ocs-external-storagecluster
+  namespace: openshift-storage
+spec:
+  externalStorage:
+    enable: true
+  labelSelector: {}
+EOF
+....
+.Example output
+----
+# oc create -f ./external-cluster.yaml
+storagecluster.ocs.openshift.io/ocs-external-storagecluster created
+----
+
+If your network configuration is correct, you should see the cluster coming up with all services. As such,
+a PVC should be created for the MCG, storage classes should be created and the expected pods should be running.
+
+[source,role="execute"]
+....
+oc get pods,pvc,sc -o name
+....
+.Example output
+----
+# oc get pods,pvc,sc -o name
+pod/csi-cephfsplugin-8cx9h
+pod/csi-cephfsplugin-kcjld
+pod/csi-cephfsplugin-provisioner-76b7c894b9-2bgdl
+pod/csi-cephfsplugin-provisioner-76b7c894b9-2dfs5
+pod/csi-cephfsplugin-wtdll
+pod/csi-rbdplugin-cmqgg
+pod/csi-rbdplugin-nfclq
+pod/csi-rbdplugin-provisioner-5866f86d44-mfh7z
+pod/csi-rbdplugin-provisioner-5866f86d44-qz8km
+pod/csi-rbdplugin-xgd4h
+pod/noobaa-core-0
+pod/noobaa-db-pg-0
+pod/noobaa-endpoint-6f896f5b6f-6544p
+pod/noobaa-operator-fb44b58b6-rmrbj
+pod/ocs-metrics-exporter-5549d7f894-z4btx
+pod/ocs-operator-6b76fb4dff-x5g9g
+pod/rook-ceph-operator-7bd78b8dff-8dp4c
+persistentvolumeclaim/db-noobaa-db-pg-0
+storageclass.storage.k8s.io/gp2
+storageclass.storage.k8s.io/gp2-csi
+storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd
+storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rgw
+storageclass.storage.k8s.io/ocs-external-storagecluster-cephfs
+storageclass.storage.k8s.io/openshift-storage.noobaa.io
+----
+
+=== Verify Setup
+
+To make sure the entire environment is operation, create a RWO and a RWX PVC to make sure
+the environment is operational.
+
+==== Test RWO PVC
+
+[source,role="execute"]
+....
+cat <<EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc
+....
+.Example output
+----
+persistentvolumeclaim/testrwo created
+# oc get pvc
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   12m
+testrwo             Bound    pvc-4453bd54-82d6-497a-920d-57881a84a4fd   10Gi       RWO            ocs-external-storagecluster-ceph-rbd   25s
+----
+
+Verify a RHCS RBD image was created and the PVC is in `Bound` status.
+
+On your OpenShift client machine
+
+[source,role="execute"]
+....
+CSIVOL=$(oc get pv $(oc get pv | grep testrwo | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL
+....
+.Example output
+----
+# CSIVOL=$(oc get pv $(oc get pv | grep testrwo | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+# echo $CSIVOL
+csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045
+----
+
+On your RHCS node
+
+[source,role="execute"]
+....
+rbd -p {your_rbd_pool_name} {your_oc_output_for_CSIVOL}
+....
+.Example output
+----
+# rbd -p rbd info csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045
+rbd image 'csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045':
+	size 10 GiB in 2560 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 0
+	id: 1bde4b023b86a
+	block_name_prefix: rbd_data.1bde4b023b86a
+	format: 2
+	features: layering
+	op_features:
+	flags:
+	create_timestamp: Mon Mar 29 21:29:27 2021
+	access_timestamp: Mon Mar 29 21:29:27 2021
+	modify_timestamp: Mon Mar 29 21:29:27 2021
+----
+
+Now delete your test RWO PVC.
+
+[source,role="execute"]
+....
+cat <<EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwo
+spec:
+  storageClassName: "ocs-external-storagecluster-ceph-rbd"
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc
+....
+.Example output
+----
+persistentvolumeclaim "testrwo" deleted
+# oc get pvc
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   25m
+----
+
+==== Test RWX PVC
+
+[source,role="execute"]
+....
+cat <<EOF | oc create -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc
+....
+.Example output
+----
+persistentvolumeclaim/testrwx created
+# oc get pvc
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   29m
+testrwx             Bound    pvc-006263ca-19e0-4c8d-9f37-d7f46be5b59c   10Gi       RWX            ocs-external-storagecluster-cephfs     1s
+----
+
+Verify a RHCS CephFS subvolume was created and the PVC is in `Bound` status.
+
+On your OpenShift client machine.
+
+[source,role="execute"]
+....
+CSIVOL=$(oc get pv $(oc get pv | grep testrwx | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+echo $CSIVOL
+....
+.Example output
+----
+# CSIVOL=$(oc get pv $(oc get pv | grep testrwx | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+# echo $CSIVOL
+csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052
+----
+
+On your RHCS node.
+
+[source,role="execute"]
+....
+ceph fs subvolume ls cephfs csi -f json | grep name
+....
+.Example output
+----
+# ceph fs subvolume ls cephfs csi -f json | grep name
+        "name": "csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052"
+----
+
+Now delete your test RWX PVC.
+
+[source,role="execute"]
+....
+cat <<EOF | oc delete -f -
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: testrwx
+spec:
+  storageClassName: "ocs-external-storagecluster-cephfs"
+  accessModes:
+    - ReadWriteMany
+  resources:
+    requests:
+      storage: 10Gi
+EOF
+oc get pvc
+....
+.Example output
+----
+persistentvolumeclaim "testrwx" deleted
+$ oc get pvc
+NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   38m
+----
+
+NOTE: If you need a second cluster for a Multi-Cluster Metro DR scenario, simply repeat
+this procedure starting at chapter *Deploy Red Hat OpenShift Data Foundation*. Once
+done, proceed to the document dedicated to ODF Multi-Cluster Metro DR procedure. See
+xref:ocs4-metro-multi-no-ui.adoc#_odf_multi_cluster_metro_disaster_recovery[here] on how to test
+this specific architecture.
+
