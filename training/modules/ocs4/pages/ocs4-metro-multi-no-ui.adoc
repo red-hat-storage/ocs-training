@@ -5,7 +5,7 @@
 :source-highlighter: pygments
 :source-language: shell
 :numbered:
-:imagesdir: ../docs/imgs/
+//:imagesdir: ../docs/imgs/
 // Activate experimental attribute for Keyboard Shortcut keys
 :experimental:
 
