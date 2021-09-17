@@ -1,0 +1,393 @@
+= OpenShift Regional Disaster Recovery with Advanced Cluster Management
+:toc:
+:toclevels: 4
+:icons: font
+:source-language: shell
+:numbered:
+// Activate experimental attribute for Keyboard Shortcut keys
+:experimental:
+:source-highlighter: pygments
+:hide-uri-scheme:
+
+== Overview
+
+The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*. In this case the OCP clusters will be created or imported using *Red Hat Advanced Cluster Management* or `RHACM`. 
+
+This is a general overview of the steps required to configure and execute `Regional Disaster Recovery` capabilities using OpenShift Data Foundation (ODF) *v4.9* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
+
+NOTE: These steps are considered Tech Preview in ODF 4.9 and are provided for POCs purposes. They will be supported for production usage in a later ODF release.
+
+[start=1]
+. *Install the ACM operator on the hub cluster.* +
+After creating the OCP hub cluster, install from OperatorHub the ACM operator. After the operator and associated pods are running, create the MultiClusterHub resource.
+. *Create or import managed OCP clusters into ACM hub.* +
+Import or create the two managed clusters with adequate resources (compute nodes, memory, cpu) to deploy ODF 4.9 using the RHACM console.
+. *Ensure clusters have unique private network address ranges.* +
+Ensure the primary and secondary OCP clusters have unique private network address ranges.
+. *Connect the private networks using Submariner add-ons.* +
+Connect the managed OCP private networks (cluster and service) using the RHACM Submariner add-ons.
+. *Install ODF 4.9 on managed clusters.* +
+Install ODF 4.9 on primary and secondary OCP managed clusters and validate deployment.
+. *Create new CSI side-cars in each managed OCP cluster.* +
+Using CLI, manually add the volume-replication and omap-generator side-car containers to rbd-provisioning pod(s).
+. *[Pre-release] Create custom ODF catalogsource on ACM hub cluster.* +
+Using CLI, manually create ocs-catalogsource in order to install ODF 4.9 pre-release builds.
+. *Install ODF Multicluster-orchestrator operator on ACM hub cluster.* +
+Using OperatorHub on ACM hub cluster install the multicluster orchestrator operator.
+. *Install Mirror Peer resource on ACM hub cluster.* +
+Using the multicluster orchestrator operator install the MirrorPeer resource using CLI or the operator wizard.
+. *Enable Ceph mirroring on managed OCP clusters.* +
+Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph RBD mirroring.
+. *Validate Ceph mirroring is active between managed OCP clusters.* +
+Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.
+. *Create VolumeReplicationClass resource.* +
+Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).
+<TBD>
+
+== Install and Configure ACM for Multisite connectivity
+
+This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:
+
+* *Hub cluster* is where ACM and ODF Multisite-orchestrator, ODR-hub and ODR-cluster controllers are installed.
+* *Primary managed cluster* is where ODF and Applications are installed.
+* *Secondary managed cluster* is where ODF and Applications are installed.
+
+Find ACM in OperatorHub on the *Hub cluster* and follow instructions to install this operator.
+
+.OperatorHub filter for Advanced Cluster Management
+image::ACM-OperatorHub.png[OperatorHub filter for Advanced Cluster Management]
+
+Verify that the operator was successfully installed and that the `MultiClusterHub` is ready to be installed.
+
+.ACM Installed Operator
+image::ACM-Installed-Operator.png[ACM Installed Operator]
+
+Select `MultiClusterHub` and use either `Form view` or `YAML view` to configure the deployment and select `Create`. 
+
+NOTE: Most `MultiClusterHub` deployments can use default settings in the `Form view`.
+
+Once the deployment is complete you can logon to the ACM console using your OpenShift credentials.
+
+First, find the *Route* that has been created:
+
+[source,role="execute"]
+----
+oc get route multicloud-console -n open-cluster-management -o jsonpath --template="http://{.spec.host}/multicloud/clusters{'\n'}"
+----
+
+This will return a route similar to this one.
+
+.Example Output:
+----
+http://multicloud-console.apps.perf3.chris.ocs.ninja/multicloud/clusters
+----
+
+After logging in you should see your local cluster imported.
+
+.ACM local cluster imported
+image::ACM-local-cluster-import.png[ACM local cluster imported]
+
+=== Import or Create Managed clusters
+
+Now that ACM is installed on the `Hub cluster` it is time to either create or import the `Primary managed cluster` and the `Secondary managed cluster`. You should see selections (as in above diagram) for *Create cluster* and *Import cluster*. Chose the selection appropriate for your environment. After the managed clusters are successfully created or imported you should see something similar to below.
+
+.ACM managed cluster imported
+image::ACM-managed-clusters-import.png[ACM managed cluster imported]
+
+=== Verify Managed clusters have non-overlapping networks
+
+In order to connect the OpenShift cluster and service networks using the `Submariner add-ons` it is necessary to validate the two clusters have non-overlapping networks. This can be done by running this command for each of the managed clusters.
+
+[source,role="execute"]
+----
+oc get networks.config.openshift.io cluster -o json | jq .spec
+----
+.Example output for ocp4perf1:
+[source,json]
+----
+{
+  "clusterNetwork": [
+    {
+      "cidr": "10.5.0.0/16",
+      "hostPrefix": 23
+    }
+  ],
+  "externalIP": {
+    "policy": {}
+  },
+  "networkType": "OpenShiftSDN",
+  "serviceNetwork": [
+    "10.15.0.0/16"
+  ]
+}
+----
+
+.Example output for ocp4perf2:
+[source,json]
+----
+{
+  "clusterNetwork": [
+    {
+      "cidr": "10.6.0.0/16",
+      "hostPrefix": 23
+    }
+  ],
+  "externalIP": {
+    "policy": {}
+  },
+  "networkType": "OpenShiftSDN",
+  "serviceNetwork": [
+    "10.16.0.0/16"
+  ]
+}
+----
+
+=== Connect the Managed clusters using Submariner add-ons
+
+Now that we know the `cluster` and `service` networks have non-overlapping ranges it is time to move on to installing the `Submariner add-ons` for each managed cluster. This is done by using the ACM console and `Cluster sets.
+
+Navigate to selection shown below and continue on to selecting *Create cluster set*.
+
+.ACM Create new Cluster set
+image::ACM-Cluster-sets.png[ACM Create new Cluster set]
+
+Once the new `Cluster set` is created select *Manage resource assignments*.
+
+.ACM Cluster set created
+image::ACM-Cluster-set-created.png[ACM Cluster set created]
+
+Follow the instructions and add the two managed clusters to the new `Cluster set`. Select `Save` and then navigate to `Submariner add-ons`.
+
+.ACM Submariner add-ons
+image::ACM-Submariner-addon.png[ACM Submariner add-ons]
+
+Select *Install Submariner add-ons* and add the two managed clusters. Click through the wizard selections and make changes as needed. After `Review` select *Install*.
+
+IMPORTANT: It can take more than 5 minutes for the add-on installation to finish on both managed clusters.
+
+A successful deployment will show `Connection status` and `Agent status` as `Healthy`.
+
+.ACM Submariner add-ons installed
+image::ACM-Submariner-addon-installed.png[ACM Submariner add-ons installed]
+
+== OpenShift Data Foundation Installation
+
+In order to configure storage replication between the two OCP clusters `OpenShift Data Foundation` (ODF) must be installed first on each managed cluster. ODF deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.). Install ODF version *4.9* or greater on both OCP managed clusters.
+
+You can validate the successful deployment of ODF on each managed OCP cluster with the following command:
+
+[source,role="execute"]
+----
+oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.status.phase}{"\n"}'
+----
+
+If the result is `Ready` on the *Primary managed cluster* and the *Secondary managed cluster* continue on to configuring mirroring.
+
+== Configuring Multisite Storage Replication
+
+Mirroring or replication is enabled on a per `CephBlockPool` basis within peer managed clusters and can then be configured on a specific subset of images within the pool. The `rbd-mirror` daemon is responsible for pulling image updates from the remote peer cluster and applying them to the image within the local cluster.
+
+These instructions detail how to create the mirroring relationship between two ODF managed clusters so the RBD volumes or images created using the Ceph RBD storageclass can be replicated from one OCP cluster to the other OCP cluster.
+
+=== Enable OMAP Generator & Volume Replication on the managed clusters
+
+Execute these steps on both clusters to enable the OMAP and Volume-Replication CSI sidecar containers in the `csi-rbdplugin-provisioner` *Pods*.
+
+Edit the `rook-ceph-operator-config` *ConfigMap* and add `CSI_ENABLE_OMAP_GENERATOR` set to true.
+
+[source,role="execute"]
+----
+oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_OMAP_GENERATOR", "value": "true" }]'
+----
+.Example output.
+----
+configmap/rook-ceph-operator-config patched
+----
+
+Edit the `rook-ceph-operator-config` *ConfigMap* and add `CSI_ENABLE_VOLUME_REPLICATION` set to true.
+
+[source,role="execute"]
+----
+oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_VOLUME_REPLICATION", "value": "true" }]'
+----
+.Example output.
+----
+configmap/rook-ceph-operator-config patched
+----
+
+Validate that the there are the two new CSI sidecar containers per `csi-rbdplugin-provisioner` *Pod*.
+
+[source,role="execute"]
+----
+for l in $(oc get pods -n openshift-storage -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}) ; do echo $l ; done | egrep "csi-omap-generator|volume-replication"
+----
+.Example output.
+----
+csi-omap-generator
+volume-replication
+csi-omap-generator
+volume-replication
+----
+
+NOTE: The new containers will be repeated because there are two csi-rbdplugin-provisioner pods for redundancy.
+
+=== [Pre-release] Create Custom ODF Catalogsource
+
+Prior to the *ODF 4.9* being released you will need to use `pre-release` images and a custom *CatalogSource*. To do this you will need access to the `pre-release` images and to create this *CatalogSource*. 
+
+Save this YAML to filename `ocs-catalogsource.yaml`.
+
+[source,yaml]
+----
+---
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: ocs-catalogsource
+  namespace: openshift-marketplace
+spec:
+  displayName: OpenShift Container Storage
+  image: quay.io/rhceph-dev/ocs-registry:$tag
+  sourceType: grpc
+----
+
+NOTE: The `$tag` should be replaced with the correct tag for latest build (i.e. 4.9.0-140.ci).
+
+[source,role="execute"]
+----
+oc apply -f ocs-catalogsource.yaml -n openshift-storage
+----
+.Example output.
+----
+catalogsource.operators.coreos.com/ocs-catalogsource created
+----
+
+=== Install ODF Multicluster Orchestrator
+
+This is a new controller that will be installed from OCP *OperatorHub* on the `Hub cluster`. The job of this `Multicluster Orchestrator` controller along with the `MirrorPeer` Custom Resource is to create a bootstrap token and exchanges this token between the managed clusters.
+
+Navigate to *OperatorHub* and filter for `odf multicluster orchestrator`.
+
+.OperatorHub filter for ODF Multicluster Orchestrator
+image::ODF-multicluster-orchestrator.png[OperatorHub filter for ODF Multicluster Orchestrator]
+
+Keep all default settings and *Install* this operator.
+
+.ODF Multicluster Orchestrator install
+image::ODF-multicluster-orchestrator-install.png[ODF Multicluster Orchestrator install] 
+
+NOTE: The operator resources will be installed in `openshift-operators` and available to all namespaces.
+
+Validate successful installation by selecting `View Operator`.
+
+.ODF Multicluster Orchestrator installed
+image::ODF-multicluster-orchestrator-installed.png[ODF Multicluster Orchestrator installed] 
+
+=== Create Mirror Peer Custom Resource
+
+*Mirror Peer* is a cluster-scoped resource to hold information about the managed clusters that will have a `peering` relationship.
+
+Requirements:
+
+* Must be installed on `Hub cluster` after the `ODF Multicluster Orchestrator` is installed on `Hub cluster`.
+* There can only be two clusters per Mirror Peer.
+* Each cluster should be uniquely identifiable by cluster name (i.e., ocp4perf1).
+
+After selecting `View Operator` in prior step you should see the `Mirror Peer` API. Select *Create instance* and then select *YAML view*.
+
+.Create Mirror Peer in YAML view
+image::ODF-mirror-peer-yaml.png[Create Mirror Peer in YAML view]
+
+Save this YAML to filename `mirror-peer.yaml` after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
+
+[source,yaml]
+----
+apiVersion: multicluster.odf.openshift.io/v1alpha1
+kind: MirrorPeer
+metadata:
+  name: mirrorpeer-<cluster1>-<cluster2>
+spec:
+  items:
+  - clusterName: <cluster1>
+    storageClusterRef:
+      name: ocs-storagecluster
+      namespace: openshift-storage
+  - clusterName: <cluster2>
+    storageClusterRef:
+      name: ocs-storagecluster
+      namespace: openshift-storage
+----      
+
+Now create the `Mirror Peer` resource by copying the contents of your unique `mirror-peer.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
+
+You can also create this resource using CLI. There is no need to specify a namespace to create this resource in the following command because `MirrorPeer` is a cluster-scoped resource.
+
+[source,role="execute"]
+----
+oc apply -f mirror-peer.yaml
+----
+.Example output.
+----
+mirrorpeer.multicluster.odf.openshift.io/mirrorpeer-ocp4perf1-ocp4perf2 created
+----
+
+You can validate the secret (created from token) has been exchanged with this validation command
+
+[source]
+----
+oc get mirrorpeer mirrorpeer-<cluster1>-<cluster2> -o jsonpath='{.status.phase}{"\n"}'
+----
+.Example output.
+----
+ExchangedSecret
+----
+
+IMPORTANT: Before executing the command replace *<cluster1>* and *<cluster2>* with your correct values.
+
+=== Enable Mirroring on Managed clusters
+
+Currently to enable `mirroring` the *StorageCluster* for each managed cluster will need to have this setting changed from _null_ to _enabled_. This is a manual step using CLI and the `oc patch` command.
+
+[source,role="execute"]
+----
+oc patch storagecluster $(oc get storagecluster -n openshift-storage -o=jsonpath='{.items[0].metadata.name}')  -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/mirroring", "value": {"enabled": true} }]'
+----
+.Example output.
+----
+storagecluster.ocs.openshift.io/ocs-storagecluster patched
+----
+
+IMPORTANT: Make sure to run the `oc patch storagecluster` command on the *Primary managed cluster* and the *Secondary managed cluster* as well as the following validation commands after the *StorageCluster* has mirroring enabled.
+
+Validate mirroring is enabled on default *CephBlockPool*.
+
+[source,role="execute"]
+----
+oc get cephblockpool -n openshift-storage -o=jsonpath='{.items[?(@.metadata.ownerReferences[*].kind=="StorageCluster")].spec.mirroring.enabled}{"\n"}'
+----
+.Example output.
+----
+true
+----
+
+Validate `rbd-mirror` *Pod* is up and running. 
+
+[source,role="execute"]
+----
+oc get pods -o name -l app=rook-ceph-rbd-mirror -n openshift-storage
+----
+.Example output.
+----
+pod/rook-ceph-rbd-mirror-a-6486c7d875-56v2v
+----
+
+Validate the status of the `daemon` health.
+
+[source,role="execute"]
+----
+oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o jsonpath='{.status.mirroringStatus.summary}{"\n"}'
+----
+.Example output.
+----
+{"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}
+----
