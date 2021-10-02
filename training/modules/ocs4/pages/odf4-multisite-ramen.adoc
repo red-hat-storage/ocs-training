@@ -300,7 +300,7 @@ Validate successful installation by having the ability to select `View Operator`
 .ODF Multicluster Orchestrator installed
 image::ODF-multicluster-orchestrator-installed.png[ODF Multicluster Orchestrator installed] 
 
-=== Create Mirror Peer Custom Resource
+=== Create Mirror Peer on Hub cluster
 
 *Mirror Peer* is a cluster-scoped resource to hold information about the managed clusters that will have a `peering` relationship.
 
@@ -315,7 +315,9 @@ After selecting `View Operator` in prior step you should see the `Mirror Peer` A
 .Create Mirror Peer in YAML view
 image::ODF-mirror-peer-yaml.png[Create Mirror Peer in YAML view]
 
-Save the following YAML (below) to filename `mirror-peer.yaml` after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
+Save the following YAML (below) to filename `mirror-peer.yaml` after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. 
+
+NOTE: There is no need to specify a namespace to create this resource because `MirrorPeer` is a cluster-scoped resource.
 
 [source,yaml]
 ----
@@ -337,7 +339,7 @@ spec:
 
 Now create the `Mirror Peer` resource by copying the contents of your unique `mirror-peer.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
 
-You can also create this resource using CLI. There is no need to specify a namespace to create this resource in the following command because `MirrorPeer` is a cluster-scoped resource.
+You can also create this resource using CLI.
 
 [source,role="execute"]
 ----
@@ -443,7 +445,7 @@ oc apply -f rbd-volumereplicationclass.yaml
 volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicationclass created
 ----
 
-== Install ODR Cluster Operator on managed clusters
+== Install ODR Cluster Operator on Managed clusters
 
 On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
 
@@ -502,7 +504,7 @@ https://s3-openshift-storage.apps.perf1.chris.ocs.ninja
 
 IMPORTANT: The S3 endpoint route must be retrieved for both the *Primary managed cluster* and *Secondary managed cluster*.
 
-=== Create S3 Secrets for managed clusters
+=== Create S3 Secrets for Managed clusters
 
 Now that the necessary MCG information has been extracted there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG access and secret keys for both managed clusters.
 
@@ -605,7 +607,7 @@ data:
 
 NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on both managed clusters.
 
-== Install ODR Hub Operator on hub cluster
+== Install ODR Hub Operator on Hub cluster
 
 On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
 
@@ -709,7 +711,7 @@ data:
 [...]    
 ----
 
-== Create DRPolicy on hub cluster
+== Create DRPolicy on Hub cluster
 
 ODR uses *DRPolicy* resources (cluster scoped) on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two clusters, which are peered for storage level replication and `CSI` *VolumeReplication* is enabled. This `CSI` sidecar container was enabled in the prior section <<Configuring Multisite Storage Replication>>.
 
@@ -727,7 +729,9 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRPolicy create instance
 image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
 
-Save the following YAML (below) to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
+Save the following YAML (below) to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. 
+
+NOTE: There is no need to specify a namespace to create this resource because `DRPolicy` is a cluster-scoped resource.
 
 [source,yaml]
 ----
@@ -746,7 +750,7 @@ spec:
 
 Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
 
-You can also create this resource using CLI. There is no need to specify a namespace to create this resource in the following command because `MirrorPeer` is a cluster-scoped resource.
+You can also create this resource using CLI
 
 [source,role="execute"]
 ----
