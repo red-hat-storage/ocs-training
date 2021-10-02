@@ -42,10 +42,18 @@ Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph R
 Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.
 . *Create VolumeReplicationClass resource.* +
 Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).
-. *Install ODR Cluster operator on managed clusters.* +
-Install from OperatorHub on both managed clusters the ODR Cluster operator.
-. *Configure S3 endpoints, Secrets and ConfigMaps.* +
-After extracting the access/secret keys and S3 endpoint from the Multi-Cloud Gateway (MCG), create the required secrets and configmaps.
+. *Retrieve MCG S3 keys and external S3 endpoint for each managed cluster.* +
+Extract the S3 access/secret keys and S3 endpoints from the Multi-Cloud Gateway (MCG) object service on each managed cluster. 
+. *Install ODR Cluster Operator on managed clusters.* +
+Install from OperatorHub on both managed clusters the ODR Cluster Operator.
+. *Configure S3 secrets and ODR configmaps for managed clusters.* +
+Create the required secrets and add the s3StoreProfiles to the ODR configmap  on each managed cluster.
+. *Install ODR Hub Operator on the hub cluster.* +
+Install from OperatorHub on the hub cluster the ODR Hub Operator.
+. *Configure S3 secrets and ODR configmap for hub cluster.* +
+Using the same MCG S3 access/secret keys and S3 endpoints, create the required secrets as those created on managed clusters and add the same s3StoreProfiles to the ODR configmap on the hub cluster.
+. *Create the DRPolicy resource on the hub cluster.* +
+DRPolicy is an API available after the ODR Hub Operator is installed. It is used to deploy, failover, and relocate, workloads across managed clusters. 
 
 == Install and Configure ACM for Multisite connectivity
 
@@ -275,7 +283,7 @@ catalogsource.operators.coreos.com/ocs-catalogsource created
 
 This is a new controller that will be installed from OCP *OperatorHub* on the `Hub cluster`. The job of this `Multicluster Orchestrator` controller, along with the `MirrorPeer` Custom Resource, is to create a bootstrap token and exchanges this token between the managed clusters.
 
-Navigate to *OperatorHub* on the `Hub cluster` and filter for `odf multicluster orchestrator`.
+Navigate to *OperatorHub* on the *Hub cluster* and filter for `odf multicluster orchestrator`.
 
 .OperatorHub filter for ODF Multicluster Orchestrator
 image::ODF-multicluster-orchestrator.png[OperatorHub filter for ODF Multicluster Orchestrator]
@@ -307,7 +315,7 @@ After selecting `View Operator` in prior step you should see the `Mirror Peer` A
 .Create Mirror Peer in YAML view
 image::ODF-mirror-peer-yaml.png[Create Mirror Peer in YAML view]
 
-Save this YAML to filename `mirror-peer.yaml` after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
+Save the following YAML (below) to filename `mirror-peer.yaml` after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
 
 [source,yaml]
 ----
@@ -401,6 +409,8 @@ oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o js
 {"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}
 ----
 
+NOTE: It could take up to 10 minutes for the `daemon_health` and `health` to go from *Warning* to *OK*. If the status does not become *OK* eventually then use the ACM console to verify that the submariner add-ons connection is still in a healthy state.
+
 == Create VolumeReplicationClass resource
 
 The *VolumeReplicationClass* is used to specify the `mirroringMode` for each volume to be replicated as well as how often a volume or image is replicated (i.e., every 5 minutes) from the local cluster to the remote cluster.
@@ -433,17 +443,31 @@ oc apply -f rbd-volumereplicationclass.yaml
 volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicationclass created
 ----
 
-== Install ODR Cluster operator on managed clusters
+== Install ODR Cluster Operator on managed clusters
 
-Navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into project `openshift-operators`.
+On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
 
 NOTE: The `ODR Cluster Operator` must be installed on both the *Primary managed cluster* and *Secondary managed cluster*.
 
-=== Configure S3 endpoints, Secrets and ConfigMaps
+ODR requires one or more S3 stores to store relevant cluster data of a workload from the managed clusters and to orchestrate a recovery of the workload during failover or relocate actions.
+ 
+These instructions are applicable for creating the necessary object bucket(s) using the *Multi-Cloud Gateway* or MCG. MCG should already be installed as a result of installing ODF.
 
-This configuration is used to create object buckets used for DR failover and failback metadata. These instructions are applicable for creating the necessary object bucket(s) using the *Multi-Cloud Gateway* or MCG.
+=== Retrieve MCG keys and external S3 endpoint
 
-The first step is to extract the MCG access and secret keys for each managed cluster. This can be done using these commands:
+First heck the MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
+
+[source,role="execute"]
+----
+oc get noobaa -n openshift-storage
+----
+.Example output.
+----
+NAME     MGMT-ENDPOINTS                   S3-ENDPOINTS                    IMAGE                                                                                                 PHASE   AGE
+noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.io/rhceph-dev/mcg-core@sha256:c4b8857ee9832e6efc5a8597a08b81730b774b2c12a31a436e0c3fadff48e73d   Ready   27h
+----
+
+The first step is to extract the MCG access and secret keys for each managed cluster as their *_base-64_ _encoded_* values. This can be done using these commands:
 
 [source,role="execute"]
 ----
@@ -477,3 +501,263 @@ https://s3-openshift-storage.apps.perf1.chris.ocs.ninja
 ----
 
 IMPORTANT: The S3 endpoint route must be retrieved for both the *Primary managed cluster* and *Secondary managed cluster*.
+
+=== Create S3 Secrets for managed clusters
+
+Now that the necessary MCG information has been extracted there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG access and secret keys for both managed clusters.
+
+The S3 secret YAML format for the *Primary managed cluster* is similar to the following: 
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  AWS_ACCESS_KEY_ID: <primary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded access key>
+kind: Secret
+metadata:
+  name: odr-s3secret-primary
+  namespace: openshift-operators
+----
+
+Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
+
+[source,role="execute"]
+----
+oc create -f odr-s3secret-primary.yaml
+----
+.Example output.
+----
+secret/odr-s3secret-primary created
+----
+
+The S3 secret YAML format for the *Secondary managed cluster* is similar to the following:
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  AWS_ACCESS_KEY_ID: <secondary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded access key>
+kind: Secret
+metadata:
+  name: odr-s3secret-secondary
+  namespace: openshift-operators
+----
+
+Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
+
+[source,role="execute"]
+----
+oc create -f odr-s3secret-secondary.yaml
+----
+.Example output.
+----
+secret/odr-s3secret-secondary created
+----
+
+IMPORTANT: The values for the access and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
+
+=== Configure ODR cluster operator ConfigMaps
+
+On each managed cluster the *ConfigMap* `ramen-dr-cluster-operator-config` will be edited and new content added.
+
+[source,role="execute"]
+----
+oc edit configmap ramen-dr-cluster-operator-config -n openshift-operators
+----
+
+The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
+
+[source,yaml]
+----
+[...]
+data:
+  ramen_manager_config.yaml: |
+    apiVersion: ramendr.openshift.io/v1alpha1
+    kind: RamenConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:9289
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: dr-cluster.ramendr.openshift.io
+    ramenControllerType: "dr-cluster"
+    ### Start of new content to be added
+    s3StoreProfiles
+    - s3ProfileName: s3-primary
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
+      s3Region: us-east-1
+      s3SecretRef:
+        name: odr-s3secret-primary
+        namespace: openshift-operators
+    - s3ProfileName: s3-secondary
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
+      s3Region: us-east-1
+      s3SecretRef:
+        name: odr-s3secret-secondary
+        namespace: openshift-operators
+[...]    
+----
+
+NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on both managed clusters.
+
+== Install ODR Hub Operator on hub cluster
+
+On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
+
+=== Create S3 secrets for the Hub cluster
+
+The S3 secret YAML format for the *Primary managed cluster* is similar to the following:
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  AWS_ACCESS_KEY_ID: <primary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded access key>
+kind: Secret
+metadata:
+  name: odr-s3secret-primary
+  namespace: openshift-operators
+----
+
+Create this secret on the *Hub cluster*.
+
+[source,role="execute"]
+----
+oc create -f odr-s3secret-primary.yaml
+----
+.Example output.
+----
+secret/odr-s3secret-primary created
+----
+
+The S3 secret YAML format for the *Secondary managed cluster* is similar to the following:
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  AWS_ACCESS_KEY_ID: <secondary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded access key>
+kind: Secret
+metadata:
+  name: odr-s3secret-secondary
+  namespace: openshift-operators
+----
+
+Create this secret on the *Hub cluster*.
+
+[source,role="execute"]
+----
+oc create -f odr-s3secret-secondary.yaml
+----
+.Example output.
+----
+secret/odr-s3secret-secondary created
+----
+
+IMPORTANT: The values for the access and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
+
+=== Configure ODR hub operator ConfigMap
+
+After the operator is successfully created there will be a new *ConfigMap* called `ramen-hub-operator-config`. 
+
+[source,role="execute"]
+----
+oc edit configmap ramen-hub-operator-config -n openshift-operators
+----
+
+The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
+
+[source,yaml]
+----
+[...]
+apiVersion: v1
+data:
+  ramen_manager_config.yaml: |
+    apiVersion: ramendr.openshift.io/v1alpha1
+    kind: RamenConfig
+    health:
+      healthProbeBindAddress: :8081
+    metrics:
+      bindAddress: 127.0.0.1:9289
+    webhook:
+      port: 9443
+    leaderElection:
+      leaderElect: true
+      resourceName: hub.ramendr.openshift.io
+    ramenControllerType: "dr-hub"
+    ### Start of new content to be added
+    s3StoreProfiles
+    - s3ProfileName: s3-primary
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
+      s3Region: us-east-1
+      s3SecretRef:
+        name: odr-s3secret-primary
+        namespace: openshift-operators
+    - s3ProfileName: s3-secondary
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
+      s3Region: us-east-1
+      s3SecretRef:
+        name: odr-s3secret-secondary
+        namespace: openshift-operators
+[...]    
+----
+
+== Create DRPolicy on hub cluster
+
+ODR uses *DRPolicy* resources (cluster scoped) on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two clusters, which are peered for storage level replication and `CSI` *VolumeReplication* is enabled. This `CSI` sidecar container was enabled in the prior section <<Configuring Multisite Storage Replication>>.
+
+Furthermore, *DRPolicy* requires a scheduling interval that determines at what frequency data replication will be performed and also serves as a coarse grained RPO (Recovery Point Objective) for the workload using the *DRPolicy*.
+ 
+*DRPolicy* also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the *ConfigMap* of the ODR xref:odf4-multisite-ramen.adoc#_configure_odr_cluster_operator_configmaps[cluster] and xref:odf4-multisite-ramen.adoc#_configure_odr_hub_operator_configmap[hub] operators.
+
+On the *Hub cluster* navigate to `Installed Operators` in the `openshift-operators` project and select `ODF Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
+
+.ODR Hub cluster APIs
+image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
+
+*Create instance* for *DRPolicy* and then go to *YAML view*.
+
+.DRPolicy create instance
+image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
+
+Save the following YAML (below) to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*.
+
+[source,yaml]
+----
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRPolicy
+metadata:
+  name: odr-policy-<cluster1>-<cluster2>-5m
+spec:
+  drClusterSet:
+  - name: <cluster1>
+    s3ProfileName: s3-primary
+  - name: <cluster2>
+    s3ProfileName: s3-secondary
+  schedulingInterval: 5m
+----      
+
+Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
+
+You can also create this resource using CLI. There is no need to specify a namespace to create this resource in the following command because `MirrorPeer` is a cluster-scoped resource.
+
+[source,role="execute"]
+----
+oc apply -f drpolicy.yaml
+----
+.Example output.
+----
+drpolicy.ramendr.openshift.io/odr-policy-ocp4perf1-ocp4perf1-5m created
+----
+
+IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
+
+
+
