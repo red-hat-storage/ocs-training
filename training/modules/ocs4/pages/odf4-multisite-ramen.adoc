@@ -13,7 +13,7 @@
 
 The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*. In this case the OCP clusters will be created or imported using *Red Hat Advanced Cluster Management* or `RHACM`. 
 
-This is a general overview of the steps required to configure and execute `Regional Disaster Recovery` capabilities using OpenShift Data Foundation (ODF) *v4.9* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
+This is a general overview of the steps required to configure and execute `OpenShift Disaster Recovery` or ODR capabilities using OpenShift Data Foundation (ODF) *v4.9* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
 
 NOTE: These steps are considered Tech Preview in ODF 4.9 and are provided for POC (Proof of Concept) purposes. OpenShift `Regional Disaster Recovery` will be supported for production usage in a future ODF release.
 
@@ -53,8 +53,16 @@ Install from OperatorHub on the hub cluster the ODR Hub Operator.
 . *Configure S3 secrets and ODR configmap for hub cluster.* +
 Using the same MCG S3 access/secret keys and S3 endpoints, create the required secrets as those created on managed clusters and add the same s3StoreProfiles to the ODR configmap on the hub cluster.
 . *Create the DRPolicy resource on the hub cluster.* +
-DRPolicy is an API available after the ODR Hub Operator is installed. It is used to deploy, failover, and relocate, workloads across managed clusters. 
-
+DRPolicy is an API available after the ODR Hub Operator is installed. It is used to deploy, failover, and relocate, workloads across managed clusters.
+. *Create the Sample Application namespace on the hub cluster.* +
+Because the ODR Hub Operator APIs are namespace scoped, the sample application namespace must be created first.
+. *Create the DRPlacementControl resource on the hub cluster.* +
+DRPlacementControl is an API available after the ODR Hub Operator is installed. 
+. *Create the PlacementRule resource on the hub cluster.* +
+Placement rules define the target clusters where resource templates can be deployed.
+. *Create the Sample Application using ACM console.* +
+Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
+ 
 == Install and Configure ACM for Multisite connectivity
 
 This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:
@@ -589,7 +597,7 @@ data:
       resourceName: dr-cluster.ramendr.openshift.io
     ramenControllerType: "dr-cluster"
     ### Start of new content to be added
-    s3StoreProfiles
+    s3StoreProfiles:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
       s3Region: us-east-1
@@ -695,7 +703,7 @@ data:
       resourceName: hub.ramendr.openshift.io
     ramenControllerType: "dr-hub"
     ### Start of new content to be added
-    s3StoreProfiles
+    s3StoreProfiles:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
       s3Region: us-east-1
@@ -763,5 +771,195 @@ drpolicy.ramendr.openshift.io/odr-policy-ocp4perf1-ocp4perf1-5m created
 
 IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
 
+== Create Sample Application for DR testing
 
+In order to test failover from the *Primary managed cluster* to the *Secondary managed cluster* and back again we need a simple application. The sample application used for this example with be `busybox`. 
 
+The first step is to create a namespace or project on the *Hub cluster* for `busybox` sample application.
+
+[source,role="execute"]
+----
+oc new-project busybox-sample
+----
+
+NOTE: A different project name other than `busybox-sample` can be used if desired. Make sure when deploying the sample application via the ACM console to use the same project name as what is created in this step.
+
+=== Create DRPlacementControl resource
+
+*DRPlacementControl* is an API available after the `ODR Hub Operator` is installed on the *Hub cluster*. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a *DRPolicy*.
+
+On the *Hub cluster* navigate to `Installed Operators` in the `busybox-sample` project and select `ODF Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*. 
+
+.ODR Hub cluster APIs
+image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
+
+*Create instance* for *DRPlacementControl* and then go to *YAML view*. Make sure the `busybox-sample` namespace is selected at the top.
+
+.DRPlacementControl create instance
+image::ODR-DRPlacementControl-create-instance.png[DRPlacementControl create instance]
+
+Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. 
+
+[source,yaml]
+----
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRPlacementControl
+metadata:
+  labels:
+    app: busybox-sample
+  name: busybox-drpc
+spec:
+  drPolicyRef:
+    name: odr-policy-<cluster1>-<cluster2>-5m
+  placementRef:
+    kind: PlacementRule
+    name: busybox-placement
+  preferredCluster: <cluster1>
+  pvcSelector:
+    matchLabels:
+      appname: busybox
+----
+
+Now create the *DRPlacementControl* resource by copying the contents of your unique `busybox-drpc.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
+
+You can also create this resource using CLI.
+
+IMPORTANT: This resource must be created in the `busybox-sample` namespace (or whatever namespace you created earlier).
+
+[source,role="execute"]
+----
+oc apply -f busybox-drpc.yaml -n busybox-sample
+----
+.Example output.
+----
+drplacementcontrol.ramendr.openshift.io/busybox-drpc created
+----
+
+=== Create PlacementRule resource
+
+Placement rules define the target clusters where resource templates can be deployed. Use placement rules to help you facilitate the multicluster deployment of your applications. 
+
+Save the following YAML (below) to filename busybox-placementrule.yaml.
+
+[source,yaml]
+----
+apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  labels:
+    app: busybox-sample
+  name: busybox-placement
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterReplicas: 1
+  schedulerName: ramen
+----
+
+Now create the *PlacementRule* resource for the `busybox-sample` application.
+
+IMPORTANT: This resource must be created in the `busybox-sample` namespace (or whatever namespace you created earlier).
+
+[source,role="execute"]
+----
+oc apply -f busybox-placementrule.yaml -n busybox-sample
+----
+.Example output.
+----
+placementrule.apps.open-cluster-management.io/busybox-placement created
+----
+
+=== Creating Sample Application using ACM console
+
+Start by loggin into the ACM console using your OpenShift credentials if not already logged in.
+
+[source,role="execute"]
+----
+oc get route multicloud-console -n open-cluster-management -o jsonpath --template="https://{.spec.host}/multicloud/applications{'\n'}"
+----
+
+This will return a route similar to this one.
+
+.Example Output:
+----
+https://multicloud-console.apps.perf3.chris.ocs.ninja/multicloud/applications
+----
+
+After logging in select *Create application* in the top right.
+
+.ACM Create application
+image::ACM-Create-application.png[ACM Create application]
+
+Fill out the top of the `Create an application` form as shown below and select repository type *Git*.
+
+.ACM Application name and namespace
+image::ACM-application-form1.png[ACM Application name and namespace]
+
+The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
+
+NOTE: *Temporary Sample application repository* https://github.com/netzzer/ocm-ramen-samples. Branch is `main` and path is `busybox`.
+
+.ACM application repository information
+image::ACM-application-form2.png[ACM application repository information]
+
+Scroll down in the form until you see *Select an existing placement configuration* and then put your cursor in the box below. You should see the *PlacementRule* created in prior section. Select this rule.
+
+.ACM application placement rule 
+image::ACM-application-form3.png[ACM application placement rule]
+
+After selecting available rule then select *Save* in the upper right hand corner.
+
+On the follow-on screen scroll to the bottom. You should see that there are all *Green* checkmarks on the application topology.
+
+.ACM application successful topology view
+image::ACM-application-successfull.png[ACM application successful topology view]
+
+NOTE: To get more information click on any of the topology elements and a window will appear to right of the topology view.
+
+=== Validating Sample Application deployment and replication
+
+Now that the `busybox` application has been deployed to your *preferredCluster* (specified in the `DRPlacementControl`) the deployment can be validated.
+
+Logon to your managed cluster where `busybox` was deployed by ACM. This is most likely your *Primary managed cluster*.
+
+[source,role="execute"]
+----
+oc get pods,pvc -n busybox-sample
+----
+.Example output.
+----
+NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          6m
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-a56c138a-a1a9-4465-927f-af02afbbff37   1Gi        RWO            ocs-storagecluster-ceph-rbd   6m
+----
+
+To validate that the replication resources are also created for the `busybox` *PVC* do the following:
+
+[source,role="execute"]
+----
+oc get volumereplication,volumereplicationgroup -n busybox-sample
+----
+.Example output.
+----
+NAME                                                             AGE   VOLUMEREPLICATIONCLASS           PVCNAME       DESIREDSTATE   CURRENTSTATE
+volumereplication.replication.storage.openshift.io/busybox-pvc   6m   odf-rbd-volumereplicationclass   busybox-pvc   primary        Primary
+
+NAME                                                       AGE
+volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m
+----
+
+To validate that the `busybox` volume has been replicated to the alternate cluster run this command on both the *Primary managed cluster* and the *Secondary managed cluster*.
+
+[source,role="execute"]
+----
+oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o jsonpath='{.status.mirroringStatus.summary}{"\n"}'
+----
+.Example output.
+----
+{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":1}}
+----
+
+NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":1}*.
