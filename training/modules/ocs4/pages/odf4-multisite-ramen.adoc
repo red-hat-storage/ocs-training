@@ -62,6 +62,8 @@ DRPlacementControl is an API available after the ODR Hub Operator is installed.
 Placement rules define the target clusters where resource templates can be deployed.
 . *Create the Sample Application using ACM console.* +
 Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
+. *Validate Sample Application deployment and alternate cluster replication* +
+Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
  
 == Install and Configure ACM for Multisite connectivity
 
@@ -727,7 +729,7 @@ Furthermore, *DRPolicy* requires a scheduling interval that determines at what f
  
 *DRPolicy* also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the *ConfigMap* of the ODR xref:odf4-multisite-ramen.adoc#_configure_odr_cluster_operator_configmaps[cluster] and xref:odf4-multisite-ramen.adoc#_configure_odr_hub_operator_configmap[hub] operators.
 
-On the *Hub cluster* navigate to `Installed Operators` in the `openshift-operators` project and select `ODF Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
+On the *Hub cluster* navigate to `Installed Operators` in the `openshift-operators` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
 
 .ODR Hub cluster APIs
 image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
@@ -788,7 +790,7 @@ NOTE: A different project name other than `busybox-sample` can be used if desire
 
 *DRPlacementControl* is an API available after the `ODR Hub Operator` is installed on the *Hub cluster*. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a *DRPolicy*.
 
-On the *Hub cluster* navigate to `Installed Operators` in the `busybox-sample` project and select `ODF Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*. 
+On the *Hub cluster* navigate to `Installed Operators` in the `busybox-sample` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*. 
 
 .ODR Hub cluster APIs
 image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
@@ -898,10 +900,10 @@ image::ACM-application-form1.png[ACM Application name and namespace]
 
 The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
 
-NOTE: *Temporary Sample application repository* https://github.com/netzzer/ocm-ramen-samples. Branch is `main` and path is `busybox`.
+NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr`.
 
 .ACM application repository information
-image::ACM-application-form2.png[ACM application repository information]
+image::ACM-application-form2a.png[ACM application repository information]
 
 Scroll down in the form until you see *Select an existing placement configuration* and then put your cursor in the box below. You should see the *PlacementRule* created in prior section. Select this rule.
 
