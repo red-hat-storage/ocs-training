@@ -188,11 +188,12 @@
 <div id="toctitle">Table of Contents</div>
 <ul class="sectlevel1">
 <li><a href="#_overview">1. Overview</a></li>
-<li><a href="#_install_and_configure_acm_for_multisite_connectivity">2. Install and Configure ACM for Multisite connectivity</a>
+<li><a href="#_deploy_and_configure_acm_for_multisite_connectivity">2. Deploy and Configure ACM for Multisite connectivity</a>
 <ul class="sectlevel2">
-<li><a href="#_import_or_create_managed_clusters">2.1. Import or Create Managed clusters</a></li>
-<li><a href="#_verify_managed_clusters_have_non_overlapping_networks">2.2. Verify Managed clusters have non-overlapping networks</a></li>
-<li><a href="#_connect_the_managed_clusters_using_submariner_add_ons">2.3. Connect the Managed clusters using Submariner add-ons</a></li>
+<li><a href="#_install_acm_and_multiclusterhub">2.1. Install ACM and MultiClusterHub</a></li>
+<li><a href="#_import_or_create_managed_clusters">2.2. Import or Create Managed clusters</a></li>
+<li><a href="#_verify_managed_clusters_have_non_overlapping_networks">2.3. Verify Managed clusters have non-overlapping networks</a></li>
+<li><a href="#_connect_the_managed_clusters_using_submariner_add_ons">2.4. Connect the Managed clusters using Submariner add-ons</a></li>
 </ul>
 </li>
 <li><a href="#_openshift_data_foundation_installation">3. OpenShift Data Foundation Installation</a></li>
@@ -350,7 +351,7 @@ Using CLI commands on both managed clusters validate that the application is run
 </div>
 </div>
 <div class="sect1">
-<h2 id="_install_and_configure_acm_for_multisite_connectivity"><a class="anchor" href="#_install_and_configure_acm_for_multisite_connectivity"></a>2. Install and Configure ACM for Multisite connectivity</h2>
+<h2 id="_deploy_and_configure_acm_for_multisite_connectivity"><a class="anchor" href="#_deploy_and_configure_acm_for_multisite_connectivity"></a>2. Deploy and Configure ACM for Multisite connectivity</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:</p>
@@ -368,6 +369,8 @@ Using CLI commands on both managed clusters validate that the application is run
 </li>
 </ul>
 </div>
+<div class="sect2">
+<h3 id="_install_acm_and_multiclusterhub"><a class="anchor" href="#_install_acm_and_multiclusterhub"></a>2.1. Install ACM and MultiClusterHub</h3>
 <div class="paragraph">
 <p>Find ACM in OperatorHub on the <strong>Hub cluster</strong> and follow instructions to install this operator.</p>
 </div>
@@ -430,8 +433,9 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 </div>
 <div class="title">Figure 3. ACM local cluster imported</div>
 </div>
+</div>
 <div class="sect2">
-<h3 id="_import_or_create_managed_clusters"><a class="anchor" href="#_import_or_create_managed_clusters"></a>2.1. Import or Create Managed clusters</h3>
+<h3 id="_import_or_create_managed_clusters"><a class="anchor" href="#_import_or_create_managed_clusters"></a>2.2. Import or Create Managed clusters</h3>
 <div class="paragraph">
 <p>Now that ACM is installed on the <code>Hub cluster</code> it is time to either create or import the <code>Primary managed cluster</code> and the <code>Secondary managed cluster</code>. You should see selections (as in above diagram) for <strong>Create cluster</strong> and <strong>Import cluster</strong>. Chose the selection appropriate for your environment. After the managed clusters are successfully created or imported you should see something similar to below.</p>
 </div>
@@ -443,7 +447,7 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 </div>
 </div>
 <div class="sect2">
-<h3 id="_verify_managed_clusters_have_non_overlapping_networks"><a class="anchor" href="#_verify_managed_clusters_have_non_overlapping_networks"></a>2.2. Verify Managed clusters have non-overlapping networks</h3>
+<h3 id="_verify_managed_clusters_have_non_overlapping_networks"><a class="anchor" href="#_verify_managed_clusters_have_non_overlapping_networks"></a>2.3. Verify Managed clusters have non-overlapping networks</h3>
 <div class="paragraph">
 <p>In order to connect the OpenShift cluster and service networks using the <code>Submariner add-ons</code>, it is necessary to validate the two clusters have non-overlapping networks. This can be done by running the following command for each of the managed clusters.</p>
 </div>
@@ -497,7 +501,7 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 </div>
 </div>
 <div class="sect2">
-<h3 id="_connect_the_managed_clusters_using_submariner_add_ons"><a class="anchor" href="#_connect_the_managed_clusters_using_submariner_add_ons"></a>2.3. Connect the Managed clusters using Submariner add-ons</h3>
+<h3 id="_connect_the_managed_clusters_using_submariner_add_ons"><a class="anchor" href="#_connect_the_managed_clusters_using_submariner_add_ons"></a>2.4. Connect the Managed clusters using Submariner add-ons</h3>
 <div class="paragraph">
 <p>Now that we know the <code>cluster</code> and <code>service</code> networks have non-overlapping ranges, it is time to move on to installing the <code>Submariner add-ons</code> for each managed cluster. This is done by using the ACM console and <code>Cluster sets</code>.</p>
 </div>
