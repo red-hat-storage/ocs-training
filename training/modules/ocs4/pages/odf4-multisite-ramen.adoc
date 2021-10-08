@@ -65,13 +65,15 @@ Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to 
 . *Validate Sample Application deployment and alternate cluster replication* +
 Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
  
-== Install and Configure ACM for Multisite connectivity
+== Deploy and Configure ACM for Multisite connectivity
 
 This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:
 
 * *Hub cluster* is where ACM, ODF Multisite-orchestrator and ODR Hub controllers are installed.
 * *Primary managed cluster* is where ODF, ODR Cluster controller, and Applications are installed.
 * *Secondary managed cluster* is where ODF, ODR Cluster controller, and Applications are installed.
+
+=== Install ACM and MultiClusterHub
 
 Find ACM in OperatorHub on the *Hub cluster* and follow instructions to install this operator.
 
