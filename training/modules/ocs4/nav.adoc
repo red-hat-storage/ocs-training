@@ -11,6 +11,7 @@
 * xref:RegionalDR:manual:ocs4-multisite-replication.adoc[Regional disaster recovery (manual method)]
 * xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery (RDRhelper)]
 // * xref:ocs4-metro-stretched-no-ui.adoc[Metro disaster recovery CLI]
+* xref:odf4-multisite-ramen.adoc[Regional disaster recovery (RHACM method)]
 
 .Development preview features
 * xref:ocs4-additionalfeatures-dbwal.adoc[BlueStore RocksDB metadata and WAL placement]
