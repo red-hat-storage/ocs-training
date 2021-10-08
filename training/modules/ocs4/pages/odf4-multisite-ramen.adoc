@@ -85,7 +85,7 @@ image::ACM-Installed-Operator.png[ACM Installed Operator]
 
 Select `MultiClusterHub` and use either `Form view` or `YAML view` to configure the deployment and select `Create`. 
 
-NOTE: Most *MultiClusterHub* deployments can use default settings in the `Form view`. The only non-default setting to select in the `Form view` Advanced configuration is *Basic* in the Availability Configuration section.
+NOTE: Most *MultiClusterHub* deployments can use default settings in the `Form view`.
 
 Once the deployment is complete you can logon to the ACM console using your OpenShift credentials.
 
