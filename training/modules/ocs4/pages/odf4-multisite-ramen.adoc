@@ -100,7 +100,7 @@ This will return a route similar to this one.
 
 .Example Output:
 ----
-https://multicloud-console.apps.perf3.chris.ocs.ninja/multicloud/clusters
+https://multicloud-console.apps.perf3.example.com/multicloud/clusters
 ----
 
 After logging in you should see your local cluster imported.
@@ -509,7 +509,7 @@ oc get route s3 -n openshift-storage -o jsonpath --template="https://{.spec.host
 ----
 .Example output.
 ----
-https://s3-openshift-storage.apps.perf1.chris.ocs.ninja
+https://s3-openshift-storage.apps.perf1.example.com
 ----
 
 IMPORTANT: The S3 endpoint route must be retrieved for both the *Primary managed cluster* and *Secondary managed cluster*.
@@ -885,7 +885,7 @@ This will return a route similar to this one.
 
 .Example Output:
 ----
-https://multicloud-console.apps.perf3.chris.ocs.ninja/multicloud/applications
+https://multicloud-console.apps.perf3.example.com/multicloud/applications
 ----
 
 After logging in select *Create application* in the top right.
