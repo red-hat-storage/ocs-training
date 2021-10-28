@@ -41,11 +41,11 @@ Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph R
 . *Validate Ceph mirroring is active between managed OCP clusters.* +
 Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.
 . *Create VolumeReplicationClass resource.* +
-Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).
-. *Retrieve MCG S3 keys and external S3 endpoint for each managed cluster.* +
-Extract the S3 access/secret keys and S3 endpoints from the Multi-Cloud Gateway (MCG) object service on each managed cluster. 
+Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes). 
 . *Install ODR Cluster Operator on managed clusters.* +
 Install from OperatorHub on both managed clusters the ODR Cluster Operator.
+. *Configure SSL access between managed clusters.* +
+For each managed cluster extract the ingress certificate and inject into the alternate cluster for MCG object bucket secure access.
 . *Configure S3 secrets and ODR configmaps for managed clusters.* +
 Create the required secrets and add the s3StoreProfiles to the ODR configmap  on each managed cluster.
 . *Install ODR Hub Operator on the hub cluster.* +
@@ -459,7 +459,7 @@ volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicatio
 
 == Install ODR Cluster Operator on Managed clusters
 
-On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
+On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`.
 
 NOTE: The `ODR Cluster Operator` must be installed on both the *Primary managed cluster* and *Secondary managed cluster*.
 
@@ -467,9 +467,216 @@ ODR requires one or more S3 stores to store relevant cluster data of a workload 
  
 These instructions are applicable for creating the necessary object bucket(s) using the *Multi-Cloud Gateway* or MCG. MCG should already be installed as a result of installing ODF.
 
+=== Configure SSL access between managed clusters
+
+These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol.
+
+Extract the ingress certificate for the *Primary managed cluster* and save the output to `primary.crt`.
+
+[source,role="execute"]
+----
+oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" > primary.crt
+----
+
+Extract the ingress certificate for the *Secondary managed cluster* and save the output to `secondary.crt`.
+
+[source,role="execute"]
+----
+oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" > secondary.crt
+----
+
+Using the contents in the *primary.crt* and *secondary.crt* files, populate a new *ConfigMap* on each managed cluster.
+
+Create new *ConfigMap* to hold remote cluster's certificate bundle with filename `cm-secondary-crt.yaml` on the *Primary managed cluster*.
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    <copy contents of secondary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of secondary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of secondary.crt here>
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle 
+  namespace: openshift-config
+----
+
+[source,role="execute"]
+----
+oc create -f cm-secondary-crt.yaml
+----
+.Example output.
+----
+configmap/user-ca-bundle created
+----
+
+Now do the same on the *Secondary managed cluster*. Create a new *ConfigMap* with filename `cm-primary-crt.yaml`.
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    <copy contents of primary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of primary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of primary.crt here>
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle 
+  namespace: openshift-config
+----
+
+[source,role="execute"]
+----
+oc create -f cm-primary-crt.yaml
+----
+.Example output.
+----
+configmap/user-ca-bundle created
+----
+
+For the two managed clusters to allow data to be stored in the opposite MCG S3 store they must `trust` each other's certificate. This can be configured by modifying the existing *Proxy* `cluster` resource for each cluster unique certificate.
+
+Modify the *Proxy* resource for the *Primary managed cluster* by saving this YAML file to `proxy-primary-config.yaml`. Make sure to replace `secondary clusterID` with correct OpenShift cluster name for your *Secondary managed cluster* (could be different than cluster name used in ACM). Replace `baseDomain` with your base Domain Name.
+
+[source,yaml]
+----
+apiVersion: config.openshift.io/v1
+kind: Proxy
+metadata:
+  name: cluster
+spec:
+  noProxy: <secondary clusterID>.<baseDomain>
+  readinessEndpoints:
+  - http://www.google.com 
+  - https://www.google.com
+  trustedCA:
+    name: user-ca-bundle
+---- 
+
+[source,role="execute"]
+----
+oc apply -f proxy-primary-config.yaml
+----
+.Example output.
+----
+proxy.config.openshift.io/cluster configured
+----
+
+Repeat these steps on the *Secondary managed cluster* replacing `<secondary clusterID>` name with the correct OpenShift cluster name for `<primary clusterID>` and the correct `baseDomain`. Save to filename `proxy-secondary-config.yaml` and modify the *Secondary managed cluster* proxy resource by applying this YAML file.
+
+[source,role="execute"]
+----
+oc apply -f proxy-seconday-config.yaml
+----
+.Example output.
+----
+proxy.config.openshift.io/cluster configured
+----
+
+The *Cluster Network Operator* injects SSL certificates across any namespace when an empty *ConfigMap* is created with the config.openshift.io/inject-trusted-cabundle=true label. To cause this injection to happen for certificates in `user-ca-bundle` save the following YAML file to filename `cm-injector-crt.yaml`.
+
+[source,yaml]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  labels:
+    config.openshift.io/inject-trusted-cabundle: "true"
+  name: trusted-ca
+  namespace: openshift-dr-system
+----  
+
+[source,role="execute"]
+----
+oc create -f cm-injector-crt.yaml
+----
+.Example output.
+----
+configmap/trusted-ca created
+----
+
+NOTE: Create this resource on the *Primary managed cluster* and the *Secondary managed cluster*.
+
+Now we need to update the `ramen-dr-cluster-operator` *Deployment* with the trusted certificate. Start by editing the *CSV* in the project with this *Deployment*.
+
+[source,role="execute"]
+----
+oc edit -n openshift-dr-system csv odr-cluster-operator.v4.9.0
+----
+
+[source,yaml]
+----
+apiVersion: operators.coreos.com/v1alpha1
+kind: ClusterServiceVersion
+[...]
+                volumeMounts:
+                - mountPath: /config
+                  name: ramen-manager-config-vol
+                  readOnly: true
+                - mountPath: /etc/pki/ca-trust/extracted/pem
+                  name: trusted-ca
+                  readOnly: true
+[...]
+              volumes:
+              - configMap:
+                  name: ramen-dr-cluster-operator-config
+                name: ramen-manager-config-vol
+              - configMap:
+                  items:
+                  - key: ca-bundle.crt
+                    path: tls-ca-bundle.pem
+                  name: trusted-ca
+                name: trusted-ca
+----
+
+Add the new `mountPath` under *volumeMounts* and the new `configMap` under *volumes*. Save the changes in *CSV* `odr-cluster-operator.v4.9.0` and exit.
+
+NOTE: This step needs to be done on the *Primary managed cluster* and the *Secondary managed cluster*.
+
+To validate the change has been made successfully run the following command for the new `volumeMounts` in the `ramen-dr-cluster` *Pod*:
+
+[source,role="execute"]
+----
+oc get pod -l app=ramen-dr-cluster -o jsonpath='{.items[0].spec.containers[0].volumeMounts[1]}{"\n"}'
+----
+Example output.
+----
+{"mountPath":"/etc/pki/ca-trust/extracted/pem","name":"trusted-ca","readOnly":true}
+----
+
+To validate the change has been made successfully run the following command for the new `volumes` in the `ramen-dr-cluster` *Pod*:
+
+[source,role="execute"]
+----
+oc get pod -l app=ramen-dr-cluster -o jsonpath='{.items[0].spec.volumes[1]}{"\n"}'
+----
+Example output.
+----
+{"configMap":{"defaultMode":420,"items":[{"key":"ca-bundle.crt","path":"tls-ca-bundle.pem"}],"name":"trusted-ca"},"name":"trusted-ca"}
+----
+
 === Retrieve MCG keys and external S3 endpoint
 
-First heck the MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
+First check the MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
 
 [source,role="execute"]
 ----
@@ -531,7 +738,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
@@ -556,7 +763,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
@@ -578,7 +785,7 @@ On each managed cluster the *ConfigMap* `ramen-dr-cluster-operator-config` will 
 
 [source,role="execute"]
 ----
-oc edit configmap ramen-dr-cluster-operator-config -n openshift-operators
+oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system
 ----
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
@@ -603,17 +810,17 @@ data:
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
       s3Region: us-east-1
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
       s3Region: us-east-1
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]    
 ----
 
@@ -621,7 +828,7 @@ NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` 
 
 == Install ODR Hub Operator on Hub cluster
 
-On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
+On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`.
 
 === Create S3 secrets for the Hub cluster
 
@@ -636,7 +843,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Hub cluster*.
@@ -661,7 +868,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Hub cluster*.
@@ -683,7 +890,7 @@ After the operator is successfully created there will be a new *ConfigMap* calle
 
 [source,role="execute"]
 ----
-oc edit configmap ramen-hub-operator-config -n openshift-operators
+oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 ----
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
@@ -709,17 +916,17 @@ data:
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
       s3Region: us-east-1
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
       s3Region: us-east-1
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]    
 ----
 
@@ -731,7 +938,7 @@ Furthermore, *DRPolicy* requires a scheduling interval that determines at what f
  
 *DRPolicy* also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the *ConfigMap* of the ODR xref:odf4-multisite-ramen.adoc#_configure_odr_cluster_operator_configmaps[cluster] and xref:odf4-multisite-ramen.adoc#_configure_odr_hub_operator_configmap[hub] operators.
 
-On the *Hub cluster* navigate to `Installed Operators` in the `openshift-operators` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
+On the *Hub cluster* navigate to `Installed Operators` in the `openshift-dr-system` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
 
 .ODR Hub cluster APIs
 image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
