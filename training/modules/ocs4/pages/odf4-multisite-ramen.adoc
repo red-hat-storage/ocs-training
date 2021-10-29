@@ -564,6 +564,8 @@ kind: Proxy
 metadata:
   name: cluster
 spec:
+#  httpProxy: http://<username>:<pswd>@<ip>:<port> 
+#  httpsProxy: http://<username>:<pswd>@<ip>:<port>
   noProxy: <secondary clusterID>.<baseDomain>
   readinessEndpoints:
   - http://www.google.com 
@@ -592,91 +594,11 @@ oc apply -f proxy-seconday-config.yaml
 proxy.config.openshift.io/cluster configured
 ----
 
-The *Cluster Network Operator* injects SSL certificates across any namespace when an empty *ConfigMap* is created with the config.openshift.io/inject-trusted-cabundle=true label. To cause this injection to happen for certificates in `user-ca-bundle` save the following YAML file to filename `cm-injector-crt.yaml`.
-
-[source,yaml]
-----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  labels:
-    config.openshift.io/inject-trusted-cabundle: "true"
-  name: trusted-ca
-  namespace: openshift-dr-system
-----  
-
-[source,role="execute"]
-----
-oc create -f cm-injector-crt.yaml
-----
-.Example output.
-----
-configmap/trusted-ca created
-----
-
-NOTE: Create this resource on the *Primary managed cluster* and the *Secondary managed cluster*.
-
-Now we need to update the `ramen-dr-cluster-operator` *Deployment* with the trusted certificate. Start by editing the *CSV* in the project with this *Deployment*.
-
-[source,role="execute"]
-----
-oc edit -n openshift-dr-system csv odr-cluster-operator.v4.9.0
-----
-
-[source,yaml]
-----
-apiVersion: operators.coreos.com/v1alpha1
-kind: ClusterServiceVersion
-[...]
-                volumeMounts:
-                - mountPath: /config
-                  name: ramen-manager-config-vol
-                  readOnly: true
-                - mountPath: /etc/pki/ca-trust/extracted/pem
-                  name: trusted-ca
-                  readOnly: true
-[...]
-              volumes:
-              - configMap:
-                  name: ramen-dr-cluster-operator-config
-                name: ramen-manager-config-vol
-              - configMap:
-                  items:
-                  - key: ca-bundle.crt
-                    path: tls-ca-bundle.pem
-                  name: trusted-ca
-                name: trusted-ca
-----
-
-Add the new `mountPath` under *volumeMounts* and the new `configMap` under *volumes*. Save the changes in *CSV* `odr-cluster-operator.v4.9.0` and exit.
-
-NOTE: This step needs to be done on the *Primary managed cluster* and the *Secondary managed cluster*.
-
-To validate the change has been made successfully run the following command for the new `volumeMounts` in the `ramen-dr-cluster` *Pod*:
-
-[source,role="execute"]
-----
-oc get pod -l app=ramen-dr-cluster -o jsonpath='{.items[0].spec.containers[0].volumeMounts[1]}{"\n"}'
-----
-Example output.
-----
-{"mountPath":"/etc/pki/ca-trust/extracted/pem","name":"trusted-ca","readOnly":true}
-----
-
-To validate the change has been made successfully run the following command for the new `volumes` in the `ramen-dr-cluster` *Pod*:
-
-[source,role="execute"]
-----
-oc get pod -l app=ramen-dr-cluster -o jsonpath='{.items[0].spec.volumes[1]}{"\n"}'
-----
-Example output.
-----
-{"configMap":{"defaultMode":420,"items":[{"key":"ca-bundle.crt","path":"tls-ca-bundle.pem"}],"name":"trusted-ca"},"name":"trusted-ca"}
-----
+NOTE: Because `httpProxy` and `httpsProxy` are not required for this use of the *Proxy* resource there could be a `Warning` alert firing for the `network` operator. You can ignore this alert or configure `Silence alert`.
 
 === Retrieve MCG keys and external S3 endpoint
 
-First check the MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
+Before starting this section check that MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
 
 [source,role="execute"]
 ----
@@ -688,27 +610,65 @@ NAME     MGMT-ENDPOINTS                   S3-ENDPOINTS                    IMAGE 
 noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.io/rhceph-dev/mcg-core@sha256:c4b8857ee9832e6efc5a8597a08b81730b774b2c12a31a436e0c3fadff48e73d   Ready   27h
 ----
 
-The first step is to extract the MCG access and secret keys for each managed cluster as their *_base-64_ _encoded_* values. This can be done using these commands:
+The first step is to create an MCG `object bucket` or *OBC* (Object Bucket Claim) to be used to store persistent volume metadata on the *Primary managed cluster* and the *Secondary managed cluster*. 
+
+Copy the following YAML file to filename `odrbucket.yaml`
+
+[source,yaml]
+----
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: odrbucket
+  namespace: openshift-dr-system
+spec:
+  generateBucketName: "odrbucket"
+  storageClassName: openshift-storage.noobaa.io
+----
 
 [source,role="execute"]
 ----
-oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'
+oc create -f odrbucket.yaml
 ----
 .Example output.
 ----
-OVNxSmtNTU5DTzRUYld5Tmhzdlk=
+objectbucketclaim.objectbucket.io/odrbucket created
+----
+
+NOTE: Make sure to create the *OBC* `odrbucket` on both the *Primary managed cluster* and the *Secondary managed cluster*.
+
+Extract the `odrbucket` *OBC* access key and secret key for each managed cluster as their *_base-64_ _encoded_* values. This can be done using these commands:
+
+[source,role="execute"]
+----
+oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'
+----
+.Example output.
+----
+cFpIYTZWN1NhemJjbEUyWlpwN1E=
 ----
 
 [source,role="execute"]
 ----
-oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'
+oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'
 ----
 .Example output.
 ----
-ZGdNYmE4cGZnY3hNSkRIaFpZUElxaUNpVm4wWFFsaDJmQzRKVmdVZA==
+V1hUSnMzZUoxMHRRTXdGMU9jQXRmUlAyMmd5bGwwYjNvMHprZVhtNw==
 ----
 
-IMPORTANT: The MCG access and secret key must be retrieved from the existing MCG configuration on both the *Primary managed cluster* and *Secondary managed cluster*.
+The `odrbucket` *OBC* exact bucket name is also needs to be found.
+
+[source,role="execute"]
+----
+oc get configmap odrbucket -n openshift-dr-system -o jsonpath='{.data.BUCKET_NAME}{"\n"}'
+----
+.Example output.
+----
+odrbucket-2f2d44e4-59cb-4577-b303-7219be809dcd
+----
+
+IMPORTANT: The access key, secret key and bucket name must be retrieved for the `odrbucket` *OBC* on both the *Primary managed cluster* and *Secondary managed cluster*.
 
 The next step is to find the external S3 endpoint or route for MCG on each managed cluster. This can be done using this command:
 
@@ -790,6 +750,8 @@ oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
 
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, and `odrbucket-<your value>`, with your specific environment variables.
+
 [source,yaml]
 ----
 [...]
@@ -811,20 +773,22 @@ data:
     s3StoreProfiles:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
-      s3Region: us-east-1
+      s3Region: primary
+      s3Bucket: odrbucket-<your value>
       s3SecretRef:
         name: odr-s3secret-primary
         namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
-      s3Region: us-east-1
+      s3Region: secondary
+      s3Bucket: odrbucket-<your value>
       s3SecretRef:
         name: odr-s3secret-secondary
         namespace: openshift-dr-system
 [...]    
 ----
 
-NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on both managed clusters.
+NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 == Install ODR Hub Operator on Hub cluster
 
@@ -895,6 +859,8 @@ oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
 
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, and `odrbucket-<your value>`, with your specific environment variables.
+
 [source,yaml]
 ----
 [...]
@@ -917,13 +883,15 @@ data:
     s3StoreProfiles:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
-      s3Region: us-east-1
+      s3Region: primary
+      s3Bucket: odrbucket-<your value>
       s3SecretRef:
         name: odr-s3secret-primary
         namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
-      s3Region: us-east-1
+      s3Region: secondary
+      s3Bucket: odrbucket-<your value>
       s3SecretRef:
         name: odr-s3secret-secondary
         namespace: openshift-dr-system
