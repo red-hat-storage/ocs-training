@@ -495,16 +495,17 @@ apiVersion: v1
 data:
   ca-bundle.crt: |
     -----BEGIN CERTIFICATE-----
-    <copy contents of secondary.crt here>
+    <copy contents of cert1 from secondary.crt here>
     -----END CERTIFICATE-----
     
     -----BEGIN CERTIFICATE-----
-    <copy contents of secondary.crt here>
+    <copy contents of cert2 from secondary.crt here>
     -----END CERTIFICATE-----
     
     -----BEGIN CERTIFICATE-----
-    <copy contents of secondary.crt here>
+    <copy contents of cert3 from secondary.crt here>
     -----END CERTIFICATE-----
+[...]    
 kind: ConfigMap
 metadata:
   name: user-ca-bundle 
@@ -528,16 +529,17 @@ apiVersion: v1
 data:
   ca-bundle.crt: |
     -----BEGIN CERTIFICATE-----
-    <copy contents of primary.crt here>
+    <copy contents of cert1 from primary.crt here>
     -----END CERTIFICATE-----
     
     -----BEGIN CERTIFICATE-----
-    <copy contents of primary.crt here>
+    <copy contents of cert2 from primary.crt here>
     -----END CERTIFICATE-----
     
     -----BEGIN CERTIFICATE-----
-    <copy contents of primary.crt here>
+    <copy contents of cert3 primary.crt here>
     -----END CERTIFICATE-----
+[...]    
 kind: ConfigMap
 metadata:
   name: user-ca-bundle 
@@ -552,49 +554,6 @@ oc create -f cm-primary-crt.yaml
 ----
 configmap/user-ca-bundle created
 ----
-
-For the two managed clusters to allow data to be stored in the opposite MCG S3 store they must `trust` each other's certificate. This can be configured by modifying the existing *Proxy* `cluster` resource for each cluster unique certificate.
-
-Modify the *Proxy* resource for the *Primary managed cluster* by saving this YAML file to `proxy-primary-config.yaml`. Make sure to replace `secondary clusterID` with correct OpenShift cluster name for your *Secondary managed cluster* (could be different than cluster name used in ACM). Replace `baseDomain` with your base Domain Name.
-
-[source,yaml]
-----
-apiVersion: config.openshift.io/v1
-kind: Proxy
-metadata:
-  name: cluster
-spec:
-#  httpProxy: http://<username>:<pswd>@<ip>:<port> 
-#  httpsProxy: http://<username>:<pswd>@<ip>:<port>
-  noProxy: <secondary clusterID>.<baseDomain>
-  readinessEndpoints:
-  - http://www.google.com 
-  - https://www.google.com
-  trustedCA:
-    name: user-ca-bundle
----- 
-
-[source,role="execute"]
-----
-oc apply -f proxy-primary-config.yaml
-----
-.Example output.
-----
-proxy.config.openshift.io/cluster configured
-----
-
-Repeat these steps on the *Secondary managed cluster* replacing `<secondary clusterID>` name with the correct OpenShift cluster name for `<primary clusterID>` and the correct `baseDomain`. Save to filename `proxy-secondary-config.yaml` and modify the *Secondary managed cluster* proxy resource by applying this YAML file.
-
-[source,role="execute"]
-----
-oc apply -f proxy-seconday-config.yaml
-----
-.Example output.
-----
-proxy.config.openshift.io/cluster configured
-----
-
-NOTE: Because `httpProxy` and `httpsProxy` are not required for this use of the *Proxy* resource there could be a `Warning` alert firing for the `network` operator. You can ignore this alert or configure `Silence alert`.
 
 === Retrieve MCG keys and external S3 endpoint
 
@@ -750,7 +709,7 @@ oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
 
-NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, and `odrbucket-<your value>`, with your specific environment variables.
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` with your specific environment variables.
 
 [source,yaml]
 ----
@@ -774,14 +733,14 @@ data:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
       s3Region: primary
-      s3Bucket: odrbucket-<your value>
+      s3Bucket: odrbucket-<your value1>
       s3SecretRef:
         name: odr-s3secret-primary
         namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
       s3Region: secondary
-      s3Bucket: odrbucket-<your value>
+      s3Bucket: odrbucket-<your value2>
       s3SecretRef:
         name: odr-s3secret-secondary
         namespace: openshift-dr-system
@@ -859,7 +818,7 @@ oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
 
-NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, and `odrbucket-<your value>`, with your specific environment variables.
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` with your specific environment variables.
 
 [source,yaml]
 ----
@@ -884,14 +843,14 @@ data:
     - s3ProfileName: s3-primary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
       s3Region: primary
-      s3Bucket: odrbucket-<your value>
+      s3Bucket: odrbucket-<your value1>
       s3SecretRef:
         name: odr-s3secret-primary
         namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
       s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
       s3Region: secondary
-      s3Bucket: odrbucket-<your value>
+      s3Bucket: odrbucket-<your value2>
       s3SecretRef:
         name: odr-s3secret-secondary
         namespace: openshift-dr-system
@@ -949,6 +908,17 @@ drpolicy.ramendr.openshift.io/odr-policy-ocp4perf1-ocp4perf1-5m created
 ----
 
 IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
+
+To validate that the *DRPolicy* is created successfully run this command.
+
+[source,role="execute"]
+----
+oc get drpolicy odr-policy-ocp4perf1-ocp4perf2-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+----
+.Example output.
+----
+Succeeded
+----
 
 == Create Sample Application for DR testing
 
