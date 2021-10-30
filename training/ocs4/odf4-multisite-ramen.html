@@ -209,9 +209,10 @@
 <li><a href="#_create_volumereplicationclass_resource">5. Create VolumeReplicationClass resource</a></li>
 <li><a href="#_install_odr_cluster_operator_on_managed_clusters">6. Install ODR Cluster Operator on Managed clusters</a>
 <ul class="sectlevel2">
-<li><a href="#_retrieve_mcg_keys_and_external_s3_endpoint">6.1. Retrieve MCG keys and external S3 endpoint</a></li>
-<li><a href="#_create_s3_secrets_for_managed_clusters">6.2. Create S3 Secrets for Managed clusters</a></li>
-<li><a href="#_configure_odr_cluster_operator_configmaps">6.3. Configure ODR cluster operator ConfigMaps</a></li>
+<li><a href="#_configure_ssl_access_between_managed_clusters">6.1. Configure SSL access between managed clusters</a></li>
+<li><a href="#_retrieve_mcg_keys_and_external_s3_endpoint">6.2. Retrieve MCG keys and external S3 endpoint</a></li>
+<li><a href="#_create_s3_secrets_for_managed_clusters">6.3. Create S3 Secrets for Managed clusters</a></li>
+<li><a href="#_configure_odr_cluster_operator_configmaps">6.4. Configure ODR cluster operator ConfigMaps</a></li>
 </ul>
 </li>
 <li><a href="#_install_odr_hub_operator_on_hub_cluster">7. Install ODR Hub Operator on Hub cluster</a>
@@ -303,12 +304,12 @@ Using CLI, validate the new rbd-mirroring pods are created in each managed clust
 Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).</p>
 </li>
 <li>
-<p><strong>Retrieve MCG S3 keys and external S3 endpoint for each managed cluster.</strong><br>
-Extract the S3 access/secret keys and S3 endpoints from the Multi-Cloud Gateway (MCG) object service on each managed cluster.</p>
-</li>
-<li>
 <p><strong>Install ODR Cluster Operator on managed clusters.</strong><br>
 Install from OperatorHub on both managed clusters the ODR Cluster Operator.</p>
+</li>
+<li>
+<p><strong>Configure SSL access between managed clusters.</strong><br>
+For each managed cluster extract the ingress certificate and inject into the alternate cluster for MCG object bucket secure access.</p>
 </li>
 <li>
 <p><strong>Configure S3 secrets and ODR configmaps for managed clusters.</strong><br>
@@ -1010,7 +1011,7 @@ spec:
 <h2 id="_install_odr_cluster_operator_on_managed_clusters"><a class="anchor" href="#_install_odr_cluster_operator_on_managed_clusters"></a>6. Install ODR Cluster Operator on Managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On each managed cluster navigate to <strong>OperatorHub</strong> and filter for <code>ODR Cluster Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-operators</code>.</p>
+<p>On each managed cluster navigate to <strong>OperatorHub</strong> and filter for <code>ODR Cluster Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-dr-system</code>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1031,9 +1032,108 @@ The <code>ODR Cluster Operator</code> must be installed on both the <strong>Prim
 <p>These instructions are applicable for creating the necessary object bucket(s) using the <strong>Multi-Cloud Gateway</strong> or MCG. MCG should already be installed as a result of installing ODF.</p>
 </div>
 <div class="sect2">
-<h3 id="_retrieve_mcg_keys_and_external_s3_endpoint"><a class="anchor" href="#_retrieve_mcg_keys_and_external_s3_endpoint"></a>6.1. Retrieve MCG keys and external S3 endpoint</h3>
+<h3 id="_configure_ssl_access_between_managed_clusters"><a class="anchor" href="#_configure_ssl_access_between_managed_clusters"></a>6.1. Configure SSL access between managed clusters</h3>
 <div class="paragraph">
-<p>First heck the MCG is installed on <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> and that the <code>Phase</code> is <strong>Ready</strong>.</p>
+<p>These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol.</p>
+</div>
+<div class="paragraph">
+<p>Extract the ingress certificate for the <strong>Primary managed cluster</strong> and save the output to <code>primary.crt</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" &gt; primary.crt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Extract the ingress certificate for the <strong>Secondary managed cluster</strong> and save the output to <code>secondary.crt</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" &gt; secondary.crt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Using the contents in the <strong>primary.crt</strong> and <strong>secondary.crt</strong> files, populate a new <strong>ConfigMap</strong> on each managed cluster.</p>
+</div>
+<div class="paragraph">
+<p>Create new <strong>ConfigMap</strong> to hold remote cluster&#8217;s certificate bundle with filename <code>cm-secondary-crt.yaml</code> on the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert1 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert2 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert3 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+[...]
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle
+  namespace: openshift-config</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f cm-secondary-crt.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>configmap/user-ca-bundle created</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now do the same on the <strong>Secondary managed cluster</strong>. Create a new <strong>ConfigMap</strong> with filename <code>cm-primary-crt.yaml</code>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert1 from primary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert2 from primary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert3 primary.crt here&gt;
+    -----END CERTIFICATE-----
+[...]
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle
+  namespace: openshift-config</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f cm-primary-crt.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>configmap/user-ca-bundle created</pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_retrieve_mcg_keys_and_external_s3_endpoint"><a class="anchor" href="#_retrieve_mcg_keys_and_external_s3_endpoint"></a>6.2. Retrieve MCG keys and external S3 endpoint</h3>
+<div class="paragraph">
+<p>Before starting this section check that MCG is installed on <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> and that the <code>Phase</code> is <strong>Ready</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1048,28 +1148,83 @@ noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.i
 </div>
 </div>
 <div class="paragraph">
-<p>The first step is to extract the MCG access and secret keys for each managed cluster as their <strong><em>base-64</em> <em>encoded</em></strong> values. This can be done using these commands:</p>
+<p>The first step is to create an MCG <code>object bucket</code> or <strong>OBC</strong> (Object Bucket Claim) to be used to store persistent volume metadata on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Copy the following YAML file to filename <code>odrbucket.yaml</code></p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: odrbucket
+  namespace: openshift-dr-system
+spec:
+  generateBucketName: "odrbucket"
+  storageClassName: openshift-storage.noobaa.io</code></pre>
+</div>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odrbucket.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>OVNxSmtNTU5DTzRUYld5Tmhzdlk=</pre>
+<pre>objectbucketclaim.objectbucket.io/odrbucket created</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to create the <strong>OBC</strong> <code>odrbucket</code> on both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Extract the <code>odrbucket</code> <strong>OBC</strong> access key and secret key for each managed cluster as their <strong><em>base-64</em> <em>encoded</em></strong> values. This can be done using these commands:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>ZGdNYmE4cGZnY3hNSkRIaFpZUElxaUNpVm4wWFFsaDJmQzRKVmdVZA==</pre>
+<pre>cFpIYTZWN1NhemJjbEUyWlpwN1E=</pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>V1hUSnMzZUoxMHRRTXdGMU9jQXRmUlAyMmd5bGwwYjNvMHprZVhtNw==</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <code>odrbucket</code> <strong>OBC</strong> exact bucket name also needs to be found.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get configmap odrbucket -n openshift-dr-system -o jsonpath='{.data.BUCKET_NAME}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>odrbucket-2f2d44e4-59cb-4577-b303-7219be809dcd</pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1079,7 +1234,7 @@ noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.i
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The MCG access and secret key must be retrieved from the existing MCG configuration on both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong>.
+The access key, secret key and bucket name must be retrieved for the <code>odrbucket</code> <strong>OBC</strong> on both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong>.
 </td>
 </tr>
 </table>
@@ -1112,9 +1267,9 @@ The S3 endpoint route must be retrieved for both the <strong>Primary managed clu
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_s3_secrets_for_managed_clusters"><a class="anchor" href="#_create_s3_secrets_for_managed_clusters"></a>6.2. Create S3 Secrets for Managed clusters</h3>
+<h3 id="_create_s3_secrets_for_managed_clusters"><a class="anchor" href="#_create_s3_secrets_for_managed_clusters"></a>6.3. Create S3 Secrets for Managed clusters</h3>
 <div class="paragraph">
-<p>Now that the necessary MCG information has been extracted there must be new <strong>Secrets</strong> created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>. These new <strong>Secrets</strong> will store the MCG access and secret keys for both managed clusters.</p>
+<p>Now that the necessary MCG information has been extracted for the object buckets there must be new <strong>Secrets</strong> created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>. These new <strong>Secrets</strong> will store the MCG object bucket access key and secret key for both managed clusters.</p>
 </div>
 <div class="paragraph">
 <p>The S3 secret YAML format for the <strong>Primary managed cluster</strong> is similar to the following:</p>
@@ -1128,11 +1283,11 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators</code></pre>
+  namespace: openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Create this secret on the <strong>Primary managed cluster</strong> <em>and</em> the <strong>Secondary managed cluster</strong>.</p>
+<p>Create this secret on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1157,7 +1312,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators</code></pre>
+  namespace: openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1181,24 +1336,36 @@ metadata:
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The values for the access and secret key must be <strong>base-64 encoded</strong>. The encoded values for the keys were retrieved in the prior section.
+The values for the access key and secret key must be <strong>base-64 encoded</strong>. The encoded values for the keys were retrieved in the prior section.
 </td>
 </tr>
 </table>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_configure_odr_cluster_operator_configmaps"><a class="anchor" href="#_configure_odr_cluster_operator_configmaps"></a>6.3. Configure ODR cluster operator ConfigMaps</h3>
+<h3 id="_configure_odr_cluster_operator_configmaps"><a class="anchor" href="#_configure_odr_cluster_operator_configmaps"></a>6.4. Configure ODR cluster operator ConfigMaps</h3>
 <div class="paragraph">
 <p>On each managed cluster the <strong>ConfigMap</strong> <code>ramen-dr-cluster-operator-config</code> will be edited and new content added.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-dr-cluster-operator-config -n openshift-operators</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The following new content starting at <strong>s3StoreProfiles</strong> needs to be added to the <strong>ConfigMap</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to replace <code>&lt;primary clusterID&gt;</code>, <code>&lt;secondary clusterID&gt;</code>, <code>baseDomain</code>, <code>odrbucket-&lt;your value1&gt;</code>, and <code>odrbucket-&lt;your value2&gt;</code> with your specific environment variables.
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1207,30 +1374,24 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: dr-cluster.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-cluster"
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;domain&gt;
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;baseDomain&gt;
+      s3Region: primary
+      s3Bucket: odrbucket-&lt;your value1&gt;
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;domain&gt;
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;baseDomain&gt;
+      s3Region: secondary
+      s3Bucket: odrbucket-&lt;your value2&gt;
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]</code></pre>
 </div>
 </div>
@@ -1241,7 +1402,7 @@ data:
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Use the same new content to modify the <code>ramen-dr-cluster-operator-config</code> <strong>ConfigMap</strong> on both managed clusters.
+Use the same new content to modify the <code>ramen-dr-cluster-operator-config</code> <strong>ConfigMap</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
 </td>
 </tr>
 </table>
@@ -1253,7 +1414,7 @@ Use the same new content to modify the <code>ramen-dr-cluster-operator-config</c
 <h2 id="_install_odr_hub_operator_on_hub_cluster"><a class="anchor" href="#_install_odr_hub_operator_on_hub_cluster"></a>7. Install ODR Hub Operator on Hub cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On the <code>Hub cluster</code> navigate to <strong>OperatorHub</strong> and filter for <code>ODR Hub Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-operators</code>.</p>
+<p>On the <code>Hub cluster</code> navigate to <strong>OperatorHub</strong> and filter for <code>ODR Hub Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-dr-system</code>.</p>
 </div>
 <div class="sect2">
 <h3 id="_create_s3_secrets_for_the_hub_cluster"><a class="anchor" href="#_create_s3_secrets_for_the_hub_cluster"></a>7.1. Create S3 secrets for the Hub cluster</h3>
@@ -1269,7 +1430,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators</code></pre>
+  namespace: openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1298,7 +1459,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators</code></pre>
+  namespace: openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1335,11 +1496,23 @@ The values for the access and secret key must be <strong>base-64 encoded</strong
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-hub-operator-config -n openshift-operators</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-hub-operator-config -n openshift-dr-system</code></pre>
 </div>
 </div>
 <div class="paragraph">
 <p>The following new content starting at <strong>s3StoreProfiles</strong> needs to be added to the <strong>ConfigMap</strong> on the <strong>Hub cluster</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to replace <code>&lt;primary clusterID&gt;</code>, <code>&lt;secondary clusterID&gt;</code>, <code>baseDomain</code>, <code>odrbucket-&lt;your value1&gt;</code>, and <code>odrbucket-&lt;your value2&gt;</code> with your specific environment variables.
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1349,30 +1522,24 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: hub.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-hub"
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;domain&gt;
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;baseDomain&gt;
+      s3Region: primary
+      s3Bucket: odrbucket-&lt;your value1&gt;
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;domain&gt;
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;baseDomain&gt;
+      s3Region: secondary
+      s3Bucket: odrbucket-&lt;your value2&gt;
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]</code></pre>
 </div>
 </div>
@@ -1392,7 +1559,7 @@ data:
 <p><strong>DRPolicy</strong> also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the <strong>ConfigMap</strong> of the ODR <a href="#_configure_odr_cluster_operator_configmaps">cluster</a> and <a href="#_configure_odr_hub_operator_configmap">hub</a> operators.</p>
 </div>
 <div class="paragraph">
-<p>On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> in the <code>openshift-operators</code> project and select <code>ODR Hub Operator</code>. You should see two available APIs, <strong>DRPolicy</strong> and <strong>DRPlacementControl</strong>.</p>
+<p>On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> in the <code>openshift-dr-system</code> project and select <code>ODR Hub Operator</code>. You should see two available APIs, <strong>DRPolicy</strong> and <strong>DRPlacementControl</strong>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1467,6 +1634,20 @@ The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong>
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicy odr-policy-ocp4perf1-ocp4perf2-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>Succeeded</pre>
+</div>
 </div>
 </div>
 </div>
