@@ -616,7 +616,7 @@ oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_SECRET_AC
 V1hUSnMzZUoxMHRRTXdGMU9jQXRmUlAyMmd5bGwwYjNvMHprZVhtNw==
 ----
 
-The `odrbucket` *OBC* exact bucket name is also needs to be found.
+The `odrbucket` *OBC* exact bucket name also needs to be found.
 
 [source,role="execute"]
 ----
@@ -644,7 +644,7 @@ IMPORTANT: The S3 endpoint route must be retrieved for both the *Primary managed
 
 === Create S3 Secrets for Managed clusters
 
-Now that the necessary MCG information has been extracted there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG access and secret keys for both managed clusters.
+Now that the necessary MCG information has been extracted for the object buckets there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG object bucket access key and secret key for both managed clusters.
 
 The S3 secret YAML format for the *Primary managed cluster* is similar to the following: 
 
@@ -660,7 +660,7 @@ metadata:
   namespace: openshift-dr-system
 ----
 
-Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
+Create this secret on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 [source,role="execute"]
 ----
@@ -696,7 +696,7 @@ oc create -f odr-s3secret-secondary.yaml
 secret/odr-s3secret-secondary created
 ----
 
-IMPORTANT: The values for the access and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
+IMPORTANT: The values for the access key and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
 
 === Configure ODR cluster operator ConfigMaps
 
@@ -718,15 +718,7 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: dr-cluster.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-cluster"
     ### Start of new content to be added
     s3StoreProfiles:
@@ -828,15 +820,7 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: hub.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-hub"
     ### Start of new content to be added
     s3StoreProfiles:
