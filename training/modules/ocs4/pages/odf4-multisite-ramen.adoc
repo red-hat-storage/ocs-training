@@ -41,11 +41,11 @@ Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph R
 . *Validate Ceph mirroring is active between managed OCP clusters.* +
 Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.
 . *Create VolumeReplicationClass resource.* +
-Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).
-. *Retrieve MCG S3 keys and external S3 endpoint for each managed cluster.* +
-Extract the S3 access/secret keys and S3 endpoints from the Multi-Cloud Gateway (MCG) object service on each managed cluster. 
+Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes). 
 . *Install ODR Cluster Operator on managed clusters.* +
 Install from OperatorHub on both managed clusters the ODR Cluster Operator.
+. *Configure SSL access between managed clusters.* +
+For each managed cluster extract the ingress certificate and inject into the alternate cluster for MCG object bucket secure access.
 . *Configure S3 secrets and ODR configmaps for managed clusters.* +
 Create the required secrets and add the s3StoreProfiles to the ODR configmap  on each managed cluster.
 . *Install ODR Hub Operator on the hub cluster.* +
@@ -459,7 +459,7 @@ volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicatio
 
 == Install ODR Cluster Operator on Managed clusters
 
-On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
+On each managed cluster navigate to *OperatorHub* and filter for `ODR Cluster Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`.
 
 NOTE: The `ODR Cluster Operator` must be installed on both the *Primary managed cluster* and *Secondary managed cluster*.
 
@@ -467,9 +467,97 @@ ODR requires one or more S3 stores to store relevant cluster data of a workload 
  
 These instructions are applicable for creating the necessary object bucket(s) using the *Multi-Cloud Gateway* or MCG. MCG should already be installed as a result of installing ODF.
 
+=== Configure SSL access between managed clusters
+
+These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol.
+
+Extract the ingress certificate for the *Primary managed cluster* and save the output to `primary.crt`.
+
+[source,role="execute"]
+----
+oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" > primary.crt
+----
+
+Extract the ingress certificate for the *Secondary managed cluster* and save the output to `secondary.crt`.
+
+[source,role="execute"]
+----
+oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" > secondary.crt
+----
+
+Using the contents in the *primary.crt* and *secondary.crt* files, populate a new *ConfigMap* on each managed cluster.
+
+Create new *ConfigMap* to hold remote cluster's certificate bundle with filename `cm-secondary-crt.yaml` on the *Primary managed cluster*.
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert1 from secondary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert2 from secondary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert3 from secondary.crt here>
+    -----END CERTIFICATE-----
+[...]    
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle 
+  namespace: openshift-config
+----
+
+[source,role="execute"]
+----
+oc create -f cm-secondary-crt.yaml
+----
+.Example output.
+----
+configmap/user-ca-bundle created
+----
+
+Now do the same on the *Secondary managed cluster*. Create a new *ConfigMap* with filename `cm-primary-crt.yaml`.
+
+[source,yaml]
+----
+apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert1 from primary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert2 from primary.crt here>
+    -----END CERTIFICATE-----
+    
+    -----BEGIN CERTIFICATE-----
+    <copy contents of cert3 primary.crt here>
+    -----END CERTIFICATE-----
+[...]    
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle 
+  namespace: openshift-config
+----
+
+[source,role="execute"]
+----
+oc create -f cm-primary-crt.yaml
+----
+.Example output.
+----
+configmap/user-ca-bundle created
+----
+
 === Retrieve MCG keys and external S3 endpoint
 
-First heck the MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
+Before starting this section check that MCG is installed on *Primary managed cluster* and the *Secondary managed cluster* and that the `Phase` is *Ready*.
 
 [source,role="execute"]
 ----
@@ -481,27 +569,65 @@ NAME     MGMT-ENDPOINTS                   S3-ENDPOINTS                    IMAGE 
 noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.io/rhceph-dev/mcg-core@sha256:c4b8857ee9832e6efc5a8597a08b81730b774b2c12a31a436e0c3fadff48e73d   Ready   27h
 ----
 
-The first step is to extract the MCG access and secret keys for each managed cluster as their *_base-64_ _encoded_* values. This can be done using these commands:
+The first step is to create an MCG `object bucket` or *OBC* (Object Bucket Claim) to be used to store persistent volume metadata on the *Primary managed cluster* and the *Secondary managed cluster*. 
+
+Copy the following YAML file to filename `odrbucket.yaml`
+
+[source,yaml]
+----
+apiVersion: objectbucket.io/v1alpha1
+kind: ObjectBucketClaim
+metadata:
+  name: odrbucket
+  namespace: openshift-dr-system
+spec:
+  generateBucketName: "odrbucket"
+  storageClassName: openshift-storage.noobaa.io
+----
 
 [source,role="execute"]
 ----
-oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'
+oc create -f odrbucket.yaml
 ----
 .Example output.
 ----
-OVNxSmtNTU5DTzRUYld5Tmhzdlk=
+objectbucketclaim.objectbucket.io/odrbucket created
+----
+
+NOTE: Make sure to create the *OBC* `odrbucket` on both the *Primary managed cluster* and the *Secondary managed cluster*.
+
+Extract the `odrbucket` *OBC* access key and secret key for each managed cluster as their *_base-64_ _encoded_* values. This can be done using these commands:
+
+[source,role="execute"]
+----
+oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'
+----
+.Example output.
+----
+cFpIYTZWN1NhemJjbEUyWlpwN1E=
 ----
 
 [source,role="execute"]
 ----
-oc get secret noobaa-admin -n openshift-storage -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'
+oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'
 ----
 .Example output.
 ----
-ZGdNYmE4cGZnY3hNSkRIaFpZUElxaUNpVm4wWFFsaDJmQzRKVmdVZA==
+V1hUSnMzZUoxMHRRTXdGMU9jQXRmUlAyMmd5bGwwYjNvMHprZVhtNw==
 ----
 
-IMPORTANT: The MCG access and secret key must be retrieved from the existing MCG configuration on both the *Primary managed cluster* and *Secondary managed cluster*.
+The `odrbucket` *OBC* exact bucket name also needs to be found.
+
+[source,role="execute"]
+----
+oc get configmap odrbucket -n openshift-dr-system -o jsonpath='{.data.BUCKET_NAME}{"\n"}'
+----
+.Example output.
+----
+odrbucket-2f2d44e4-59cb-4577-b303-7219be809dcd
+----
+
+IMPORTANT: The access key, secret key and bucket name must be retrieved for the `odrbucket` *OBC* on both the *Primary managed cluster* and *Secondary managed cluster*.
 
 The next step is to find the external S3 endpoint or route for MCG on each managed cluster. This can be done using this command:
 
@@ -518,7 +644,7 @@ IMPORTANT: The S3 endpoint route must be retrieved for both the *Primary managed
 
 === Create S3 Secrets for Managed clusters
 
-Now that the necessary MCG information has been extracted there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG access and secret keys for both managed clusters.
+Now that the necessary MCG information has been extracted for the object buckets there must be new *Secrets* created on the *Primary managed cluster* and the *Secondary managed cluster*. These new *Secrets* will store the MCG object bucket access key and secret key for both managed clusters.
 
 The S3 secret YAML format for the *Primary managed cluster* is similar to the following: 
 
@@ -531,10 +657,10 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
-Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
+Create this secret on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 [source,role="execute"]
 ----
@@ -556,7 +682,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Primary managed cluster* _and_ the *Secondary managed cluster*.
@@ -570,7 +696,7 @@ oc create -f odr-s3secret-secondary.yaml
 secret/odr-s3secret-secondary created
 ----
 
-IMPORTANT: The values for the access and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
+IMPORTANT: The values for the access key and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in the prior section. 
 
 === Configure ODR cluster operator ConfigMaps
 
@@ -578,10 +704,12 @@ On each managed cluster the *ConfigMap* `ramen-dr-cluster-operator-config` will 
 
 [source,role="execute"]
 ----
-oc edit configmap ramen-dr-cluster-operator-config -n openshift-operators
+oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system
 ----
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
+
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` with your specific environment variables.
 
 [source,yaml]
 ----
@@ -590,38 +718,32 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: dr-cluster.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-cluster"
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
+      s3Region: primary
+      s3Bucket: odrbucket-<your value1>
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
+      s3Region: secondary
+      s3Bucket: odrbucket-<your value2>
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]    
 ----
 
-NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on both managed clusters.
+NOTE: Use the same new content to modify the `ramen-dr-cluster-operator-config` *ConfigMap* on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 == Install ODR Hub Operator on Hub cluster
 
-On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-operators`.
+On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`.
 
 === Create S3 secrets for the Hub cluster
 
@@ -636,7 +758,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-primary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Hub cluster*.
@@ -661,7 +783,7 @@ data:
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
-  namespace: openshift-operators
+  namespace: openshift-dr-system
 ----
 
 Create this secret on the *Hub cluster*.
@@ -683,10 +805,12 @@ After the operator is successfully created there will be a new *ConfigMap* calle
 
 [source,role="execute"]
 ----
-oc edit configmap ramen-hub-operator-config -n openshift-operators
+oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 ----
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
+
+NOTE: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` with your specific environment variables.
 
 [source,yaml]
 ----
@@ -696,30 +820,24 @@ data:
   ramen_manager_config.yaml: |
     apiVersion: ramendr.openshift.io/v1alpha1
     kind: RamenConfig
-    health:
-      healthProbeBindAddress: :8081
-    metrics:
-      bindAddress: 127.0.0.1:9289
-    webhook:
-      port: 9443
-    leaderElection:
-      leaderElect: true
-      resourceName: hub.ramendr.openshift.io
+[...]
     ramenControllerType: "dr-hub"
     ### Start of new content to be added
     s3StoreProfiles:
     - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<domain>
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<primary clusterID>.<baseDomain>
+      s3Region: primary
+      s3Bucket: odrbucket-<your value1>
       s3SecretRef:
         name: odr-s3secret-primary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
     - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<domain>
-      s3Region: us-east-1
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.<secondary clusterID>.<baseDomain>
+      s3Region: secondary
+      s3Bucket: odrbucket-<your value2>
       s3SecretRef:
         name: odr-s3secret-secondary
-        namespace: openshift-operators
+        namespace: openshift-dr-system
 [...]    
 ----
 
@@ -731,7 +849,7 @@ Furthermore, *DRPolicy* requires a scheduling interval that determines at what f
  
 *DRPolicy* also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the *ConfigMap* of the ODR xref:odf4-multisite-ramen.adoc#_configure_odr_cluster_operator_configmaps[cluster] and xref:odf4-multisite-ramen.adoc#_configure_odr_hub_operator_configmap[hub] operators.
 
-On the *Hub cluster* navigate to `Installed Operators` in the `openshift-operators` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
+On the *Hub cluster* navigate to `Installed Operators` in the `openshift-dr-system` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*.
 
 .ODR Hub cluster APIs
 image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
@@ -774,6 +892,17 @@ drpolicy.ramendr.openshift.io/odr-policy-ocp4perf1-ocp4perf1-5m created
 ----
 
 IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
+
+To validate that the *DRPolicy* is created successfully run this command.
+
+[source,role="execute"]
+----
+oc get drpolicy odr-policy-ocp4perf1-ocp4perf2-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+----
+.Example output.
+----
+Succeeded
+----
 
 == Create Sample Application for DR testing
 
