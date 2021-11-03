@@ -1119,7 +1119,7 @@ Select *Save*.
 
 In the `failoverCluster` specified in the YAML file (i.e., ocp4perf2), see if the application `busybox` is now running in the *Secondary managed cluster* using the following command:
 
-source,role="execute"]
+[source,role="execute"]
 ----
 oc get pods,pvc -n busybox-sample
 ----
@@ -1134,7 +1134,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 
 Next, using the same command check if `busybox` is running in the *Primary managed cluster*. The `busybox` application should no longer be running on this managed cluster.
 
-source,role="execute"]
+[source,role="execute"]
 ----
 oc get pods,pvc -n busybox-sample
 ----
@@ -1176,7 +1176,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 
 Next, using the same command, check if `busybox` is running in the *Secondary managed cluster*. The `busybox` application should no longer be running on this managed cluster.
 
-source,role="execute"]
+[source,role="execute"]
 ----
 oc get pods,pvc -n busybox-sample
 ----
