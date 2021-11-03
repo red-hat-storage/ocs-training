@@ -230,6 +230,8 @@
 <li><a href="#_validating_sample_application_deployment_and_replication">9.4. Validating Sample Application deployment and replication</a></li>
 </ul>
 </li>
+<li><a href="#_application_failover_between_managed_clusters">10. Application Failover between managed clusters</a></li>
+<li><a href="#_application_failback_between_managed_clusters">11. Application Failback between managed clusters</a></li>
 </ul>
 </div>
 <div class="sect1">
@@ -346,6 +348,14 @@ Use the sample app example from <a href="https://github.com/RamenDR/ocm-ramen-sa
 <li>
 <p><strong>Validate Sample Application deployment and alternate cluster replication</strong><br>
 Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.</p>
+</li>
+<li>
+<p><strong>Failover Sample Application to secondary managed cluster.</strong><br>
+Using the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.</p>
+</li>
+<li>
+<p><strong>Failback Sample Application to primary managed cluster.</strong><br>
+Using the application DRPlacementControl resource on the Hub Cluster, modify the action to Relocate and trigger failover to  the preferredCluster.</p>
 </li>
 </ol>
 </div>
@@ -1962,6 +1972,137 @@ Both managed clusters should have the exact same output with a new status of <st
 </td>
 </tr>
 </table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>10. Application Failover between managed clusters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
+</div>
+<div class="paragraph">
+<p>To failover requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
+</div>
+<div class="title">Figure 22. DRPlacementControl busybox instance</div>
+</div>
+<div class="paragraph">
+<p>Select <code>drpc-busybox</code> and then the YAML view. Add the <code>action</code> and <code>failoverCluster</code> as shown below. The <code>failoverCluster</code> should be the <strong>ACM</strong> cluster name for the <strong>Secondary managed cluster</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-failover.png" alt="DRPlacementControl add action Failover">
+</div>
+<div class="title">Figure 23. DRPlacementControl add action Failover</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Save</strong>.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>failoverCluster</code> specified in the YAML file (i.e., ocp4perf2), see if the application <code>busybox</code> is now running in the <strong>Secondary managed cluster</strong> using the following command:</p>
+</div>
+<div class="paragraph">
+<p>source,role="execute"]</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc get pods,pvc -n busybox-sample</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          35s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   35s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, using the same command check if <code>busybox</code> is running in the <strong>Primary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
+</div>
+<div class="paragraph">
+<p>source,role="execute"]</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc get pods,pvc -n busybox-sample</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>No resources found in busybox-sample namespace.</pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>11. Application Failback between managed clusters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that a <code>resync</code> is issued to make sure any new application data saved on the <strong>Secondary managed cluster</strong> is immediately, not waiting for the mirroring schedule interval, replicated to the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="paragraph">
+<p>To failback requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
+</div>
+<div class="title">Figure 24. DRPlacementControl busybox instance</div>
+</div>
+<div class="paragraph">
+<p>Select <code>drpc-busybox</code> and then the YAML form. Modify the <code>action</code> to <code>Relocate</code> as shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-failback.png" alt="DRPlacementControl modify action to Relocate">
+</div>
+<div class="title">Figure 25. DRPlacementControl modify action to Relocate</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Save</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Check if the application <code>busybox</code> is now running in the <strong>Primary managed cluster</strong> using the following command. The failback is to the <code>preferredCluster</code> which should be where the application was running before the failover operation.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          60s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   61s</pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, using the same command, check if <code>busybox</code> is running in the <strong>Secondary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
+</div>
+<div class="paragraph">
+<p>source,role="execute"]</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre>oc get pods,pvc -n busybox-sample</pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>No resources found in busybox-sample namespace.</pre>
 </div>
 </div>
 </div>
