@@ -2006,12 +2006,9 @@ Both managed clusters should have the exact same output with a new status of <st
 <div class="paragraph">
 <p>In the <code>failoverCluster</code> specified in the YAML file (i.e., ocp4perf2), see if the application <code>busybox</code> is now running in the <strong>Secondary managed cluster</strong> using the following command:</p>
 </div>
-<div class="paragraph">
-<p>source,role="execute"]</p>
-</div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc get pods,pvc -n busybox-sample</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2027,12 +2024,9 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="paragraph">
 <p>Next, using the same command check if <code>busybox</code> is running in the <strong>Primary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
 </div>
-<div class="paragraph">
-<p>source,role="execute"]</p>
-</div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc get pods,pvc -n busybox-sample</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -2091,12 +2085,9 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="paragraph">
 <p>Next, using the same command, check if <code>busybox</code> is running in the <strong>Secondary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
 </div>
-<div class="paragraph">
-<p>source,role="execute"]</p>
-</div>
-<div class="listingblock">
+<div class="listingblock execute">
 <div class="content">
-<pre>oc get pods,pvc -n busybox-sample</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
 </div>
 </div>
 <div class="listingblock">
