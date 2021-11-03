@@ -64,6 +64,10 @@ Placement rules define the target clusters where resource templates can be deplo
 Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
 . *Validate Sample Application deployment and alternate cluster replication* +
 Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
+. *Failover Sample Application to secondary managed cluster.* +
+Using the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
+. *Failback Sample Application to primary managed cluster.* +
+Using the application DRPlacementControl resource on the Hub Cluster, modify the action to Relocate and trigger failover to  the preferredCluster.
  
 == Deploy and Configure ACM for Multisite connectivity
 
