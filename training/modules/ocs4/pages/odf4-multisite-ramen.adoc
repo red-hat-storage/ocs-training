@@ -64,6 +64,10 @@ Placement rules define the target clusters where resource templates can be deplo
 Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
 . *Validate Sample Application deployment and alternate cluster replication* +
 Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
+. *Failover Sample Application to secondary managed cluster.* +
+Using the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
+. *Failback Sample Application to primary managed cluster.* +
+Using the application DRPlacementControl resource on the Hub Cluster, modify the action to Relocate and trigger failover to  the preferredCluster.
  
 == Deploy and Configure ACM for Multisite connectivity
 
@@ -1096,3 +1100,87 @@ oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o js
 ----
 
 NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":1}*.
+
+== Application Failover between managed clusters
+
+This section will detail how to failover the `busybox` sample application. The failover method for `Regional Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
+
+To failover requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
+
+.DRPlacementControl busybox instance
+image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
+
+Select `drpc-busybox` and then the YAML view. Add the `action` and `failoverCluster` as shown below. The `failoverCluster` should be the *ACM* cluster name for the *Secondary managed cluster*.
+
+.DRPlacementControl add action Failover
+image::ODR-DRPlacementControl-failover.png[DRPlacementControl add action Failover]
+
+Select *Save*.
+
+In the `failoverCluster` specified in the YAML file (i.e., ocp4perf2), see if the application `busybox` is now running in the *Secondary managed cluster* using the following command:
+
+source,role="execute"]
+----
+oc get pods,pvc -n busybox-sample
+----
+.Example output.
+----
+NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          35s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   35s
+----
+
+Next, using the same command check if `busybox` is running in the *Primary managed cluster*. The `busybox` application should no longer be running on this managed cluster.
+
+source,role="execute"]
+----
+oc get pods,pvc -n busybox-sample
+----
+.Example output.
+----
+No resources found in busybox-sample namespace.
+----
+
+== Application Failback between managed clusters
+
+A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback. The main difference for failback is that a `resync` is issued to make sure any new application data saved on the *Secondary managed cluster* is immediately, not waiting for the mirroring schedule interval, replicated to the *Primary managed cluster*.
+
+To failback requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
+
+.DRPlacementControl busybox instance
+image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
+
+Select `drpc-busybox` and then the YAML form. Modify the `action` to `Relocate` as shown below.
+
+.DRPlacementControl modify action to Relocate
+image::ODR-DRPlacementControl-failback.png[DRPlacementControl modify action to Relocate]
+
+Select *Save*.
+
+Check if the application `busybox` is now running in the *Primary managed cluster* using the following command. The failback is to the `preferredCluster` which should be where the application was running before the failover operation.
+
+[source,role="execute"]
+----
+oc get pods,pvc -n busybox-sample
+----
+.Example output.
+----
+NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          60s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   61s
+----
+
+Next, using the same command, check if `busybox` is running in the *Secondary managed cluster*. The `busybox` application should no longer be running on this managed cluster.
+
+source,role="execute"]
+----
+oc get pods,pvc -n busybox-sample
+----
+.Example output.
+----
+No resources found in busybox-sample namespace.
+----
