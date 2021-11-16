@@ -228,6 +228,7 @@
 <li><a href="#_create_placementrule_resource">9.2. Create PlacementRule resource</a></li>
 <li><a href="#_creating_sample_application_using_acm_console">9.3. Creating Sample Application using ACM console</a></li>
 <li><a href="#_validating_sample_application_deployment_and_replication">9.4. Validating Sample Application deployment and replication</a></li>
+<li><a href="#_deleting_the_sample_application">9.5. Deleting the Sample Application</a></li>
 </ul>
 </li>
 <li><a href="#_application_failover_between_managed_clusters">10. Application Failover between managed clusters</a></li>
@@ -1974,6 +1975,66 @@ Both managed clusters should have the exact same output with a new status of <st
 </table>
 </div>
 </div>
+<div class="sect2">
+<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>9.5. Deleting the Sample Application</h3>
+<div class="paragraph">
+<p>Deleting the <code>busybox</code> application can be done using the ACM console. Navigate to <strong>Applications</strong> and then find the application to be deleted (busybox in this case).</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-delete.png" alt="ACM delete busybox application">
+</div>
+<div class="title">Figure 22. ACM delete busybox application</div>
+</div>
+<div class="paragraph">
+<p>When <strong>Delete application</strong> is selected a new screen will appear asking if the <code>application related resources</code> should also be deleted. Make sure to <code>check</code> the box to delete the <code>Subscription</code> and <code>PlacementRule</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-delete-resources.png" alt="ACM delete busybox application resources">
+</div>
+<div class="title">Figure 23. ACM delete busybox application resources</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Delete</strong> in this screen. This will delete the <code>busybox</code> application on the <strong>Primary managed cluster</strong> (or whatever cluster the application was running on).</p>
+</div>
+<div class="paragraph">
+<p>In addition to the resources deleted using the ACM console, the <code>DRPlacementControl</code> must also be deleted immediately after deleting the <code>busybox</code> application. Logon to the OpenShift Web console for the <strong>Hub cluster</strong>. Navigate to <code>Installed Operators</code> for the project <code>busybox-sample</code>. Choose <code>OpenShift DR Hub Operator</code> and the <strong>DRPlacementControl</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-delete.png" alt="Delete busybox application DRPlacementControl">
+</div>
+<div class="title">Figure 24. Delete busybox application DRPlacementControl</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Delete DRPlacementControl</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If desired, the <code>DRPlacementControl</code> resource can also be deleted in the application namespace using CLI.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This process can be used to delete any application with a DRPlacementControl resource.
+</td>
+</tr>
+</table>
+</div>
+</div>
 </div>
 </div>
 <div class="sect1">
@@ -1989,7 +2050,7 @@ Both managed clusters should have the exact same output with a new status of <st
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
 </div>
-<div class="title">Figure 22. DRPlacementControl busybox instance</div>
+<div class="title">Figure 25. DRPlacementControl busybox instance</div>
 </div>
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML view. Add the <code>action</code> and <code>failoverCluster</code> as shown below. The <code>failoverCluster</code> should be the <strong>ACM</strong> cluster name for the <strong>Secondary managed cluster</strong>.</p>
@@ -1998,7 +2059,7 @@ Both managed clusters should have the exact same output with a new status of <st
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-failover.png" alt="DRPlacementControl add action Failover">
 </div>
-<div class="title">Figure 23. DRPlacementControl add action Failover</div>
+<div class="title">Figure 26. DRPlacementControl add action Failover</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Save</strong>.</p>
@@ -2050,7 +2111,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
 </div>
-<div class="title">Figure 24. DRPlacementControl busybox instance</div>
+<div class="title">Figure 27. DRPlacementControl busybox instance</div>
 </div>
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML form. Modify the <code>action</code> to <code>Relocate</code> as shown below.</p>
@@ -2059,7 +2120,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-failback.png" alt="DRPlacementControl modify action to Relocate">
 </div>
-<div class="title">Figure 25. DRPlacementControl modify action to Relocate</div>
+<div class="title">Figure 28. DRPlacementControl modify action to Relocate</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Save</strong>.</p>
