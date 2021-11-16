@@ -1101,6 +1101,31 @@ oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o js
 
 NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":1}*.
 
+=== Deleting the Sample Application
+
+Deleting the `busybox` application can be done using the ACM console. Navigate to *Applications* and then find the application to be deleted (busybox in this case).
+
+.ACM delete busybox application
+image::ACM-application-delete.png[ACM delete busybox application]
+
+When *Delete application* is selected a new screen will appear asking if the `application related resources` should also be deleted. Make sure to `check` the box to delete the `Subscription` and `PlacementRule`.
+
+.ACM delete busybox application resources
+image::ACM-application-delete-resources.png[ACM delete busybox application resources]
+
+Select *Delete* in this screen. This will delete the `busybox` application on the *Primary managed cluster* (or whatever cluster the application was running on).
+
+In addition to the resources deleted using the ACM console, the `DRPlacementControl` must also be deleted immediately after deleting the `busybox` application. Logon to the OpenShift Web console for the *Hub cluster*. Navigate to `Installed Operators` for the project `busybox-sample`. Choose `OpenShift DR Hub Operator` and the *DRPlacementControl*.
+
+.Delete busybox application DRPlacementControl
+image::ODR-DRPlacementControl-delete.png[Delete busybox application DRPlacementControl]
+
+Select *Delete DRPlacementControl*. 
+
+NOTE: If desired, the `DRPlacementControl` resource can also be deleted in the application namespace using CLI.
+
+NOTE: This process can be used to delete any application with a DRPlacementControl resource.
+
 == Application Failover between managed clusters
 
 This section will detail how to failover the `busybox` sample application. The failover method for `Regional Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
