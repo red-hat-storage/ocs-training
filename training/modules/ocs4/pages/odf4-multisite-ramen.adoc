@@ -473,7 +473,7 @@ These instructions are applicable for creating the necessary object bucket(s) us
 
 === Configure SSL access between managed clusters
 
-These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol.
+These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
 
 Extract the ingress certificate for the *Primary managed cluster* and save the output to `primary.crt`.
 
@@ -512,7 +512,7 @@ data:
 [...]    
 kind: ConfigMap
 metadata:
-  name: user-ca-bundle 
+  name: user-ca-bundle-secondary 
   namespace: openshift-config
 ----
 
@@ -522,7 +522,7 @@ oc create -f cm-secondary-crt.yaml
 ----
 .Example output.
 ----
-configmap/user-ca-bundle created
+configmap/user-ca-bundle-secondary created
 ----
 
 Now do the same on the *Secondary managed cluster*. Create a new *ConfigMap* with filename `cm-primary-crt.yaml`.
@@ -546,7 +546,7 @@ data:
 [...]    
 kind: ConfigMap
 metadata:
-  name: user-ca-bundle 
+  name: user-ca-bundle-primary 
   namespace: openshift-config
 ----
 
@@ -556,8 +556,10 @@ oc create -f cm-primary-crt.yaml
 ----
 .Example output.
 ----
-configmap/user-ca-bundle created
+configmap/user-ca-bundle-primary created
 ----
+
+IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using the *DRPolicy* resource. Therefore the same *ConfigMaps*, `cm-primary-crt.yaml` and `cm-secondary-crt.yaml`, need to be created on the *Hub cluster*.
 
 === Retrieve MCG keys and external S3 endpoint
 
@@ -1023,7 +1025,7 @@ This will return a route similar to this one.
 https://multicloud-console.apps.perf3.example.com/multicloud/applications
 ----
 
-After logging in select *Create application* in the top right.
+After logging in select *Create application* in the top right and choose *Subscription*.
 
 .ACM Create application
 image::ACM-Create-application.png[ACM Create application]
