@@ -474,9 +474,11 @@ ODR requires one or more S3 stores to store relevant cluster data of a workload 
  
 These instructions are applicable for creating the necessary object bucket(s) using the *Multi-Cloud Gateway* or MCG. MCG should already be installed as a result of installing ODF.
 
-=== Configure SSL access for managed clusters
+=== Configure SSL access between s3 endpoints
 
 These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
+
+NOTE: If all of your OpenShift clusters are deployed using signed and trusted set of certificates for your environment then this section can be skipped.
 
 Extract the ingress certificate for the *Primary managed cluster* and save the output to `primary.crt`.
 
@@ -692,7 +694,7 @@ odrbucket-2f2d44e4-59cb-4577-b303-7219be809dcd
 
 IMPORTANT: The unique *s3Bucket* name `odrbucket-<your value1>` and `odrbucket-<your value2>` must be retrieved on both the *Primary managed cluster* and *Secondary managed cluster* respectively.
 
-Edit the *ConfigMap* to add the new content starting at *s3StoreProfiles* on the *Primary managed cluster* and the *Secondary managed cluster* after replacing the variables with correct values.
+Edit the *ConfigMap* to add the new content starting at *s3StoreProfiles* on the *Primary managed cluster* and the *Secondary managed cluster* after replacing the variables with correct values for *your* environment.
 
 [source,role="execute"]
 ----
@@ -732,7 +734,7 @@ On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`
 
 === Create S3 secrets for the Hub cluster
 
-The values for the access and secret key must be *base-64 encoded*.The encoded values for the keys were retrieved in the prior section and the resulting *Secrets* are exactly the same as those created already on the managed clusters.
+The values for the access and secret key must be *base-64 encoded*.The encoded values for the keys were retrieved in the prior section and the resulting *Secrets* are _exactly_ the same as those created already on the managed clusters.
 
 The S3 secret YAML format for the *Primary managed cluster* is similar to the following:
 
@@ -795,7 +797,7 @@ oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 
 The following new content starting at *s3StoreProfiles* needs to be added to the *ConfigMap* on the *Hub cluster*.
 
-IMPORTANT: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` variables with the exact same values as used for the `ramen-cluster-operator-config` *ConfigMap* on the managed clusters.
+IMPORTANT: Make sure to replace `<primary clusterID>`, `<secondary clusterID>`, `baseDomain`, `odrbucket-<your value1>`, and `odrbucket-<your value2>` variables with the *exact* same values as used for the `ramen-cluster-operator-config` *ConfigMap* on the managed clusters.
 
 [source,yaml]
 ----
