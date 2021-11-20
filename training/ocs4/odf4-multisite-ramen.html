@@ -1609,7 +1609,7 @@ There is no need to specify a namespace to create this resource because <code>DR
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ramendr.openshift.io/v1alpha1
 kind: DRPolicy
 metadata:
-  name: odr-policy-&lt;cluster1&gt;-&lt;cluster2&gt;-5m
+  name: odr-policy-5m
 spec:
   drClusterSet:
   - name: &lt;cluster1&gt;
@@ -1633,7 +1633,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>drpolicy.ramendr.openshift.io/odr-policy-&lt;cluster1&gt;-&lt;cluster2&gt;-5m created</pre>
+<pre>drpolicy.ramendr.openshift.io/odr-policy-5m created</pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1653,7 +1653,7 @@ The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicy odr-policy-ocp4perf1-ocp4perf2-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicy odr-policy-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1714,7 +1714,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 <div class="title">Figure 16. DRPlacementControl create instance</div>
 </div>
 <div class="paragraph">
-<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>.</p>
+<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1726,7 +1726,7 @@ metadata:
   name: busybox-drpc
 spec:
   drPolicyRef:
-    name: odr-policy-&lt;cluster1&gt;-&lt;cluster2&gt;-5m
+    name: odr-policy-5m
   placementRef:
     kind: PlacementRule
     name: busybox-placement
