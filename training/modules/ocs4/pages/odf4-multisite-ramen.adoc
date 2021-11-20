@@ -855,7 +855,7 @@ NOTE: There is no need to specify a namespace to create this resource because `D
 apiVersion: ramendr.openshift.io/v1alpha1
 kind: DRPolicy
 metadata:
-  name: odr-policy-<cluster1>-<cluster2>-5m
+  name: odr-policy-5m
 spec:
   drClusterSet:
   - name: <cluster1>
@@ -875,7 +875,7 @@ oc apply -f drpolicy.yaml
 ----
 .Example output.
 ----
-drpolicy.ramendr.openshift.io/odr-policy-<cluster1>-<cluster2>-5m created
+drpolicy.ramendr.openshift.io/odr-policy-5m created
 ----
 
 IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
@@ -884,7 +884,7 @@ To validate that the *DRPolicy* is created successfully run this command.
 
 [source,role="execute"]
 ----
-oc get drpolicy odr-policy-ocp4perf1-ocp4perf2-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drpolicy odr-policy-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
@@ -918,7 +918,7 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRPlacementControl create instance
 image::ODR-DRPlacementControl-create-instance.png[DRPlacementControl create instance]
 
-Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. 
+Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* with the correct names of your managed clusters in *ACM*. 
 
 [source,yaml]
 ----
@@ -930,7 +930,7 @@ metadata:
   name: busybox-drpc
 spec:
   drPolicyRef:
-    name: odr-policy-<cluster1>-<cluster2>-5m
+    name: odr-policy-5m
   placementRef:
     kind: PlacementRule
     name: busybox-placement
