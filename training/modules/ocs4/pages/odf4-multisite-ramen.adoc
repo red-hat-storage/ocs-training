@@ -875,7 +875,7 @@ oc apply -f drpolicy.yaml
 ----
 .Example output.
 ----
-drpolicy.ramendr.openshift.io/odr-policy-ocp4perf1-ocp4perf1-5m created
+drpolicy.ramendr.openshift.io/odr-policy-<cluster1>-<cluster2>-5m created
 ----
 
 IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the <<Create VolumeReplicationClass resource>> section.
