@@ -289,7 +289,7 @@ NOTE: The *$tag* should be replaced with the correct tag for the latest stable b
 
 [source,role="execute"]
 ----
-oc apply -f ocs-catalogsource.yaml -n openshift-storage
+oc create -f ocs-catalogsource.yaml -n openshift-storage
 ----
 .Example output.
 ----
@@ -360,7 +360,7 @@ You can also create this resource using CLI.
 
 [source,role="execute"]
 ----
-oc apply -f mirror-peer.yaml
+oc create -f mirror-peer.yaml
 ----
 .Example output.
 ----
@@ -457,7 +457,7 @@ spec:
 
 [source,role="execute"]
 ----
-oc apply -f rbd-volumereplicationclass.yaml
+oc create -f rbd-volumereplicationclass.yaml
 ----
 .Example output.
 ----
@@ -543,7 +543,7 @@ oc create -f cm-clusters-crt.yaml
 configmap/user-ca-bundle created
 ----
 
-IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using the *DRPolicy* resource. Therefore the same *ConfigMaps*, `cm-clusters-crt.yaml` needs to be created on the *Hub cluster*.
+IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using the *DRPolicy* resource. Therefore the same *ConfigMap*, `cm-clusters-crt.yaml` needs to be created on the *Hub cluster*.
 
 === Create Object Bucket and Retrieve access keys
 
@@ -619,7 +619,7 @@ The S3 secret YAML format for the *Primary managed cluster* is similar to the fo
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: <primary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded secret access key>
 kind: Secret
 metadata:
   name: odr-s3secret-primary
@@ -644,7 +644,7 @@ The S3 secret YAML format for the *Secondary managed cluster* is similar to the 
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: <secondary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded secret access key>
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
@@ -743,7 +743,7 @@ The S3 secret YAML format for the *Primary managed cluster* is similar to the fo
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: <primary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded secret access key>
 kind: Secret
 metadata:
   name: odr-s3secret-primary
@@ -768,7 +768,7 @@ The S3 secret YAML format for the *Secondary managed cluster* is similar to the 
 apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: <secondary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded access key>
+  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded secret access key>
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
@@ -871,7 +871,7 @@ You can also create this resource using CLI
 
 [source,role="execute"]
 ----
-oc apply -f drpolicy.yaml
+oc create -f drpolicy.yaml
 ----
 .Example output.
 ----
@@ -918,7 +918,7 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRPlacementControl create instance
 image::ODR-DRPlacementControl-create-instance.png[DRPlacementControl create instance]
 
-Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* with the correct names of your managed clusters in *ACM*. 
+Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* with the correct name of your managed cluster in *ACM*. 
 
 [source,yaml]
 ----
@@ -948,7 +948,7 @@ IMPORTANT: This resource must be created in the `busybox-sample` namespace (or w
 
 [source,role="execute"]
 ----
-oc apply -f busybox-drpc.yaml -n busybox-sample
+oc create -f busybox-drpc.yaml -n busybox-sample
 ----
 .Example output.
 ----
@@ -983,7 +983,7 @@ IMPORTANT: This resource must be created in the `busybox-sample` namespace (or w
 
 [source,role="execute"]
 ----
-oc apply -f busybox-placementrule.yaml -n busybox-sample
+oc create -f busybox-placementrule.yaml -n busybox-sample
 ----
 .Example output.
 ----
@@ -1079,10 +1079,10 @@ oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o js
 ----
 .Example output.
 ----
-{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":1}}
+{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":2}}
 ----
 
-NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":1}*.
+NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":2}*.
 
 === Deleting the Sample Application
 
