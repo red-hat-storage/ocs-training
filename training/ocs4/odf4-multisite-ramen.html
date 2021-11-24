@@ -723,7 +723,7 @@ The <strong>$tag</strong> should be replaced with the correct tag for the latest
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f ocs-catalogsource.yaml -n openshift-storage</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f ocs-catalogsource.yaml -n openshift-storage</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -849,7 +849,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f mirror-peer.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f mirror-peer.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1020,7 +1020,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f rbd-volumereplicationclass.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f rbd-volumereplicationclass.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1158,7 +1158,7 @@ metadata:
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The <strong>Hub cluster</strong> needs to verify access to the object buckets using the <strong>DRPolicy</strong> resource. Therefore the same <strong>ConfigMaps</strong>, <code>cm-clusters-crt.yaml</code> needs to be created on the <strong>Hub cluster</strong>.
+The <strong>Hub cluster</strong> needs to verify access to the object buckets using the <strong>DRPolicy</strong> resource. Therefore the same <strong>ConfigMap</strong>, <code>cm-clusters-crt.yaml</code> needs to be created on the <strong>Hub cluster</strong>.
 </td>
 </tr>
 </table>
@@ -1273,7 +1273,7 @@ The access key and secret key must be retrieved for the <code>odrbucket</code> <
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: &lt;primary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded access key&gt;
+  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded secret access key&gt;
 kind: Secret
 metadata:
   name: odr-s3secret-primary
@@ -1302,7 +1302,7 @@ metadata:
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: &lt;secondary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded access key&gt;
+  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded secret access key&gt;
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
@@ -1451,7 +1451,7 @@ data:
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: &lt;primary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded access key&gt;
+  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded secret access key&gt;
 kind: Secret
 metadata:
   name: odr-s3secret-primary
@@ -1480,7 +1480,7 @@ metadata:
 <pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
 data:
   AWS_ACCESS_KEY_ID: &lt;secondary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded access key&gt;
+  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded secret access key&gt;
 kind: Secret
 metadata:
   name: odr-s3secret-secondary
@@ -1627,7 +1627,7 @@ spec:
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f drpolicy.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f drpolicy.yaml</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1714,7 +1714,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 <div class="title">Figure 16. DRPlacementControl create instance</div>
 </div>
 <div class="paragraph">
-<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>.</p>
+<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct name of your managed cluster in <strong>ACM</strong>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1756,7 +1756,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f busybox-drpc.yaml -n busybox-sample</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f busybox-drpc.yaml -n busybox-sample</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1807,7 +1807,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f busybox-placementrule.yaml -n busybox-sample</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f busybox-placementrule.yaml -n busybox-sample</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1961,7 +1961,7 @@ volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m</pre>
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":1}}</pre>
+<pre>{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":2}}</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1971,7 +1971,7 @@ volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Both managed clusters should have the exact same output with a new status of <strong>"states":{"replaying":1}</strong>.
+Both managed clusters should have the exact same output with a new status of <strong>"states":{"replaying":2}</strong>.
 </td>
 </tr>
 </table>
