@@ -1158,10 +1158,41 @@ metadata:
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The <strong>Hub cluster</strong> needs to verify access to the object buckets using the <strong>DRPolicy</strong> resource. Therefore the same <strong>ConfigMap</strong>, <code>cm-clusters-crt.yaml</code> needs to be created on the <strong>Hub cluster</strong>.
+The <strong>Hub cluster</strong> needs to verify access to the object buckets using the <strong>DRPolicy</strong> resource. Therefore the same <strong>ConfigMap</strong>, <code>cm-clusters-crt.yaml</code>, needs to be created on the <strong>Hub cluster</strong>.
 </td>
 </tr>
 </table>
+</div>
+<div class="paragraph">
+<p>After all the <code>user-ca-bundle</code> <strong>ConfigMaps</strong> are created, the default <strong>Proxy</strong> <code>cluster</code> resource needs to be modified.</p>
+</div>
+<div class="paragraph">
+<p>Create a new YAML file <code>proxy-ca.yaml</code> and then <code>apply</code> this file to the default <strong>Proxy</strong> resource on the <strong>Primary managed cluster</strong>, <strong>Secondary managed cluster</strong>, <em>and</em> the <strong>Hub cluster</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: config.openshift.io/v1
+kind: Proxy
+metadata:
+  name: cluster
+spec:
+  trustedCA:
+    name: user-ca-bundle</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now modify the existing <strong>Proxy</strong> <code>cluster</code> resource:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f proxy-ca.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>proxy.config.openshift.io/cluster configured</pre>
+</div>
 </div>
 </div>
 <div class="sect2">
