@@ -543,7 +543,33 @@ oc create -f cm-clusters-crt.yaml
 configmap/user-ca-bundle created
 ----
 
-IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using the *DRPolicy* resource. Therefore the same *ConfigMap*, `cm-clusters-crt.yaml` needs to be created on the *Hub cluster*.
+IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using the *DRPolicy* resource. Therefore the same *ConfigMap*, `cm-clusters-crt.yaml`, needs to be created on the *Hub cluster*.
+
+After all the `user-ca-bundle` *ConfigMaps* are created, the default *Proxy* `cluster` resource needs to be modified.
+
+Create a new YAML file `proxy-ca.yaml` and then `apply` this file to the default *Proxy* resource on the *Primary managed cluster*, *Secondary managed cluster*, _and_ the *Hub cluster*.
+
+[source,yaml]
+----
+apiVersion: config.openshift.io/v1
+kind: Proxy
+metadata:
+  name: cluster
+spec:
+  trustedCA:
+    name: user-ca-bundle
+----
+
+Now modify the existing *Proxy* `cluster` resource:
+  
+[source,role="execute"]
+----
+oc apply -f proxy-ca.yaml
+----
+.Example output.
+----
+proxy.config.openshift.io/cluster configured
+----
 
 === Create Object Bucket and Retrieve access keys
 
