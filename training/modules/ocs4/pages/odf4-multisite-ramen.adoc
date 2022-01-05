@@ -264,40 +264,6 @@ volume-replication
 
 NOTE: The new containers will be repeated because there are two csi-rbdplugin-provisioner pods for redundancy.
 
-=== [Pre-release] Create Custom ODF Catalogsource
-
-Prior to the *ODF 4.9* being released you will need to use `pre-release` images and a custom *CatalogSource*. To do this you will need access to the `pre-release` images and to create this *CatalogSource*. 
-
-NOTE: This custom *CatalogSource* should be created on the *Hub cluster* where ACM is installed.
-
-Save this YAML to filename `ocs-catalogsource.yaml`.
-
-[source,yaml]
-----
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: odf-catalogsource
-  namespace: openshift-marketplace
-spec:
-  displayName: OpenShift Data Foundation
-  image: quay.io/rhceph-dev/ocs-registry:$tag
-  publisher: Red Hat
-  sourceType: grpc
-----
-
-NOTE: The *$tag* should be replaced with the correct tag for the latest stable build (i.e. 4.9.0-140.ci or latest-4.9).
-
-[source,role="execute"]
-----
-oc create -f ocs-catalogsource.yaml -n openshift-storage
-----
-.Example output.
-----
-catalogsource.operators.coreos.com/ocs-catalogsource created
-----
-
 === Install ODF Multicluster Orchestrator
 
 This is a new controller that will be installed from OCP *OperatorHub* on the *Hub cluster*. The job of this `Multicluster Orchestrator` controller, along with the `MirrorPeer` Custom Resource, is to create a bootstrap token and exchanges this token between the managed clusters.
@@ -468,7 +434,7 @@ volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicatio
 
 == Create Mirroring StorageClass resource
 
-The block volumes that are created with mirroring enabled must to be created with a new *StorageClass* that has additional `imageFeatures` required for faster image replication between managed clusters. The new features are _exclusive-lock_, _object map_, and _fast-diff_ when compared to the *ODF* default `ocs-storagecluster-ceph-rbd` *StorageClass* for block volumes.
+The block volumes with `mirroring enabled` must be created using a new *StorageClass* that has additional `imageFeatures` required to enable faster image replication between managed clusters. The new features are _exclusive-lock_, _object-map_, and _fast-diff_. The default ODF *StorageClass* `ocs-storagecluster-ceph-rbd` does not include these features.
 
 NOTE: This resource must be created on the *Primary managed cluster* and the *Secondary managed cluster*.
 
