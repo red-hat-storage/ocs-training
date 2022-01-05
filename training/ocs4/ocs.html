@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Deploying and Managing OpenShift Container Storage :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -270,9 +270,9 @@ resources. The <code>NAME</code> of your OCP nodes will be different than shown 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                        STATUS   ROLES    AGE    VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        STATUS   ROLES    AGE    VERSION
 ip-10-0-153-37.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3</pre>
+ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -293,10 +293,10 @@ machines (i.e., DESIRED=0) created.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                        DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        DESIRED   CURRENT   READY   AVAILABLE   AGE
 cluster-ocs4-8613-bc282-worker-us-east-2a   1         1         1       1           4d4h
 cluster-ocs4-8613-bc282-worker-us-east-2b   1         1         1       1           4d4h
-cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                             4d4h</pre>
+cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                             4d4h</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -345,10 +345,10 @@ PHASE. The <code>NAME</code> of your machines will be different than shown below
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                                 PHASE     TYPE          REGION      ZONE         AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                 PHASE     TYPE          REGION      ZONE         AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a-g6cfz   Running   m5.4xlarge    us-east-2   us-east-2a   3m48s
 cluster-ocs4-8613-bc282-workerocs-us-east-2b-2zdgx   Running   m5.4xlarge    us-east-2   us-east-2b   3m48s
-cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s</pre>
+cluster-ocs4-8613-bc282-workerocs-us-east-2c-gg7br   Running   m5.4xlarge    us-east-2   us-east-2c   3m48s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -373,10 +373,10 @@ than shown below.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           16m
 cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           16m
-cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           16m</pre>
+cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           16m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -394,12 +394,12 @@ nodes will be different than shown below.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE    VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE    VERSION
 ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   14m    v1.19.0+9f84db3
 ip-10-0-153-37.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
 ip-10-0-170-25.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
 ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   14m    v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.19.0+9f84db3</pre>
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.19.0+9f84db3</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -415,10 +415,10 @@ added in the <code>workerocs</code> <strong>machinesets</strong> so every <stron
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE   VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE   VERSION
 ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   15m   v1.19.0+9f84db3
 ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   15m   v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.19.0+9f84db3</pre>
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.19.0+9f84db3</code></pre>
 </div>
 </div>
 </div>
@@ -536,8 +536,8 @@ installation.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.7.2   OpenShift Container Storage   4.7.2                Succeeded</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.7.2   OpenShift Container Storage   4.7.2                Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -573,11 +573,11 @@ namespace:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                   READY   STATUS    RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                   READY   STATUS    RESTARTS   AGE
 noobaa-operator-698746cd47-sp6w9       1/1     Running   0          108s
 ocs-metrics-exporter-78bc44687-pg4hk   1/1     Running   0          107s
 ocs-operator-6d99bc6787-d7m9d          1/1     Running   0          108s
-rook-ceph-operator-59f7fb95d6-sdjd8    1/1     Running   0          108s</pre>
+rook-ceph-operator-59f7fb95d6-sdjd8    1/1     Running   0          108s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -657,7 +657,7 @@ see all instances shown below as <code>Ready</code> Status in the Web Console as
 <div class="listingblock">
 <div class="title">Output when the cluster installation is finished</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTART
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTART
 S   AGE
 csi-cephfsplugin-875xd                                            3/3     Running     0
     23m
@@ -736,7 +736,7 @@ rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0-9977n-49ngd      0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-0-nnmpv-z8vq6      0/1     Completed   0
     20m
 rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0-mtbtj-xrj2n      0/1     Completed   0
-    20m</pre>
+    20m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1007,7 +1007,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>sh-4.2# ceph status
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.2# ceph status
   cluster:
     id:     e3398039-f8c6-4937-ba9d-655f5c01e0ae
     health: HEALTH_OK
@@ -1030,7 +1030,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
     pgs:     96 active+clean
 
   io:
-    client:   853 B/s rd, 16 KiB/s wr, 1 op/s rd, 1 op/s wr</pre>
+    client:   853 B/s rd, 16 KiB/s wr, 1 op/s rd, 1 op/s wr</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1109,13 +1109,13 @@ start the Rails + PostgreSQL <strong>Deployment</strong>.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-deploy                 0/1     Completed   0          5m48s
 postgresql-1-lf7qt                  1/1     Running     0          5m40s
 rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
 rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
 rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
-rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</pre>
+rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1136,7 +1136,7 @@ persistent storage on Ceph.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1151,8 +1151,8 @@ deployment.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>username: openshift
-password: secret</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">username: openshift
+password: secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1208,7 +1208,7 @@ RBD volumes and we should now have two RBDs.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
 ocs-deviceset-0-0-d2ppm   pvc-2c08bd9c-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
 ocs-deviceset-1-0-9tmc6   pvc-2c0a0ed5-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
 ocs-deviceset-2-0-qtbfv   pvc-2c0babb3-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
@@ -1216,7 +1216,7 @@ db-noobaa-core-0          pvc-4610a3ce-332d-11ea-a32f-061f7a67362c   ocs-storage
 postgresql                pvc-874f93cb-3330-11ea-90b1-0a10d22e734a   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-8765a21d-3330-11ea-9a7c-0a580a820205
 rook-ceph-mon-a           pvc-d462ecb0-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
 rook-ceph-mon-b           pvc-d79d0db4-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-rook-ceph-mon-c           pvc-da9cc0e3-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;</pre>
+rook-ceph-mon-c           pvc-da9cc0e3-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1234,7 +1234,7 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Examplet output:</div>
 <div class="content">
-<pre>csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1246,7 +1246,7 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
         size 5 GiB in 1280 objects
         order 22 (4 MiB objects)
         snapshot_count: 0
@@ -1258,7 +1258,7 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
         flags:
         create_timestamp: Thu Jan  9 22:36:51 2020
         access_timestamp: Thu Jan  9 22:36:51 2020
-        modify_timestamp: Thu Jan  9 22:36:51 2020</pre>
+        modify_timestamp: Thu Jan  9 22:36:51 2020</code></pre>
 </div>
 </div>
 </div>
@@ -1286,7 +1286,7 @@ just created.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Filesystem                           1K-blocks     Used Available Use% Mounted on
 overlay                              125277164 12004092 113273072  10% /
 tmpfs                                    65536        0     65536   0% /dev
 tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
@@ -1297,7 +1297,7 @@ tmpfs                                 32571336    10444  32560892   1% /etc/pass
 tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
 tmpfs                                 32571336        0  32571336   0% /proc/acpi
 tmpfs                                 32571336        0  32571336   0% /proc/scsi
-tmpfs                                 32571336        0  32571336   0% /sys/firmware</pre>
+tmpfs                                 32571336        0  32571336   0% /sys/firmware</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1313,9 +1313,9 @@ fill up.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>3850+0 records in
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">3850+0 records in
 3850+0 records out
-4037017600 bytes (4.0 GB) copied, 13.6446 s, 296 MB/s</pre>
+4037017600 bytes (4.0 GB) copied, 13.6446 s, 296 MB/s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1329,7 +1329,7 @@ fill up.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Filesystem                           1K-blocks     Used Available Use% Mounted on
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Filesystem                           1K-blocks     Used Available Use% Mounted on
 overlay                              125277164 12028616 113248548  10% /
 tmpfs                                    65536        0     65536   0% /dev
 tmpfs                                 32571336        0  32571336   0% /sys/fs/cgroup
@@ -1340,7 +1340,7 @@ tmpfs                                 32571336    10444  32560892   1% /etc/pass
 tmpfs                                 32571336       28  32571308   1% /run/secrets/kubernetes.io/serviceaccount
 tmpfs                                 32571336        0  32571336   0% /proc/acpi
 tmpfs                                 32571336        0  32571336   0% /proc/scsi
-tmpfs                                 32571336        0  32571336   0% /sys/firmware</pre>
+tmpfs                                 32571336        0  32571336   0% /sys/firmware</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1428,8 +1428,8 @@ status: {}</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Warning: oc apply should be used on resource created by either oc create
---save-config or oc apply persistentvolumeclaim/postgresql configured</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Warning: oc apply should be used on resource created by either oc create
+--save-config or oc apply persistentvolumeclaim/postgresql configured</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1444,7 +1444,7 @@ command:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[truncated]
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[truncated]
 Finalizers:    [kubernetes.io/pvc-protection]
 Capacity:      10Gi
 Access Modes:  RWO
@@ -1459,7 +1459,7 @@ Events:
   Warning  ExternalExpanding           65s   volume_expand                                                                                                       Ignoring the PVC: didn't find a plugin capable of expanding the volume; waiting for an external controller to process this PVC.
   Normal   Resizing                    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 External resizer is resizing volume pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6
   Normal   FileSystemResizeRequired    65s   external-resizer openshift-storage.rbd.csi.ceph.com                                                                 Require file system resize of volume on node
-  Normal   FileSystemResizeSuccessful  23s   kubelet, ip-10-0-199-224.us-east-2.compute.internal                                                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6"</pre>
+  Normal   FileSystemResizeSuccessful  23s   kubelet, ip-10-0-199-224.us-east-2.compute.internal                                                                 MountVolume.NodeExpandVolume succeeded for volume "pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6"</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1502,8 +1502,8 @@ Reducing the size of a <strong>PVC</strong> is NOT supported.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
-postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME         STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+postgresql   Bound    pvc-4d6838df-b4cd-4bb1-9969-1af93c1dc5e6   10Gi       RWO            ocs-storagecluster-ceph-rbd   121m</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1534,7 +1534,7 @@ specific fields of the PVC object via the CLI.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>10Gi</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">10Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1548,7 +1548,7 @@ specific fields of the PVC object via the CLI.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>10Gi</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">10Gi</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1650,7 +1650,7 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>--&gt; Found image 4f2dcc0 (9 days old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">--&gt; Found image 4f2dcc0 (9 days old) in image stream "openshift/php" under tag "7.2-ubi8" for "openshift/php:7.2-
 ubi8"
 
     Apache 2.4 with PHP 7.2
@@ -1678,7 +1678,7 @@ eated
     Application is not exposed. You can expose services to the outside world by executing one or more of the comm
 ands below:
      'oc expose service/file-uploader'
-    Run 'oc status' to view your app.</pre>
+    Run 'oc status' to view your app.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1692,7 +1692,7 @@ ands below:
 <div class="listingblock">
 <div class="title">Example Output:</div>
 <div class="content">
-<pre>Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Cloning "https://github.com/christianh814/openshift-php-upload-demo" ...
 
 [...]
 
@@ -1738,7 +1738,7 @@ Storing signatures
 Successfully pushed image-registry.openshift-image-registry.svc:5000/my-share
 d-storage/file-uploader@sha256:929c0ce3dcc65a6f6e8bd44069862858db651358b88065
 fb483d51f5d704e501
-Push successful</pre>
+Push successful</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1847,8 +1847,8 @@ volume:</p>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
-my-shared-storage   Bound    pvc-c34bb9db-43a7-4eca-bc94-0251d7128721   1Gi        RWX            ocs-storagecluster-cephfs   47s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                AGE
+my-shared-storage   Bound    pvc-c34bb9db-43a7-4eca-bc94-0251d7128721   1Gi        RWX            ocs-storagecluster-cephfs   47s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1879,7 +1879,7 @@ new files.</p>
 <div class="listingblock">
 <div class="title">Sample Output:</div>
 <div class="content">
-<pre>http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://file-uploader-my-shared-storage.apps.cluster-ocs4-abdf.ocs4-abdf.sandbox744.opentlc.com</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1935,7 +1935,7 @@ also available.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>persistentvolumeclaim/my-shared-storage patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim/my-shared-storage patched</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1949,7 +1949,7 @@ also available.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>5Gi</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">5Gi</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1960,7 +1960,7 @@ also available.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>5Gi</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">5Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2023,8 +2023,8 @@ Reducing the size of a CephFS <strong>PVC</strong> is NOT supported.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME
-postgresql</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME
+postgresql</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -2053,7 +2053,7 @@ Make sure you expanded the <code>postgresql</code> <strong>PVC</strong> to 15Gi 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2064,8 +2064,8 @@ Make sure you expanded the <code>postgresql</code> <strong>PVC</strong> to 15Gi 
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>username: openshift
-password: secret</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">username: openshift
+password: secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2119,7 +2119,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>persistentvolumeclaim/postgresql-clone created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim/postgresql-clone created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2133,7 +2133,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgresql-clone   Bound    pvc-f5e09c63-e8aa-48a0-99df-741280d35e42   15Gi       RWO            ocs-storagecluster-ceph-rbd   3m47s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2162,7 +2162,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -2183,7 +2183,7 @@ DROP TABLE
  public | comments             | table    | userXNL | 8192 bytes |
  public | comments_id_seq      | sequence | userXNL | 8192 bytes |
  public | schema_migrations    | table    | userXNL | 16 kB      |
-(4 rows)</pre>
+(4 rows)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2217,7 +2217,7 @@ DROP TABLE
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2242,7 +2242,7 @@ DROP TABLE
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>deploymentconfig.apps.openshift.io/postgresql patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deploymentconfig.apps.openshift.io/postgresql patched</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2256,7 +2256,7 @@ DROP TABLE
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2270,8 +2270,8 @@ DROP TABLE
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>postgresql-4-hv5kb                  1/1     Running     0          5m58s
-rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgresql-4-hv5kb                  1/1     Running     0          5m58s
+rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2314,10 +2314,10 @@ rails-pgsql-persistent-1-dhwhz      1/1     Running     0          5m10s</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>$ oc get volumesnapshotclasses
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc get volumesnapshotclasses
 NAME                                        DRIVER                                  DELETIONPOLICY   AGE
 ocs-storagecluster-cephfsplugin-snapclass   openshift-storage.cephfs.csi.ceph.com   Delete           4d23h
-ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           4d23h</pre>
+ocs-storagecluster-rbdplugin-snapclass      openshift-storage.rbd.csi.ceph.com      Delete           4d23h</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2365,7 +2365,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>volumesnapshot.snapshot.storage.k8s.io/my-shared-storage-snapshot created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">volumesnapshot.snapshot.storage.k8s.io/my-shared-storage-snapshot created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2379,8 +2379,8 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT                                   CREATIONTIME   AGE
-my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d4729bc-a127-4da6-930d-2a7d0125d3b7   24s            26s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                         READYTOUSE   SOURCEPVC           SOURCESNAPSHOTCONTENT   RESTORESIZE   SNAPSHOTCLASS                               SNAPSHOTCONTENT                                   CREATIONTIME   AGE
+my-shared-storage-snapshot   true         my-shared-storage                           5Gi           ocs-storagecluster-cephfsplugin-snapclass   snapcontent-2d4729bc-a127-4da6-930d-2a7d0125d3b7   24s            26s</code></pre>
 </div>
 </div>
 </div>
@@ -2415,7 +2415,7 @@ my-shared-storage-snapshot   true         my-shared-storage                     
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">my-shared-storage-snapshot-restore   Bound    pvc-24999d30-09f1-4142-b150-a5486df7b3f1   5Gi        RWX            ocs-storagecluster-cephfs   108s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2454,7 +2454,7 @@ nodes.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                               READY   STATUS         RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                               READY   STATUS         RESTARTS   AGE
 pod/alertmanager-main-0                            5/5     Running        0          6d21h
 pod/alertmanager-main-1                            5/5     Running        0          6d21h
 pod/alertmanager-main-2                            5/5     Running        0          6d21h
@@ -2480,7 +2480,7 @@ pod/prometheus-k8s-1                               6/6     Running        0     
 pod/prometheus-operator-8594bd77df-ftwvl           2/2     Running        0          26h
 pod/telemeter-client-79d7ddbf84-ft97l              3/3     Running        0          42h
 pod/thanos-querier-787547fbd6-qw9tr                5/5     Running        0          6d21h
-pod/thanos-querier-787547fbd6-xdsmm                5/5     Running        0          6d21h</pre>
+pod/thanos-querier-787547fbd6-xdsmm                5/5     Running        0          6d21h</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2507,14 +2507,14 @@ present, execute this:</p>
 <div class="listingblock">
 <div class="title">Output if the <strong>ConfigMap</strong> is not yet created:</div>
 <div class="content">
-<pre>Error from server (NotFound): configmaps "cluster-monitoring-config" not found</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Error from server (NotFound): configmaps "cluster-monitoring-config" not found</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Output if the <strong>ConfigMap</strong> is created:</div>
 <div class="content">
-<pre>NAME                        DATA   AGE
-cluster-monitoring-config   1      116m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                        DATA   AGE
+cluster-monitoring-config   1      116m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2528,7 +2528,7 @@ cluster-monitoring-config   1      116m</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>configmap/cluster-monitoring-config created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/cluster-monitoring-config created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2609,13 +2609,13 @@ that they are now providing persistent storage.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
 [...]
 alertmanager-alertmanager-main-0   Bound    pvc-733be285-aaf9-4334-9662-44b63bb4efdf   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 alertmanager-alertmanager-main-1   Bound    pvc-e07ebe61-de5d-404c-9a25-bb3a677281c5   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 alertmanager-alertmanager-main-2   Bound    pvc-9de2edf2-9f5e-4f62-8aa7-ecfd01957748   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 prometheusdb-prometheus-k8s-0      Bound    pvc-5b845908-d929-4326-976e-0659901468e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
-prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s</pre>
+prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2668,7 +2668,7 @@ command.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0001] CLI version: 5.7.0
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0001] CLI version: 5.7.0
 INFO[0001] noobaa-image: registry.redhat.io/ocs4/mcg-core-rhel8@sha256:6ff8645efdde95fa97d496084d3555b768089
 5f0b79c147f2a880b43742af3a4
 INFO[0001] operator-image: registry.redhat.io/ocs4/mcg-rhel8-operator@sha256:6faecc43b775d9083d01f11705334e2
@@ -2786,7 +2786,7 @@ noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backin
 #- Bucket Claims -#
 #-----------------#
 
-No OBCs found.</pre>
+No OBCs found.</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2829,11 +2829,11 @@ from within your deployment.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>photo-album/
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">photo-album/
 photo-album/documentation/
 photo-album/app/
 photo-album/demo.sh
-[...]</pre>
+[...]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2860,7 +2860,7 @@ Please make sure you follow the continuation prompts by pressing enter.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[ OK    ] Using apps.cluster-7c31.7c31.sandbox905.opentlc.com as our base domain
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[ OK    ] Using apps.cluster-7c31.7c31.sandbox905.opentlc.com as our base domain
 
 Object Bucket Demo
 
@@ -2891,7 +2891,7 @@ buildconfig.build.openshift.io "photo-album" deleted
 [...]
  OK    ] oc start-build photo-album --from-dir . -F -n demo
 photo-album setup
-/opt/app-root/src/demo-apps/photo-album</pre>
+/opt/app-root/src/demo-apps/photo-album</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -2917,10 +2917,10 @@ photo-album setup
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                   READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                   READY   STATUS      RESTARTS   AGE
 photo-album-1-build    0/1     Completed   0          10m
 photo-album-1-deploy   0/1     Completed   0          10m
-photo-album-1-rtplt    1/1     Running     0          10m</pre>
+photo-album-1-rtplt    1/1     Running     0          10m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2934,8 +2934,8 @@ photo-album-1-rtplt    1/1     Running     0          10m</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME          STORAGE-CLASS                 PHASE   AGE
-photo-album   openshift-storage.noobaa.io   Bound   23m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME          STORAGE-CLASS                 PHASE   AGE
+photo-album   openshift-storage.noobaa.io   Bound   23m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2949,8 +2949,8 @@ photo-album   openshift-storage.noobaa.io   Bound   23m</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
-obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                   STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME    RECLAIM-POLICY   PHASE   AGE
+obc-demo-photo-album   openshift-storage.noobaa.io   demo              photo-album   Delete           Bound   23m</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3078,7 +3078,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://photo-album.apps.cluster-7c31.7c31.sandbox905.opentlc.com</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3172,10 +3172,10 @@ spawn more workers by scaling the already present OCS worker instances up from 1
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                           DESIRED   CURRENT   READY   AVAILABLE   AGE
 cluster-ocs4-8613-bc282-workerocs-us-east-2a   1         1         1       1           2d
 cluster-ocs4-8613-bc282-workerocs-us-east-2b   1         1         1       1           2d
-cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           2d</pre>
+cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1           2d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3189,12 +3189,12 @@ cluster-ocs4-8613-bc282-workerocs-us-east-2c   1         1         1       1    
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a
 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2a scaled
 oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b
 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2b scaled
 oc scale -n openshift-machine-api --replicas=2 machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c
-machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c scaled</pre>
+machineset.machine.openshift.io/cluster-ocs4-8613-bc282-workerocs-us-east-2c scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3237,12 +3237,12 @@ to create the new worker nodes.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ip-10-0-147-230.us-east-2.compute.internal
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ip-10-0-147-230.us-east-2.compute.internal
 ip-10-0-157-22.us-east-2.compute.internal
 ip-10-0-175-8.us-east-2.compute.internal
 ip-10-0-183-84.us-east-2.compute.internal
 ip-10-0-209-53.us-east-2.compute.internal
-ip-10-0-214-36.us-east-2.compute.internal</pre>
+ip-10-0-214-36.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3343,7 +3343,7 @@ It may take more than 5 minutes for new OSD pods to be in a <code>Running</code>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>rook-ceph-osd-0-7d45696497-jwgb7            Running     ip-10-0-147-230.us-east-
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-osd-0-7d45696497-jwgb7            Running     ip-10-0-147-230.us-east-
 2.compute.internal
 rook-ceph-osd-1-6f49b665c7-gxq75            Running     ip-10-0-209-53.us-east-2
 .compute.internal
@@ -3354,7 +3354,7 @@ rook-ceph-osd-3-97b5d9844-jpwgm             Running     ip-10-0-157-22.us-east-2
 rook-ceph-osd-4-9cb667b76-mftt9             Running     ip-10-0-214-36.us-east-2
 .compute.internal
 rook-ceph-osd-5-55b8d97855-2bp85            Running     ip-10-0-157-22.us-east-2
-.compute.internal</pre>
+.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3382,7 +3382,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>sh-4.2# ceph status
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.2# ceph status
   cluster:
     id:     e3398039-f8c6-4937-ba9d-655f5c01e0ae
     health: HEALTH_OK
@@ -3405,7 +3405,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
     pgs:     192 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
+    client:   1.2 KiB/s rd, 1.7 KiB/s wr, 2 op/s rd, 0 op/s wr</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3435,7 +3435,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>ID  CLASS WEIGHT   TYPE NAME
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ID  CLASS WEIGHT   TYPE NAME
  -1       12.00000 root default
  -5       12.00000     region us-east-2
  -4        4.00000         zone us-east-2a
@@ -3452,7 +3452,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
  -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
   1   ssd  2.00000                 osd.1
 -17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb <i class="conum" data-value="1"></i><b>(1)</b>
-  5   ssd  2.00000                 osd.5</pre>
+  5   ssd  2.00000                 osd.5</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -3808,7 +3808,7 @@ called <code>must-gather.local.(random)</code></p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Launch a pod to gather debugging information
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Launch a pod to gather debugging information
 
  This command will launch a pod in a temporary namespace on your cluster that gathers debugging information and then
 downloads the gathered information.
@@ -3842,7 +3842,7 @@ will be used.
       --node-name='': Set a specific node to use - by default a random master will be used
       --source-dir='/must-gather/': Set the specific directory on the pod copy the gathered data from.
 
-Use "oc adm options" for a list of global command-line options (applies to all commands).</pre>
+Use "oc adm options" for a list of global command-line options (applies to all commands).</code></pre>
 </div>
 </div>
 </div>
@@ -3868,7 +3868,7 @@ sudo mv oc /usr/local/bin</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>brew install watch</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">brew install watch</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3876,9 +3876,9 @@ sudo mv oc /usr/local/bin</code></pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>function watch {
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">function watch {
 while :; do clear; date; echo; $@; sleep 2; done
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3932,9 +3932,9 @@ cluster:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Client Version: 4.7.16
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Client Version: 4.7.16
 Server Version: 4.7.16
-Kubernetes Version: v1.20.0+2817867</pre>
+Kubernetes Version: v1.20.0+2817867</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3987,9 +3987,9 @@ version might be higher than the version in the example output.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>INFO[0000] CLI version: 5.7.0
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0000] CLI version: 5.7.0
 INFO[0000] noobaa-image: noobaa/noobaa-core:5.7.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.7.0</pre>
+INFO[0000] operator-image: noobaa/noobaa-operator:5.7.0</code></pre>
 </div>
 </div>
 </div>

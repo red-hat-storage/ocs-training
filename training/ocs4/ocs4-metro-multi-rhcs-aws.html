@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>ODF External Cluster AWS Based :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-metro-multi-rhcs-aws.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -333,7 +333,7 @@ yum install -y podman</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[ec2-user@ip-172-31-14-45 ~]$ sudo -i
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[ec2-user@ip-172-31-14-45 ~]$ sudo -i
 [root@ip-172-31-14-45 ~]# yum install -y podman
 Loaded plugins: product-id, search-disabled-repos, subscription-manager
 epel/x86_64/metalink                                                                                                                                                                                       | 7.1 kB  00:00:00
@@ -367,7 +367,7 @@ Installed:
 Dependency Installed:
   containers-common.x86_64 1:0.1.40-12.el7_9
 
-Complete!</pre>
+Complete!</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -381,8 +381,8 @@ Complete!</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[root@ip-172-31-14-45 ~]# podman run -d -p 5000:5000 --restart always --name registry registry:2
-86f11f225b1c6425c59deedca5ec3ede86af40c11a3d7b5fa8069108bc40b949</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@ip-172-31-14-45 ~]# podman run -d -p 5000:5000 --restart always --name registry registry:2
+86f11f225b1c6425c59deedca5ec3ede86af40c11a3d7b5fa8069108bc40b949</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -396,10 +396,10 @@ Complete!</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[root@ip-172-31-14-45 ~]# podman login registry.redhat.io
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@ip-172-31-14-45 ~]# podman login registry.redhat.io
 Username: {your RHNID}
 Password:
-Login Succeeded!</pre>
+Login Succeeded!</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -414,8 +414,8 @@ echo "Public IP is $(curl -s http://169.254.169.254/latest/meta-data/public-ipv4
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Local IP is 172.31.14.45
-Public IP is 3.135.198.72</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Local IP is 172.31.14.45
+Public IP is 3.135.198.72</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -442,7 +442,7 @@ podman tag registry.redhat.io/rhceph/rhceph-4-rhel8 $(curl -s http://169.254.169
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>[root@ip-172-31-14-45 ~]# podman pull registry.redhat.io/rhceph/rhceph-4-rhel8
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[root@ip-172-31-14-45 ~]# podman pull registry.redhat.io/rhceph/rhceph-4-rhel8
 Trying to pull registry.redhat.io/rhceph/rhceph-4-rhel8...
 Getting image source signatures
 Copying blob cca21acb641a done
@@ -452,7 +452,7 @@ Copying config 980fa2e3ed [======================================] 4.0KiB / 4.0K
 Writing manifest to image destination
 Storing signatures
 980fa2e3ed4c8f5fe96da407c4bf80c8627dfe66f1e79bc10fe516f9f9d50d92
-[root@ip-172-31-14-45 ~]# podman tag registry.redhat.io/rhceph/rhceph-4-rhel8 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-rhel8:latest</pre>
+[root@ip-172-31-14-45 ~]# podman tag registry.redhat.io/rhceph/rhceph-4-rhel8 $(curl -s http://169.254.169.254/latest/meta-data/local-ipv4):5000/rhceph/rhceph-4-rhel8:latest</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -491,27 +491,27 @@ podman push  --tls-verify=false $(curl -s http://169.254.169.254/latest/meta-dat
 <p>Use the EC2 console to provision a node with 32GB of RAM and 8 vCPUs. Choose an AMI that uses
 RHEL 8.2 minimum. e.g. <code>ami-01cf88867e5951c0a</code> used in this solution guide.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_InstanceAMI.png" alt="AWS instance ami">
+<img src="AWS_InstanceAMI.png" alt="AWS instance ami">
 </div>
 <div class="title">Figure 1. Select AMI This Instance</div>
 </div>
 <div class="paragraph">
 <p>Click <code>Select</code> on the right-hand side of the UI</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_InstanceType.png" alt="AWS instance selection">
+<img src="AWS_InstanceType.png" alt="AWS instance selection">
 </div>
 <div class="title">Figure 2. Select Instance Type</div>
 </div>
 <div class="paragraph">
 <p>Click <code>Next</code> to select configuration details.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_InstanceStep3.png" alt="AWS VPC selection">
+<img src="AWS_InstanceStep3.png" alt="AWS VPC selection">
 </div>
 <div class="title">Figure 3. Select Same VPC As Batsion Node</div>
 </div>
@@ -528,18 +528,18 @@ is running as illustrated above.
 </tr>
 </table>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_InstanceStorage.png" alt="AWS instance storage">
+<img src="AWS_InstanceStorage.png" alt="AWS instance storage">
 </div>
 <div class="title">Figure 4. Select Storage</div>
 </div>
 <div class="paragraph">
 <p>Make sure to provision an instance that has both a boot volume and at least 2 additional devices (e.g. m5.2xlarge).</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_InstanceKeyPair.png" alt="AWS instance security">
+<img src="AWS_InstanceKeyPair.png" alt="AWS instance security">
 </div>
 <div class="title">Figure 5. Select Key Pair</div>
 </div>
@@ -570,8 +570,8 @@ reachable from your OCP clusters.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Last login: Mon Mar 29 18:18:06 2021 from {your_piblic_ip_dns}
-[ec2-user@ip-172-31-10-213 ~]$</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Last login: Mon Mar 29 18:18:06 2021 from {your_piblic_ip_dns}
+[ec2-user@ip-172-31-10-213 ~]$</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -585,14 +585,14 @@ reachable from your OCP clusters.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Unregistering from: subscription.rhsm.redhat.com:443/subscription
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Unregistering from: subscription.rhsm.redhat.com:443/subscription
 The system with UUID 31a01727-de14-4060-8439-d902b3a1b5a4 has been unregistered
 All local data removed
 Registering to: subscription.rhsm.redhat.com:443/subscription
 Username: {your_rhnid}
 Password:
 The system has been registered with ID: f09a8143-b71c-4ad1-aa31-bb9ff831dd4a
-The registered system name is: ip-172-31-10-213.us-east-2.compute.internal</pre>
+The registered system name is: ip-172-31-10-213.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -619,7 +619,7 @@ yum repolist</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre># for repo in $(subscription-manager repos --list | grep 'rhceph-4' | grep -v source | grep -v debug | awk '{ print $3 }'); do subscription-manager repos --enable=${repo}; done
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># for repo in $(subscription-manager repos --list | grep 'rhceph-4' | grep -v source | grep -v debug | awk '{ print $3 }'); do subscription-manager repos --enable=${repo}; done
 Repository 'rhceph-4-tools-for-rhel-8-x86_64-rpms' is enabled for this system.
 Repository 'rhceph-4-mon-for-rhel-8-x86_64-rpms' is enabled for this system.
 Repository 'rhceph-4-osd-for-rhel-8-x86_64-rpms' is enabled for this system.
@@ -636,7 +636,7 @@ rhel-8-appstream-rhui-rpms                                                      
 rhel-8-baseos-rhui-rpms                                                                            Red Hat Enterprise Linux 8 for x86_64 - BaseOS from RHUI (RPMs)
 rhel-8-for-x86_64-appstream-rpms                                                                   Red Hat Enterprise Linux 8 for x86_64 - AppStream (RPMs)
 rhel-8-for-x86_64-baseos-rpms                                                                      Red Hat Enterprise Linux 8 for x86_64 - BaseOS (RPMs)
-rhui-client-config-server-8                                                                        Red Hat Update Infrastructure 3 Client Configuration Server 8</pre>
+rhui-client-config-server-8                                                                        Red Hat Update Infrastructure 3 Client Configuration Server 8</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -651,7 +651,7 @@ yum -y install podman</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre># yum -y install ceph-ansible
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># yum -y install ceph-ansible
 Updating Subscription Management repositories.
 Red Hat Ansible Engine 2.9 for RHEL 8 x86_64 (RPMs)                                                                                                                                               1.2 MB/s | 1.4 MB     00:01
 Red Hat Ceph Storage Tools 4 for RHEL 8 x86_64 (RPMs)                                                                                                                                              11 kB/s | 3.8 kB     00:00
@@ -690,7 +690,7 @@ Installed:
   podman-catatonit-2.2.1-7.module+el8.3.1+9857+68fb1526.x86_64           policycoreutils-python-utils-2.9-9.el8.noarch                            protobuf-c-1.3.0-4.el8.x86_64
   runc-1.0.0-70.rc92.module+el8.3.1+9857+68fb1526.x86_64                 slirp4netns-1.1.8-1.module+el8.3.1+9857+68fb1526.x86_64
 
-Complete!</pre>
+Complete!</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -705,7 +705,7 @@ cat ~/.ssh/id_rsa.pub &gt;&gt;~/.ssh/authorized_keys</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre># ssh-keygen -N ""  -f ~/.ssh/id_rsa
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># ssh-keygen -N ""  -f ~/.ssh/id_rsa
 Generating public/private rsa key pair.
 Your identification has been saved in /root/.ssh/id_rsa.
 Your public key has been saved in /root/.ssh/id_rsa.pub.
@@ -723,7 +723,7 @@ The key's randomart image is:
 |        +.       |
 |       +o.       |
 +----[SHA256]-----+
-# cat ~/.ssh/id_rsa.pub &gt;&gt;~/.ssh/authorized_keys</pre>
+# cat ~/.ssh/id_rsa.pub &gt;&gt;~/.ssh/authorized_keys</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -749,7 +749,7 @@ registries = ['{your_local_registry_node}:5000']</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># podman pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># podman pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8
 Trying to pull {your_local_registry_node}:5000/rhceph/rhceph-4-rhel8:latest...
 Getting image source signatures
 Copying blob 0dbe531b0d7b done
@@ -758,7 +758,7 @@ Copying blob 18198709554e done
 Copying config 980fa2e3ed done
 Writing manifest to image destination
 Storing signatures
-980fa2e3ed4c8f5fe96da407c4bf80c8627dfe66f1e79bc10fe516f9f9d50d92</pre>
+980fa2e3ed4c8f5fe96da407c4bf80c8627dfe66f1e79bc10fe516f9f9d50d92</code></pre>
 </div>
 </div>
 </div>
@@ -787,7 +787,7 @@ Use you RHCS instance AWS internal hostname to configur <code>ceph-ansible</code
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># cat /etc/ansible/hosts
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># cat /etc/ansible/hosts
 [mons]
 ip-172-31-10-213.us-east-2.compute.internal
 
@@ -804,7 +804,7 @@ ip-172-31-10-213.us-east-2.compute.internal
 ip-172-31-10-213.us-east-2.compute.internal
 
 [grafana-server]
-ip-172-31-10-213.us-east-2.compute.internal</pre>
+ip-172-31-10-213.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -832,7 +832,7 @@ ansible mons -m command -a id -b</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># ansible -m ping mons
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># ansible -m ping mons
 172.31.10.213 | SUCCESS =&gt; {
     "changed": false,
     "ping": "pong"
@@ -842,7 +842,7 @@ ip-172-31-10-213.us-east-2.compute.internal | CHANGED | rc=0 &gt;&gt;
 uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023
 # ansible mons -m command -a id -b
 ip-172-31-10-213.us-east-2.compute.internal | CHANGED | rc=0 &gt;&gt;
-uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023</pre>
+uid=0(root) gid=0(root) groups=0(root) context=unconfined_u:unconfined_r:unconfined_t:s0-s0:c0.c1023</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -934,7 +934,7 @@ ansible-playbook site-container.yml</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># ansible-playbook site-container.yml
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># ansible-playbook site-container.yml
 ...[ Truncated ]...
 INSTALLER STATUS *****************************************************************************************************************************************************************************************************************
 Install Ceph Monitor           : Complete (0:00:47)
@@ -963,7 +963,7 @@ ceph-container-engine : install lvm2 package -----------------------------------
 ceph-infra : ensure logrotate is installed -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 7.39s
 ceph-mon : fetch ceph initial keys ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 5.96s
 ceph-mds : create filesystem pools ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.52s
-ceph-config : create ceph initial directories ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.06s</pre>
+ceph-config : create ceph initial directories ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- 3.06s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -978,7 +978,7 @@ ceph -s</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># yum install -y ceph-common
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># yum install -y ceph-common
 Updating Subscription Management repositories.
 Last metadata expiration check: 0:09:15 ago on Fri 26 Mar 2021 03:50:43 AM UTC.
 Dependencies resolved.
@@ -1018,7 +1018,7 @@ Complete!
     pools:   6 pools, 144 pgs
     objects: 241 objects, 6.9 KiB
     usage:   3.0 GiB used, 1.5 TiB / 1.5 TiB avail
-    pgs:     144 active+clean</pre>
+    pgs:     144 active+clean</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1037,7 +1037,7 @@ python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-po
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># wget -O /tmp/external-script-47.py https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/external-script-47.py
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># wget -O /tmp/external-script-47.py https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/external-script-47.py
 --2021-04-12 20:15:11--  https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments//tmp/external-script-47.py
 Resolving raw.githubusercontent.com (raw.githubusercontent.com)... 185.199.109.133, 185.199.110.133, 185.199.111.133, ...
 Connecting to raw.githubusercontent.com (raw.githubusercontent.com)|185.199.109.133|:443... connected.
@@ -1049,7 +1049,7 @@ Saving to: ‘/tmp/external-script-47.py’
 
 2021-04-12 20:15:12 (57.8 MB/s) - ‘/tmp/external-script-47.py’ saved [51563/51563]
 # python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name rbd --rgw-endpoint 172.31.10.213:8080
-[{"name": "rook-ceph-mon-endpoints", "kind": "ConfigMap", "data": {"data": "ip-172-31-10-213=172.31.10.213:6789", "maxMonId": "0", "mapping": "{}"}}, {"name": "rook-ceph-mon", "kind": "Secret", "data": {"admin-secret": "admin-secret", "fsid": "00af947a-7f58-41cc-967e-45cb481e73e2", "mon-secret": "mon-secret"}}, {"name": "rook-ceph-operator-creds", "kind": "Secret", "data": {"userID": "client.healthchecker", "userKey": "AQDiZV5gf7lwFhAA5YmPq+ka6yJtQ3ux8qOE0w=="}}, {"name": "rook-csi-rbd-node", "kind": "Secret", "data": {"userID": "csi-rbd-node", "userKey": "AQDiZV5g9223FhAAlpm5tcu49R1PoPdAkvkSNw=="}}, {"name": "ceph-rbd", "kind": "StorageClass", "data": {"pool": "rbd"}}, {"name": "monitoring-endpoint", "kind": "CephCluster", "data": {"MonitoringEndpoint": "172.31.10.213", "MonitoringPort": "9283"}}, {"name": "rook-csi-rbd-provisioner", "kind": "Secret", "data": {"userID": "csi-rbd-provisioner", "userKey": "AQDiZV5g/LQAFxAAtReS4HyVH6wN7PWndpmK4Q=="}}, {"name": "rook-csi-cephfs-provisioner", "kind": "Secret", "data": {"adminID": "csi-cephfs-provisioner", "adminKey": "AQDiZV5ghM+AFxAASg2ArV4bXIwuQbkyFFWE2A=="}}, {"name": "rook-csi-cephfs-node", "kind": "Secret", "data": {"adminID": "csi-cephfs-node", "adminKey": "AQDiZV5g5ek9FxAANb4hDNxKMJ+n/qhvswJa7w=="}}, {"name": "cephfs", "kind": "StorageClass", "data": {"fsName": "cephfs", "pool": "cephfs_data"}}, {"name": "ceph-rgw", "kind": "StorageClass", "data": {"endpoint": "172.31.10.213:8080", "poolPrefix": "default"}}]</pre>
+[{"name": "rook-ceph-mon-endpoints", "kind": "ConfigMap", "data": {"data": "ip-172-31-10-213=172.31.10.213:6789", "maxMonId": "0", "mapping": "{}"}}, {"name": "rook-ceph-mon", "kind": "Secret", "data": {"admin-secret": "admin-secret", "fsid": "00af947a-7f58-41cc-967e-45cb481e73e2", "mon-secret": "mon-secret"}}, {"name": "rook-ceph-operator-creds", "kind": "Secret", "data": {"userID": "client.healthchecker", "userKey": "AQDiZV5gf7lwFhAA5YmPq+ka6yJtQ3ux8qOE0w=="}}, {"name": "rook-csi-rbd-node", "kind": "Secret", "data": {"userID": "csi-rbd-node", "userKey": "AQDiZV5g9223FhAAlpm5tcu49R1PoPdAkvkSNw=="}}, {"name": "ceph-rbd", "kind": "StorageClass", "data": {"pool": "rbd"}}, {"name": "monitoring-endpoint", "kind": "CephCluster", "data": {"MonitoringEndpoint": "172.31.10.213", "MonitoringPort": "9283"}}, {"name": "rook-csi-rbd-provisioner", "kind": "Secret", "data": {"userID": "csi-rbd-provisioner", "userKey": "AQDiZV5g/LQAFxAAtReS4HyVH6wN7PWndpmK4Q=="}}, {"name": "rook-csi-cephfs-provisioner", "kind": "Secret", "data": {"adminID": "csi-cephfs-provisioner", "adminKey": "AQDiZV5ghM+AFxAASg2ArV4bXIwuQbkyFFWE2A=="}}, {"name": "rook-csi-cephfs-node", "kind": "Secret", "data": {"adminID": "csi-cephfs-node", "adminKey": "AQDiZV5g5ek9FxAANb4hDNxKMJ+n/qhvswJa7w=="}}, {"name": "cephfs", "kind": "StorageClass", "data": {"fsName": "cephfs", "pool": "cephfs_data"}}, {"name": "ceph-rgw", "kind": "StorageClass", "data": {"endpoint": "172.31.10.213:8080", "poolPrefix": "default"}}]</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1068,8 +1068,8 @@ information by appending <code>| base64 -w 0</code> to your command. See example
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name rbd --rgw-endpoint 172.31.10.213:8080 | base64 -w 0 | tee ./external-cluster.json
-W3sibmFtZSI6ICJyb29rLWNlcGgtbW9uLWVuZHBvaW50cyIsICJraW5kIjogIkNvbmZpZ01hcCIsICJkYXRhIjogeyJkYXRhIjogImlwLTE3Mi0zMS0xMC0yMTM9MTcyLjMxLjEwLjIxMzo2Nzg5IiwgIm1heE1vbklkIjogIjAiLCAibWFwcGluZyI6ICJ7fSJ9fSwgeyJuYW1lIjogInJvb2stY2VwaC1tb24iLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW4tc2VjcmV0IjogImFkbWluLXNlY3JldCIsICJmc2lkIjogIjAwYWY5NDdhLTdmNTgtNDFjYy05NjdlLTQ1Y2I0ODFlNzNlMiIsICJtb24tc2VjcmV0IjogIm1vbi1zZWNyZXQifX0sIHsibmFtZSI6ICJyb29rLWNlcGgtb3BlcmF0b3ItY3JlZHMiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsidXNlcklEIjogImNsaWVudC5oZWFsdGhjaGVja2VyIiwgInVzZXJLZXkiOiAiQVFEaVpWNWdmN2x3RmhBQTVZbVBxK2thNnlKdFEzdXg4cU9FMHc9PSJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1ub2RlIiwgImtpbmQiOiAiU2VjcmV0IiwgImRhdGEiOiB7InVzZXJJRCI6ICJjc2ktcmJkLW5vZGUiLCAidXNlcktleSI6ICJBUURpWlY1ZzkyMjNGaEFBbHBtNXRjdTQ5UjFQb1BkQWt2a1NOdz09In19LCB7Im5hbWUiOiAiY2VwaC1yYmQiLCAia2luZCI6ICJTdG9yYWdlQ2xhc3MiLCAiZGF0YSI6IHsicG9vbCI6ICJyYmQifX0sIHsibmFtZSI6ICJtb25pdG9yaW5nLWVuZHBvaW50IiwgImtpbmQiOiAiQ2VwaENsdXN0ZXIiLCAiZGF0YSI6IHsiTW9uaXRvcmluZ0VuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTMiLCAiTW9uaXRvcmluZ1BvcnQiOiAiOTI4MyJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1wcm92aXNpb25lciIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJ1c2VySUQiOiAiY3NpLXJiZC1wcm92aXNpb25lciIsICJ1c2VyS2V5IjogIkFRRGlaVjVnL0xRQUZ4QUF0UmVTNEh5Vkg2d043UFduZHBtSzRRPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtcHJvdmlzaW9uZXIiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW5JRCI6ICJjc2ktY2VwaGZzLXByb3Zpc2lvbmVyIiwgImFkbWluS2V5IjogIkFRRGlaVjVnaE0rQUZ4QUFTZzJBclY0YlhJd3VRYmt5RkZXRTJBPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtbm9kZSIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJhZG1pbklEIjogImNzaS1jZXBoZnMtbm9kZSIsICJhZG1pbktleSI6ICJBUURpWlY1ZzVlazlGeEFBTmI0aEROeEtNSituL3FodnN3SmE3dz09In19LCB7Im5hbWUiOiAiY2VwaGZzIiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImZzTmFtZSI6ICJjZXBoZnMiLCAicG9vbCI6ICJjZXBoZnNfZGF0YSJ9fSwgeyJuYW1lIjogImNlcGgtcmd3IiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImVuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTM6ODA4MCIsICJwb29sUHJlZml4IjogImRlZmF1bHQifX1dCgo=</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># python3 /tmp/external-script-47.py --cephfs-filesystem-name cephfs --rbd-data-pool-name rbd --rgw-endpoint 172.31.10.213:8080 | base64 -w 0 | tee ./external-cluster.json
+W3sibmFtZSI6ICJyb29rLWNlcGgtbW9uLWVuZHBvaW50cyIsICJraW5kIjogIkNvbmZpZ01hcCIsICJkYXRhIjogeyJkYXRhIjogImlwLTE3Mi0zMS0xMC0yMTM9MTcyLjMxLjEwLjIxMzo2Nzg5IiwgIm1heE1vbklkIjogIjAiLCAibWFwcGluZyI6ICJ7fSJ9fSwgeyJuYW1lIjogInJvb2stY2VwaC1tb24iLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW4tc2VjcmV0IjogImFkbWluLXNlY3JldCIsICJmc2lkIjogIjAwYWY5NDdhLTdmNTgtNDFjYy05NjdlLTQ1Y2I0ODFlNzNlMiIsICJtb24tc2VjcmV0IjogIm1vbi1zZWNyZXQifX0sIHsibmFtZSI6ICJyb29rLWNlcGgtb3BlcmF0b3ItY3JlZHMiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsidXNlcklEIjogImNsaWVudC5oZWFsdGhjaGVja2VyIiwgInVzZXJLZXkiOiAiQVFEaVpWNWdmN2x3RmhBQTVZbVBxK2thNnlKdFEzdXg4cU9FMHc9PSJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1ub2RlIiwgImtpbmQiOiAiU2VjcmV0IiwgImRhdGEiOiB7InVzZXJJRCI6ICJjc2ktcmJkLW5vZGUiLCAidXNlcktleSI6ICJBUURpWlY1ZzkyMjNGaEFBbHBtNXRjdTQ5UjFQb1BkQWt2a1NOdz09In19LCB7Im5hbWUiOiAiY2VwaC1yYmQiLCAia2luZCI6ICJTdG9yYWdlQ2xhc3MiLCAiZGF0YSI6IHsicG9vbCI6ICJyYmQifX0sIHsibmFtZSI6ICJtb25pdG9yaW5nLWVuZHBvaW50IiwgImtpbmQiOiAiQ2VwaENsdXN0ZXIiLCAiZGF0YSI6IHsiTW9uaXRvcmluZ0VuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTMiLCAiTW9uaXRvcmluZ1BvcnQiOiAiOTI4MyJ9fSwgeyJuYW1lIjogInJvb2stY3NpLXJiZC1wcm92aXNpb25lciIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJ1c2VySUQiOiAiY3NpLXJiZC1wcm92aXNpb25lciIsICJ1c2VyS2V5IjogIkFRRGlaVjVnL0xRQUZ4QUF0UmVTNEh5Vkg2d043UFduZHBtSzRRPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtcHJvdmlzaW9uZXIiLCAia2luZCI6ICJTZWNyZXQiLCAiZGF0YSI6IHsiYWRtaW5JRCI6ICJjc2ktY2VwaGZzLXByb3Zpc2lvbmVyIiwgImFkbWluS2V5IjogIkFRRGlaVjVnaE0rQUZ4QUFTZzJBclY0YlhJd3VRYmt5RkZXRTJBPT0ifX0sIHsibmFtZSI6ICJyb29rLWNzaS1jZXBoZnMtbm9kZSIsICJraW5kIjogIlNlY3JldCIsICJkYXRhIjogeyJhZG1pbklEIjogImNzaS1jZXBoZnMtbm9kZSIsICJhZG1pbktleSI6ICJBUURpWlY1ZzVlazlGeEFBTmI0aEROeEtNSituL3FodnN3SmE3dz09In19LCB7Im5hbWUiOiAiY2VwaGZzIiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImZzTmFtZSI6ICJjZXBoZnMiLCAicG9vbCI6ICJjZXBoZnNfZGF0YSJ9fSwgeyJuYW1lIjogImNlcGgtcmd3IiwgImtpbmQiOiAiU3RvcmFnZUNsYXNzIiwgImRhdGEiOiB7ImVuZHBvaW50IjogIjE3Mi4zMS4xMC4yMTM6ODA4MCIsICJwb29sUHJlZml4IjogImRlZmF1bHQifX1dCgo=</code></pre>
 </div>
 </div>
 </div>
@@ -1135,9 +1135,9 @@ W3sibmFtZSI6ICJyb29rLWNlcGgtbW9uLWVuZHBvaW50cyIsICJraW5kIjogIkNvbmZpZ01hcCIsICJk
 the RHCS instance. In the example below the RADOS Gateway endpoint is using port <code>8080</code>
 but could be different for your environment.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS_RHCS_SecurityGroup.png" alt="AWS Security Group settings">
+<img src="AWS_RHCS_SecurityGroup.png" alt="AWS Security Group settings">
 </div>
 <div class="title">Figure 6. Security Group parameters for RHCS instance</div>
 </div>
@@ -1148,9 +1148,9 @@ but could be different for your environment.</p>
 <p>To enable communication between your OCP cluster and your RHCS cluster you need to create a Peering
 relationship between your OCP VPC and your RHCS VPC.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS-VPC-Peering.png" alt="AWS VPC Peering">
+<img src="AWS-VPC-Peering.png" alt="AWS VPC Peering">
 </div>
 <div class="title">Figure 7. Create Peering request between OCP and RHCS</div>
 </div>
@@ -1170,9 +1170,9 @@ Go back to your AWS VPC dashboard page and accept the VPC Peering request.
 <div class="paragraph">
 <p>Once the VPC Peering is active, go to your <strong>Route Tables</strong> dashboard. Select your OCP cluster entry as illustrated below.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/AWS-VPC-Route.png" alt="AWS VPC Route">
+<img src="AWS-VPC-Route.png" alt="AWS VPC Route">
 </div>
 <div class="title">Figure 8. Create Route between OCP and RHCS subnets</div>
 </div>
@@ -1189,7 +1189,7 @@ If your connectivity is correct you will see the RHCS Monitor returning some inf
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ oc debug node/ip-10-0-139-26.us-east-2.compute.internal
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc debug node/ip-10-0-139-26.us-east-2.compute.internal
 Starting pod/ip-10-0-139-26us-east-2computeinternal-debug ...
 To use host binaries, run `chroot /host`
 Pod IP: 10.0.139.26
@@ -1197,7 +1197,7 @@ If you don't see a command prompt, try pressing enter.
 sh-4.4# ncat ip-172-31-10-213 6789
 ceph v027��
 ��`
-�</pre>
+�</code></pre>
 </div>
 </div>
 </div>
@@ -1257,7 +1257,7 @@ oc get pod,pvc</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># oc project openshift-storage
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc project openshift-storage
 Now using project "openshift-storage" on server "https://api.ocp45.ocstraining.com:6443".
 # oc get pod,csv
 NAME                                        READY   STATUS    RESTARTS   AGE
@@ -1267,7 +1267,7 @@ pod/ocs-operator-6b76fb4dff-x5g9g           1/1     Running   0          32s
 pod/rook-ceph-operator-7bd78b8dff-8dp4c     1/1     Running   0          32s
 
 NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
-clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-324.ci   OpenShift Container Storage   4.7.0-324.ci              Succeeded</pre>
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-324.ci   OpenShift Container Storage   4.7.0-324.ci              Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1297,8 +1297,8 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># oc create -f ./external-secret.yaml
-secret/rook-ceph-external-cluster-details created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc create -f ./external-secret.yaml
+secret/rook-ceph-external-cluster-details created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1323,8 +1323,8 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># oc create -f ./external-cluster.yaml
-storagecluster.ocs.openshift.io/ocs-external-storagecluster created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc create -f ./external-cluster.yaml
+storagecluster.ocs.openshift.io/ocs-external-storagecluster created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1339,7 +1339,7 @@ a PVC should be created for the MCG, storage classes should be created and the e
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># oc get pods,pvc,sc -o name
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># oc get pods,pvc,sc -o name
 pod/csi-cephfsplugin-8cx9h
 pod/csi-cephfsplugin-kcjld
 pod/csi-cephfsplugin-provisioner-76b7c894b9-2bgdl
@@ -1363,7 +1363,7 @@ storageclass.storage.k8s.io/gp2-csi
 storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rbd
 storageclass.storage.k8s.io/ocs-external-storagecluster-ceph-rgw
 storageclass.storage.k8s.io/ocs-external-storagecluster-cephfs
-storageclass.storage.k8s.io/openshift-storage.noobaa.io</pre>
+storageclass.storage.k8s.io/openshift-storage.noobaa.io</code></pre>
 </div>
 </div>
 </div>
@@ -1397,11 +1397,11 @@ oc get pvc</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim/testrwo created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim/testrwo created
 # oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
 db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   12m
-testrwo             Bound    pvc-4453bd54-82d6-497a-920d-57881a84a4fd   10Gi       RWO            ocs-external-storagecluster-ceph-rbd   25s</pre>
+testrwo             Bound    pvc-4453bd54-82d6-497a-920d-57881a84a4fd   10Gi       RWO            ocs-external-storagecluster-ceph-rbd   25s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1419,9 +1419,9 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># CSIVOL=$(oc get pv $(oc get pv | grep testrwo | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># CSIVOL=$(oc get pv $(oc get pv | grep testrwo | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
 # echo $CSIVOL
-csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045</pre>
+csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1435,7 +1435,7 @@ csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># rbd -p rbd info csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># rbd -p rbd info csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045
 rbd image 'csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045':
 	size 10 GiB in 2560 objects
 	order 22 (4 MiB objects)
@@ -1448,7 +1448,7 @@ rbd image 'csi-vol-d71710ac-90d5-11eb-b49c-0a580a800045':
 	flags:
 	create_timestamp: Mon Mar 29 21:29:27 2021
 	access_timestamp: Mon Mar 29 21:29:27 2021
-	modify_timestamp: Mon Mar 29 21:29:27 2021</pre>
+	modify_timestamp: Mon Mar 29 21:29:27 2021</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1476,10 +1476,10 @@ oc get pvc</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim "testrwo" deleted
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim "testrwo" deleted
 # oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
-db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   25m</pre>
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   25m</code></pre>
 </div>
 </div>
 </div>
@@ -1507,11 +1507,11 @@ oc get pvc</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim/testrwx created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim/testrwx created
 # oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
 db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   29m
-testrwx             Bound    pvc-006263ca-19e0-4c8d-9f37-d7f46be5b59c   10Gi       RWX            ocs-external-storagecluster-cephfs     1s</pre>
+testrwx             Bound    pvc-006263ca-19e0-4c8d-9f37-d7f46be5b59c   10Gi       RWX            ocs-external-storagecluster-cephfs     1s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1529,9 +1529,9 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># CSIVOL=$(oc get pv $(oc get pv | grep testrwx | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># CSIVOL=$(oc get pv $(oc get pv | grep testrwx | awk '{ print $1 }') -o jsonpath='{.spec.csi.volumeHandle}' | cut -d '-' -f 6- | awk '{print "csi-vol-"$1}')
 # echo $CSIVOL
-csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052</pre>
+csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1545,8 +1545,8 @@ csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre># ceph fs subvolume ls cephfs csi -f json | grep name
-        "name": "csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052"</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"># ceph fs subvolume ls cephfs csi -f json | grep name
+        "name": "csi-vol-47f563d3-90d8-11eb-92bd-0a580a800052"</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1574,10 +1574,10 @@ oc get pvc</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim "testrwx" deleted
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim "testrwx" deleted
 $ oc get pvc
 NAME                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                           AGE
-db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   38m</pre>
+db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi       RWO            ocs-external-storagecluster-ceph-rbd   38m</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1590,7 +1590,7 @@ db-noobaa-db-pg-0   Bound    pvc-3653d895-b09c-423b-a519-b2762f22f6f9   50Gi    
 If you need a second cluster for a Multi-Cluster Metro DR scenario, simply repeat
 this procedure starting at chapter <strong>Deploy Red Hat OpenShift Data Foundation</strong>. Once
 done, proceed to the document dedicated to ODF Multi-Cluster Metro DR procedure. See
-<a href="ocs4-metro-multi-no-ui.html#_odf_multi_cluster_metro_disaster_recovery" class="page">here</a> on how to test
+<a href="ocs4-metro-multi-no-ui.html#_odf_multi_cluster_metro_disaster_recovery" class="xref page">here</a> on how to test
 this specific architecture.
 </td>
 </tr>

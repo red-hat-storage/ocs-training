@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>How to Downsize a Red Hat OpenShift Container Storage 4.X Internal Cluster :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-cluster-downsize.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -242,7 +242,7 @@
 <div class="listingblock">
 <div class="title">Running pods</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-chl65                                            3/3     Running     0          10m
 csi-cephfsplugin-dlp66                                            3/3     Running     0          10m
 csi-cephfsplugin-provisioner-6bc8b8cdd9-9ngpk                     5/5     Running     0          10m
@@ -282,7 +282,7 @@ rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4-4xqhv          0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          7m19s
 rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk-lpd27          0/1     Completed   0          3m42s
 rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          7m19s
-rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Completed   0          3m40s</pre>
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Completed   0          3m40s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -300,7 +300,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>2</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">2</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -326,7 +326,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -352,7 +352,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>storagecluster.ocs.openshift.io/ocs-storagecluster patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster patched</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -366,7 +366,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>1</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">1</code></pre>
 </div>
 </div>
 </div>
@@ -383,12 +383,12 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg-dm5mx          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        44m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        44m
 rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4   1/1           32s        40m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj   1/1           27s        44m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk   1/1           32s        40m
 rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        44m
-rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40m</pre>
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -405,12 +405,12 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        40
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          49m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          49m
 rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          49m
 rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          49m
 rook-ceph-osd-3-cb4b7bb9c-9zncq                                   1/1     Running     0          46m
 rook-ceph-osd-4-75c8d6894-fp9wb                                   1/1     Running     0          46m
-rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Running     0          46m</pre>
+rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Running     0          46m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -424,7 +424,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocs-deviceset-1-data-1-jv2qk</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocs-deviceset-1-data-1-jv2qk</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -469,7 +469,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>deployment.apps/rook-ceph-osd-5 scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deployment.apps/rook-ceph-osd-5 scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -494,7 +494,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch/ocs-osd-removal-5 created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch/ocs-osd-removal-5 created</code></pre>
 </div>
 </div>
 </div>
@@ -512,7 +512,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -526,7 +526,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>5 osds: 5 up (since 3m), 5 in (since 95s); epoch: e85</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">5 osds: 5 up (since 3m), 5 in (since 95s); epoch: e85</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -557,7 +557,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>deployment.apps/rook-ceph-osd-4 scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deployment.apps/rook-ceph-osd-4 scaled</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -569,7 +569,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch/ocs-osd-removal-4 created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch/ocs-osd-removal-4 created</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -580,7 +580,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -591,7 +591,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>4 osds: 4 up (since 2m), 4 in (since 46s); epoch: e105</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">4 osds: 4 up (since 2m), 4 in (since 46s); epoch: e105</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -603,7 +603,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>deployment.apps/rook-ceph-osd-3 scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deployment.apps/rook-ceph-osd-3 scaled</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -615,7 +615,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch/ocs-osd-removal-3 created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch/ocs-osd-removal-3 created</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -626,7 +626,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>HEALTH_WARN too many PGs per OSD (288 &gt; max 250)</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_WARN too many PGs per OSD (288 &gt; max 250)</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -637,7 +637,7 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>3 osds: 3 up (since 99s), 3 in (since 53s); epoch: e120</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">3 osds: 3 up (since 99s), 3 in (since 53s); epoch: e120</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -658,9 +658,9 @@ rook-ceph-osd-5-7b4f4c6785-kgwb4                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>deployment.apps "rook-ceph-osd-5" deleted
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deployment.apps "rook-ceph-osd-5" deleted
 deployment.apps "rook-ceph-osd-4" deleted
-deployment.apps "rook-ceph-osd-3" deleted</pre>
+deployment.apps "rook-ceph-osd-3" deleted</code></pre>
 </div>
 </div>
 </div>
@@ -677,12 +677,12 @@ deployment.apps "rook-ceph-osd-3" deleted</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        162m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx   1/1           29s        162m
 rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4   1/1           32s        159m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj   1/1           27s        162m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk   1/1           32s        158m
 rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch   1/1           36s        162m
-rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        158m</pre>
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        158m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -696,7 +696,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        15
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch "rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg" deleted</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -707,7 +707,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        15
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch "rook-ceph-osd-prepare-ocs-deviceset-1-data-1-jv2qk" deleted</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -718,7 +718,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        15
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch "rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch "rook-ceph-osd-prepare-ocs-deviceset-0-data-1-q72z4" deleted</code></pre>
 </div>
 </div>
 </div>
@@ -735,12 +735,12 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-r7dwg   1/1           28s        15
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           165m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           165m
 ocs-deviceset-0-data-1-q72z4   Bound    pvc-36e0a5f7-9ef3-49e6-99d5-68c791870e61   2Ti        RWO            gp2                           162m
 ocs-deviceset-1-data-0-bmpzj   Bound    pvc-fe3806cc-92f9-4382-8dad-026edae39906   2Ti        RWO            gp2                           165m
 ocs-deviceset-1-data-1-jv2qk   Bound    pvc-fbd93d58-eb56-4ac1-b987-91a3983b9e00   2Ti        RWO            gp2                           162m
 ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           165m
-ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41   2Ti        RWO            gp2                           162m</pre>
+ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41   2Ti        RWO            gp2                           162m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -754,7 +754,7 @@ ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim "ocs-deviceset-2-data-1-r7dwg" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim "ocs-deviceset-2-data-1-r7dwg" deleted</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -765,7 +765,7 @@ ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim "ocs-deviceset-1-data-1-jv2qk" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim "ocs-deviceset-1-data-1-jv2qk" deleted</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -776,7 +776,7 @@ ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim "ocs-deviceset-0-data-1-q72z4" deleted</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim "ocs-deviceset-0-data-1-q72z4" deleted</code></pre>
 </div>
 </div>
 </div>
@@ -793,9 +793,9 @@ ocs-deviceset-2-data-1-r7dwg   Bound    pvc-e100bbf6-426d-4f10-af83-83b92181fb41
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           169m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           169m
 ocs-deviceset-1-data-0-bmpzj   Bound    pvc-fe3806cc-92f9-4382-8dad-026edae39906   2Ti        RWO            gp2                           169m
-ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           169m</pre>
+ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b   2Ti        RWO            gp2                           169m</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -806,9 +806,9 @@ ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c 2Ti openshift-storage/ocs-deviceset-0-data-0-hwzhx gp2
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c 2Ti openshift-storage/ocs-deviceset-0-data-0-hwzhx gp2
 pvc-f523ea66-6c0b-4c00-b618-a66129af563b 2Ti openshift-storage/ocs-deviceset-2-data-0-d6tch gp2
-pvc-fe3806cc-92f9-4382-8dad-026edae39906 2Ti openshift-storage/ocs-deviceset-1-data-0-bmpzj gp2</pre>
+pvc-fe3806cc-92f9-4382-8dad-026edae39906 2Ti openshift-storage/ocs-deviceset-1-data-0-bmpzj gp2</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -822,9 +822,9 @@ pvc-fe3806cc-92f9-4382-8dad-026edae39906 2Ti openshift-storage/ocs-deviceset-1-d
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocs-osd-removal-3                                    1/1           6s         96m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocs-osd-removal-3                                    1/1           6s         96m
 ocs-osd-removal-4                                    1/1           6s         99m
-ocs-osd-removal-5                                    1/1           7s         105m</pre>
+ocs-osd-removal-5                                    1/1           7s         105m</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -835,9 +835,9 @@ ocs-osd-removal-5                                    1/1           7s         10
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>job.batch "ocs-osd-removal-5" deleted
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">job.batch "ocs-osd-removal-5" deleted
 job.batch "ocs-osd-removal-4" deleted
-job.batch "ocs-osd-removal-3" deleted</pre>
+job.batch "ocs-osd-removal-3" deleted</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -854,7 +854,7 @@ job.batch "ocs-osd-removal-3" deleted</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-chl65                                            3/3     Running     0          3h1m
 csi-cephfsplugin-dlp66                                            3/3     Running     0          3h1m
 csi-cephfsplugin-provisioner-6bc8b8cdd9-9ngpk                     5/5     Running     0          3h1m
@@ -889,7 +889,7 @@ rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Runnin
 rook-ceph-osd-prepare-ocs-deviceset-0-data-0-hwzhx-577f8          0/1     Completed   0          179m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          179m
 rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          179m
-rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Running     0          171m</pre>
+rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Running     0          171m</code></pre>
 </div>
 </div>
 </div>
@@ -910,7 +910,7 @@ rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>storagecluster.ocs.openshift.io/ocs-storagecluster patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster patched</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -921,7 +921,7 @@ rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>2</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">2</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -932,7 +932,7 @@ rook-ceph-tools-65fcc8988c-nw8r5                                  1/1     Runnin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          3h3m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-osd-0-7947c4f995-l4bx4                                  1/1     Running     0          3h3m
 rook-ceph-osd-1-7cd6dc86c8-484bw                                  1/1     Running     0          3h3m
 rook-ceph-osd-2-6b7659dd58-h5lp7                                  1/1     Running     0          3h3m
 rook-ceph-osd-3-5967bdf767-2ffcr                                  1/1     Running     0          50s
@@ -943,7 +943,7 @@ rook-ceph-osd-prepare-ocs-deviceset-0-data-1-hwwr7-ntm4w          0/1     Comple
 rook-ceph-osd-prepare-ocs-deviceset-1-data-0-bmpzj-27t5s          0/1     Completed   0          3h4m
 rook-ceph-osd-prepare-ocs-deviceset-1-data-1-zdttb-mb5fx          0/1     Completed   0          77s
 rook-ceph-osd-prepare-ocs-deviceset-2-data-0-d6tch-ld7sd          0/1     Completed   0          3h4m
-rook-ceph-osd-prepare-ocs-deviceset-2-data-1-s469h-kjgdf          0/1     Completed   0          75s</pre>
+rook-ceph-osd-prepare-ocs-deviceset-2-data-1-s469h-kjgdf          0/1     Completed   0          75s</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -954,7 +954,7 @@ rook-ceph-osd-prepare-ocs-deviceset-2-data-1-s469h-kjgdf          0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
 db-noobaa-db-0                 Bound    pvc-a45d2583-9ec1-4640-b2c9-8cb0d24be7f4   50Gi       RWO            ocs-storagecluster-ceph-rbd   3h4m
 ocs-deviceset-0-data-0-hwzhx   Bound    pvc-10930547-e0d0-47cf-ba56-d68dbe59d33c   2Ti        RWO            gp2                           3h4m
 ocs-deviceset-0-data-1-hwwr7   Bound    pvc-db64ec09-81c7-4e53-b91d-f089607a4824   2Ti        RWO            gp2                           101s
@@ -964,7 +964,7 @@ ocs-deviceset-2-data-0-d6tch   Bound    pvc-f523ea66-6c0b-4c00-b618-a66129af563b
 ocs-deviceset-2-data-1-s469h   Bound    pvc-64a6d4db-ce5c-4a5c-87b2-3bcde59c902f   2Ti        RWO            gp2                           98s
 rook-ceph-mon-a                Bound    pvc-d4977e7f-8770-45de-bc12-9c213e3d0766   10Gi       RWO            gp2                           3h6m
 rook-ceph-mon-b                Bound    pvc-2df867fc-38ff-4cb1-93fd-b3281f6c5fa2   10Gi       RWO            gp2                           3h6m
-rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b   10Gi       RWO            gp2                           3h6m</pre>
+rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b   10Gi       RWO            gp2                           3h6m</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -975,7 +975,7 @@ rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>6 osds: 6 up (since 75s), 6 in (since 75s); epoch: e161</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">6 osds: 6 up (since 75s), 6 in (since 75s); epoch: e161</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -986,7 +986,7 @@ rook-ceph-mon-c                Bound    pvc-b70f812e-7d02-451c-a3fb-66b438a2304b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="paragraph">

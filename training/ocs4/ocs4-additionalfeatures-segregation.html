@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Data Segregation :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-additionalfeatures-segregation.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -263,13 +263,13 @@ node/ip-10-0-220-5.us-east-2.compute.internal labeled</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE    VERSION           ZONE         OPENSHIFT-STORAGE-DEVICE-CLASS
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE    VERSION           ZONE         OPENSHIFT-STORAGE-DEVICE-CLASS
 ip-10-0-133-24.us-east-2.compute.internal    Ready    worker   139m   v1.21.1+051ac4f   us-east-2a   set1
 ip-10-0-141-180.us-east-2.compute.internal   Ready    worker   139m   v1.21.1+051ac4f   us-east-2a   set2
 ip-10-0-184-165.us-east-2.compute.internal   Ready    worker   141m   v1.21.1+051ac4f   us-east-2b   set1
 ip-10-0-186-145.us-east-2.compute.internal   Ready    worker   141m   v1.21.1+051ac4f   us-east-2b   set2
 ip-10-0-209-55.us-east-2.compute.internal    Ready    worker   141m   v1.21.1+051ac4f   us-east-2c   set1
-ip-10-0-220-5.us-east-2.compute.internal     Ready    worker   141m   v1.21.1+051ac4f   us-east-2c   set2</pre>
+ip-10-0-220-5.us-east-2.compute.internal     Ready    worker   141m   v1.21.1+051ac4f   us-east-2c   set2</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -320,9 +320,9 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>namespace/openshift-local-storage created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">namespace/openshift-local-storage created
 operatorgroup.operators.coreos.com/local-operator-group created
-subscription.operators.coreos.com/local-storage-operator created</pre>
+subscription.operators.coreos.com/local-storage-operator created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -336,8 +336,8 @@ subscription.operators.coreos.com/local-storage-operator created</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                        DISPLAY         VERSION              REPLACES   PHASE
-local-storage-operator.4.8.0-202106291913   Local Storage   4.8.0-202106291913              Succeeded <i class="conum" data-value="1"></i><b>(1)</b></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        DISPLAY         VERSION              REPLACES   PHASE
+local-storage-operator.4.8.0-202106291913   Local Storage   4.8.0-202106291913              Succeeded <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -386,7 +386,7 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>localvolumediscovery.local.storage.openshift.io/auto-discover-devices created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">localvolumediscovery.local.storage.openshift.io/auto-discover-devices created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -400,13 +400,13 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                          AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                          AGE
 discovery-result-ip-10-0-133-24.us-east-2.compute.internal    27s
 discovery-result-ip-10-0-141-180.us-east-2.compute.internal   27s
 discovery-result-ip-10-0-184-165.us-east-2.compute.internal   27s
 discovery-result-ip-10-0-186-145.us-east-2.compute.internal   27s
 discovery-result-ip-10-0-209-55.us-east-2.compute.internal    27s
-discovery-result-ip-10-0-220-5.us-east-2.compute.internal     27s</pre>
+discovery-result-ip-10-0-220-5.us-east-2.compute.internal     27s</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -456,7 +456,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>localvolumeset.local.storage.openshift.io/local-block created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">localvolumeset.local.storage.openshift.io/local-block created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -470,7 +470,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>local-pv-1713478d   1769Gi     RWO            Delete           Available           localblock              7s
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">local-pv-1713478d   1769Gi     RWO            Delete           Available           localblock              7s
 local-pv-1b5f29ce   1769Gi     RWO            Delete           Available           localblock              7s
 local-pv-25362600   1769Gi     RWO            Delete           Available           localblock              6s
 local-pv-322d07e    1769Gi     RWO            Delete           Available           localblock              6s
@@ -481,7 +481,7 @@ local-pv-4ba9fc11   1769Gi     RWO            Delete           Available        
 local-pv-58d7b728   1769Gi     RWO            Delete           Available           localblock              7s
 local-pv-8317069a   1769Gi     RWO            Delete           Available           localblock              6s
 local-pv-c2fa64b5   1769Gi     RWO            Delete           Available           localblock              6s
-local-pv-c6855919   1769Gi     RWO            Delete           Available           localblock              6s</pre>
+local-pv-c6855919   1769Gi     RWO            Delete           Available           localblock              6s</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -629,7 +629,7 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster created</code></pre>
 </div>
 </div>
 <div class="admonitionblock tip">
@@ -640,7 +640,7 @@ EOF</code></pre>
 </td>
 <td class="content">
 The <code>deviceClass</code> parameter allows you to override the <code>deviceType</code> parameter
-described in the ODF 4.7 <a href="#ocs4-additionalfeatures.adoc#_mixed_osd_device_type_configuration" class="page unresolved">ocs4-additionalfeatures.adoc#_mixed_osd_device_type_configuration</a> chapter.
+described in the ODF 4.7 <a href="#ocs4-additionalfeatures.adoc#_mixed_osd_device_type_configuration" class="xref unresolved">ocs4-additionalfeatures.adoc#_mixed_osd_device_type_configuration</a> chapter.
 As a result you can now choose customized character strings outside of the <code>hdd, ssd or nvme</code> options.
 </td>
 </tr>
@@ -657,7 +657,7 @@ As a result you can now choose customized character strings outside of the <code
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-24z7g                                            3/3     Running     0          4m19s
 csi-cephfsplugin-545pc                                            3/3     Running     0          4m19s
 csi-cephfsplugin-89d2r                                            3/3     Running     0          4m19s
@@ -715,7 +715,7 @@ rook-ceph-osd-prepare-ssd-set2-0-data-1hrrpt-fbsvq                0/1     Comple
 rook-ceph-osd-prepare-ssd-set2-0-data-2ff7p5-mrmh2                0/1     Completed   0          7m43s
 rook-ceph-osd-prepare-ssd-set2-0-data-3mvtsm-2mtkm                0/1     Completed   0          91s
 rook-ceph-osd-prepare-ssd-set2-0-data-4fdbf5-s45b6                0/1     Completed   0          91s
-rook-ceph-osd-prepare-ssd-set2-0-data-5zdcvs-27n6x                0/1     Completed   0          90s</pre>
+rook-ceph-osd-prepare-ssd-set2-0-data-5zdcvs-27n6x                0/1     Completed   0          90s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -729,7 +729,7 @@ rook-ceph-osd-prepare-ssd-set2-0-data-5zdcvs-27n6x                0/1     Comple
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocsinitialization.ocs.openshift.io/ocsinit patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocsinitialization.ocs.openshift.io/ocsinit patched</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -752,7 +752,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     4dc85b62-d688-45cc-9224-74005839e500
     health: HEALTH_OK <i class="conum" data-value="1"></i><b>(1)</b>
 
@@ -766,7 +766,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
     pools:   3 pools, 288 pgs
     objects: 99 objects, 132 MiB
     usage:   12 GiB used, 21 TiB / 21 TiB avail
-    pgs:     288 active+clean <i class="conum" data-value="2"></i><b>(2)</b></pre>
+    pgs:     288 active+clean <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -818,7 +818,7 @@ above, the value is <strong>288</strong>.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
  -1       20.73596 root default
  -6       20.73596     region us-east-2
  -5        6.91199         zone us-east-2a
@@ -841,7 +841,7 @@ above, the value is <strong>288</strong>.
   7  set1  1.72800                 osd.7                up  1.00000 1.00000 <i class="conum" data-value="1"></i><b>(1)</b>
 -31        3.45599             host ip-10-0-220-5
  10  set2  1.72800                 osd.10               up  1.00000 1.00000 <i class="conum" data-value="2"></i><b>(2)</b>
- 11  set2  1.72800                 osd.11               up  1.00000 1.00000 <i class="conum" data-value="2"></i><b>(2)</b></pre>
+ 11  set2  1.72800                 osd.11               up  1.00000 1.00000 <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -928,7 +928,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>cephblockpool.ceph.rook.io/ssd-set1-pool created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cephblockpool.ceph.rook.io/ssd-set1-pool created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -942,9 +942,9 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                               AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                               AGE
 ocs-storagecluster-cephblockpool   15m
-ssd-set1-pool                      22s</pre>
+ssd-set1-pool                      22s</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -979,7 +979,7 @@ created during the deployment of the cluster and one for our new test pool <code
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     4dc85b62-d688-45cc-9224-74005839e500
     health: HEALTH_OK
 
@@ -996,7 +996,7 @@ created during the deployment of the cluster and one for our new test pool <code
     pgs:     320 active+clean <i class="conum" data-value="1"></i><b>(1)</b>
 
   io:
-    client:   852 B/s rd, 2.3 KiB/s wr, 1 op/s rd, 0 op/s wr</pre>
+    client:   852 B/s rd, 2.3 KiB/s wr, 1 op/s rd, 0 op/s wr</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1031,11 +1031,11 @@ of the additional pool was <strong>288</strong>. This tells us the new pool has 
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>pool 1 'ocs-storagecluster-cephblockpool' replicated size 3 min_size 2 crush_rule 1 object_hash rjenkins pg_num 128 pgp_num 128 autoscale_mode on last_change 46 lfor 0/0/28 flags hashpspool,selfmanaged_snaps stripe_width 0 compression_mode none target_size_ratio 0.49 application rbd
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pool 1 'ocs-storagecluster-cephblockpool' replicated size 3 min_size 2 crush_rule 1 object_hash rjenkins pg_num 128 pgp_num 128 autoscale_mode on last_change 46 lfor 0/0/28 flags hashpspool,selfmanaged_snaps stripe_width 0 compression_mode none target_size_ratio 0.49 application rbd
 	removed_snaps [1~3]
 pool 2 'ocs-storagecluster-cephfilesystem-metadata' replicated size 3 min_size 2 crush_rule 2 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 25 flags hashpspool stripe_width 0 compression_mode none pg_autoscale_bias 4 pg_num_min 16 recovery_priority 5 application cephfs
 pool 3 'ocs-storagecluster-cephfilesystem-data0' replicated size 3 min_size 2 crush_rule 3 object_hash rjenkins pg_num 128 pgp_num 128 autoscale_mode on last_change 46 lfor 0/0/28 flags hashpspool stripe_width 0 compression_mode none target_size_ratio 0.49 application cephfs
-pool 4 'ssd-set1-pool' replicated size 3 min_size 2 crush_rule 4 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 83 flags hashpspool stripe_width 0 compression_mode none application rbd <i class="conum" data-value="1"></i><b>(1)</b></pre>
+pool 4 'ssd-set1-pool' replicated size 3 min_size 2 crush_rule 4 object_hash rjenkins pg_num 32 pgp_num 32 autoscale_mode on last_change 83 flags hashpspool stripe_width 0 compression_mode none application rbd <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1094,7 +1094,7 @@ The Rook operator always creates a CRUSH rule with the same name as the pool nam
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>{
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">{
     "rule_id": 4, <i class="conum" data-value="1"></i><b>(1)</b>
     "rule_name": "ssd-set1-pool", <i class="conum" data-value="2"></i><b>(2)</b>
     "ruleset": 4,
@@ -1116,7 +1116,7 @@ The Rook operator always creates a CRUSH rule with the same name as the pool nam
             "op": "emit"
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1155,8 +1155,8 @@ for the new pool.</p>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>4.b           0                  0        0         0       0       0           0          0   0        0 active+clean 2021-08-02 21:40:11.496593     0'0    82:12  [7,1,5]           7  [7,1,5]              7        0'0 2021-08-02 21:40:10.466388             0'0 2021-08-02 21:40:10.466388             0
-                                                                                                                                                                       <i class="conum" data-value="2"></i><b>(2)</b></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">4.b           0                  0        0         0       0       0           0          0   0        0 active+clean 2021-08-02 21:40:11.496593     0'0    82:12  [7,1,5]           7  [7,1,5]              7        0'0 2021-08-02 21:40:10.466388             0'0 2021-08-02 21:40:10.466388             0
+                                                                                                                                                                       <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1184,9 +1184,9 @@ In our test environment (0, 1, 5, 6, 7, 9).</p>
 <div class="listingblock">
 <div class="title">Command details</div>
 <div class="content">
-<pre>grep '^4.' <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">grep '^4.' <i class="conum" data-value="1"></i><b>(1)</b>
 awk '{ print $17 }' <i class="conum" data-value="2"></i><b>(2)</b>
-grep '\[[015679],[015679],[015679]\]' <i class="conum" data-value="3"></i><b>(3)</b></pre>
+grep '\[[015679],[015679],[015679]\]' <i class="conum" data-value="3"></i><b>(3)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1208,8 +1208,8 @@ grep '\[[015679],[015679],[015679]\]' <i class="conum" data-value="3"></i><b>(3)
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>dumped all
-32</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">dumped all
+32</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">

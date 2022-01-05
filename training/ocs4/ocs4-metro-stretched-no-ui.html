@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>OpenShift Data Foundation Stretched Metro Cluster (CLI) :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-metro-stretched-no-ui.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -330,10 +330,10 @@ given AWS EBS volumes persists even if an instance is being shutdown.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
 ocp45-mvghv-worker-us-east-2a   1         1         1       1           3h15m
 ocp45-mvghv-worker-us-east-2b   1         1         1       1           3h15m
-ocp45-mvghv-worker-us-east-2c   0         0                             3h15m</pre>
+ocp45-mvghv-worker-us-east-2c   0         0                             3h15m</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -361,10 +361,10 @@ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | eg
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
 machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2a scaled
 $ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
-machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2b scaled</pre>
+machineset.machine.openshift.io/ocp45-mvghv-worker-us-east-2b scaled</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -405,10 +405,10 @@ Go to chapter <a href="#_proceed_with_setup">Proceed With Setup</a>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
 ocp45-xs7pv-worker-us-east-2a   1         1         1       1           59m
 ocp45-xs7pv-worker-us-east-2b   1         1         1       1           59m
-ocp45-xs7pv-worker-us-east-2c   1         1         1       1           59m</pre>
+ocp45-xs7pv-worker-us-east-2c   1         1         1       1           59m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -424,12 +424,12 @@ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | eg
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2a) -n openshift-machine-api --replicas=2
 machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2a scaled
 $ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2b) -n openshift-machine-api --replicas=2
 machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2b scaled
 $ oc scale $(oc get machinesets -n openshift-machine-api -o name --no-headers | egrep worker | grep 2c) -n openshift-machine-api --replicas=0
-machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2c scaled</pre>
+machineset.machine.openshift.io/ocp45-xs7pv-worker-us-east-2c scaled</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -462,10 +462,10 @@ will be different than shown below.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                            DESIRED   CURRENT   READY   AVAILABLE   AGE
 ocp45-mvghv-worker-us-east-2a   2         2         2       2           3h28m
 ocp45-mvghv-worker-us-east-2b   2         2         2       2           3h28m
-ocp45-mvghv-worker-us-east-2c   0         0                             3h28m</pre>
+ocp45-mvghv-worker-us-east-2c   0         0                             3h28m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -495,11 +495,11 @@ The total number of worker nodes should be 4.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   10m     v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h21m   v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h18m   v1.20.0+bafe72f
-ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+bafe72f</pre>
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -513,10 +513,10 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   10m     v1.20.0+b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>node/ip-10-0-150-108.us-east-2.compute.internal labeled
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">node/ip-10-0-150-108.us-east-2.compute.internal labeled
 node/ip-10-0-158-73.us-east-2.compute.internal labeled
 node/ip-10-0-172-113.us-east-2.compute.internal labeled
-node/ip-10-0-179-14.us-east-2.compute.internal labeled</pre>
+node/ip-10-0-179-14.us-east-2.compute.internal labeled</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -543,11 +543,11 @@ any ODF label. Do NOT label the Arbiter node!
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   11m     v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   3h22m   v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   3h19m   v1.20.0+bafe72f
-ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   11m     v1.20.0+bafe72f</pre>
+ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   11m     v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 </div>
@@ -568,10 +568,10 @@ ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   11m     v1.20.0+b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ocp45-mvghv-worker-us-east-2a-nnwcr   Running   m5.4xlarge   us-east-2   us-east-2a   3h25m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocp45-mvghv-worker-us-east-2a-nnwcr   Running   m5.4xlarge   us-east-2   us-east-2a   3h25m
 ocp45-mvghv-worker-us-east-2a-wm79g   Running   m5.4xlarge   us-east-2   us-east-2a   14m
 ocp45-mvghv-worker-us-east-2b-gsz7p   Running   m5.4xlarge   us-east-2   us-east-2b   3h25m
-ocp45-mvghv-worker-us-east-2b-ptfz6   Running   m5.4xlarge   us-east-2   us-east-2b   14m</pre>
+ocp45-mvghv-worker-us-east-2b-ptfz6   Running   m5.4xlarge   us-east-2   us-east-2b   14m</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -653,11 +653,11 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                                                      DISPLAY         VERSION                 REPLACES   PHASE
 clusterserviceversion.operators.coreos.com/local-storage-operator.4.7.0-202103202139.p0   Local Storage   4.7.0-202103202139.p0              Succeeded
 
 NAME                                          READY   STATUS    RESTARTS   AGE
-pod/local-storage-operator-5c8cc9545c-nh9jt   1/1     Running   0          87s</pre>
+pod/local-storage-operator-5c8cc9545c-nh9jt   1/1     Running   0          87s</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -761,7 +761,7 @@ as PVs while the Local Storage Operator is preparing the disks.</p>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE
 local-pv-222fc034   2328Gi     RWO            Delete           Available           localblock              9s
 local-pv-376fac5f   2328Gi     RWO            Delete           Available           localblock              9s
 local-pv-5160893    2328Gi     RWO            Delete           Available           localblock              9s
@@ -769,7 +769,7 @@ local-pv-a58904fd   2328Gi     RWO            Delete           Available        
 local-pv-b7bb7e0a   2328Gi     RWO            Delete           Available           localblock              9s
 local-pv-c187d06d   2328Gi     RWO            Delete           Available           localblock              8s
 local-pv-d6c318a4   2328Gi     RWO            Delete           Available           localblock              9s
-local-pv-dc39122f   2328Gi     RWO            Delete           Available           localblock              8s</pre>
+local-pv-dc39122f   2328Gi     RWO            Delete           Available           localblock              8s</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -869,14 +869,14 @@ ones using the <code>oc get catalogsource -A</code> command.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                        READY   STATUS    RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        READY   STATUS    RESTARTS   AGE
 pod/noobaa-operator-746ddfc79-mzdkc         1/1     Running   0          28s
 pod/ocs-metrics-exporter-54b6d689f8-5jtgv   1/1     Running   0          28s
 pod/ocs-operator-5bcdd97ff4-kvp2z           1/1     Running   0          29s
 pod/rook-ceph-operator-7dd585bd97-md9w2     1/1     Running   0          28s
 
 NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
-clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShift Container Storage   4.7.0-339.ci              Succeeded</pre>
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-339.ci   OpenShift Container Storage   4.7.0-339.ci              Succeeded</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -941,7 +941,7 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster created</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1002,7 +1002,7 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster created</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1045,8 +1045,8 @@ storage.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
-ocs-storagecluster-cephcluster   /var/lib/rook     5          9m17s   Ready   Cluster created successfully   HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+ocs-storagecluster-cephcluster   /var/lib/rook     5          9m17s   Ready   Cluster created successfully   HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1057,7 +1057,7 @@ ocs-storagecluster-cephcluster   /var/lib/rook     5          9m17s   Ready   Cl
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
 csi-cephfsplugin-provisioner-6976556bd7-7jmtp                     6/6     Running     0          9m49s
 csi-cephfsplugin-provisioner-6976556bd7-fd2zq                     6/6     Running     0          9m49s
 csi-cephfsplugin-qtl65                                            3/3     Running     0          9m49s
@@ -1097,7 +1097,7 @@ rook-ceph-osd-3-6f7dd55b9f-g7k6r                                  2/2     Runnin
 rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          7m53s
 rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-09p86q-k6tln       0/1     Completed   0          7m53s
 rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0xx95t-qgnss       0/1     Completed   0          7m52s
-rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          7m52s</pre>
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          7m52s</code></pre>
 </div>
 </div>
 </div>
@@ -1132,7 +1132,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     bb24312f-df33-455a-ae74-dc974a7572cd
     health: HEALTH_OK
 
@@ -1154,7 +1154,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
     pgs:     192 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1178,7 +1178,7 @@ domain and one in the Arbiter failure domain.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ID  CLASS WEIGHT  TYPE NAME                        STATUS REWEIGHT PRI-AFF
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ID  CLASS WEIGHT  TYPE NAME                        STATUS REWEIGHT PRI-AFF
  -1       2.00000 root default
  -5       2.00000     region us-east-2
  -4       1.00000         zone us-east-2a
@@ -1190,7 +1190,7 @@ domain and one in the Arbiter failure domain.
 -11       0.50000             host ip-10-0-172-113
   3   ssd 0.50000                 osd.3                up  1.00000 1.00000
 -15       0.50000             host ip-10-0-179-14
-  2   ssd 0.50000                 osd.2                up  1.00000 1.00000</pre>
+  2   ssd 0.50000                 osd.2                up  1.00000 1.00000</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1270,13 +1270,13 @@ This lab is NOT a supported configuration but is designed for you to experiment.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-674qv                  1/1     Running     0          3m1s
 postgresql-1-deploy                 0/1     Completed   0          3m4s
 rails-pgsql-persistent-1-build      0/1     Completed   0          3m6s
 rails-pgsql-persistent-1-deploy     0/1     Completed   0          100s
 rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          97s
-rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s</pre>
+rails-pgsql-persistent-1-rxzg2      1/1     Running     0          85s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1297,7 +1297,7 @@ persistent storage on OCS.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://rails-pgsql-persistent-my-database-app.apps.ocp45.ocstraining.com/articles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1315,8 +1315,8 @@ deployment.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>username: openshift
-password: secret</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">username: openshift
+password: secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1330,7 +1330,7 @@ password: secret</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -1345,7 +1345,7 @@ password: secret</pre>
  id |             title             |                                        body                                        |         created_at         |         updated_at
 ----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
   1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
-(1 row)</pre>
+(1 row)</code></pre>
 </div>
 </div>
 </div>
@@ -1369,7 +1369,7 @@ echo $masternode</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ip-10-0-212-112.us-east-2.compute.internal</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ip-10-0-212-112.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1383,7 +1383,7 @@ echo $masternode</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-mon-e-6bdd6d6bb8-wxwkf</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-mon-e-6bdd6d6bb8-wxwkf</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1401,7 +1401,7 @@ echo ${instanceid}</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>i-096972e6887f383a6</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">i-096972e6887f383a6</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1415,7 +1415,7 @@ echo ${instanceid}</code></pre>
 <div class="listingblock">
 <div class="title">Exampe output</div>
 <div class="content">
-<pre>{
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">{
     "StoppingInstances": [
         {
             "CurrentState": {
@@ -1429,7 +1429,7 @@ echo ${instanceid}</code></pre>
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1443,8 +1443,8 @@ echo ${instanceid}</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS      ROLES    AGE     VERSION
-ip-10-0-212-112.us-east-2.compute.internal   NotReady    master   3h33m   v1.20.0+bafe72f</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS      ROLES    AGE     VERSION
+ip-10-0-212-112.us-east-2.compute.internal   NotReady    master   3h33m   v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1458,11 +1458,11 @@ ip-10-0-212-112.us-east-2.compute.internal   NotReady    master   3h33m   v1.20.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
 rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
 rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
 rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
-rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pending     0          111m</pre>
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pending     0          111m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1476,7 +1476,7 @@ rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pendin
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -1491,7 +1491,7 @@ rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  0/2     Pendin
  id |             title             |                                        body                                        |         created_at         |         updated_at
 ----+-------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
   1 | Test Metro Stretch DR article | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
-(1 row)</pre>
+(1 row)</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1517,7 +1517,7 @@ The output is identical to the one performed when we tested the successfull depl
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>{
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">{
     "StartingInstances": [
         {
             "CurrentState": {
@@ -1531,7 +1531,7 @@ The output is identical to the one performed when we tested the successfull depl
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1545,11 +1545,11 @@ The output is identical to the one performed when we tested the successfull depl
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-mon-a-599568d496-cqfxb                                  2/2     Running     0          112m
 rook-ceph-mon-b-5b56c99655-m69s2                                  2/2     Running     0          112m
 rook-ceph-mon-c-5854699cbd-76lrv                                  2/2     Running     0          111m
 rook-ceph-mon-d-765776ccfc-46qpn                                  2/2     Running     0          111m
-rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          8m59s</pre>
+rook-ceph-mon-e-6bdd6d6bb8-wxwkf                                  2/2     Running     0          8m59s</code></pre>
 </div>
 </div>
 </div>
@@ -1574,7 +1574,7 @@ echo $appnode</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ip-10-0-158-73.us-east-2.compute.internal</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ip-10-0-158-73.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1590,7 +1590,7 @@ echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"</code></pr
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Application in zone us-east-2a; Shutting down zone us-east-2b</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Application in zone us-east-2a; Shutting down zone us-east-2b</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1611,7 +1611,7 @@ done</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Shutting down i-0a3a7885a211a2b6d
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Shutting down i-0a3a7885a211a2b6d
 {
     "StoppingInstances": [
         {
@@ -1642,7 +1642,7 @@ Shutting down i-0e31b4d74c583a6c1
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1656,14 +1656,14 @@ Shutting down i-0e31b4d74c583a6c1
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS     ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS     ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   Ready      worker   4h15m   v1.20.0+bafe72f
 ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    Ready      worker   7h26m   v1.20.0+bafe72f
 ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h30m   v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   NotReady   worker   7h24m   v1.20.0+bafe72f
 ip-10-0-179-14.us-east-2.compute.internal    NotReady   worker   4h16m   v1.20.0+bafe72f
-ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f</pre>
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1677,7 +1677,7 @@ ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h31m   v1.20.0
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS        RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS        RESTARTS   AGE
 noobaa-core-0                                                     1/1     Terminating   0          4h1m
 noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
 noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
@@ -1689,7 +1689,7 @@ rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pendin
 rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
 rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
 rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
-rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</pre>
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1717,7 +1717,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     bb24312f-df33-455a-ae74-dc974a7572cd
     health: HEALTH_WARN
             insufficient standby MDS daemons available
@@ -1747,7 +1747,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
              86  active+undersized+degraded
 
   io:
-    client:   5.3 KiB/s wr, 0 op/s rd, 0 op/s wr</pre>
+    client:   5.3 KiB/s wr, 0 op/s rd, 0 op/s wr</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1777,7 +1777,7 @@ to the database. Once you have added a new article you can verify it exists in t
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -1793,7 +1793,7 @@ to the database. Once you have added a new article you can verify it exists in t
 ----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
   1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
   2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
-(2 rows)</pre>
+(2 rows)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1811,7 +1811,7 @@ done</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Starting i-0a3a7885a211a2b6d
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Starting i-0a3a7885a211a2b6d
 {
     "StartingInstances": [
         {
@@ -1842,7 +1842,7 @@ Starting i-0e31b4d74c583a6c1
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1856,14 +1856,14 @@ Starting i-0e31b4d74c583a6c1
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h30m   v1.20.0+bafe72f
 ip-10-0-155-110.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   7h42m   v1.20.0+bafe72f
 ip-10-0-163-32.us-east-2.compute.internal    Ready    master   7h45m   v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   7h39m   v1.20.0+bafe72f
 ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h31m   v1.20.0+bafe72f
-ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f</pre>
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1877,9 +1877,9 @@ ip-10-0-207-228.us-east-2.compute.internal   Ready    master   7h46m   v1.20.0+b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
 rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed   0          4h12m
-rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          4h12m</pre>
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed   0          4h12m</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1906,7 +1906,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     bb24312f-df33-455a-ae74-dc974a7572cd
     health: HEALTH_OK
 
@@ -1928,7 +1928,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
     pgs:     192 active+clean
 
   io:
-    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</pre>
+    client:   1.2 KiB/s rd, 5.3 KiB/s wr, 2 op/s rd, 0 op/s wr</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1968,7 +1968,7 @@ echo $appnode</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>ip-10-0-158-73.us-east-2.compute.internal</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ip-10-0-158-73.us-east-2.compute.internal</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1984,7 +1984,7 @@ echo "Application in zone ${appzone}; Shutting down zone ${shutzone}"</code></pr
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Application in zone us-east-2a; Shutting down zone us-east-2a</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Application in zone us-east-2a; Shutting down zone us-east-2a</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2005,7 +2005,7 @@ done</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Shutting down i-048512405b8d288c5
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Shutting down i-048512405b8d288c5
 {
     "StoppingInstances": [
         {
@@ -2036,7 +2036,7 @@ Shutting down i-01cdb6fe63f481043
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2050,14 +2050,14 @@ Shutting down i-01cdb6fe63f481043
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS     ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS     ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   NotReady   worker   4h38m   v1.20.0+bafe72f
 ip-10-0-155-110.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    NotReady   worker   7h49m   v1.20.0+bafe72f
 ip-10-0-163-32.us-east-2.compute.internal    Ready      master   7h53m   v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   Ready      worker   7h46m   v1.20.0+bafe72f
 ip-10-0-179-14.us-east-2.compute.internal    Ready      worker   4h38m   v1.20.0+bafe72f
-ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f</pre>
+ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2071,7 +2071,7 @@ ip-10-0-207-228.us-east-2.compute.internal   Ready      master   7h53m   v1.20.0
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS        RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS        RESTARTS   AGE
 noobaa-core-0                                                     1/1     Terminating   0          4h1m
 noobaa-db-pg-0                                                    1/1     Terminating   0          4h1m
 noobaa-endpoint-8888f5c66-h95th                                   1/1     Terminating   0          4h
@@ -2083,7 +2083,7 @@ rook-ceph-mon-d-5d45c796bc-4vpwz                                  0/2     Pendin
 rook-ceph-osd-2-6c57b8946f-6zl5x                                  0/2     Pending       0          2m12s
 rook-ceph-osd-3-6f7dd55b9f-b48f8                                  0/2     Pending       0          2m22s
 rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0nvmg7-7w6nf       0/1     Completed     0          4h2m
-rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</pre>
+rook-ceph-osd-prepare-ocs-deviceset-gp2-3-data-02bsqw-n98t9       0/1     Completed     0          4h2m</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -2111,7 +2111,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     bb24312f-df33-455a-ae74-dc974a7572cd
     health: HEALTH_WARN
             1 filesystem is degraded
@@ -2137,7 +2137,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
     pgs:     100.000% pgs not active
              286/572 objects degraded (50.000%)
              103 undersized+peered
-             89  undersized+degraded+peered</pre>
+             89  undersized+degraded+peered</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -2180,7 +2180,7 @@ to the database. Once you have added a new article you can verify it exists in t
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -2196,7 +2196,7 @@ to the database. Once you have added a new article you can verify it exists in t
 ----+--------------------------------+------------------------------------------------------------------------------------+----------------------------+----------------------------
   1 | Test Metro Stretch DR article  | This article is to prove the data remains available once an entire zone goes down. | 2021-04-08 00:19:49.956903 | 2021-04-08 00:19:49.956903
   2 | Article Added During Failure 1 | This is to verify the application remains available.                               | 2021-04-08 02:35:48.380815 | 2021-04-08 02:35:48.380815
-(2 rows)</pre>
+(2 rows)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2214,7 +2214,7 @@ done</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Starting i-048512405b8d288c5
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Starting i-048512405b8d288c5
 {
     "StartingInstances": [
         {
@@ -2245,7 +2245,7 @@ Starting i-01cdb6fe63f481043
             }
         }
     ]
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2259,14 +2259,14 @@ Starting i-01cdb6fe63f481043
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                         STATUS   ROLES    AGE     VERSION
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE     VERSION
 ip-10-0-150-108.us-east-2.compute.internal   Ready    worker   4h57m   v1.20.0+bafe72f
 ip-10-0-155-110.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f
 ip-10-0-158-73.us-east-2.compute.internal    Ready    worker   8h      v1.20.0+bafe72f
 ip-10-0-163-32.us-east-2.compute.internal    Ready    master   8h      v1.20.0+bafe72f
 ip-10-0-172-113.us-east-2.compute.internal   Ready    worker   8h      v1.20.0+bafe72f
 ip-10-0-179-14.us-east-2.compute.internal    Ready    worker   4h57m   v1.20.0+bafe72f
-ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f</pre>
+ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+bafe72f</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2280,7 +2280,7 @@ ip-10-0-207-228.us-east-2.compute.internal   Ready    master   8h      v1.20.0+b
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                                              READY   STATUS      RESTARTS   AGE</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -2307,7 +2307,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>  cluster:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  cluster:
     id:     bb24312f-df33-455a-ae74-dc974a7572cd
     health: HEALTH_OK
 
@@ -2328,7 +2328,7 @@ oc rsh -n openshift-storage $TOOLS_POD ceph status</code></pre>
     pgs:     192 active+clean
 
   io:
-    client:   141 KiB/s rd, 145 KiB/s wr, 8 op/s rd, 9 op/s wr</pre>
+    client:   141 KiB/s rd, 145 KiB/s wr, 8 op/s rd, 9 op/s wr</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Testing your OpenShift Container Storage deployment :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4perf/ocs4perf.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -319,7 +319,7 @@ in a disconnected environment. To do so run the following command.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>v1.0: sha256:1009aacf752870bd38bda64d5c372fa7f370d225532560799a484a18a52ddea1</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">v1.0: sha256:1009aacf752870bd38bda64d5c372fa7f370d225532560799a484a18a52ddea1</code></pre>
 </div>
 </div>
 </div>
@@ -474,9 +474,9 @@ and perform any test you see fit.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>namespace/sysbench created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">namespace/sysbench created
 persistentvolumeclaim/pvc-sysbenchrbd-write created
-job.batch/sysbench-file-write created</pre>
+job.batch/sysbench-file-write created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -490,8 +490,8 @@ job.batch/sysbench-file-write created</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
-pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi        RWO            ocs-independent-storagecluster-ceph-rbd   13s</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                              AGE
+pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi        RWO            ocs-independent-storagecluster-ceph-rbd   13s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -505,10 +505,10 @@ pvc-sysbenchrbd-write   Bound    pvc-00cfa5ac-2356-4ae8-8b39-cd2b77bdf3f4   1Gi 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                        READY   STATUS              RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                        READY   STATUS              RESTARTS   AGE
 sysbench-file-write-m6mnd   0/1     ContainerCreating   0          26s
 sysbench-file-write-m6mnd   1/1     Running             0          27s
-sysbench-file-write-m6mnd   0/1     Completed           0          41s</pre>
+sysbench-file-write-m6mnd   0/1     Completed           0          41s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -522,7 +522,7 @@ sysbench-file-write-m6mnd   0/1     Completed           0          41s</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Currently mounted filesystems for Random WRITE test
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Currently mounted filesystems for Random WRITE test
 /dev/rbd0                               999320     2564    980372   1% /tmp/data
 Changing working directory to /tmp/data
 Current working directory for control before execution
@@ -595,7 +595,7 @@ sysbench 1.0.20 (using bundled LuaJIT 2.1.0-beta2)
 
 Removing test files...
 + set +x
-Changing working directory to /</pre>
+Changing working directory to /</code></pre>
 </div>
 </div>
 </div>

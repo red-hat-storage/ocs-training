@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>At-rest and PersistentVolume encryption with an external KMS :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-encryption.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -337,7 +337,7 @@ which vault</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ brew tap hashicorp/tap
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ brew tap hashicorp/tap
 ==&gt; Tapping hashicorp/tap
 Cloning into '/usr/local/Homebrew/Library/Taps/hashicorp/homebrew-tap'...
 remote: Enumerating objects: 1090, done.
@@ -362,7 +362,7 @@ Updated 2 taps (homebrew/core and noobaa/noobaa).
 ==&gt; `brew cleanup` has not been run in 30 days, running now...
 [...]
 $ which vault
-/usr/local/bin/vault</pre>
+/usr/local/bin/vault</code></pre>
 </div>
 </div>
 </div>
@@ -425,7 +425,7 @@ sudo certbot certonly --standalone --noninteractive --agree-tos -m \{your-email\
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Saving debug log to /var/log/letsencrypt/letsencrypt.log
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Saving debug log to /var/log/letsencrypt/letsencrypt.log
 Plugins selected: Authenticator standalone, Installer None
 Starting new HTTPS connection (1): acme-v02.api.letsencrypt.org
 Requesting a certificate for external-vault.ocstraining.com
@@ -446,7 +446,7 @@ IMPORTANT NOTES:
  - If you like Certbot, please consider supporting our work by:
 
    Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
-   Donating to EFF:                    https://eff.org/donate-le</pre>
+   Donating to EFF:                    https://eff.org/donate-le</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -504,7 +504,7 @@ cat ./vault/config/vault-server-hcl</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ mkdir -p ./vault/data
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ mkdir -p ./vault/data
 $ mkdir -p ./vault/config
 $ cat /etc/vault/vault-server-hcl
 disable_mlock = true
@@ -524,7 +524,7 @@ cluster_addr = "https://ip-172-31-14-45.us-east-2.compute.internal:8201"
 
 storage "file" {
   path = "./vault/data"
-}</pre>
+}</code></pre>
 </div>
 </div>
 </div>
@@ -554,7 +554,7 @@ to run the command below.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>==&gt; Vault server configuration:
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">==&gt; Vault server configuration:
 
              Api Address: https://ip-172-31-14-45.us-east-2.compute.internal:8200
                      Cgo: disabled
@@ -568,7 +568,7 @@ to run the command below.
                  Version: Vault v1.7.0-rc1
              Version Sha: 9af08a1c5f0f855984a1fa56d236675d167f578e
 
-==&gt; Vault server started! Log data will stream in below:</pre>
+==&gt; Vault server started! Log data will stream in below:</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -604,7 +604,7 @@ vault status</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ vault status
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ vault status
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -616,7 +616,7 @@ Unseal Progress    0/0
 Unseal Nonce       n/a
 Version            1.7.0
 Storage Type       file
-HA Enabled         false</pre>
+HA Enabled         false</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -645,7 +645,7 @@ HA Enabled         false</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ vault operator init
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ vault operator init
 Unseal Key 1: ipjXvCrThyh8WM2wmEIkWWWXRe3IFNPwoxNfNndbLjxU <i class="conum" data-value="1"></i><b>(1)</b>
 Unseal Key 2: ENbgK3UsA+mNWIZ5NKQXlGR+Sd7NzHnPGSRoaZeRRPoE
 Unseal Key 3: mKPWCEU7KMSOpLDdEgxFxLzHrqMi4MI1g1DaPsK2An6O
@@ -663,7 +663,7 @@ Vault does not store the generated master key. Without at least 3 key to
 reconstruct the master key, Vault will remain permanently sealed!
 
 It is possible to generate new unseal keys, provided you have a quorum of
-existing unseal keys shares. See "vault operator rekey" for more information.</pre>
+existing unseal keys shares. See "vault operator rekey" for more information.</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -703,7 +703,7 @@ When prompted, enter one of the <code>Unseal keys</code>.</p>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Unseal Key (will be hidden):
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Unseal Key (will be hidden):
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -715,7 +715,7 @@ Unseal Progress    1/3 <i class="conum" data-value="1"></i><b>(1)</b>
 Unseal Nonce       8c3df261-8318-0ed6-d15c-45f62e34c0ab
 Version            1.7.0
 Storage Type       file
-HA Enabled         false</pre>
+HA Enabled         false</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -746,7 +746,7 @@ change as illustrated below.</p>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ vault operator unseal
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ vault operator unseal
 Unseal Key (will be hidden):
 Key             Value
 ---             -----
@@ -759,7 +759,7 @@ Version         1.7.0
 Storage Type    file
 Cluster Name    localvault
 Cluster ID      c4f770b8-b571-8c4f-b668-9dcf7cbf0c33
-HA Enabled      false</pre>
+HA Enabled      false</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -788,7 +788,7 @@ vault write auth/userpass/users/{username} password='{password}' policies=admins
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ vault login s.BdZ4mPw3J6MdjUyPA5oLum7R
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ vault login s.BdZ4mPw3J6MdjUyPA5oLum7R
 Success! You are now authenticated. The token information displayed below
 is already stored in the token helper. You do NOT need to run "vault login"
 again. Future Vault requests will automatically use this token.
@@ -805,7 +805,7 @@ policies             ["root"]
 $ vault auth enable userpass
 Success! Enabled userpass auth method at: userpass/
 $ vault write auth/userpass/users/myuser password='RedHat' policies=admins
-Success! Data written to: auth/userpass/users/myuser</pre>
+Success! Data written to: auth/userpass/users/myuser</code></pre>
 </div>
 </div>
 </div>
@@ -832,7 +832,7 @@ vault token create -policy=ocs -format json</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ vault secrets enable -path=ocs kv <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ vault secrets enable -path=ocs kv <i class="conum" data-value="1"></i><b>(1)</b>
 Success! Enabled the kv secrets engine at: ocs/
 $ echo 'path "ocs/*" {
   capabilities = ["create", "read", "update", "delete", "list"]
@@ -867,7 +867,7 @@ $ vault token create -policy=ocs -format json
     "lease_duration": 2764800,
     "renewable": true
   }
-}</pre>
+}</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -994,14 +994,14 @@ The operator status should be <code>Succeeded</code>.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                                        READY   STATUS    RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        READY   STATUS    RESTARTS   AGE
 pod/noobaa-operator-7d4999c99f-9l88r        1/1     Running   0          71s
 pod/ocs-metrics-exporter-7b499fd65c-m89sc   1/1     Running   0          70s
 pod/ocs-operator-7564cf58b7-jbmfx           1/1     Running   0          71s
 pod/rook-ceph-operator-b58cfd5c-fbjlh       1/1     Running   0          71s
 
 NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
-clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-353.ci   OpenShift Container Storage   4.7.0-353.ci              Succeeded</pre>
+clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-353.ci   OpenShift Container Storage   4.7.0-353.ci              Succeeded</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -1341,7 +1341,7 @@ CephFS based PV encryption is not yet available.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Now using project "my-rbd-storage" on server "https://api.ocp45.ocstraining.com:6443".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Now using project "my-rbd-storage" on server "https://api.ocp45.ocstraining.com:6443".
 
 You can add applications to this project with the 'new-app' command. For example, try:
 
@@ -1349,7 +1349,7 @@ You can add applications to this project with the 'new-app' command. For example
 
 to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
 
-    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname</pre>
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1446,9 +1446,9 @@ EOF</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim/pvc-cephrbd1 created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">persistentvolumeclaim/pvc-cephrbd1 created
 persistentvolumeclaim/pvc-cephrbd2 created
-job.batch/batch2 created</pre>
+job.batch/batch2 created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1462,7 +1462,7 @@ job.batch/batch2 created</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>[...]
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[...]
 Volumes:
   tmp-store:
     Type:       PersistentVolumeClaim (a reference to a PersistentVolumeClaim in the same namespace)
@@ -1492,7 +1492,7 @@ Events:
   Normal   Pulling                 8m23s  kubelet                  Pulling image "amazon/aws-cli:latest"
   Normal   Pulled                  8m23s  kubelet                  Successfully pulled image "amazon/aws-cli:latest" in 563.111829ms
   Normal   Created                 8m23s  kubelet                  Created container batch2
-  Normal   Started                 8m23s  kubelet                  Started container batch2</pre>
+  Normal   Started                 8m23s  kubelet                  Started container batch2</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1503,9 +1503,9 @@ Events:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME           STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS    AGE
 pvc-cephrbd1   Bound    pvc-93affaed-40f4-4fba-b907-53fbeefbd03f   500Gi      RWO            encrypted-rbd   9m30s
-pvc-cephrbd2   Bound    pvc-f884eadc-9d37-4111-85ea-123c78b646a7   500Mi      RWO            encrypted-rbd   9m30s</pre>
+pvc-cephrbd2   Bound    pvc-f884eadc-9d37-4111-85ea-123c78b646a7   500Mi      RWO            encrypted-rbd   9m30s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1585,10 +1585,10 @@ on this web site.
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
 node/ip-10-0-134-254.us-east-2.compute.internal labeled
 node/ip-10-0-186-246.us-east-2.compute.internal labeled
-node/ip-10-0-194-104.us-east-2.compute.internal labeled</pre>
+node/ip-10-0-194-104.us-east-2.compute.internal labeled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1762,10 +1762,10 @@ type: Opaque</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>secret/ocs-kms-ca-secret created
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/ocs-kms-ca-secret created
 secret/ocs-kms-client-cert created
 secret/ocs-kms-client-key created
-secret/ocs-kms-token created</pre>
+secret/ocs-kms-token created</code></pre>
 </div>
 </div>
 </div>
@@ -1872,8 +1872,8 @@ If <strong>HashiCorp Vault</strong> is not configured with <code>https</code> as
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>configmap/ocs-kms-connection-details created
-configmap/csi-kms-connection-details created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/ocs-kms-connection-details created
+configmap/csi-kms-connection-details created</code></pre>
 </div>
 </div>
 </div>
@@ -1939,8 +1939,8 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>oc create -f storagecluster-encrypted-kms.yaml
-storagecluster.ocs.openshift.io/ocs-storagecluster created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f storagecluster-encrypted-kms.yaml
+storagecluster.ocs.openshift.io/ocs-storagecluster created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1956,7 +1956,7 @@ oc get cephcluster -n openshift-storage</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>$ oc get pod,pvc -n openshift-storage
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc get pod,pvc -n openshift-storage
 NAME                                                                  READY   STATUS      RESTARTS   AGE
 pod/csi-cephfsplugin-mjj7b                                            3/3     Running     0          7m26s
 pod/csi-cephfsplugin-p6pff                                            3/3     Running     0          7m26s
@@ -2004,7 +2004,7 @@ NAME                 AGE   PHASE   EXTERNAL   CREATED AT             VERSION
 ocs-storagecluster   10m   Ready              2021-04-21T20:55:57Z   4.7.0
 $ oc get cephcluster -n openshift-storage
 NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
-ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK</pre>
+ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK</code></pre>
 </div>
 </div>
 </div>

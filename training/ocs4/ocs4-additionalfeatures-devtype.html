@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Mixed OSD device type configuration :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-additionalfeatures-devtype.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -188,7 +188,7 @@
 <div class="sectionbody">
 <div class="paragraph">
 <p>Starting with ODF 4.7 you can customize the deployment of your OSDs to consume different device
-types. This feature can be combined with <a href="ocs4-additionalfeatures-dbwal.html" class="page">the BlueStore placement customization</a> and
+types. This feature can be combined with <a href="ocs4-additionalfeatures-dbwal.html" class="xref page">the BlueStore placement customization</a> and
 it is illustrated below.</p>
 </div>
 </div>
@@ -237,7 +237,7 @@ spec:
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>The authorized values for the device types are <code>hdd</code>, <code>ssd</code> and <code>nvme</code>. Those device types will be used
-to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="page">document on data segregation</a> for more information on this.</td>
+to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="xref page">document on data segregation</a> for more information on this.</td>
 </tr>
 </table>
 </div>
@@ -297,7 +297,7 @@ spec:
 <tr>
 <td><i class="conum" data-value="1"></i><b>1</b></td>
 <td>The authorized values for the device types are <code>hdd</code>, <code>ssd</code> and <code>nvme</code>. Those device types will be used
-to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="page">document on data segregation</a> for more information on this.</td>
+to assign a CRUSH device class within your underlying cluster. See the <a href="ocs4-additionalfeatures-segregation.html" class="xref page">document on data segregation</a> for more information on this.</td>
 </tr>
 <tr>
 <td><i class="conum" data-value="2"></i><b>2</b></td>
@@ -348,7 +348,7 @@ the CRUSH device class that gets assigned to each OSD and does not reflect the a
 <div class="listingblock">
 <div class="title">CRUSH tree</div>
 <div class="content">
-<pre>ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ID  CLASS WEIGHT   TYPE NAME                        STATUS REWEIGHT PRI-AFF
  -1       39.75000 root default
  -7       39.75000     region us-east-2
 -18       13.25000         zone us-east-2a
@@ -368,7 +368,7 @@ the CRUSH device class that gets assigned to each OSD and does not reflect the a
   4  nvme  0.50000                 osd.4                up  1.00000 1.00000
   7   ssd  4.25000                 osd.7                up  1.00000 1.00000
 -37        8.50000             host ip-10-0-211-21
-  6   hdd  8.50000                 osd.6                up  1.00000 1.00000</pre>
+  6   hdd  8.50000                 osd.6                up  1.00000 1.00000</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">

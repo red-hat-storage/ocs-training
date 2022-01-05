@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Manual OpenShift Regional Disaster Recovery :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/RegionalDR/manual/ocs4-multisite-replication.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -552,7 +552,7 @@ All <code>subctl</code> commands can be executed from any node that has network 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre> ✓ Setting up broker RBAC
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell"> ✓ Setting up broker RBAC
  ✓ Deploying the Submariner operator
  ✓ Created operator CRDs
  ✓ Created operator namespace: submariner-operator
@@ -565,7 +565,7 @@ All <code>subctl</code> commands can be executed from any node that has network 
  ✓ Deploying the broker
  ✓ The broker has been deployed
  ✓ Creating broker-info.subm file
- ✓ A new IPsec PSK will be generated for broker-info.subm</pre>
+ ✓ A new IPsec PSK will be generated for broker-info.subm</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -591,7 +591,7 @@ The <code>--natt=false</code> flag is used when the connection between the two O
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>* broker-info.subm says broker is at: https://api.site1.chris.ocs.ninja:6443
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">* broker-info.subm says broker is at: https://api.site1.chris.ocs.ninja:6443
 ? Which node should be used as the gateway? site1-fqldq-worker-975qq
 ⢄⡱ Discovering network details     Discovered network details:
         Network plugin:  OpenShiftSDN
@@ -604,7 +604,7 @@ The <code>--natt=false</code> flag is used when the connection between the two O
  ✓ Created Lighthouse service accounts and roles
  ✓ Creating SA for cluster
  ✓ Deploying Submariner
- ✓ Submariner is up and running</pre>
+ ✓ Submariner is up and running</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -618,7 +618,7 @@ The <code>--natt=false</code> flag is used when the connection between the two O
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>* broker-info.subm says broker is at: https://api.site1.chris.ocs.ninja:6443
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">* broker-info.subm says broker is at: https://api.site1.chris.ocs.ninja:6443
 ? Which node should be used as the gateway? site2-lc8kr-worker-8j2qk
 ⢄⡱ Discovering network details     Discovered network details:
         Network plugin:  OpenShiftSDN
@@ -638,7 +638,7 @@ The <code>--natt=false</code> flag is used when the connection between the two O
  ✓ Deployed the operator successfully
  ✓ Creating SA for cluster
  ✓ Deploying Submariner
- ✓ Submariner is up and running</pre>
+ ✓ Submariner is up and running</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -652,7 +652,7 @@ The <code>--natt=false</code> flag is used when the connection between the two O
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                            READY   STATUS    RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                            READY   STATUS    RESTARTS   AGE
 submariner-gateway-kthdc                        1/1     Running   0          28m
 submariner-lighthouse-agent-6c5755764-hjhsm     1/1     Running   0          27m
 submariner-lighthouse-coredns-c4f7b6b8c-7nqxz   1/1     Running   0          27m
@@ -663,7 +663,7 @@ submariner-routeagent-bchnj                     1/1     Running   0          27m
 submariner-routeagent-glmlj                     1/1     Running   0          27m
 submariner-routeagent-qgdps                     1/1     Running   0          27m
 submariner-routeagent-sl2tr                     1/1     Running   0          27m
-submariner-routeagent-smmdt                     1/1     Running   0          27m</pre>
+submariner-routeagent-smmdt                     1/1     Running   0          27m</code></pre>
 </div>
 </div>
 <div class="sect4">
@@ -679,7 +679,7 @@ submariner-routeagent-smmdt                     1/1     Running   0          27m
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Performing the following verifications: connectivity
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Performing the following verifications: connectivity
 Running Suite: Submariner E2E suite
 ===================================
 Random Seed: 1614875124
@@ -688,7 +688,7 @@ Will run 17 of 34 specs
 ------------------------------
 
 Ran 11 of 34 Specs in 159.666 seconds
-SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
+SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -702,8 +702,8 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>site2-wsj9g-worker-4c446  site2    10.70.56.142  no   libreswan     10.112.0.0/16, 10.12.0.0/16  connected  560.701µ
-[...]</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">site2-wsj9g-worker-4c446  site2    10.70.56.142  no   libreswan     10.112.0.0/16, 10.12.0.0/16  connected  560.701µ
+[...]</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -717,8 +717,8 @@ SUCCESS! -- 11 Passed | 0 Failed | 0 Pending | 23 Skipped</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>site1-vwgpp-worker-fd4gs  site1    10.70.56.202  no   libreswan     10.16.0.0/16, 10.6.0.0/16  connected  459.831µs
-[...]</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">site1-vwgpp-worker-fd4gs  site1    10.70.56.202  no   libreswan     10.16.0.0/16, 10.6.0.0/16  connected  459.831µs
+[...]</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -800,7 +800,7 @@ For the rest of the instructions <code>site1</code> will be referred to as the O
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>configmap/rook-ceph-operator-config patched</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/rook-ceph-operator-config patched</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -814,7 +814,7 @@ For the rest of the instructions <code>site1</code> will be referred to as the O
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus csi-provisioner csi-resizer csi-attacher csi-snapshotter csi-omap-generator csi-rbdplugin liveness-prometheus</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -887,7 +887,7 @@ The <code>snapshotSchedules</code> is a global value for the specific <strong>Ce
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>cephblockpool.ceph.rook.io/replicapool created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cephblockpool.ceph.rook.io/replicapool created</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -931,7 +931,7 @@ Execute the following commands on the <strong>secondary cluster</strong> first.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>pool-peer-token-replicapool</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pool-peer-token-replicapool</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -945,7 +945,7 @@ Execute the following commands on the <strong>secondary cluster</strong> first.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>eyJmc2lkIjoiYjg4OGRlNjEtODUyMC00MzgxLWE4ODMtMzY2ZTY0YmQ0MDBmIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDOCtWTmdkNURnQkJBQUd5S0l0VE9ac3FneVM3SEMrTXh5bGc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi43MS4xNTU6MzMwMCx2MToxMC4xMTIuNzEuMTU1OjY3ODldLFt2MjoxMC4xMTIuMTI3LjE0ODozMzAwLHYxOjEwLjExMi4xMjcuMTQ4OjY3ODldLFt2MjoxMC4xMTIuNzAuMjUzOjMzMDAsdjE6MTAuMTEyLjcwLjI1Mzo2Nzg5XSJ9</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">eyJmc2lkIjoiYjg4OGRlNjEtODUyMC00MzgxLWE4ODMtMzY2ZTY0YmQ0MDBmIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDOCtWTmdkNURnQkJBQUd5S0l0VE9ac3FneVM3SEMrTXh5bGc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi43MS4xNTU6MzMwMCx2MToxMC4xMTIuNzEuMTU1OjY3ODldLFt2MjoxMC4xMTIuMTI3LjE0ODozMzAwLHYxOjEwLjExMi4xMjcuMTQ4OjY3ODldLFt2MjoxMC4xMTIuNzAuMjUzOjMzMDAsdjE6MTAuMTEyLjcwLjI1Mzo2Nzg5XSJ9</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -959,7 +959,7 @@ Execute the following commands on the <strong>secondary cluster</strong> first.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>b888de61-8520-4381-a883-366e64bd400f-openshift-storage</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">b888de61-8520-4381-a883-366e64bd400f-openshift-storage</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -991,16 +991,16 @@ Execute the following command on the <strong>primary cluster</strong>.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>oc --kubeconfig site1/auth/kubeconfig -n openshift-storage \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc --kubeconfig site1/auth/kubeconfig -n openshift-storage \
   create secret generic b888de61-8520-4381-a883-366e64bd400f-openshift-storage \
   --from-literal=token=eyJmc2lkIjoiYjg4OGRlNjEtODUyMC00MzgxLWE4ODMtMzY2ZTY0YmQ0MDBmIiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDOCtWTmdkNURnQkJBQUd5S0l0VE9ac3FneVM3SEMrTXh5bGc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjExMi43MS4xNTU6MzMwMCx2MToxMC4xMTIuNzEuMTU1OjY3ODldLFt2MjoxMC4xMTIuMTI3LjE0ODozMzAwLHYxOjEwLjExMi4xMjcuMTQ4OjY3ODldLFt2MjoxMC4xMTIuNzAuMjUzOjMzMDAsdjE6MTAuMTEyLjcwLjI1Mzo2Nzg5XSJ9 \
-  --from-literal=pool=replicapool</pre>
+  --from-literal=pool=replicapool</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>secret/b888de61-8520-4381-a883-366e64bd400f-openshift-storage created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/b888de61-8520-4381-a883-366e64bd400f-openshift-storage created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1029,7 +1029,7 @@ Repeat the process switching the steps for the <strong>secondary cluster</strong
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>pool-peer-token-replicapool</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pool-peer-token-replicapool</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1043,7 +1043,7 @@ Repeat the process switching the steps for the <strong>secondary cluster</strong
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>eyJmc2lkIjoiZjI4YWJjZjktMWZmZS00MWEwLWJkMmYtZjQzMDU2NGYwZWU1IiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDeStWTmdHQ25GQWhBQU5MNWQ1Zk9IQ1lMcTFYRDBSTkxMRHc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2Ljc1LjE2NTozMzAwLHYxOjEwLjE2Ljc1LjE2NTo2Nzg5XSxbdjI6MTAuMTYuMTc2LjEwMTozMzAwLHYxOjEwLjE2LjE3Ni4xMDE6Njc4OV0sW3YyOjEwLjE2LjI0OC4yNDM6MzMwMCx2MToxMC4xNi4yNDguMjQzOjY3ODldIn0=</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">eyJmc2lkIjoiZjI4YWJjZjktMWZmZS00MWEwLWJkMmYtZjQzMDU2NGYwZWU1IiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDeStWTmdHQ25GQWhBQU5MNWQ1Zk9IQ1lMcTFYRDBSTkxMRHc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2Ljc1LjE2NTozMzAwLHYxOjEwLjE2Ljc1LjE2NTo2Nzg5XSxbdjI6MTAuMTYuMTc2LjEwMTozMzAwLHYxOjEwLjE2LjE3Ni4xMDE6Njc4OV0sW3YyOjEwLjE2LjI0OC4yNDM6MzMwMCx2MToxMC4xNi4yNDguMjQzOjY3ODldIn0=</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1057,7 +1057,7 @@ Repeat the process switching the steps for the <strong>secondary cluster</strong
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1086,16 +1086,16 @@ Execute the following command on the <strong>secondary cluster</strong>.
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc --kubeconfig site2/auth/kubeconfig -n openshift-storage \
   create secret generic f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage \
   --from-literal=token=eyJmc2lkIjoiZjI4YWJjZjktMWZmZS00MWEwLWJkMmYtZjQzMDU2NGYwZWU1IiwiY2xpZW50X2lkIjoicmJkLW1pcnJvci1wZWVyIiwia2V5IjoiQVFDeStWTmdHQ25GQWhBQU5MNWQ1Zk9IQ1lMcTFYRDBSTkxMRHc9PSIsIm1vbl9ob3N0IjoiW3YyOjEwLjE2Ljc1LjE2NTozMzAwLHYxOjEwLjE2Ljc1LjE2NTo2Nzg5XSxbdjI6MTAuMTYuMTc2LjEwMTozMzAwLHYxOjEwLjE2LjE3Ni4xMDE6Njc4OV0sW3YyOjEwLjE2LjI0OC4yNDM6MzMwMCx2MToxMC4xNi4yNDguMjQzOjY3ODldIn0= \
-  --from-literal=pool=replicapool</pre>
+  --from-literal=pool=replicapool</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>secret/f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/f28abcf9-1ffe-41a0-bd2f-f430564f0ee5-openshift-storage created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1159,7 +1159,7 @@ echo $SECRET</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">59b89021-3ee2-4a25-b087-b43ee80b3dde-openshift-storage</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1173,7 +1173,7 @@ echo $SECRET</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>cephrbdmirror.ceph.rook.io/rbd-mirror created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cephrbdmirror.ceph.rook.io/rbd-mirror created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1187,7 +1187,7 @@ echo $SECRET</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>rook-ceph-rbd-mirror-a-57ccc68d88-lts87                           2/2     Running     0          5m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rook-ceph-rbd-mirror-a-57ccc68d88-lts87                           2/2     Running     0          5m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1201,7 +1201,7 @@ echo $SECRET</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>{"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">{"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1285,7 +1285,7 @@ volumeBindingMode: Immediate</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>storageclass.storage.k8s.io/ocs-storagecluster-ceph-mirror created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storageclass.storage.k8s.io/ocs-storagecluster-ceph-mirror created</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1350,13 +1350,13 @@ Make sure to also create the <code>ocs-storagecluster-ceph-mirror</code> <strong
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                READY   STATUS      RESTARTS   AGE
 postgresql-1-deploy                 0/1     Completed   0          5m48s
 postgresql-1-lf7qt                  1/1     Running     0          5m40s
 rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
 rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
 rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
-rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</pre>
+rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1377,7 +1377,7 @@ persistent storage on Ceph.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1392,8 +1392,8 @@ deployment.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>username: openshift
-password: secret</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">username: openshift
+password: secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1407,7 +1407,7 @@ password: secret</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
                                List of relations
  Schema |         Name         |   Type   |  Owner  |    Size    | Description
 --------+----------------------+----------+---------+------------+-------------
@@ -1425,7 +1425,7 @@ t         |         updated_at
 ----------+----------------------------
   2 | First Article | This is article #1 on primary cluster. | 2021-03-19 22:05:
 07.255362 | 2021-03-19 22:05:07.255362
-(1 row)</pre>
+(1 row)</code></pre>
 </div>
 </div>
 </div>
@@ -1532,9 +1532,9 @@ It is not recommended to use ODF object buckets (MCG or RGW) as the <code>S3</co
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>[default]
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[default]
 aws_access_key_id=VELERO_ACCESS_KEY_ID
-aws_secret_access_key=VELERO_SECRET_ACCESS_KEY</pre>
+aws_secret_access_key=VELERO_SECRET_ACCESS_KEY</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1545,7 +1545,7 @@ aws_secret_access_key=VELERO_SECRET_ACCESS_KEY</pre>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>oc create secret generic cloud-credentials --namespace oadp-operator --from-file cloud=&lt;CREDENTIALS_FILE_PATH&gt;/cloud-credentials</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create secret generic cloud-credentials --namespace oadp-operator --from-file cloud=&lt;CREDENTIALS_FILE_PATH&gt;/cloud-credentials</code></pre>
 </div>
 </div>
 </div>
@@ -1610,7 +1610,7 @@ If wanting to us a <code>MCG</code> object bucket instead of a bucket <code>off-
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>oc create -f velero-aws.yaml -n oadp-operator</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f velero-aws.yaml -n oadp-operator</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1624,13 +1624,13 @@ If wanting to us a <code>MCG</code> object bucket instead of a bucket <code>off-
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                           READY   STATUS    RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                           READY   STATUS    RESTARTS   AGE
 pod/oadp-default-aws-registry-88f556c5-2mk6h   1/1     Running   0          4m59s
 pod/oadp-operator-6bb9fb6cfc-mc6vw             1/1     Running   0          49m
 pod/velero-6c6fd6d84d-mbct9                    1/1     Running   0          5m3s
 
 NAME                                      PHASE       LAST VALIDATED   AGE
-backupstoragelocation.velero.io/default   Available   9s               5m1s</pre>
+backupstoragelocation.velero.io/default   Available   9s               5m1s</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -1715,7 +1715,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>HEALTH_OK</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">HEALTH_OK</code></pre>
 </div>
 </div>
 <div class="admonitionblock caution">
@@ -1738,10 +1738,10 @@ Make sure that <code>HEALTH_OK</code> is the status before proceeding.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>health: OK
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">health: OK
 daemon health: OK
 image health: OK
-images: 0 total</pre>
+images: 0 total</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1752,7 +1752,7 @@ images: 0 total</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>every 5m</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">every 5m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1805,7 +1805,7 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-94953897-88fc-11eb-b175-0a580a061092</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1828,7 +1828,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-94953897-88fc-11eb-b175-0a580a061092</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1854,7 +1854,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Mirroring enabled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Mirroring enabled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1868,7 +1868,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output from <strong>primary cluster</strong>:</div>
 <div class="content">
-<pre>rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
 	size 5 GiB in 1280 objects
 	order 22 (4 MiB objects)
 	snapshot_count: 1
@@ -1884,7 +1884,7 @@ Your image name will be different. Use your image name for following commands.
 	mirroring state: enabled
 	mirroring mode: snapshot
 	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
-	mirroring primary: true  <i class="conum" data-value="1"></i><b>(1)</b></pre>
+	mirroring primary: true  <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1906,7 +1906,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output from <strong>secondary cluster</strong>:</div>
 <div class="content">
-<pre>rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
 	size 5 GiB in 1280 objects
 	order 22 (4 MiB objects)
 	snapshot_count: 1
@@ -1922,7 +1922,7 @@ Your image name will be different. Use your image name for following commands.
 	mirroring state: enabled
 	mirroring mode: snapshot
 	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
-	mirroring primary: false  <i class="conum" data-value="1"></i><b>(1)</b></pre>
+	mirroring primary: false  <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -1982,7 +1982,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>configmap/rails-pgsql-persistent-1-ca labeled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/rails-pgsql-persistent-1-ca labeled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1996,7 +1996,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>backup.velero.io/backup1 created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">backup.velero.io/backup1 created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2010,7 +2010,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Name:         backup1
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Name:         backup1
 Namespace:    oadp-operator
 Labels:       velero.io/storage-location=default
 Annotations:  velero.io/source-cluster-k8s-gitversion: v1.20.0+bd9e442
@@ -2039,7 +2039,7 @@ Status:
     Total Items:      63
   Start Timestamp:    2021-03-22T19:17:20Z
   Version:            1
-Events:               &lt;none&gt;</pre>
+Events:               &lt;none&gt;</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -2079,9 +2079,9 @@ Events:               &lt;none&gt;</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                     REVISION   DESIRED   CURRENT   TRIGGERED BY
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                     REVISION   DESIRED   CURRENT   TRIGGERED BY
 postgresql               1          1         1         config,image(postgresql:10)
-rails-pgsql-persistent   1          1         1         config,image(rails-pgsql-persistent:latest)</pre>
+rails-pgsql-persistent   1          1         1         config,image(rails-pgsql-persistent:latest)</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2095,7 +2095,7 @@ rails-pgsql-persistent   1          1         1         config,image(rails-pgsql
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>deploymentconfig.apps.openshift.io/postgresql scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deploymentconfig.apps.openshift.io/postgresql scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2109,7 +2109,7 @@ rails-pgsql-persistent   1          1         1         config,image(rails-pgsql
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">deploymentconfig.apps.openshift.io/rails-pgsql-persistent scaled</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2167,7 +2167,7 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-94953897-88fc-11eb-b175-0a580a061092</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2190,7 +2190,7 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>csi-vol-94953897-88fc-11eb-b175-0a580a061092</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-94953897-88fc-11eb-b175-0a580a061092</code></pre>
 </div>
 </div>
 <div class="admonitionblock important">
@@ -2216,7 +2216,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Image demoted to non-primary</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Image demoted to non-primary</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2230,7 +2230,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Image promoted to primary</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Image promoted to primary</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2244,7 +2244,7 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output from <strong>secondary cluster</strong>:</div>
 <div class="content">
-<pre>rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-94953897-88fc-11eb-b175-0a580a061092':
 	size 5 GiB in 1280 objects
 	order 22 (4 MiB objects)
 	snapshot_count: 1
@@ -2260,7 +2260,7 @@ Your image name will be different. Use your image name for following commands.
 	mirroring state: enabled
 	mirroring mode: snapshot
 	mirroring global id: 8cd6c7e8-a92b-4d1c-bcac-d9c9cd234980
-	mirroring primary: true  <i class="conum" data-value="1"></i><b>(1)</b></pre>
+	mirroring primary: true  <i class="conum" data-value="1"></i><b>(1)</b></code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -2285,11 +2285,11 @@ Your image name will be different. Use your image name for following commands.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>health: OK
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">health: OK
 daemon health: OK
 image health: OK
 images: 1 total
-    1 replaying</pre>
+    1 replaying</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2345,7 +2345,7 @@ Make sure to issue this command on the <strong>secondary cluster</strong>. The n
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>restore.velero.io/restore1 created</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">restore.velero.io/restore1 created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2359,7 +2359,7 @@ Make sure to issue this command on the <strong>secondary cluster</strong>. The n
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Name:         restore1
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Name:         restore1
 Namespace:    oadp-operator
 Labels:       &lt;none&gt;
 Annotations:  &lt;none&gt;
@@ -2383,7 +2383,7 @@ Status:
   Phase:                 Completed  <i class="conum" data-value="3"></i><b>(3)</b>
   Start Timestamp:       2021-03-23T23:51:28Z
   Warnings:              7
-Events:                  &lt;none&gt;</pre>
+Events:                  &lt;none&gt;</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -2413,7 +2413,7 @@ Events:                  &lt;none&gt;</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                                    READY   STATUS      RESTARTS   AGE
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                    READY   STATUS      RESTARTS   AGE
 pod/postgresql-1-deploy                 0/1     Completed   0          9m10s
 pod/postgresql-1-nld26                  1/1     Running     0          9m7s
 pod/rails-pgsql-persistent-1-build      0/1     Completed   0          9m4s
@@ -2424,7 +2424,7 @@ pod/rails-pgsql-persistent-2-deploy     0/1     Completed   0          7m1s
 pod/rails-pgsql-persistent-2-hook-pre   0/1     Completed   0          6m58s
 
 NAME                               STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                     AGE
-persistentvolumeclaim/postgresql   Bound    pvc-c1b313c2-8e96-45b0-b9c8-57864b9437e7   5Gi        RWO            ocs-storagecluster-ceph-mirror   9m13s</pre>
+persistentvolumeclaim/postgresql   Bound    pvc-c1b313c2-8e96-45b0-b9c8-57864b9437e7   5Gi        RWO            ocs-storagecluster-ceph-mirror   9m13s</code></pre>
 </div>
 </div>
 </div>
@@ -2444,7 +2444,7 @@ persistentvolumeclaim/postgresql   Bound    pvc-c1b313c2-8e96-45b0-b9c8-57864b94
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">http://rails-pgsql-persistent-my-database-app.apps.cluster-ocs4-8613.ocs4-8613.sandbox944.opentlc.com/articles</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2455,8 +2455,8 @@ persistentvolumeclaim/postgresql   Bound    pvc-c1b313c2-8e96-45b0-b9c8-57864b94
 </div>
 <div class="listingblock">
 <div class="content">
-<pre>username: openshift
-password: secret</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">username: openshift
+password: secret</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2470,7 +2470,7 @@ password: secret</pre>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>You are now connected to database "root" as user "postgres".
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">You are now connected to database "root" as user "postgres".
  id |     title      |                   body                   |         create
 d_at         |         updated_at
 ----+----------------+------------------------------------------+---------------
@@ -2479,7 +2479,7 @@ d_at         |         updated_at
 05:07.255362 | 2021-03-19 22:05:07.255362
   3 | Second Article | This is article #2 on secondary cluster. | 2021-03-22 23:
 29:24.051123 | 2021-03-22 23:29:24.051123
-(2 rows)</pre>
+(2 rows)</code></pre>
 </div>
 </div>
 <div class="paragraph">

@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>RDRhelper install steps :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/RegionalDR/helper/requirements.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -202,9 +202,9 @@ The actual data inside of the PVs are transferred directly using Ceph&#8217;s as
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Cluster version is 4.7.8   <i class="conum" data-value="1"></i><b>(1)</b>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Cluster version is 4.7.8   <i class="conum" data-value="1"></i><b>(1)</b>
 
-No updates available. You may force an upgrade to a specific release image, but doing so may not be supported and result in downtime or data loss.</pre>
+No updates available. You may force an upgrade to a specific release image, but doing so may not be supported and result in downtime or data loss.</code></pre>
 </div>
 </div>
 <div class="colist arabic">
@@ -246,8 +246,8 @@ Afterwards you should see a similar picture as this:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>NAME                         DISPLAY                       VERSION        REPLACES   PHASE
-ocs-operator.v4.7.0-377.ci   OpenShift Container Storage   4.7.0-377.ci              Succeeded</pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                         DISPLAY                       VERSION        REPLACES   PHASE
+ocs-operator.v4.7.0-377.ci   OpenShift Container Storage   4.7.0-377.ci              Succeeded</code></pre>
 </div>
 </div>
 </div>
@@ -289,9 +289,9 @@ If you intend to use Submariner, you can check out this link which will get you 
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre>Showing information for cluster "source":
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Showing information for cluster "source":
 GATEWAY                         CLUSTER                 REMOTE IP       CABLE DRIVER        SUBNETS                                 STATUS
-master0                         target                  192.168.180.10  libreswan           10.16.0.0/16, 10.6.0.0/16               connected</pre>
+master0                         target                  192.168.180.10  libreswan           10.16.0.0/16, 10.6.0.0/16               connected</code></pre>
 </div>
 </div>
 <div class="paragraph">

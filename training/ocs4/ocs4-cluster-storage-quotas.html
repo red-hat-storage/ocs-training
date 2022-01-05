@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Cluster Wide Storage Management :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-cluster-storage-quotas.html">
-    <meta name="generator" content="Antora 2.3.4">
+    <meta name="generator" content="Antora 3.0.0">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -237,12 +237,12 @@ Selecting more than 100 projects under a single multi-project quota can have det
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>NAME                          PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">NAME                          PROVISIONER                             RECLAIMPOLICY   VOLUMEBINDINGMODE   ALLOWVOLUMEEXPANSION   AGE
 ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete          Immediate           true                   8m15s
 ocs-storagecluster-ceph-rgw   openshift-storage.ceph.rook.io/bucket   Delete          Immediate           false                  8m15s
 ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete          Immediate           true                   8m15s
 openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete          Immediate           false                  6d23h
-thin (default)                kubernetes.io/vsphere-volume            Delete          Immediate           false                  27d</pre>
+thin (default)                kubernetes.io/vsphere-volume            Delete          Immediate           false                  27d</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -296,7 +296,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>clusterresourcequota.quota.openshift.io/totalclusterstorage created</pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">clusterresourcequota.quota.openshift.io/totalclusterstorage created</code></pre>
 </div>
 </div>
 </div>
@@ -358,7 +358,7 @@ $ oc describe AppliedClusterResourceQuota</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Name:		totalclusterstorage
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Name:		totalclusterstorage
 Created:	2 days ago
 Labels:		&lt;none&gt;
 Annotations:	&lt;none&gt;
@@ -367,7 +367,7 @@ Label Selector:
 AnnotationSelector: clusterstoragequota=enabled
 Resource            Used	Hard
 --------            ----	----
-requests.storage    0Gi	40Gi</pre>
+requests.storage    0Gi	40Gi</code></pre>
 </div>
 </div>
 <div class="quoteblock">
@@ -388,11 +388,11 @@ requests.storage    0Gi	40Gi</pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Name:             storage-consumption
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Name:             storage-consumption
 Namespace:        myproject
 Resource          Used  Hard
 --------          ----  ----
-requests.storage  0Gi   30Gi</pre>
+requests.storage  0Gi   30Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -482,8 +482,8 @@ requests.storage    25Gi	40Gi</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>persistentvolumeclaim/storageclaim3 created
-Error from server (Forbidden): error when creating "storageclaim3.yaml": persistentvolumeclaims "storageclaimclaim3" is forbidden: exceeded quota: totalclusterstorage, requested: requests.storage=20Gi, used: requests.storage=25Gi, limited: requests.storage=40Gi</pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">persistentvolumeclaim/storageclaim3 created
+Error from server (Forbidden): error when creating "storageclaim3.yaml": persistentvolumeclaims "storageclaimclaim3" is forbidden: exceeded quota: totalclusterstorage, requested: requests.storage=20Gi, used: requests.storage=25Gi, limited: requests.storage=40Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -540,7 +540,7 @@ objects:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>template.template.openshift.io/&lt;template_name&gt; created</pre>
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">template.template.openshift.io/&lt;template_name&gt; created</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -573,7 +573,7 @@ $ oc describe AppliedClusterResourceQuota</code></pre>
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Name:		totalclusterstorage
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Name:		totalclusterstorage
 Created:	2 days ago
 Labels:		&lt;none&gt;
 Annotations:	&lt;none&gt;
@@ -582,7 +582,7 @@ Label Selector:
 AnnotationSelector: clusterstoragequota=enabled
 Resource            Used	Hard
 --------            ----	----
-requests.storage    25Gi	40Gi</pre>
+requests.storage    25Gi	40Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -640,7 +640,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output</div>
 <div class="content">
-<pre>Name:		totalclusterstorage
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">Name:		totalclusterstorage
 Created:	21 seconds ago
 Labels:		&lt;none&gt;
 Annotations:	&lt;none&gt;
@@ -651,7 +651,7 @@ Resource						                                  Used	Hard
 --------						                                  ----	----
 managed-nfs-storage.storage.k8s.io/requests.storage	  0	    80Gi
 requests.storage					                            14Gi	100Gi
-thin.storageclass.storage.k8s.io/requests.storage	    10Gi	40Gi</pre>
+thin.storageclass.storage.k8s.io/requests.storage	    10Gi	40Gi</code></pre>
 </div>
 </div>
 <div class="paragraph">
