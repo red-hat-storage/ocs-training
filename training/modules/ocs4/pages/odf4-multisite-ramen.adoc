@@ -41,7 +41,9 @@ Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph R
 . *Validate Ceph mirroring is active between managed OCP clusters.* +
 Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.
 . *Create VolumeReplicationClass resource.* +
-Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes). 
+Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).
+. *Create new mirroring StorageClass resource.* +
+Using CLI, create new StorageClass with correct image features for block volumes enabled for mirroring. 
 . *Install ODR Cluster Operator on managed clusters.* +
 Install from OperatorHub on both managed clusters the ODR Cluster Operator.
 . *Configure SSL access between managed clusters.* +
@@ -262,40 +264,6 @@ volume-replication
 
 NOTE: The new containers will be repeated because there are two csi-rbdplugin-provisioner pods for redundancy.
 
-=== [Pre-release] Create Custom ODF Catalogsource
-
-Prior to the *ODF 4.9* being released you will need to use `pre-release` images and a custom *CatalogSource*. To do this you will need access to the `pre-release` images and to create this *CatalogSource*. 
-
-NOTE: This custom *CatalogSource* should be created on the *Hub cluster* where ACM is installed.
-
-Save this YAML to filename `ocs-catalogsource.yaml`.
-
-[source,yaml]
-----
----
-apiVersion: operators.coreos.com/v1alpha1
-kind: CatalogSource
-metadata:
-  name: odf-catalogsource
-  namespace: openshift-marketplace
-spec:
-  displayName: OpenShift Data Foundation
-  image: quay.io/rhceph-dev/ocs-registry:$tag
-  publisher: Red Hat
-  sourceType: grpc
-----
-
-NOTE: The *$tag* should be replaced with the correct tag for the latest stable build (i.e. 4.9.0-140.ci or latest-4.9).
-
-[source,role="execute"]
-----
-oc create -f ocs-catalogsource.yaml -n openshift-storage
-----
-.Example output.
-----
-catalogsource.operators.coreos.com/ocs-catalogsource created
-----
-
 === Install ODF Multicluster Orchestrator
 
 This is a new controller that will be installed from OCP *OperatorHub* on the *Hub cluster*. The job of this `Multicluster Orchestrator` controller, along with the `MirrorPeer` Custom Resource, is to create a bootstrap token and exchanges this token between the managed clusters.
@@ -462,6 +430,47 @@ oc create -f rbd-volumereplicationclass.yaml
 .Example output.
 ----
 volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicationclass created
+----
+
+== Create Mirroring StorageClass resource
+
+The block volumes with `mirroring enabled` must be created using a new *StorageClass* that has additional `imageFeatures` required to enable faster image replication between managed clusters. The new features are _exclusive-lock_, _object-map_, and _fast-diff_. The default ODF *StorageClass* `ocs-storagecluster-ceph-rbd` does not include these features.
+
+NOTE: This resource must be created on the *Primary managed cluster* and the *Secondary managed cluster*.
+
+Save this YAML to filename `ocs-storagecluster-ceph-rbdmirror.yaml`.
+
+[source,yaml]
+----
+allowVolumeExpansion: true
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ocs-storagecluster-ceph-rbdmirror
+parameters:
+  clusterID: openshift-storage
+  csi.storage.k8s.io/controller-expand-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/controller-expand-secret-namespace: openshift-storage
+  csi.storage.k8s.io/fstype: ext4
+  csi.storage.k8s.io/node-stage-secret-name: rook-csi-rbd-node
+  csi.storage.k8s.io/node-stage-secret-namespace: openshift-storage
+  csi.storage.k8s.io/provisioner-secret-name: rook-csi-rbd-provisioner
+  csi.storage.k8s.io/provisioner-secret-namespace: openshift-storage
+  imageFeatures: layering,exclusive-lock,object-map,fast-diff
+  imageFormat: "2"
+  pool: ocs-storagecluster-cephblockpool
+provisioner: openshift-storage.rbd.csi.ceph.com
+reclaimPolicy: Delete
+volumeBindingMode: Immediate
+----
+
+[source,role="execute"]
+----
+oc create -f ocs-storagecluster-ceph-rbdmirror.yaml
+----
+.Example output.
+----
+storageclass.storage.k8s.io/ocs-storagecluster-ceph-rbdmirror created
 ----
 
 == Install ODR Cluster Operator on Managed clusters
@@ -1044,7 +1053,21 @@ image::ACM-application-form1.png[ACM Application name and namespace]
 
 The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
 
-NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr`.
+[IMPORTANT]
+====
+Make sure that the new *Storageclass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> before proceeding. Verify it is created using the following command:
+
+[source,role="execute"]
+----
+oc get storageclass | grep rbdmirror | awk {'print $1}'
+----
+.Example Output:
+----
+ocs-storagecluster-ceph-rbdmirror
+----
+====
+
+NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr`. 
 
 .ACM application repository information
 image::ACM-application-form2a.png[ACM application repository information]
