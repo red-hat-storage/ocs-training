@@ -1055,7 +1055,7 @@ The next section to fill out is below the *Git* box and is the repository URL fo
 
 [IMPORTANT]
 ====
-Make sure that the new *Storageclass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> before proceeding. Verify it is created using the following command:
+Make sure that the new *StorageClass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> before proceeding. Verify it is created using the following command:
 
 [source,role="execute"]
 ----
