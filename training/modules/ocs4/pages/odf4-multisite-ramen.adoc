@@ -30,8 +30,6 @@ Connect the managed OCP private networks (cluster and service) using the RHACM S
 Install ODF 4.9 on primary and secondary OCP managed clusters and validate deployment.
 . *Create new CSI side-cars in each managed OCP cluster.* +
 Using CLI, manually add the volume-replication and omap-generator side-car containers to rbd-provisioning pod(s).
-. *[Pre-release] Create custom ODF catalogsource on ACM hub cluster.* +
-Using CLI, manually create ocs-catalogsource in order to install ODF 4.9 pre-release builds.
 . *Install ODF Multicluster-orchestrator operator on ACM hub cluster.* +
 Using OperatorHub on ACM hub cluster install the multicluster orchestrator operator.
 . *Install Mirror Peer resource on ACM hub cluster.* +
