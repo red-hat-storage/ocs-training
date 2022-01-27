@@ -421,6 +421,6 @@ ocs-operator.v4.9.1   OpenShift Container Storage   4.9.1     ocs-operator.v4.8.
 odf-operator.v4.9.1   OpenShift Data Foundation     4.9.1     odf-operator.v4.9.0   Succeeded
 ....
 
-Validate that all *Pods* in `openshift-storage`are eventually in a running
+Validate that all *Pods* in `openshift-storage` are eventually in a running
 state after updating. Also verify that Ceph is healthy using
 instructions in prior section.
