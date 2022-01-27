@@ -203,9 +203,9 @@ EOF
 
 === Create Cluster
 
-Storage Cluster CR. For each set of 3 OSDs increment the `count`.
+Reference https://github.com/red-hat-storage/ocs-operator/blob/main/deploy/csv-templates/crds/ocs/ocs.openshift.io_storageclusters.yaml[here] for more *StorageCluster* options. 
 
-Under the `managedResources` section is the default setting of `manage` for ODF services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to ODF `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the ODF CR definition. The setting of `ignore` will not deploy the particular service.
+Under the `managedResources` section is the default setting of `manage` for ODF services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to ODF `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the ODF CR definition. The setting of `ignore` will not deploy the particular service.  
 
 [source]
 ....
@@ -234,12 +234,9 @@ spec:
     cephBlockPools:
       reconcileStrategy: manage   # <-- Default value is manage
     cephConfig: {}
-    cephDashboard: {}
     cephFilesystems: {}
     cephObjectStoreUsers: {}
     cephObjectStores: {}
-    snapshotClasses: {}
-    storageClasses: {}
   multiCloudGateway:
     reconcileStrategy: manage   # <-- Default value is manage
   storageDeviceSets:
