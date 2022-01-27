@@ -3,8 +3,8 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>1+ scaling with OCS using local storage :: OCS Training</title>
-    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-install-no-ui-1scale.html">
+    <title>Install ODF without the Openshift Web UI :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/odf4-install-no-ui.html">
     <meta name="generator" content="Antora 3.0.1">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
@@ -68,10 +68,10 @@
   <li class="nav-item" data-depth="1">
     <a class="nav-link" href="ocs4-install-no-ui.html">OCS CLI based install</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="odf4-install-no-ui.html">ODF CLI based install</a>
   </li>
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -172,34 +172,31 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li><a href="ocs4-install-no-ui-1scale.html">Single node scaling support</a></li>
+    <li><a href="odf4-install-no-ui.html">ODF CLI based install</a></li>
   </ul>
 </nav>
-  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/ocs4-install-no-ui-1scale.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/odf4-install-no-ui.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
   <div class="toc-menu"></div>
 </aside>
 <article class="doc">
-<h1 class="page">1+ scaling with OCS using local storage</h1>
+<h1 class="page">Install ODF without the Openshift Web UI</h1>
 <div class="sect1">
 <h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>OpenShift Container Platform has been verified to work in conjunction
-with
-<a href="https://docs.openshift.com/container-platform/4.6/storage/persistent_storage/persistent-storage-local.html">local
-storage</a> devices and OpenShift Container Storage (OCS) on AWS EC2, VMware, Azure and
-Bare Metal hosts. These instructions require that you have the ability to install version 4.6 for both OCS and the Local Storage Operator (LSO).</p>
+<p>OpenShift Data Foundation works in conjunction
+with the <a href="https://docs.openshift.com/container-platform/4.9/storage/persistent_storage/persistent-storage-local.html">Local Storage Operator</a> to use disks and devices on AWS EC2, VMware, Azure, Bare Metal hosts, etc.</p>
 </div>
 <div class="paragraph">
-<p>In addition, using the method detailed in this document, you can use 1+ scaling for adding new storage nodes (vs 3+ scaling or needing to add 3 nodes to expand cluster horizontal). This method also allows starting with a number of OCP nodes that does not need to be a multiple of 3 (i.e., 3, 6, 9 …​). You will still need a minimum of 3 nodes and these nodes need to meet the OCS CPU and Mem requirements. The difference is that the initial number of nodes do not need to be multiple of 3 (3, 4, 5, …​) as documented in the official OCS documentation.</p>
+<p>These instructions require that you have the ability to install version 4.9 for both ODF and the Local Storage Operator (LSO).</p>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_the_local_storage_operator_v4_6"><a class="anchor" href="#_installing_the_local_storage_operator_v4_6"></a>2. Installing the Local Storage Operator v4.6</h2>
+<h2 id="_installing_the_local_storage_operator"><a class="anchor" href="#_installing_the_local_storage_operator"></a>2. Installing the Local Storage Operator</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>First, you will need to create a namespace for the Local Storage
@@ -234,7 +231,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Subscribe to Local Storage Operator.</p>
+<p>Subscribe to Local Storage Operator and create the operator <strong>Pod</strong>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -245,10 +242,10 @@ metadata:
   name: local-storage-operator
   namespace: openshift-local-storage
 spec:
-  channel: "4.6"
+  channel: "4.9"
   installPlanApproval: Automatic
   name: local-storage-operator
-  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -256,7 +253,7 @@ EOF</code></pre>
 <div class="sect2">
 <h3 id="_preparing_nodes"><a class="anchor" href="#_preparing_nodes"></a>2.1. Preparing Nodes</h3>
 <div class="paragraph">
-<p>You will need to add the OCS label to each OCP node that has storage devices. The OCS operator looks for this label to know which nodes can be scheduling targets for OCS components. Later we will configure Local Storage Operator <code>Custom Resources</code> to create PVs from storage devices on nodes with this label. You must have a minimum of three labeled nodes with the same number of devices or disks and similar performance capability. Only SSDs or NVMe devices can be used for OCS.</p>
+<p>You will need to add the <code>ODF label</code> to each OCP node that has storage devices used to create the ODF storage cluster. The ODF operator looks for this label to know which nodes can be scheduling targets for ODF components. Later we will configure Local Storage Operator <code>Custom Resources</code> to create <strong>PVs</strong> from storage devices on nodes with this label. You must have a minimum of three labeled nodes with the same number of devices or disks with similar performance capability. SSDs or NVMe devices are highly recommended to create the ODF storage cluster.</p>
 </div>
 <div class="paragraph">
 <p>To label the nodes use the following command:</p>
@@ -266,117 +263,23 @@ EOF</code></pre>
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node &lt;NodeName&gt; cluster.ocs.openshift.io/openshift-storage=''</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>You will also need to add a unique rack label to each node that a OCS label was added to. Example below for first host. Additional host will have unique rack label (i.e., rack1, rack2, rack3, …​).</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc label node &lt;NodeName&gt; topology.rook.io/rack=rack0</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_manual_method_to_create_persistent_volumes"><a class="anchor" href="#_manual_method_to_create_persistent_volumes"></a>2.2. Manual Method to create Persistent Volumes</h3>
-<div class="paragraph">
-<p>This is the manual method of creating <strong>PVs</strong> for OCS starting with OCS v4.4 and will still work with OCS v4.6 and LSO v4.6.</p>
-</div>
-<div class="admonitionblock note">
+<div class="admonitionblock caution">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-If you use this section to create <strong>PVs</strong> skip <code>Auto Discovering Devices and creating Persistent Volumes</code> and proceed to installing OCS.
+Make sure to label OCP nodes in 3 different AWS availability zones if ODF installation is on AWS.
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>You will need to know the device names on the nodes labeled for
-OCS. You can access the nodes using <code>oc debug node</code> and issuing the
-<code>lsblk</code> command after <code>chroot</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ oc debug node/&lt;node_name&gt;
-
-sh-4.4# chroot /host
-sh-4.4# lsblk
-NAME                         MAJ:MIN RM   SIZE RO TYPE MOUNTPOINT
-nvme0n1                      259:0    0   120G  0 disk
-|-nvme0n1p1                  259:1    0   384M  0 part /boot
-|-nvme0n1p2                  259:2    0   127M  0 part /boot/efi
-|-nvme0n1p3                  259:3    0     1M  0 part
-`-nvme0n1p4                  259:4    0 119.5G  0 part
-  `-coreos-luks-root-nocrypt 253:0    0 119.5G  0 dm   /sysroot
-nvme1n1                      259:5    0  1000G  0 disk
-nvme2n1                      259:6    0  1000G  0 disk</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>After you know which local devices are available, in this case nvme0n1
-and nvme1n1. You can now find the <code>by-id</code>, a unique name created using the hardware serial number for each device.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.4# ls -l /dev/disk/by-id/
-total 0
-lrwxrwxrwx. 1 root root 10 Mar 17 16:24 dm-name-coreos-luks-root-nocrypt -&gt; ../../dm-0
-lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC -&gt; ../../nvme0n1
-lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-Amazon_EC2_NVMe_Instance_Storage_AWS60382E5D7441494EC -&gt; ../../nvme1n1
-lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533130333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -&gt; ../../nvme0n1
-lrwxrwxrwx. 1 root root 13 Mar 17 16:24 nvme-nvme.1d0f-4157533630333832453544373434313439344543-416d617a6f6e20454332204e564d6520496e7374616e63652053746f72616765-00000001 -&gt; ../../nvme1n1</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Article that has utility for gathering /dev/disk/by-id for all OCP nodes
-with OCS label (cluster.ocs.openshift.io/openshift-storage)
-<a href="https://access.redhat.com/solutions/4928841" class="bare">https://access.redhat.com/solutions/4928841</a>.</p>
-</div>
-<div class="paragraph">
-<p>The next step is to create the <code>LocalVolume</code> resource using the <code>by-id</code> for each OCP node with OCS label. In this case there is one device per node and the <code>by-id</code> is added manually under <code>devicePaths:</code> in the <code>localvolume.yaml file</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: local.storage.openshift.io/v1
-kind: LocalVolume
-metadata:
-  name: local-block
-  namespace: openshift-local-storage
-spec:
-  nodeSelector:
-    nodeSelectorTerms:
-    - matchExpressions:
-        - key: cluster.ocs.openshift.io/openshift-storage
-          operator: In
-          values:
-          - ""
-  storageClassDevices:
-    - storageClassName: localblock
-      volumeMode: Block
-      devicePaths:
-        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS10382E5D7441494EC   # &lt;-- modify this line
-        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS1F45C01D7E84FE3E9   # &lt;-- modify this line
-        - /dev/disk/by-id/nvme-Amazon_EC2_NVMe_Instance_Storage_AWS136BC945B4ECB9AE4   # &lt;-- modify this line</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f block-storage.yaml</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>After the <code>localvolume</code> resource is created check that <code>Available</code> <strong>PVs</strong> are created for each device with a <code>by-id</code> in the <code>localvolume.yaml</code> file.</p>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_auto_discovering_devices_and_creating_persistent_volumes"><a class="anchor" href="#_auto_discovering_devices_and_creating_persistent_volumes"></a>2.3. Auto Discovering Devices and creating Persistent Volumes</h3>
+<h3 id="_auto_discovering_devices_and_creating_persistent_volumes"><a class="anchor" href="#_auto_discovering_devices_and_creating_persistent_volumes"></a>2.2. Auto Discovering Devices and creating Persistent Volumes</h3>
 <div class="paragraph">
-<p>This is the method available starting with OCS v4.6 and LSO v4.6.</p>
-</div>
-<div class="paragraph">
-<p>Local Storage Operator v4.6 supports discovery of devices on OCP nodes with the OCS label <code>cluster.ocs.openshift.io/openshift-storage=""</code>. Create the <code>LocalVolumeDiscovery</code> resource using this file after the OCP nodes are labeled with the OCS label.</p>
+<p>Local Storage Operator (LSO 4.6+) supports discovery of devices on OCP nodes with the label <code>cluster.ocs.openshift.io/openshift-storage=""</code>. Create the <code>LocalVolumeDiscovery</code> resource using this file after the OCP nodes are labeled with the <code>ODF label</code>.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -398,15 +301,15 @@ EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>After this resource is created you should see a new <code>localvolumediscoveries</code> resource and there will be a <code>localvolumediscoveryresults</code> for each OCP node labeled with the OCS label. Each <code>localvolumediscoveryresults</code> will have the detail for each disk on the node including the <code>by-id</code>, size and type of disk.</p>
+<p>After this resource is created you should see a new <code>localvolumediscoveries</code> resource and there will be a <code>localvolumediscoveryresults</code> for each OCP node labeled with the <code>ODF label</code>. Each <code>localvolumediscoveryresults</code> will have the detail for each disk on the node including the <code>by-id</code>, size and type of disk.</p>
 </div>
 <div class="sect3">
-<h4 id="_create_localvolumeset"><a class="anchor" href="#_create_localvolumeset"></a>2.3.1. Create LocalVolumeSet</h4>
+<h4 id="_create_localvolumeset"><a class="anchor" href="#_create_localvolumeset"></a>2.2.1. Create LocalVolumeSet</h4>
 <div class="paragraph">
-<p>The disk used must be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the OSD metadata and OSD data.</p>
+<p>The disk are recommended to be SSDs or NVMe disks and must be raw block devices. This is due to the fact that the operator creates distinct partitions on the provided raw block devices for the metadata and data.</p>
 </div>
 <div class="paragraph">
-<p>Use this file <code>localvolumeset.yaml</code> to create the <code>LocalVolumeSet</code>. Configure the parameters with comments to meet the needs of your environment. If not required, the parameters with comments can be deleted.</p>
+<p>Use this file <code>localvolumeset.yaml</code> to create the <code>LocalVolumeSet</code>. Configure the parameters with comments to meet the needs of your environment.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -432,7 +335,7 @@ spec:
     - disk
     - part   # &lt;-- Remove this if not using partitions
     deviceMechanicalProperties:
-    - NonRotational
+    - NonRotational   # &lt;-- For HDD change to Rotational
     #minSize: 0Ti   # &lt;-- Uncomment and modify to limit the minimum size of disk used
     #maxSize: 0Ti   # &lt;-- Uncomment and modify to limit the maximum size of disk used</code></pre>
 </div>
@@ -443,17 +346,17 @@ spec:
 </div>
 </div>
 <div class="paragraph">
-<p>After the <code>localvolumesets</code> resource is created check that <code>Available</code> <strong>PVs</strong> are created for each disk on OCP nodes with the OCS label.</p>
+<p>After the <code>localvolumesets</code> resource is created check that <code>Available</code> <strong>PVs</strong> are created for each disk on OCP nodes with the <code>ODF label</code>. It can take a few minutes until all disks appear as <strong>PVs</strong> while the Local Storage Operator is preparing the disks.</p>
 </div>
 </div>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_installing_openshift_container_storage"><a class="anchor" href="#_installing_openshift_container_storage"></a>3. Installing OpenShift Container Storage</h2>
+<h2 id="_installing_openshift_data_foundation"><a class="anchor" href="#_installing_openshift_data_foundation"></a>3. Installing OpenShift Data Foundation</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>These instructions are used after OCS is generally available (GA). If you have a need to install pre-release OCS different instructions are required as well as access to pre-release entitled registries.</p>
+<p>These instructions are used after ODF is generally available (GA). If you have a need to install pre-release ODF different instructions are required as well as access to pre-release entitled registries.</p>
 </div>
 <div class="sect2">
 <h3 id="_install_operator"><a class="anchor" href="#_install_operator"></a>3.1. Install Operator</h3>
@@ -474,7 +377,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Create Operator Group for OCS Operator.</p>
+<p>Create Operator Group for ODF Operator.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -491,7 +394,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Subscribe to OCS Operator.</p>
+<p>Subscribe to ODF Operator.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -499,13 +402,13 @@ EOF</code></pre>
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ocs-operator
+  name: odf-operator
   namespace: openshift-storage
 spec:
-  channel: "stable-4.6"
+  channel: "stable-4.9"
   installPlanApproval: Automatic
-  name: ocs-operator
-  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource if not default
+  name: odf-operator
+  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -514,16 +417,10 @@ EOF</code></pre>
 <div class="sect2">
 <h3 id="_create_cluster"><a class="anchor" href="#_create_cluster"></a>3.2. Create Cluster</h3>
 <div class="paragraph">
-<p>As described above this method of deployment does not require initial deployment to have OCP node counts in multiples of 3 or adding nodes in multiples of 3.</p>
+<p>Storage Cluster CR. For each set of 3 OSDs increment the <code>count</code>.</p>
 </div>
 <div class="paragraph">
-<p>Before creating the storage all OCP nodes to be used by OCS must be labeled with OCS label and a unique rack label (i.e., rack0, rack1, rack2, …​). There must be a minimum of 3 OCP nodes with storage devices.</p>
-</div>
-<div class="paragraph">
-<p>The modification in the storagecluster.yaml below is the count value. This value should be the total number of disks on all of the OCP servers with the OCS and rack label (i.e., 5 servers with 4 disks each count = 20) that you want to use for your OCS cluster.</p>
-</div>
-<div class="paragraph">
-<p>Under the <code>managedResources</code> section is the default setting of <code>manage</code> for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS <code>CustomResources</code> (CRs) will always reconcile back to default values. The other choices instead of <code>manage</code> are <code>init</code> and <code>ignore</code>. The setting of <code>init</code> for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of <code>ignore</code> will not deploy the particular service.</p>
+<p>Under the <code>managedResources</code> section is the default setting of <code>manage</code> for ODF services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to ODF <code>CustomResources</code> (CRs) will always reconcile back to default values. The other choices instead of <code>manage</code> are <code>init</code> and <code>ignore</code>. The setting of <code>init</code> for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the ODF CR definition. The setting of <code>ignore</code> will not deploy the particular service.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -533,6 +430,11 @@ metadata:
   name: ocs-storagecluster
   namespace: openshift-storage
 spec:
+  arbiter: {}
+  encryption:
+    kms: {}
+  externalStorage: {}
+  flexibleScaling: true
   manageNodes: false
   resources:
     mds:
@@ -545,21 +447,18 @@ spec:
   monDataDirHostPath: /var/lib/rook
   managedResources:
     cephBlockPools:
-      reconcileStrategy: manage
-    cephFilesystems:
-      reconcileStrategy: manage
-    cephObjectStoreUsers:
-      reconcileStrategy: manage
-    cephObjectStores:
-      reconcileStrategy: manage
-    snapshotClasses:
-      reconcileStrategy: manage
-    storageClasses:
-      reconcileStrategy: manage
+      reconcileStrategy: manage   # &lt;-- Default value is manage
+    cephConfig: {}
+    cephDashboard: {}
+    cephFilesystems: {}
+    cephObjectStoreUsers: {}
+    cephObjectStores: {}
+    snapshotClasses: {}
+    storageClasses: {}
   multiCloudGateway:
-    reconcileStrategy: manage
+    reconcileStrategy: manage   # &lt;-- Default value is manage
   storageDeviceSets:
-  - count: 20  # &lt;-- Modify count to number of disks
+  - count: 1  # &lt;-- Modify count to desired value. For each set of 3 disks increment the count by 1.
     dataPVCTemplate:
       spec:
         accessModes:
@@ -570,15 +469,9 @@ spec:
         storageClassName: localblock
         volumeMode: Block
     name: ocs-deviceset
-    placement:
-      nodeAffinity:
-        requiredDuringSchedulingIgnoredDuringExecution:
-          nodeSelectorTerms:
-          - matchExpressions:
-            - key: cluster.ocs.openshift.io/openshift-storage
-              operator: Exists
+    placement: {}
     portable: false
-    replica: 1
+    replica: 3
     resources:
       limits:
         cpu: "2"
@@ -622,13 +515,25 @@ cluster.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.4# ceph status</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph status</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sh-4.4# ceph osd tree</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd tree</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to <code>exit</code> the toolbox pod.
+</td>
+</tr>
+</table>
 </div>
 <div class="sect2">
 <h3 id="_create_test_cephrbd_pvc_and_cephfs_pvc"><a class="anchor" href="#_create_test_cephrbd_pvc_and_cephfs_pvc"></a>4.1. Create test CephRBD PVC and CephFS PVC</h3>
@@ -686,7 +591,7 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_upgrade_ocs_version_major_version"><a class="anchor" href="#_upgrade_ocs_version_major_version"></a>4.2. Upgrade OCS version (major version)</h3>
+<h3 id="_upgrade_from_ocs_4_8_to_odf_4_9"><a class="anchor" href="#_upgrade_from_ocs_4_8_to_odf_4_9"></a>4.2. Upgrade from OCS 4.8 to ODF 4.9</h3>
 <div class="paragraph">
 <p>Validate current version of OCS.</p>
 </div>
@@ -698,14 +603,14 @@ EOF</code></pre>
 <div class="paragraph">
 <p>Example output.</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                Succeeded</code></pre>
+<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
+ocs-operator.v4.8.7   OpenShift Container Storage   4.8.7                Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Verify there is a new OCS stable channel.</p>
+<p>Verify there is a new ODF stable channel.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -715,15 +620,15 @@ ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                Succeed
 <div class="paragraph">
 <p>Example output.</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">    Name:           stable-4.5
-    Name:           stable-4.6
-  Default Channel:  stable-4.6</code></pre>
+<pre>    Name:           stable-4.8
+    Name:           stable-4.9
+  Default Channel:  stable-4.9</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Apply subscription with new stable-4.6 channel.</p>
+<p>Apply ODF 4.9 subscription with new stable-4.9 channel.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -731,37 +636,19 @@ ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                Succeed
 apiVersion: operators.coreos.com/v1alpha1
 kind: Subscription
 metadata:
-  name: ocs-operator
+  name: odf-operator
   namespace: openshift-storage
 spec:
-  channel: "stable-4.6"
+  channel: "stable-4.9"
   installPlanApproval: Automatic
-  name: ocs-operator
-  source: redhat-operators
+  name: odf-operator
+  source: redhat-operators   # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Validate subscription is updating.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">watch oc get csv -n openshift-storage</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Example output.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.5.2   OpenShift Container Storage   4.5.2                           Replacing
-ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0     ocs-operator.v4.5.2   Installing</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Validate new version of OCS.</p>
+<p>Validate new versions for ODF.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -771,14 +658,16 @@ ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0     ocs-operator.v4.5.
 <div class="paragraph">
 <p>Example output.</p>
 </div>
-<div class="listingblock">
+<div class="literalblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-ocs-operator.v4.6.0   OpenShift Container Storage   4.6.0     ocs-operator.v4.5.2   Succeeded</code></pre>
+<pre>NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+mcg-operator.v4.9.1   NooBaa Operator               4.9.1     mcg-operator.v4.9.0   Succeeded
+ocs-operator.v4.9.1   OpenShift Container Storage   4.9.1     ocs-operator.v4.8.7   Succeeded
+odf-operator.v4.9.1   OpenShift Data Foundation     4.9.1     odf-operator.v4.9.0   Succeeded</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Validate that all pods in openshift-storage are eventually in a running
+<p>Validate that all <strong>Pods</strong> in `openshift-storage`are eventually in a running
 state after updating. Also verify that Ceph is healthy using
 instructions in prior section.</p>
 </div>
