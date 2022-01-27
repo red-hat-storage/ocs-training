@@ -355,7 +355,7 @@ Validate new PVC is created.
 oc get pvc | grep cephfs-pvc
 ....
 
-=== Upgrade from OCS 4.8 to ODF 4.9
+== Upgrade from OCS 4.8 to ODF 4.9
 
 Validate current version of OCS.
 
