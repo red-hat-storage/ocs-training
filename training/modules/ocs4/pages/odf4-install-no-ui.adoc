@@ -1,4 +1,4 @@
-= Install ODF without the Openshift Web UI
+= Install ODF without the OpenShift Web UI
 :icons: font
 :source-highlighter: highlightjs
 :highlightjs-languages: yaml
@@ -220,7 +220,6 @@ spec:
     kms: {}
   externalStorage: {}
   flexibleScaling: true
-  manageNodes: false
   resources:
     mds:
       limits:
