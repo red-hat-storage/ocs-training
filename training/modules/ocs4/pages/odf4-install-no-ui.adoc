@@ -201,6 +201,13 @@ spec:
 EOF
 ....
 
+After the operator *Pods* are `Running` in the `openshift-storage` project, the next step is to enable the console plugin. Execute the following command:
+
+[source]
+....
+oc patch console.operator cluster -n openshift-storage --type json -p '[{"op": "add", "path": "/spec/plugins", "value": ["odf-console"]}]'
+....
+
 === Create Cluster
 
 Reference https://github.com/red-hat-storage/ocs-operator/blob/main/deploy/csv-templates/crds/ocs/ocs.openshift.io_storageclusters.yaml[here] for more *StorageCluster* options. 
