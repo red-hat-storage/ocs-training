@@ -413,6 +413,14 @@ spec:
 EOF</code></pre>
 </div>
 </div>
+<div class="paragraph">
+<p>After the operator <strong>Pods</strong> are <code>Running</code> in the <code>openshift-storage</code> project, the next step is to enable the console plugin. Execute the following command:</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">oc patch console.operator cluster -n openshift-storage --type json -p '[{"op": "add", "path": "/spec/plugins", "value": ["odf-console"]}]'</code></pre>
+</div>
+</div>
 </div>
 <div class="sect2">
 <h3 id="_create_cluster"><a class="anchor" href="#_create_cluster"></a>3.2. Create Cluster</h3>
