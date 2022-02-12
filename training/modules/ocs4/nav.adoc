@@ -1,4 +1,4 @@
-* xref:ocs.adoc[General deploy and use]
+* xref:odf.adoc[ODF General deploy and use]
 * xref:ocs4-install-no-ui.adoc[OCS CLI based install]
 * xref:odf4-install-no-ui.adoc[ODF CLI based install]
 * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
