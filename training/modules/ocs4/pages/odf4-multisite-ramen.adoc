@@ -210,7 +210,7 @@ NOTE: The successful installation of ODF can also be validated in the *OCP Web C
 
 == Install ODR Hub Operator on Hub cluster
 
-On the `Hub cluster` navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`. 
+On the *Hub cluster* navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`. 
 
 Check to see the operator *Pod* is in a `Running` state.
 
@@ -266,8 +266,8 @@ The job of the `Multicluster Orchestrator` controller and the `MirrorPeer` Custo
 
 * Create a bootstrap token and exchanges this token between the managed clusters.
 * Enable mirroring for the default `CephBlockPool` on each managed clusters.
-* Create an object bucket (using MCG) on each managed cluster for *PVC* and *PV* metadata.
-* Create a *Secret* on the *Hub cluster* for each new object bucket that has the keys for bucket access in the `openshift-dr-system` project. 
+* Create an object bucket (using MCG) on each managed cluster for mirrored *PVC* and *PV* metadata.
+* Create a *Secret* in the `openshift-dr-system` project on the *Hub cluster* for each new object bucket that has the base64 encoded access keys.
 * Create a *VolumeReplicationClass* on the *Primary managed cluster* and the *Secondary managed cluster*.
 * Modify the `ramen-hub-operator-config` *ConfigMap* on the *Hub cluster* and add the `s3StoreProfiles` entries.
 
@@ -336,7 +336,7 @@ ExchangedSecret
 
 === Validate Mirroring on Managed clusters
 
-Validate mirroring is enabled on default *CephBlockPool*.
+Validate mirroring is enabled on default *CephBlockPool* on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 [source,role="execute"]
 ----
@@ -347,7 +347,7 @@ oc get cephblockpool -n openshift-storage -o=jsonpath='{.items[?(@.metadata.owne
 true
 ----
 
-Validate `rbd-mirror` *Pod* is up and running. 
+Validate `rbd-mirror` *Pod* is up and running on the *Primary managed cluster* and the *Secondary managed cluster*. 
 
 [source,role="execute"]
 ----
@@ -358,7 +358,7 @@ oc get pods -o name -l app=rook-ceph-rbd-mirror -n openshift-storage
 pod/rook-ceph-rbd-mirror-a-6486c7d875-56v2v
 ----
 
-Validate the status of the `daemon` health.
+Validate the status of the `daemon` health on the *Primary managed cluster* and the *Secondary managed cluster*.
 
 [source,role="execute"]
 ----
@@ -369,7 +369,7 @@ oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o js
 {"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}
 ----
 
-NOTE: It could take up to 10 minutes for the `daemon_health` and `health` to go from *Warning* to *OK*. If the status does not become *OK* eventually then use the ACM console to verify that the submariner add-ons connection is still in a healthy state.
+CAUTION: It could take up to 10 minutes for the `daemon_health` and `health` to go from *Warning* to *OK*. If the status does not become *OK* eventually then use the ACM console to verify that the `Submariner add-ons` connection is still in a healthy state.
 
 Validate that the *VolumeReplicationClass* is created on the *Primary managed cluster* and the *Secondary managed cluster*.
 
@@ -385,7 +385,9 @@ odf-rbd-volumereplicationclass   openshift-storage.rbd.csi.ceph.com
 
 === Validate Object Buckets and s3StoreProfiles
 
-Validate there is a new *OBC* and corresponding *OB* in each managed cluster in the `openshift-storage` namespace.
+Validate there is a new *OBC* and corresponding *OB* in the *Primary managed cluster* and the *Secondary managed cluster* in the `openshift-storage` namespace.
+
+NOTE: The new object buckets are created in the `openshift-storage` namespace on the managed clusters.
 
 [source,role="execute"]
 ----
@@ -403,6 +405,8 @@ objectbucket.objectbucket.io/obc-openshift-storage-odrbucket-21eb5332f6b6   open
 
 Validate there are two new *Secrets* in the *Hub cluster* `openshift-dr-system` namespace that contain the access and secret key for each new *OBC*.
 
+IMPORTANT: The new secrets are created in the `openshift-dr-system` namespace on the *Hub cluster*. Later, these secrets will be copied to the managed clusters to access the object buckets.
+
 [source,role="execute"]
 ----
 oc get secrets -n openshift-dr-system | grep Opaque
@@ -413,7 +417,7 @@ oc get secrets -n openshift-dr-system | grep Opaque
 af5f82f21f8f77faf3de2553e223b535002e480   Opaque                                2      16m
 ----
 
-The *OBC* and *Secrets* are witten in the *ConfigMap* `ramen-hub-operator-config` on the *Hub cluster*.
+The *OBC* and *Secrets* are witten in the *ConfigMap* `ramen-hub-operator-config` on the *Hub cluster* in the newly created `s3StoreProfiles` section.
 
 [source,role="execute"]
 ----
@@ -581,7 +585,7 @@ proxy.config.openshift.io/cluster configured
 
 == Create DRPolicy on Hub cluster
 
-ODR uses *DRPolicy* resources (cluster scoped) on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two clusters, which are peered for storage level replication and `CSI` *VolumeReplication* is enabled.
+ODR uses the *DRPolicy* resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two clusters, which are peered for storage level replication and `CSI` *VolumeReplication* is enabled.
 
 Furthermore, *DRPolicy* requires a scheduling interval that determines at what frequency data replication will be performed and also serves as a coarse grained RPO (Recovery Point Objective) for the workload using the *DRPolicy*.
  
@@ -597,7 +601,7 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRPolicy create instance
 image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
 
-Save the following YAML (below) to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. Replace *<string_value_1>* and *<string_value_2>* with any values as long as they unique (i.e., east and west).
+Save the following YAML to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. Replace *<string_value_1>* and *<string_value_2>* with any values as long as they unique (i.e., east and west).
 
 NOTE: There is no need to specify a namespace to create this resource because `DRPolicy` is a cluster-scoped resource.
 
@@ -616,7 +620,9 @@ spec:
     region: <string_value_2>
     s3ProfileName: s3profile-<cluster2>-ocs-storagecluster
   schedulingInterval: 5m
-----      
+----
+
+IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the default *VolumeReplicationClass* resource which is configured as `5m`. To have a different `schedulingInterval` for volume replication requires creating additional *VolumeReplicationClass* and *DRPolicy* with the same value (i.e., 15m).    
 
 Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
 
@@ -630,8 +636,6 @@ oc create -f drpolicy.yaml
 ----
 drpolicy.ramendr.openshift.io/odr-policy-5m created
 ----
-
-IMPORTANT: The *DRPolicy* scheduling interval *_must_* match that configured in the *VolumeReplicationClass* resource.
 
 To validate that the *DRPolicy* is created successfully run this command.
 
@@ -652,7 +656,7 @@ This is done by editing the `ramen-hub-operator-config` *ConfigMap* on the *Hub 
 
 [source,role="execute"]
 ----
-oc edit configmap ramen-hub-operator-config-n openshift-dr-system
+oc edit configmap ramen-hub-operator-config -n openshift-dr-system
 ----
 [source,yaml]
 ----
@@ -740,26 +744,26 @@ And then export the YAML for the other *Secret*.
 oc get secrets af5f82f21f8f77faf3de2553e223b535002e480 -o yaml > odr-s3-secret2.yaml
 ----
 
-NOTE: Make sure to use your unique *Secret* names in the commands above. 
+NOTE: Make sure to use _your_ unique *Secret* names in the commands above. 
 
 Now create both these *Secrets* on the *Primary managed cluster* _and_ the *Secondary managed cluster*. They are created in the `openshift-dr-system` namespace.
 
 [source,role="execute"]
 ----
-oc create -f odr-s3secret1.yaml -n openshift-dr-system
+oc create -f odr-s3-secret1.yaml -n openshift-dr-system
 ----
 .Example output.
 ----
-secret/odr-s3secret1 created
+secret/8b3fb9ed90f66808d988c7edfa76eba35647092 created
 ----
 
 [source,role="execute"]
 ----
-oc create -f odr-s3secret2.yaml -n openshift-dr-system
+oc create -f odr-s3-secret2.yaml -n openshift-dr-system
 ----
 .Example output.
 ----
-secret/odr-s3secret2 created
+secret/af5f82f21f8f77faf3de2553e223b535002e480 created
 ----
 
 == Create Sample Application for DR testing
@@ -891,7 +895,7 @@ The next section to fill out is below the *Git* box and is the repository URL fo
 
 [IMPORTANT]
 ====
-Make sure that the new *StorageClass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> before proceeding. Verify it is created using the following command:
+Make sure that the new *StorageClass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> on the *Primary managed cluster* and the *Secondary managed cluster* before proceeding. Verify it is created using the following command:
 
 [source,role="execute"]
 ----
