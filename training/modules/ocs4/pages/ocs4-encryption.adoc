@@ -8,15 +8,16 @@
 :experimental:
 :source-highlighter: pygments
 :hide-uri-scheme:
+:imagesdir: ../images
 
 == Overview
 
 The intent of this guide is to detail the steps and commands necessary to
-configure OpenShift Data Foundation (ODF) 4.7 to enable the use of an external
+configure OpenShift Data Foundation (ODF) 4.9 to enable the use of an 
 *HashiCorp Vault* instance for storing the at-rest or *PersistentVolume* encryption keys.
 
-The necessary components are one OCP 4.6 (or greater) clusters and the `OpenShift Data
-Foundation` (ODF) operator installed with version *4.7* (or greater).
+The necessary components are one OCP 4.9 (or greater) clusters and the `OpenShift Data
+Foundation` (ODF) operator installed with version *4.9* (or greater).
 
 Encryption at rest can be used to provide protection against the following threats:
 
@@ -27,288 +28,142 @@ Encryption at rest can be used to provide protection against the following threa
 IMPORTANT: Starting April 2021, `OpenShift Container Storage` (OCS) has been rebranded
 to `OpenShift Data Foundation` (ODF).
 
+The deployment will follow these high-level steps:
+
 [start=1]
 . *Deploy HashiCorp Vault.* +
-Download HashiCorp Vault and configure it so it can be used by ODF.
-. *Install ODF 4.7.* +
-Cluster wide at-rest encryption
+Deploy Hashicorp Vault inside of your cluster in a HA mode.
+. *Install ODF 4.9.* +
+With cluster-wide and PV-level encryption
 . *Create your Storage Cluster.* +
-Deploy your storage cluster pointing to HashICorp vault to provide cluster wide at-rest encryption.
+Deploy your storage cluster pointing to HashiCorp Vault to provide cluster wide at-rest encryption.
 . *Deploy an application with PV encryption.* +
-Deploy your application over pointing to HashiCorp Vault to provide *PersistentVolume* granular at-rest encryption.
+Deploy your application by pointing to HashiCorp Vault to provide *PersistentVolume* granular at-rest encryption.
 
 == *HashiCorp Vault* deployment & configuration
 
 === Installation
 
-==== Using `homebrew`
+Hashicorp recommends using the Helm chart to install Vault in Openshift. Their documentation is available here: https://www.vaultproject.io/docs/platform/k8s/helm/openshift
 
-If your operating system supports `homebrew` is an easy way to install *HashiCorp Vault*.
-If your system does not support `homebrew` go to xref::ocs4-encryption.adoc#_downloading[]
+These steps mainly consists of adding their helm repo and installing it on your cluster.
+
+Make sure you are logged in to your target cluster, then create your target namespace to deploy vault:
 
 [source,shell]
 ----
-brew tap hashicorp/tap
-brew install hashicorp/tap/vault
-which vault
+oc new-project vault
 ----
 .Example output
 ----
-$ brew tap hashicorp/tap
-==> Tapping hashicorp/tap
-Cloning into '/usr/local/Homebrew/Library/Taps/hashicorp/homebrew-tap'...
-remote: Enumerating objects: 1090, done.
-remote: Counting objects: 100% (278/278), done.
-remote: Compressing objects: 100% (170/170), done.
-remote: Total 1090 (delta 162), reused 211 (delta 108), pack-reused 812
-Receiving objects: 100% (1090/1090), 212.54 KiB | 1.37 MiB/s, done.
-Resolving deltas: 100% (582/582), done.
-Tapped 1 cask and 8 formulae (52 files, 333.3KB).
-$ brew install hashicorp/tap/vault
-Updating Homebrew...
-==> Auto-updated Homebrew!
-Updated 2 taps (homebrew/core and noobaa/noobaa).
-==> New Formulae
-[...]
-==> Installing vault from hashicorp/tap
-==> Downloading https://releases.hashicorp.com/vault/1.7.0/vault_1.7.0_darwin_amd64.zip
-######################################################################## 100.0%
-[...]
-==> Summary
-🍺  /usr/local/Cellar/vault/1.7.0: 4 files, 188.7MB, built in 12 seconds
-==> `brew cleanup` has not been run in 30 days, running now...
-[...]
-$ which vault
-/usr/local/bin/vault
+Now using project "vault" on server "https://api.cluster0.aws.ocp.team:6443".
+
+You can add applications to this project with the 'new-app' command. For example, try:
+
+    oc new-app rails-postgresql-example
+
+to build a new example application in Ruby. Or use kubectl to deploy a simple Kubernetes application:
+
+    kubectl create deployment hello-node --image=k8s.gcr.io/serve_hostname
 ----
 
-==== Downloading
-
-You can download the appropriate *HashiCorp Vault* packages for your Operating System by visiting https://www.vaultproject.io/downloads[this page]
-
-Download the appropriate binary by selecting the aporpriate tab as illustrated below.
-
-.HashiCorp Vault download page
-image::ODF-4.7-Hashicorp-Vault_DownloadPage.png[Choose correct operating system]
-
-=== Customization
-
-In order to configure `vault` follow the following steps.
-
-==== HTTPS configuration
-
-NOTE: This section details the `https` specific commands using a RHEL node.
-If your OS is different you will have to adapt the steps for installing `certbot`.
-
-IMPORTANT: For `certbot` to run properly port 80 of the node where `vault` is running must be reachable.
-from the node where the `certbot` command runs. If not configuring HTTPS go to xref::ocs4-encryption.adoc#_general_configuration[].
+Then install the Hashicorp helm repo
 
 [source,shell]
 ----
-mkdir -p ./vault/config/vault-server-tls
-sudo yum install -y certbot
-sudo certbot certonly --standalone --noninteractive --agree-tos -m \{your-email\} -d \{your-vault-dns-name\}
+helm repo add hashicorp https://helm.releases.hashicorp.com
 ----
 .Example output
 ----
-Saving debug log to /var/log/letsencrypt/letsencrypt.log
-Plugins selected: Authenticator standalone, Installer None
-Starting new HTTPS connection (1): acme-v02.api.letsencrypt.org
-Requesting a certificate for external-vault.ocstraining.com
-Performing the following challenges:
-http-01 challenge for external-vault.ocstraining.com
-Waiting for verification...
-Cleaning up challenges
-
-IMPORTANT NOTES:
- - Congratulations! Your certificate and chain have been saved at:
-   /etc/letsencrypt/live/external-vault.ocstraining.com/fullchain.pem
-   Your key file has been saved at:
-   /etc/letsencrypt/live/external-vault.ocstraining.com/privkey.pem
-   Your certificate will expire on 2021-06-15. To obtain a new or
-   tweaked version of this certificate in the future, simply run
-   certbot again. To non-interactively renew *all* of your
-   certificates, run "certbot renew"
- - If you like Certbot, please consider supporting our work by:
-
-   Donating to ISRG / Let's Encrypt:   https://letsencrypt.org/donate
-   Donating to EFF:                    https://eff.org/donate-le
+"hashicorp" has been added to your repositories
 ----
 
-IMPORTANT: Copy the files in `/etc/letsencrypt/live/\{your-vault-dns-name\}` to `./vault/config/vault-server-tls`
-and adjust file permissions so the `vault` binary has access to them when running.
-
-=== General configuration
-
-In order to start `vault`, create a valid configuration file `./vault/config/vault-server-hcl` using this template.
-
+And proceed to deploy a Production-ready HA Vault instance in your cluster
 [source,shell]
 ----
-disable_mlock = true
-ui = true
-listener "tcp" {
-  address = "{ip_to_bind_to}:8200"
-  tls_disable = "false" 	# <- Change to true if not configuring https
-  tls_cert_file = "{home-directory}/vault/config/vault-server-tls/fullchain.pem" # <- Omit if not doing https
-  tls_key_file  = "{home-directory}/vault/config/vault-server-tls/privkey.pem" # <- Omit if not doing https
-  tls_client_ca_file = "{home-directory}/vault/config/vault-server-tls/chain.pem" # <- Omit if not doing https
-
-}
-
-cluster_name = "localvault"
-api_addr = "https://{fqdn-hostname}:8200" # <- Change to http if not using https
-cluster_addr = "https://{fqdn-hostname}:8201" # <- Change to http if not using https
-
-storage "file" {
-  path = "./vault/data"
-}
-----
-
-Create the required subdirectories for `vault` and verify the content of your configuration file.
-
-[source,shell]
-----
-mkdir -p ./vault/data
-mkdir -p ./vault/config
-cat ./vault/config/vault-server-hcl
+helm install vault hashicorp/vault \
+                    --set='global.openshift=true' \
+                    --set='server.ha.enabled=true' \
+                    --set='server.ha.raft.enabled=true'
 ----
 .Example output
 ----
-$ mkdir -p ./vault/data
-$ mkdir -p ./vault/config
-$ cat /etc/vault/vault-server-hcl
-disable_mlock = true
-ui = true
-listener "tcp" {
-  address = "172.31.14.45:8200"
-  tls_disable = "false"
-  tls_cert_file = "/home/ec2-user/vault/config/vault-server-tls/fullchain.pem"
-  tls_key_file  = "/home/ec2-user/vault/config/vault-server-tls/privkey.pem"
-  tls_client_ca_file = "/home/ec2-user/vault/config/vault-server-tls/chain.pem"
+NAME: vault
+LAST DEPLOYED: Thu Mar  3 09:39:37 2022
+NAMESPACE: vault
+STATUS: deployed
+REVISION: 1
+NOTES:
+Thank you for installing HashiCorp Vault!
 
-}
+Now that you have deployed Vault, you should look over the docs on using
+Vault with Kubernetes available here:
 
-cluster_name = "localvault"
-api_addr = "https://ip-172-31-14-45.us-east-2.compute.internal:8200"
-cluster_addr = "https://ip-172-31-14-45.us-east-2.compute.internal:8201"
+https://www.vaultproject.io/docs/
 
-storage "file" {
-  path = "./vault/data"
-}
+
+Your release is named vault. To learn more about the release, try:
+
+  $ helm status vault
+  $ helm get manifest vault
 ----
 
-=== Starting *HashiCorp Vault*
+Now you should see 4 Pods starting to appear in the vault namespace. Let's initialize the Vault. This will give us the Root Token and the unseal keys.
 
-Start `vault` with the following command.
-
-NOTE: By default `vault` runs in the foreground so we suggest you to use `tmux` or `screen`
-to run the command below.
+IMPORTANT: Make sure to save the output of the following command. If you lose the keys, you will not be able to recover your data.
 
 [source,shell]
 ----
-vault server -config ./vault/config/vault-server-hcl
+oc exec -ti vault-0 -- vault operator init
 ----
 .Example output
 ----
-==> Vault server configuration:
+Unseal Key 1: +nJfbHXXXXXXXXX
+Unseal Key 2: l+DUOmXXXXXXXXX
+Unseal Key 3: SnoGWZXXXXXXXXX
+Unseal Key 4: wlDiQgXXXXXXXXX
+Unseal Key 5: Get307XXXXXXXXX
 
-             Api Address: https://ip-172-31-14-45.us-east-2.compute.internal:8200
-                     Cgo: disabled
-         Cluster Address: https://ip-172-31-14-45.us-east-2.compute.internal:8201
-              Go Version: go1.15.8
-              Listener 1: tcp (addr: "172.31.14.45:8200", cluster address: "172.31.14.45:8201", max_request_duration: "1m30s", max_request_size: "33554432", tls: "enabled")
-               Log Level: info
-                   Mlock: supported: true, enabled: false
-           Recovery Mode: false
-                 Storage: file
-                 Version: Vault v1.7.0-rc1
-             Version Sha: 9af08a1c5f0f855984a1fa56d236675d167f578e
-
-==> Vault server started! Log data will stream in below:
-----
-
-At this point `vault` is started but *not initialized*. Check the status of `vault` before initalizing the KMS.
-
-If you have enabled `https`, export this specific environment variable.
-
-[source,shell]
-----
-export VAULT_SKIP_VERIFY=true
-----
-
-IMPORTANT: If you have enabled `https`, the `-ca-cert ./vault/config/vault-server-tls/cert.pem`
-option must be added to every `vault` command entered. e.g. `vault -ca-cert ./vault/config/vault-server-tls/cert.pem status`.
-
-[source,shell]
-----
-export VAULT_ADDR="http://$(hostname):8200"
-vault status
-----
-.Example output
-----
-$ vault status
-Key                Value
----                -----
-Seal Type          shamir
-Initialized        false <1>
-Sealed             true <2>
-Total Shares       0
-Threshold          0
-Unseal Progress    0/0
-Unseal Nonce       n/a
-Version            1.7.0
-Storage Type       file
-HA Enabled         false
-----
-<1> The KMS is not initialized
-<2> The vault is sealed
-
-=== Initializing *HashiCorp Vault*
-
-To initialize your *HashiCorp Vault*, use the following command:
-
-[source,shell]
-----
-vault operator init
-----
-.Example output
-----
-$ vault operator init
-Unseal Key 1: ipjXvCrThyh8WM2wmEIkWWWXRe3IFNPwoxNfNndbLjxU <1>
-Unseal Key 2: ENbgK3UsA+mNWIZ5NKQXlGR+Sd7NzHnPGSRoaZeRRPoE
-Unseal Key 3: mKPWCEU7KMSOpLDdEgxFxLzHrqMi4MI1g1DaPsK2An6O
-Unseal Key 4: 7V2hdNMp+HB9DrQqi0jn1KPjSYfXwPkw4U99N+KUD/wu
-Unseal Key 5: AfQkqT+Z/O+eBcbK1gq2PiVYwzMU6Ijl6oRkUWfQumNC
-
-Initial Root Token: s.BdZ4mPw3J6MdjUyPA5oLum7R <2>
+Initial Root Token: s.t1yXXXXXXXXXXXXXX
 
 Vault initialized with 5 key shares and a key threshold of 3. Please securely
 distribute the key shares printed above. When the Vault is re-sealed,
 restarted, or stopped, you must supply at least 3 of these keys to unseal it
 before it can start servicing requests.
 
-Vault does not store the generated master key. Without at least 3 key to
+Vault does not store the generated master key. Without at least 3 keys to
 reconstruct the master key, Vault will remain permanently sealed!
 
 It is possible to generate new unseal keys, provided you have a quorum of
 existing unseal keys shares. See "vault operator rekey" for more information.
 ----
-<1> A set of 5 `Unseal Keys`. You will need at least 3 to unseal the vault
-<2> The `Root Token` to grant `root` access to your KMS and configure it
 
-CAUTION: Save the information above as it is not saved in any form.
+In order to use Vault, we will need to init and unseal each of the three Vault servers. We will do so in the next chapter
 
-Now that the vault is initalized, it must be unsealed so its configuration cabn
-be modified or customized. Use the command below to unseal the vault.
-When prompted, enter one of the `Unseal keys`.
+=== Starting *HashiCorp Vault*
+
+By now you should see 4 Pods. Three of those Pods are Running, but not ready
+
+----
+NAME                                    READY   STATUS    RESTARTS   AGE
+vault-0                                 0/1     Running   0          36m
+vault-1                                 0/1     Running   0          112m
+vault-2                                 0/1     Running   0          39m
+vault-agent-injector-5bd747fdd6-dp24b   1/1     Running   0          37m
+----
+
+That is because we have not unsealed them yet. You will have to do this every time the Vault Pod is restarted. This includes OpenShift upgrades. During a rolling reboot, you will have to unseal each Vault as the nodes come back up or the upgrade is interrupted by Vault's poddisruptionbudget.
+
+
+NOTE: Every time a Vault server is restarted, you will need to unseal it 
 
 [source,shell]
 ----
-vault operator unseal
+oc exec -ti vault-0 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden):
+Unseal Key (will be hidden): 
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -316,71 +171,167 @@ Initialized        true
 Sealed             true
 Total Shares       5
 Threshold          3
-Unseal Progress    1/3 <1>
-Unseal Nonce       8c3df261-8318-0ed6-d15c-45f62e34c0ab
-Version            1.7.0
-Storage Type       file
-HA Enabled         false
+Unseal Progress    1/3
+Unseal Nonce       cdfd99b7-5a21-4113-b0ef-c99b8417aac6
+Version            1.9.2
+Storage Type       raft
+HA Enabled         true
 ----
-<1> This field shows the progress of the unsealing sequence.
 
-IMPORTANT: Repeat the `vault operator unseal` command two more times entering
-each time a different `Unseal key`.
-
-Once the third `Unseal key` is successfully entered the status of the vault will
-change as illustrated below.
-
-.Example output
-----
-$ vault operator unseal
-Unseal Key (will be hidden):
-Key             Value
----             -----
-Seal Type       shamir
-Initialized     true
-Sealed          false <1>
-Total Shares    5
-Threshold       3
-Version         1.7.0
-Storage Type    file
-Cluster Name    localvault
-Cluster ID      c4f770b8-b571-8c4f-b668-9dcf7cbf0c33
-HA Enabled      false
-----
-<1> The vault is now unsealed.
-
-=== Security configuration
-
-You can enable the user and password login capabilites which are disabled
-by default so you can login through a standard user and password method rather than
-using the `Root Token`.
+NOTE: Repeat the above until `Sealed` is marked as `false`!
 
 [source,shell]
 ----
-vault login {Root Token}
-vault auth enable userpass
-vault write auth/userpass/users/{username} password='{password}' policies=admins
+oc exec -ti vault-0 -- vault operator unseal
 ----
 .Example output
 ----
-$ vault login s.BdZ4mPw3J6MdjUyPA5oLum7R
-Success! You are now authenticated. The token information displayed below
-is already stored in the token helper. You do NOT need to run "vault login"
-again. Future Vault requests will automatically use this token.
+Unseal Key (will be hidden): 
+Key                     Value
+---                     -----
+Seal Type               shamir
+Initialized             true
+Sealed                  false
+Total Shares            5
+Threshold               3
+Version                 1.9.2
+Storage Type            raft
+Cluster Name            vault-cluster-09d60b36
+Cluster ID              145ec6b9-47ef-8aa7-aa3f-9a9d1ca40554
+HA Enabled              true
+HA Cluster              n/a
+HA Mode                 standby
+Active Node Address     <none>
+Raft Committed Index    25
+Raft Applied Index      25
+----
 
-Key                  Value
----                  -----
-token                s.BdZ4mPw3J6MdjUyPA5oLum7R
-token_accessor       oy8eRQyt1IdDcUnuHudSh7qX
-token_duration       ∞
-token_renewable      false
-token_policies       ["root"]
-identity_policies    []
-policies             ["root"]
-$ vault auth enable userpass
-Success! Enabled userpass auth method at: userpass/
-$ vault write auth/userpass/users/myuser password='RedHat' policies=admins
-Success! Data written to: auth/userpass/users/myuser
+Now proceed with the next Vault Pod and configure it to connect to the first Vault Pod
+
+[source,shell]
+----
+oc exec -ti vault-1 -- vault operator raft join http://vault-0.vault-internal:8200
+----
+.Example output
+----
+Key       Value
+---       -----
+Joined    true
+----
+
+Then proceed with unsealing this Pod
+
+[source,shell]
+----
+oc exec -ti vault-1 -- vault operator unseal
+----
+.Example output
+----
+Unseal Key (will be hidden): 
+Key                Value
+---                -----
+Seal Type          shamir
+Initialized        true
+Sealed             true
+Total Shares       5
+Threshold          3
+Unseal Progress    1/3
+Unseal Nonce       cdfd99b7-5a21-4113-b0ef-c99b8417aac6
+Version            1.9.2
+Storage Type       raft
+HA Enabled         true
+----
+
+NOTE: Repeat the above until `Sealed` is marked as `false`!
+
+[source,shell]
+----
+oc exec -ti vault-1 -- vault operator unseal
+----
+.Example output
+----
+Unseal Key (will be hidden): 
+Key                     Value
+---                     -----
+Seal Type               shamir
+Initialized             true
+Sealed                  false
+Total Shares            5
+Threshold               3
+Version                 1.9.2
+Storage Type            raft
+Cluster Name            vault-cluster-09d60b36
+Cluster ID              145ec6b9-47ef-8aa7-aa3f-9a9d1ca40554
+HA Enabled              true
+HA Cluster              n/a
+HA Mode                 standby
+Active Node Address     <none>
+Raft Committed Index    25
+Raft Applied Index      25
+----
+
+Now proceed with the last Vault Pod and configure it to connect to the first Vault Pod
+
+[source,shell]
+----
+oc exec -ti vault-2 -- vault operator raft join http://vault-0.vault-internal:8200
+----
+.Example output
+----
+Key       Value
+---       -----
+Joined    true
+----
+
+Then proceed with unsealing this Pod
+
+[source,shell]
+----
+oc exec -ti vault-2 -- vault operator unseal
+----
+.Example output
+----
+Unseal Key (will be hidden): 
+Key                Value
+---                -----
+Seal Type          shamir
+Initialized        true
+Sealed             true
+Total Shares       5
+Threshold          3
+Unseal Progress    1/3
+Unseal Nonce       cdfd99b7-5a21-4113-b0ef-c99b8417aac6
+Version            1.9.2
+Storage Type       raft
+HA Enabled         true
+----
+
+NOTE: Repeat the above until `Sealed` is marked as `false`!
+
+[source,shell]
+----
+oc exec -ti vault-2 -- vault operator unseal
+----
+.Example output
+----
+Unseal Key (will be hidden): 
+Key                     Value
+---                     -----
+Seal Type               shamir
+Initialized             true
+Sealed                  false
+Total Shares            5
+Threshold               3
+Version                 1.9.2
+Storage Type            raft
+Cluster Name            vault-cluster-09d60b36
+Cluster ID              145ec6b9-47ef-8aa7-aa3f-9a9d1ca40554
+HA Enabled              true
+HA Cluster              n/a
+HA Mode                 standby
+Active Node Address     <none>
+Raft Committed Index    25
+Raft Applied Index      25
 ----
 
 === Create dedicated KV store
@@ -390,39 +341,82 @@ as they get generated during the deployment of an OSD. Together with the
 key-value store, create a dedicated security policy and a specific security
 token to be used by ODF to interact with the vault.
 
+Execute the below commands inside of one of the Vault Pods
+
 [source,shell]
 ----
-vault secrets enable -path=ocs kv
-echo 'path "ocs/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
-  path "sys/mounts" {
-  capabilities = ["read"]
- }'| vault policy write ocs -
-vault token create -policy=ocs -format json 
+oc exec -ti vault-0 -n vault -- sh
+----
+
+Login to the Vault instance. Use the Vault Root Token that you created with the unseal keys above.
+[source,shell]
+----
+vault login
 ----
 .Example output
 ----
-$ vault secrets enable -path=ocs kv <1>
-Success! Enabled the kv secrets engine at: ocs/
-$ echo 'path "ocs/*" {
-  capabilities = ["create", "read", "update", "delete", "list"]
-}
+Token (will be hidden): 
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
+
+Key                  Value
+---                  -----
+token                s.t1yyXXXXXXXX
+token_accessor       qLxxdspcAYQoOnQsgquC6PY2
+token_duration       ∞
+token_renewable      false
+token_policies       ["root"]
+identity_policies    []
+policies             ["root"]
+----
+
+Create the Key-Value store for OCS encryption keys
+
+[source,shell]
+----
+vault secrets enable -path=ocs kv-v2
+----
+.Example output
+----
+Success! Enabled the kv-v2 secrets engine at: ocs/
+----
+
+Write a policy that enables ocs users to use that Key-Value store
+
+[source,shell]
+----
+echo '
+  path "ocs/*" {
+    capabilities = ["create", "read", "update", "delete", "list"]
+  }
   path "sys/mounts" {
   capabilities = ["read"]
- }'| vault policy write ocs -
+  }'| vault policy write ocs -
+----
+.Example output
+----
 Success! Uploaded policy: ocs
-$ vault token create -policy=ocs -format json
+----
+
+Create a token to access this Key-Value store
+[source,shell]
+----
+vault token create -policy=ocs -format json
+----
+.Example output
+[source,json]
+----
 {
-  "request_id": "f3fd9e21-24bd-0685-b9ba-d40c34701abd",
+  "request_id": "dac47681-922e-281a-22c4-7d3964830abc",
   "lease_id": "",
   "lease_duration": 0,
   "renewable": false,
   "data": null,
   "warnings": null,
   "auth": {
-    "client_token": "s.jEQgA9dTDudlGrTUFnn3c45q", <2>
-    "accessor": "ZtyshPTy4ltNNDXW6s0zl6F0",
+    "client_token": "s.KZxO1XXXXXXXXXXXXXX",
+    "accessor": "ZyMMUquPez3Rps4whPLbvoNn",
     "policies": [
       "default",
       "ocs"
@@ -440,15 +434,13 @@ $ vault token create -policy=ocs -format json
   }
 }
 ----
-<1> `ocs` is the name of the key-value store dedicated to ODF. It is also known as the KV backend path.
-<2> This is the token to be used by ODF to authenticate with `vault`.
 
-NOTE: At this point your `vault` configuration is ready.
+NOTE: At this point your Vault configuration is ready to be used by ODF
 
 == Cluster-wide at-rest encryption
 
 In this section you will be using an OCP cluster to deploy
-ODF 4.7 using OperatorHub. The following will be installed:
+ODF 4.9 using OperatorHub. The following will be installed:
 
 - The ODF Operator
 - The ODF storage cluster (Ceph Pods, NooBaa Pods, StorageClasses)
@@ -460,166 +452,175 @@ Navigate to the *Operators* -> *OperatorHub* menu.
 .OCP OperatorHub
 image::OCS-OCP-OperatorHub.png[OCP OperatorHub]
 
+
 Now type `openshift container storage` in the *Filter by _keyword..._* box.
 
-.OCP OperatorHub filter on OpenShift Data Foundation Operator
-image::OCS4-4.7-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
+.OCP OperatorHub filter on OpenShift Container Storage Operator
+image::OCS4-OCP-OperatorHub-Filter.png[OCP OperatorHub Filter]
 
-Select `OpenShift Data Foundation Operator` and then select *Install*.
+Select `OpenShift Container Storage Operator` and then select *Install*.
 
-.OCP OperatorHub Install OpenShift Data Foundation
-image::OCS4-4.7-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
+.OCP OperatorHub Install OpenShift Container Storage
+image::OCS4-OCP4-OperatorHub-Install.png[OCP OperatorHub Install]
 
 On the next screen make sure the settings are as shown in this figure.
 
-.OCP Subscribe to OpenShift Data Foundation
-image::OCS4-4.7-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
+.OCP Subscribe to OpenShift Container Storage
+image::OCS4-OCP4-OperatorHub-Subscribe.png[OCP OperatorHub Subscribe]
 
 Click `Install`.
 
-Verify the operator is deployed successfully.
+Now you can go back to your terminal window to check the progress of the
+installation.
 
-Navigate to the *Operators* -> *Installed operators* menu.
-
-Select the `openshift-storage` namespace in the top of the UI pane as illustrated
-below.
-
-.Successful Operator Deployment
-image::OCS4-4.7-OCP4-OperatorHub-InstalledOperators.png[ODF Operator Deployed]
-
-NOTE: The operator status should be `Succeeded`.
-
-To check using the CLI, use the following command.
-
-[source,shell]
-....
-oc get pods,csv -n openshift-storage
-....
-.Example output
+[source,role="execute"]
 ----
-NAME                                        READY   STATUS    RESTARTS   AGE
-pod/noobaa-operator-7d4999c99f-9l88r        1/1     Running   0          71s
-pod/ocs-metrics-exporter-7b499fd65c-m89sc   1/1     Running   0          70s
-pod/ocs-operator-7564cf58b7-jbmfx           1/1     Running   0          71s
-pod/rook-ceph-operator-b58cfd5c-fbjlh       1/1     Running   0          71s
-
-NAME                                                                    DISPLAY                       VERSION        REPLACES   PHASE
-clusterserviceversion.operators.coreos.com/ocs-operator.v4.7.0-353.ci   OpenShift Container Storage   4.7.0-353.ci              Succeeded
+watch oc -n openshift-storage get csv
+----
+.Example output:
+----
+NAME                  DISPLAY                       VERSION   REPLACES              PHASE
+odf-operator.v4.9.3   OpenShift Data Foundation     4.9.3     odf-operator.v4.9.2   Succeeded
 ----
 
-CAUTION: The `Succeeded` phase status is the desired state for the Cluster Service Version (CSV).
-Reaching this state can take several minutes.
+You can exit by pressing kbd:[Ctrl+C].
 
-NOTE: Your ODF version might be different from the one used during the creation of this
-lab environment. Just make sure it is version 4.7.0 or higher.
+The resource `csv` is a shortened word for
+`clusterserviceversions.operators.coreos.com`.
 
-=== Create encrypted storage cluster
+.Please wait until the operator `PHASE` changes to `Succeeded`
+CAUTION: This will mark that the installation of your operator was
+successful. Reaching this state can take several minutes.
 
-Navigate to the *Operators* -> *Installed Operators* menu.
+You will now also see new operator pods in `openshift-storage`
+namespace:
 
-.Locate ODF Operator
-image::OCS4-4.7-OCP-InstalledOperatorsEncryption.png[OCP OperatorHub]
+[source,role="execute"]
+----
+oc -n openshift-storage get pods
+----
+.Example output:
+----
+NAME                                   READY   STATUS    RESTARTS   AGE
+noobaa-operator-698746cd47-sp6w9       1/1     Running   0          108s
+ocs-metrics-exporter-78bc44687-pg4hk   1/1     Running   0          107s
+ocs-operator-6d99bc6787-d7m9d          1/1     Running   0          108s
+rook-ceph-operator-59f7fb95d6-sdjd8    1/1     Running   0          108s
+----
 
-Click on `Storage Cluster` on the right hand side of the UI as indicated
-in the screen capture above.
+Now switch back to your *Openshift Web Console* for the remainder of the
+installation for ODF 4.
 
-.ODF Storage Cluster
-image::OCS4-4.7-OCP-CreateStorageCluster.png[ODF create Storage Cluster]
+Select `Create Storage Cluster` in figure below to get to the ODF configuration screen.
 
-Click on `Create Storage Cluster` on the right hand side of the UI.
+.Create storage cluster in openshift-storage namespace
+image::OCS4-OCP4-View-Operator.png[Create storage cluster in openshift-storage namespace]
 
-.ODF Select Nodes & Storage Class
-image::OCS4-4.7-OCP-Encryption-StorageCluster-Node.png[ODF node selection]
+The `Create Storage Cluster` screen will display.
 
-Select the worker nodes for your *StorageCluster* as illustrated above and clock `Next`.
+.Configure storage cluster settings
+image::OCS4-config-screen-partial1.png[Configure storage cluster settings]
 
-.ODF Basic External KMS Configuration
-image::OCS4-4.7-OCP-Encryption-StorageCluster-Basic.png[KMS basic configuration]
+You can leave the default selection of `Internal`, `gp2`, `2 TiB`.
 
-Enter the basic details for your configuration.
+.Select nodes for new storage cluster
+image::OCS4-config-screen-partial2.png[Select nodes for new storage cluster]
 
-. Enable encryption by checking this box
-. Select cluster-wide encryption by checking this box
-. Select external KMS by checking this box
-. Provide a unique name for your KMS service (any character string)
-. Provide the url to your `vault` configuration (can be http or https)
-. Provide the TCP port for your `vault` configuration (default is 8200)
-. Provide the security token generated for your `ocs` policy in chapter xref::ocs4-encryption.adoc#_create_dedicated_kv_store[]
+Select all the nodes that should host ODF Pods and click on Next.
 
-Click `Advanced Settings` to provide the the specific *HashiCorp Vault* parameters.
+.Configure Security for ODF
+image::KMS-Vault-Settings.jpg[Configure Security for ODF]
 
-.ODF Advanced External KMS Configuration
-image::OCS4-4.7-OCP-Encryption-StorageCluster-Advanced.png[KMS advanced configuration]
+In this screen, check the checkbox at 1.
 
-Enter the advanced details for your configuration.
+Then provide a Service name at 2 for your KMS endpoint. This will be used later when creating a Storage Class for encrypting PVs. "vault" is a good default for this, since we are setting up a Vault KMS.
 
-. Enter the name of the KV store you created for ODF (`ocs` in this guide)
-. Enter your *HashiCorp Vault* server FQDN
-. Using the `browse` button and select the `fullchain.pem` file generated by `certbot`
-. Using the `browse` button and select the `cert.pem` file generated by `certbot`
-. Using the `browse` button and select the `privkey.pem` file generated by `certbot`
+In 3 and 4 supply the address of the Vault cluster. Since we deploy within the cluster, we can use the Service address and the default Vaul Port `8200`
 
-NOTE: The `Vault Enterprise Namespace` can be ignored for this setup.
+In 5 supply the token that you got from the earlier command `vault token create -policy=ocs -format json`
 
-IMPORTANT: If you have not configured *HashiCorp Vault* to use `https` simply enter
-the `Backend Path` parameter and ignore the other parameters (2 through 5).
+Then open up the advance settings by clicking on the blue text next to 6.
 
-Click `Save` to return to the previous screen.
+.Configure Advanced Security for ODF
+image::KMS-Vault-Adv-Settings.jpg[Configure Advanced Security for ODF]
 
-Click `Next` to go to the *Storage Cluster Review* screen.
+Since we don't use HTTPs for the Vault communication, all we have to do is set the Backend Path to `ocs`. All other fields can be left as-is.
 
-.ODF Review Cluster Parameters
-image::OCS4-4.7-OCP-Encryption-StorageCluster-Review.png[Storage Cluster parameter review]
+.Review and create new storage cluster
+image::OCS4-config-screen-partial3.png[Review and create new storage cluster]
 
-Click `Create` to start the deployment of the ODF cluster.
+Click `Create`.
 
-After a while the cluster should be deployed and its status should be *Ready* as illustrated below.
+You can watch the deployment using the *Openshift Web Console* by going
+back to the `Openshift Container Storage Operator` screen and selecting `All
+instances`.
 
-.ODF Cluster Ready
-image::OCS4-4.7-OCP-Encryption-StorageCluster-Ready.png[Storage Cluster ready]
+Please wait until all *Pods* are marked as `Running` in the CLI or until you
+see all instances shown below as `Ready` Status in the Web Console as shown in the following diagram:
+
+.OCS instance overview after cluster install is finished
+image::OCS4-OCP4-finished-cluster-install.png[OCS instance overview after cluster install is finished]
 
 === Verify encryption keys
 
-Open a web browser and point to `http://\{vault-fqdn\}:8200/ui/vault/auth?with=token`.
+Open a remote shell on one of the Vault Pods
 
-.Vault Login UI
-image::OCS4-4.7-OCP-Encryption-VaultLogin.png[Vault login page]
 
-. In the `Token` field, enter the token you created for your ODF security policy in xref::ocs4-encryption.adoc#_create_dedicated_kv_store[]
+[source,role="execute"]
+----
+oc exec -ti vault-0 -n vault -- sh
+----
 
-Click `Sign In`.
+Then login as the root, using the Token you got when initializing the Vault cluster
 
-.Vault Secret Engines
-image::OCS4-4.7-OCP-Encryption-VaultSecretEngines.png[Vault secret engines]
+[source,role="execute"]
+----
+vault login
+----
+.Example output:
+----
+Token (will be hidden): 
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
 
-Click on the secret engines you have created for ODF, in our example `ocs`.
+Key                  Value
+---                  -----
+token                s.t1yycIXXXXXXXX
+token_accessor       qLxxdspcAYQoOnQsgquC6PY2
+token_duration       ∞
+token_renewable      false
+token_policies       ["root"]
+identity_policies    []
+policies             ["root"]
+----
 
-.Vault ODF Key List
-image::OCS4-4.7-OCP-Encryption-VaultOCSKeyList.png[Vault ODF key list]
+List all Keys in the `ocs` path.
+
+[source,role="execute"]
+----
+vault kv list ocs
+----
+.Example output:
+----
+Keys
+---
+NOOBAA_ROOT_SECRET_PATH/
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-0-data-08p9p4
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-1-data-0bd4n5
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-2-data-0pzgmq
+----
+
+NOTE: If there are no items in `ocs` yet, make sure that the OSD Pods have been started already.
 
 As you can see some secret keys were generated for your OSDs in the storage cluster.
-They are physically stored in the *HashiCorp Vault* instance.
-
-=== Expand ODF cluster
-
-Expand the cluster through the UI, as with existing version of ODF and verify
-additional encryption keys are generated and stored in your *HashiCorp Vault*
-instance as illustrated below.
-
-.Vault ODF Expansion Key List
-image::OCS4-4.7-OCP-Encryption-VaultOCSExpansionKeyList.png[Vault ODF additional key list]
-
-We now have a total of 6 encryption keys.
+They are stored in the *HashiCorp Vault* instance.
 
 == Granular *PersistentVolume* at-rest encryption
 
 To use *PersistentVolume* encryption, it is required to setup a new storage class
 that will be configured to use the external Key Management System we have configured in
 the previous sectons of this guide.
-
-IMPORTANT: The current version does not allow *PersistentVolume* level encryption to use
-a separate KMS backend. The only customization allowed for this type of encryption
-feature is the access token used to store the key generated by the applciation.
 
 === Specific storage class
 
@@ -633,12 +634,12 @@ Click `Create Storage Class` in the top right of the UI.
 Enter the details for your new storage class as detailed below.
 
 .Encrypted Storage Class
-image::OCS4-4.7-OCP-Encryption-SC-Basic.png[Encrypted storage class details]
+image::KMS-Vault-StorageClass.jpg[Encrypted storage class details]
 
 . Specify the name of your storage class
 . Select the Ceph CSI RBD provisioner
 . Choose the Ceph pool receiving the PersistentVolumes
-. Enable encryption for this storage class
+. Enable encryption for this storage class and chose our existing KMS.
 
 NOTE: The pool can be the same as the default pool.
 
@@ -682,7 +683,7 @@ stringData:
   token: "{application_vault_token}"
 ----
 
-Replace `\{application_vault_token\}` with your actual token.
+Replace `\{application_vault_token\}` with a Vault token. For security purposes you should consider creating different tokens for every namespace. For development purposes you can use the ODF token you created above.
 
 Deploy your application using the dedicated storage class you just created. Use the following command
 to do so:
@@ -815,457 +816,505 @@ pvc-cephrbd2   Bound    pvc-f884eadc-9d37-4111-85ea-123c78b646a7   500Mi      RW
 
 You can also verify that the *HashiCorp Vault* scret engine now contains two PersistentVolume specific keys.
 
-.Vault PV Specific Keys
-image::OCS4-4.7-OCP-Encryption-PV-Keys.png[PV specific keys craeted]
+Open a remote shell on one of the Vault Pods
+
+[source,role="execute"]
+----
+oc exec -ti vault-0 -n vault -- sh
+----
+
+Then login as the root, using the Token you got when initializing the Vault cluster
+
+[source,role="execute"]
+----
+vault login
+----
+.Example output:
+----
+Token (will be hidden): 
+Success! You are now authenticated. The token information displayed below
+is already stored in the token helper. You do NOT need to run "vault login"
+again. Future Vault requests will automatically use this token.
+
+Key                  Value
+---                  -----
+token                s.t1yycIXXXXXXXX
+token_accessor       qLxxdspcAYQoOnQsgquC6PY2
+token_duration       ∞
+token_renewable      false
+token_policies       ["root"]
+identity_policies    []
+policies             ["root"]
+----
+
+List all Keys in the `ocs` path.
+
+[source,role="execute"]
+----
+vault kv list ocs
+----
+.Example output:
+----
+Keys
+---
+0001-0011-openshift-storage-0000000000000001-c27dc662-9ae1-11ec-8efb-0a580a80020a
+0001-0011-openshift-storage-0000000000000001-c28f1e08-9ae1-11ec-8efb-0a580a80020a
+NOOBAA_ROOT_SECRET_PATH/
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-0-data-08p9p4
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-1-data-0bd4n5
+rook-ceph-osd-encryption-key-ocs-deviceset-gp2-2-data-0pzgmq
+----
 
 CAUTION: When deleting your application make sure you delete your application pods and PVCs before
 deleting the secret that contains your access token to the vault. If you fail to do so you will end up
 with orphans PV keys in your vault.
 
-== CLI deployment
+// == CLI deployment
 
-If needed, an encrypted at-rest cluster that uses *HashiCorp Vault* can be deployed using the CLI.
-This section covers this specific procedure:
+// If needed, an encrypted at-rest cluster that uses *HashiCorp Vault* can be deployed using the CLI.
+// This section covers this specific procedure:
 
-. Deploy ODF operator
-. Create your KMS specific configuration
-. Create your customized *StorageCluster* cofniguration
-. Deploy your ODF cluster
+// . Deploy ODF operator
+// . Create your KMS specific configuration
+// . Create your customized *StorageCluster* cofniguration
+// . Deploy your ODF cluster
 
-=== Deploy ODF operator
+// === Deploy ODF operator
 
-IMPORTANT: Depending on your environment you might have to deploy the Local Storage Operator
-and configure it. Follow the procedure
-https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-install-no-ui.html#_installing_the_local_storage_operator_v4_6[here]
-on this web site.
+// IMPORTANT: Depending on your environment you might have to deploy the Local Storage Operator
+// and configure it. Follow the procedure
+// https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-install-no-ui.html#_installing_the_local_storage_operator_v4_6[here]
+// on this web site.
 
-Label the nodes to be used by ODF.
+// Label the nodes to be used by ODF.
 
-[source,shell]
-----
-oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
-----
-.Example output
-----
-oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
-node/ip-10-0-134-254.us-east-2.compute.internal labeled
-node/ip-10-0-186-246.us-east-2.compute.internal labeled
-node/ip-10-0-194-104.us-east-2.compute.internal labeled
-----
+// [source,shell]
+// ----
+// oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
+// ----
+// .Example output
+// ----
+// oc label node -l node-role.kubernetes.io/worker="" cluster.ocs.openshift.io/openshift-storage=''
+// node/ip-10-0-134-254.us-east-2.compute.internal labeled
+// node/ip-10-0-186-246.us-east-2.compute.internal labeled
+// node/ip-10-0-194-104.us-east-2.compute.internal labeled
+// ----
 
-Create `openshift-storage` namespace.
+// Create `openshift-storage` namespace.
 
-[source]
-....
-cat <<EOF | oc apply -f -
-apiVersion: v1
-kind: Namespace
-metadata:
-  labels:
-    openshift.io/cluster-monitoring: "true"
-  name: openshift-storage
-spec: {}
-EOF
-....
+// [source]
+// ....
+// cat <<EOF | oc apply -f -
+// apiVersion: v1
+// kind: Namespace
+// metadata:
+//   labels:
+//     openshift.io/cluster-monitoring: "true"
+//   name: openshift-storage
+// spec: {}
+// EOF
+// ....
 
-Create Operator Group for ODF Operator.
+// Create Operator Group for ODF Operator.
 
-[source]
-....
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1
-kind: OperatorGroup
-metadata:
-  name: openshift-storage-operatorgroup
-  namespace: openshift-storage
-spec:
-  targetNamespaces:
-  - openshift-storage
-EOF
-....
+// [source]
+// ....
+// cat <<EOF | oc apply -f -
+// apiVersion: operators.coreos.com/v1
+// kind: OperatorGroup
+// metadata:
+//   name: openshift-storage-operatorgroup
+//   namespace: openshift-storage
+// spec:
+//   targetNamespaces:
+//   - openshift-storage
+// EOF
+// ....
 
-Subscribe to ODF Operator.
+// Subscribe to ODF Operator.
 
-[source]
-....
-cat <<EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: ocs-operator
-  namespace: openshift-storage
-spec:
-  channel: "stable-4.6"
-  installPlanApproval: Automatic
-  name: ocs-operator
-  source: redhat-operators  # <-- Modify the name of the redhat-operators catalogsource if not default
-  sourceNamespace: openshift-marketplace
-EOF
-....
+// [source]
+// ....
+// cat <<EOF | oc apply -f -
+// apiVersion: operators.coreos.com/v1alpha1
+// kind: Subscription
+// metadata:
+//   name: ocs-operator
+//   namespace: openshift-storage
+// spec:
+//   channel: "stable-4.6"
+//   installPlanApproval: Automatic
+//   name: ocs-operator
+//   source: redhat-operators  # <-- Modify the name of the redhat-operators catalogsource if not default
+//   sourceNamespace: openshift-marketplace
+// EOF
+// ....
 
-IMPORTANT: Verify your ODF Operator has been deployed using the `oc get pods -n openshift-storage`
-or `oc get csv -n openshift-storage` commands.
+// IMPORTANT: Verify your ODF Operator has been deployed using the `oc get pods -n openshift-storage`
+// or `oc get csv -n openshift-storage` commands.
 
-=== Create KMS configuration
+// === Create KMS configuration
 
-Create a KMS configuration in the `openshift-storage` namespace.
+// Create a KMS configuration in the `openshift-storage` namespace.
 
-. If using `https` configure secrets
-. Create the external vault configuration map
-.. For ODF
-.. For CSI
-. Create the `vault` access token secret
+// . If using `https` configure secrets
+// . Create the external vault configuration map
+// .. For ODF
+// .. For CSI
+// . Create the `vault` access token secret
 
-==== `https` CLI configuration
+// ==== `https` CLI configuration
 
-All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
-command: `cat \{filename.pem\} | base64`
+// All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
+// command: `cat \{filename.pem\} | base64`
 
-* fullchain.pem
-* cert.pem
-* privkey.pem
+// * fullchain.pem
+// * cert.pem
+// * privkey.pem
 
-Create the following secrets in the `openshift-storage` namespace.
+// Create the following secrets in the `openshift-storage` namespace.
 
-NOTE: If you have nit configured *HashiCorp Vault* with `https` just go to xref::ocs4-encryption.adoc#_odf_cli_configuration[]
+// NOTE: If you have nit configured *HashiCorp Vault* with `https` just go to xref::ocs4-encryption.adoc#_odf_cli_configuration[]
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  cert: {fullchain.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-ca-secret
-  namespace: openshift-storage
-type: Opaque
----
-apiVersion: v1
-data:
-  cert: {cert.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-client-cert
-  namespace: openshift-storage
-type: Opaque
----
-apiVersion: v1
-data:
-  cert: {privkey.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-client-key
-  namespace: openshift-storage
-type: Opaque
----
-apiVersion: v1
-data:
-  token: {vault_token_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-token
-  namespace: openshift-storage
-type: Opaque
-----
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   cert: {fullchain.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-ca-secret
+//   namespace: openshift-storage
+// type: Opaque
+// ---
+// apiVersion: v1
+// data:
+//   cert: {cert.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-client-cert
+//   namespace: openshift-storage
+// type: Opaque
+// ---
+// apiVersion: v1
+// data:
+//   cert: {privkey.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-client-key
+//   namespace: openshift-storage
+// type: Opaque
+// ---
+// apiVersion: v1
+// data:
+//   token: {vault_token_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-token
+//   namespace: openshift-storage
+// type: Opaque
+// ----
 
-.Example output
-----
-secret/ocs-kms-ca-secret created
-secret/ocs-kms-client-cert created
-secret/ocs-kms-client-key created
-secret/ocs-kms-token created
-----
+// .Example output
+// ----
+// secret/ocs-kms-ca-secret created
+// secret/ocs-kms-client-cert created
+// secret/ocs-kms-client-key created
+// secret/ocs-kms-token created
+// ----
 
-==== ODF CLI configuration
+// ==== ODF CLI configuration
 
-Create the external *HashiCorp Vault* configuration for ODF using the secrets above.
+// Create the external *HashiCorp Vault* configuration for ODF using the secrets above.
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  KMS_PROVIDER: vault
-  KMS_SERVICE_NAME: {vault_service_name} <1>
-  VAULT_ADDR: {vault_url}:{vault_port} <2>
-  VAULT_BACKEND_PATH: {backend_path} <3>
-  VAULT_CACERT: ocs-kms-ca-secret
-  VAULT_CLIENT_CERT: ocs-kms-client-cert
-  VAULT_CLIENT_KEY: ocs-kms-client-key
-  VAULT_NAMESPACE: ""
-  VAULT_TLS_SERVER_NAME: {vault_name} <4>
-kind: ConfigMap
-metadata:
-  name: ocs-kms-connection-details
-  namespace: openshift-storage
-----
-<1> Name your KMS configuration e.g. `external-vault`
-<2> Replace with your `vault` FQDN e.g. https://external-vault.ocstraining.com:8200[https://external-vault.ocstraining.com:8200]
-<3> Replace with your `vault` secret engine path e.g. `ocs/`
-<4> Specify a name for your server e.g. `external-vault.ocstraining.com`
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   KMS_PROVIDER: vault
+//   KMS_SERVICE_NAME: {vault_service_name} <1>
+//   VAULT_ADDR: {vault_url}:{vault_port} <2>
+//   VAULT_BACKEND_PATH: {backend_path} <3>
+//   VAULT_CACERT: ocs-kms-ca-secret
+//   VAULT_CLIENT_CERT: ocs-kms-client-cert
+//   VAULT_CLIENT_KEY: ocs-kms-client-key
+//   VAULT_NAMESPACE: ""
+//   VAULT_TLS_SERVER_NAME: {vault_name} <4>
+// kind: ConfigMap
+// metadata:
+//   name: ocs-kms-connection-details
+//   namespace: openshift-storage
+// ----
+// <1> Name your KMS configuration e.g. `external-vault`
+// <2> Replace with your `vault` FQDN e.g. https://external-vault.ocstraining.com:8200[https://external-vault.ocstraining.com:8200]
+// <3> Replace with your `vault` secret engine path e.g. `ocs/`
+// <4> Specify a name for your server e.g. `external-vault.ocstraining.com`
 
-NOTE: If *HashiCorp Vault* is not configured with `https` you can ommit the `VAULT_CACERT`,
-`VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
+// NOTE: If *HashiCorp Vault* is not configured with `https` you can ommit the `VAULT_CACERT`,
+// `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
 
-==== CSI configuration
+// ==== CSI configuration
 
-Create the external *HashiCorp Vault* configuration for CSI using the secrets above.
+// Create the external *HashiCorp Vault* configuration for CSI using the secrets above.
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
-kind: ConfigMap
-metadata:
-  name: csi-kms-connection-details
-  namespace: openshift-storage
-----
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
+// kind: ConfigMap
+// metadata:
+//   name: csi-kms-connection-details
+//   namespace: openshift-storage
+// ----
 
-IMPORTANT: Replace the values `\{vault_service_name\}`, `\{vault_url\}`, `\{vault_port\}`, `\{backend_path\}` and `\{vault_name\}`
-with the values you have configured.
+// IMPORTANT: Replace the values `\{vault_service_name\}`, `\{vault_url\}`, `\{vault_port\}`, `\{backend_path\}` and `\{vault_name\}`
+// with the values you have configured.
 
-NOTE: If *HashiCorp Vault* is not configured with `https` assign a `""` value to the `VAULT_CACERT`,
-`VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
+// NOTE: If *HashiCorp Vault* is not configured with `https` assign a `""` value to the `VAULT_CACERT`,
+// `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
 
-.Example output
-----
-configmap/ocs-kms-connection-details created
-configmap/csi-kms-connection-details created
-----
+// .Example output
+// ----
+// configmap/ocs-kms-connection-details created
+// configmap/csi-kms-connection-details created
+// ----
 
-=== Create custom ODF cluster configuration
+// === Create custom ODF cluster configuration
 
-Create a `storagecluster.yaml` configuration that contains the parameters to
-enable at-rest encryption using an external *Hashicorp Vault* server.
-The template below can be used to create your *StorageCluster` CR.
+// Create a `storagecluster.yaml` configuration that contains the parameters to
+// enable at-rest encryption using an external *Hashicorp Vault* server.
+// The template below can be used to create your *StorageCluster` CR.
 
-[source,shell]
-----
----
-apiVersion: ocs.openshift.io/v1
-kind: StorageCluster
-metadata:
-  annotations:
-    uninstall.ocs.openshift.io/cleanup-policy: delete
-    uninstall.ocs.openshift.io/mode: graceful
-  name: ocs-storagecluster
-  namespace: openshift-storage
-spec:
-  arbiter: {}
-  encryption:
-    enable: true				# <- Enable at-rest encryption
-    kms:
-      enable: true				# <- Enable external KMS service for your keys
-  externalStorage: {}
-  managedResources:
-    cephBlockPools: {}
-    cephConfig: {}
-    cephFilesystems: {}
-    cephObjectStoreUsers: {}
-    cephObjectStores: {}
-  nodeTopologies: {}
-  storageDeviceSets:
-  - config: {}
-    count: 1
-    dataPVCTemplate:
-      metadata: {}
-      spec:
-        accessModes:
-        - ReadWriteOnce
-        resources:
-          requests:
-            storage: {size}			# <- Use the desired size for your storage class
-        storageClassName: {storageclass}	# <- Use the desired storage class for your environment
-        volumeMode: Block
-    name: ocs-deviceset-{storageclass}		# <- Customize the PVC name for your environment
-    portable: true
-    preparePlacement: {}
-    replica: 3
-  version: 4.7.0
-----
+// [source,shell]
+// ----
+// ---
+// apiVersion: ocs.openshift.io/v1
+// kind: StorageCluster
+// metadata:
+//   annotations:
+//     uninstall.ocs.openshift.io/cleanup-policy: delete
+//     uninstall.ocs.openshift.io/mode: graceful
+//   name: ocs-storagecluster
+//   namespace: openshift-storage
+// spec:
+//   arbiter: {}
+//   encryption:
+//     enable: true				# <- Enable at-rest encryption
+//     kms:
+//       enable: true				# <- Enable external KMS service for your keys
+//   externalStorage: {}
+//   managedResources:
+//     cephBlockPools: {}
+//     cephConfig: {}
+//     cephFilesystems: {}
+//     cephObjectStoreUsers: {}
+//     cephObjectStores: {}
+//   nodeTopologies: {}
+//   storageDeviceSets:
+//   - config: {}
+//     count: 1
+//     dataPVCTemplate:
+//       metadata: {}
+//       spec:
+//         accessModes:
+//         - ReadWriteOnce
+//         resources:
+//           requests:
+//             storage: {size}			# <- Use the desired size for your storage class
+//         storageClassName: {storageclass}	# <- Use the desired storage class for your environment
+//         volumeMode: Block
+//     name: ocs-deviceset-{storageclass}		# <- Customize the PVC name for your environment
+//     portable: true
+//     preparePlacement: {}
+//     replica: 3
+//   version: 4.9.0
+// ----
 
-=== Deploy ODF cluster
+// === Deploy ODF cluster
 
-Create your ODF cluster using the template file above.
+// Create your ODF cluster using the template file above.
 
-.Example output
-----
-oc create -f storagecluster-encrypted-kms.yaml
-storagecluster.ocs.openshift.io/ocs-storagecluster created
-----
+// .Example output
+// ----
+// oc create -f storagecluster-encrypted-kms.yaml
+// storagecluster.ocs.openshift.io/ocs-storagecluster created
+// ----
 
-And monitor the `openshift-storage` namespace to verify your cluster is coming online.
+// And monitor the `openshift-storage` namespace to verify your cluster is coming online.
 
-[source,shell]
-----
-oc get pod,pvc -n openshift-storage
-oc get storagecluster -n openshift-storage
-oc get cephcluster -n openshift-storage
-----
-.Example output
-----
-$ oc get pod,pvc -n openshift-storage
-NAME                                                                  READY   STATUS      RESTARTS   AGE
-pod/csi-cephfsplugin-mjj7b                                            3/3     Running     0          7m26s
-pod/csi-cephfsplugin-p6pff                                            3/3     Running     0          7m26s
-pod/csi-cephfsplugin-provisioner-f975d886c-6trbh                      6/6     Running     0          7m25s
-pod/csi-cephfsplugin-provisioner-f975d886c-8tgws                      6/6     Running     0          7m26s
-pod/csi-cephfsplugin-s7h6g                                            3/3     Running     0          7m26s
-pod/csi-rbdplugin-9bq45                                               3/3     Running     0          7m26s
-pod/csi-rbdplugin-provisioner-6bbf798bfb-9lttr                        6/6     Running     0          7m26s
-pod/csi-rbdplugin-provisioner-6bbf798bfb-n5gxr                        6/6     Running     0          7m26s
-pod/csi-rbdplugin-tpcvv                                               3/3     Running     0          7m26s
-pod/csi-rbdplugin-wkplf                                               3/3     Running     0          7m26s
-pod/noobaa-core-0                                                     1/1     Running     0          4m3s
-pod/noobaa-db-pg-0                                                    1/1     Running     0          4m3s
-pod/noobaa-endpoint-b6f7fb9c8-6mx58                                   1/1     Running     0          2m32s
-pod/noobaa-operator-67dc46d9d5-v9q5m                                  1/1     Running     0          37m
-pod/ocs-metrics-exporter-7c44944fd6-fzdfh                             1/1     Running     0          37m
-pod/ocs-operator-5d55f4d88b-jptqr                                     1/1     Running     0          37m
-pod/rook-ceph-crashcollector-ip-10-0-134-254-6f4545b94b-hz42l         1/1     Running     0          6m39s
-pod/rook-ceph-crashcollector-ip-10-0-186-246-5d8496576-w9vwx          1/1     Running     0          5m43s
-pod/rook-ceph-crashcollector-ip-10-0-194-104-6df5597756-wcwbj         1/1     Running     0          6m14s
-pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-5b9f876cwg59f   2/2     Running     0          3m53s
-pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-5547d7cf9655x   2/2     Running     0          3m52s
-pod/rook-ceph-mgr-a-5bc78f6d94-h6gpq                                  2/2     Running     0          4m55s
-pod/rook-ceph-mon-a-866fdd69b7-gmk5g                                  2/2     Running     0          6m52s
-pod/rook-ceph-mon-b-6bdb9f966c-qj7j2                                  2/2     Running     0          6m14s
-pod/rook-ceph-mon-c-7c9cdc7f47-v4tlc                                  2/2     Running     0          5m43s
-pod/rook-ceph-operator-6ddb556fd7-6pbqs                               1/1     Running     0          37m
-pod/rook-ceph-osd-0-5f8b85475b-cp955                                  2/2     Running     0          4m9s
-pod/rook-ceph-osd-1-7b66f8d755-jzvgp                                  2/2     Running     0          4m8s
-pod/rook-ceph-osd-2-d765b96f5-snkjs                                   2/2     Running     0          4m4s
-pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0vgg9c-j4lrn       0/1     Completed   0          4m53s
-pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-07nkxq-bpmcz       0/1     Completed   0          4m51s
-pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-09x8d4-nrq6h       0/1     Completed   0          4m50s
+// [source,shell]
+// ----
+// oc get pod,pvc -n openshift-storage
+// oc get storagecluster -n openshift-storage
+// oc get cephcluster -n openshift-storage
+// ----
+// .Example output
+// ----
+// $ oc get pod,pvc -n openshift-storage
+// NAME                                                                  READY   STATUS      RESTARTS   AGE
+// pod/csi-cephfsplugin-mjj7b                                            3/3     Running     0          7m26s
+// pod/csi-cephfsplugin-p6pff                                            3/3     Running     0          7m26s
+// pod/csi-cephfsplugin-provisioner-f975d886c-6trbh                      6/6     Running     0          7m25s
+// pod/csi-cephfsplugin-provisioner-f975d886c-8tgws                      6/6     Running     0          7m26s
+// pod/csi-cephfsplugin-s7h6g                                            3/3     Running     0          7m26s
+// pod/csi-rbdplugin-9bq45                                               3/3     Running     0          7m26s
+// pod/csi-rbdplugin-provisioner-6bbf798bfb-9lttr                        6/6     Running     0          7m26s
+// pod/csi-rbdplugin-provisioner-6bbf798bfb-n5gxr                        6/6     Running     0          7m26s
+// pod/csi-rbdplugin-tpcvv                                               3/3     Running     0          7m26s
+// pod/csi-rbdplugin-wkplf                                               3/3     Running     0          7m26s
+// pod/noobaa-core-0                                                     1/1     Running     0          4m3s
+// pod/noobaa-db-pg-0                                                    1/1     Running     0          4m3s
+// pod/noobaa-endpoint-b6f7fb9c8-6mx58                                   1/1     Running     0          2m32s
+// pod/noobaa-operator-67dc46d9d5-v9q5m                                  1/1     Running     0          37m
+// pod/ocs-metrics-exporter-7c44944fd6-fzdfh                             1/1     Running     0          37m
+// pod/ocs-operator-5d55f4d88b-jptqr                                     1/1     Running     0          37m
+// pod/rook-ceph-crashcollector-ip-10-0-134-254-6f4545b94b-hz42l         1/1     Running     0          6m39s
+// pod/rook-ceph-crashcollector-ip-10-0-186-246-5d8496576-w9vwx          1/1     Running     0          5m43s
+// pod/rook-ceph-crashcollector-ip-10-0-194-104-6df5597756-wcwbj         1/1     Running     0          6m14s
+// pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-5b9f876cwg59f   2/2     Running     0          3m53s
+// pod/rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-5547d7cf9655x   2/2     Running     0          3m52s
+// pod/rook-ceph-mgr-a-5bc78f6d94-h6gpq                                  2/2     Running     0          4m55s
+// pod/rook-ceph-mon-a-866fdd69b7-gmk5g                                  2/2     Running     0          6m52s
+// pod/rook-ceph-mon-b-6bdb9f966c-qj7j2                                  2/2     Running     0          6m14s
+// pod/rook-ceph-mon-c-7c9cdc7f47-v4tlc                                  2/2     Running     0          5m43s
+// pod/rook-ceph-operator-6ddb556fd7-6pbqs                               1/1     Running     0          37m
+// pod/rook-ceph-osd-0-5f8b85475b-cp955                                  2/2     Running     0          4m9s
+// pod/rook-ceph-osd-1-7b66f8d755-jzvgp                                  2/2     Running     0          4m8s
+// pod/rook-ceph-osd-2-d765b96f5-snkjs                                   2/2     Running     0          4m4s
+// pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0vgg9c-j4lrn       0/1     Completed   0          4m53s
+// pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-07nkxq-bpmcz       0/1     Completed   0          4m51s
+// pod/rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-09x8d4-nrq6h       0/1     Completed   0          4m50s
 
-NAME                                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
-persistentvolumeclaim/db-noobaa-db-pg-0                 Bound    pvc-f903e155-a6be-4272-9780-4057cf1f9146   50Gi       RWO            ocs-storagecluster-ceph-rbd   4m4s
-persistentvolumeclaim/ocs-deviceset-gp2-0-data-0vgg9c   Bound    pvc-356fce40-5f7e-4c88-8744-22e965420bf7   2Ti        RWO            gp2                           4m55s
-persistentvolumeclaim/ocs-deviceset-gp2-1-data-07nkxq   Bound    pvc-2a1e7ae5-20dc-4696-b247-a055d24c0396   2Ti        RWO            gp2                           4m55s
-persistentvolumeclaim/ocs-deviceset-gp2-2-data-09x8d4   Bound    pvc-189d0d6e-707d-4409-bde9-fd303a30940b   2Ti        RWO            gp2                           4m55s
-persistentvolumeclaim/rook-ceph-mon-a                   Bound    pvc-5740c8aa-3a52-4a41-9989-5197fc052c09   10Gi       RWO            gp2                           7m5s
-persistentvolumeclaim/rook-ceph-mon-b                   Bound    pvc-7d870739-1e26-4b50-adde-4c941f4e5551   10Gi       RWO            gp2                           7m5s
-persistentvolumeclaim/rook-ceph-mon-c                   Bound    pvc-57a7906b-33bf-4764-be8a-ab4ac72a9b27   10Gi       RWO            gp2                           7m4s
-$ oc get storagecluster -n openshift-storage
-NAME                 AGE   PHASE   EXTERNAL   CREATED AT             VERSION
-ocs-storagecluster   10m   Ready              2021-04-21T20:55:57Z   4.7.0
-$ oc get cephcluster -n openshift-storage
-NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
-ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK
-----
+// NAME                                                    STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+// persistentvolumeclaim/db-noobaa-db-pg-0                 Bound    pvc-f903e155-a6be-4272-9780-4057cf1f9146   50Gi       RWO            ocs-storagecluster-ceph-rbd   4m4s
+// persistentvolumeclaim/ocs-deviceset-gp2-0-data-0vgg9c   Bound    pvc-356fce40-5f7e-4c88-8744-22e965420bf7   2Ti        RWO            gp2                           4m55s
+// persistentvolumeclaim/ocs-deviceset-gp2-1-data-07nkxq   Bound    pvc-2a1e7ae5-20dc-4696-b247-a055d24c0396   2Ti        RWO            gp2                           4m55s
+// persistentvolumeclaim/ocs-deviceset-gp2-2-data-09x8d4   Bound    pvc-189d0d6e-707d-4409-bde9-fd303a30940b   2Ti        RWO            gp2                           4m55s
+// persistentvolumeclaim/rook-ceph-mon-a                   Bound    pvc-5740c8aa-3a52-4a41-9989-5197fc052c09   10Gi       RWO            gp2                           7m5s
+// persistentvolumeclaim/rook-ceph-mon-b                   Bound    pvc-7d870739-1e26-4b50-adde-4c941f4e5551   10Gi       RWO            gp2                           7m5s
+// persistentvolumeclaim/rook-ceph-mon-c                   Bound    pvc-57a7906b-33bf-4764-be8a-ab4ac72a9b27   10Gi       RWO            gp2                           7m4s
+// $ oc get storagecluster -n openshift-storage
+// NAME                 AGE   PHASE   EXTERNAL   CREATED AT             VERSION
+// ocs-storagecluster   10m   Ready              2021-04-21T20:55:57Z   4.9.0
+// $ oc get cephcluster -n openshift-storage
+// NAME                             DATADIRHOSTPATH   MONCOUNT   AGE     PHASE   MESSAGE                        HEALTH
+// ocs-storagecluster-cephcluster   /var/lib/rook     3          7m34s   Ready   Cluster created successfully   HEALTH_OK
+// ----
 
-== Granular *PersistenVolume* at-rest encryption without cluster-wide encryption
+// == Granular *PersistenVolume* at-rest encryption without cluster-wide encryption
 
-It is possible to provide PV level encryption on a non at-rest encrypted cluster.
+// It is possible to provide PV level encryption on a non at-rest encrypted cluster.
 
-Create a KMS configuration in the `openshift-storage` namespace.
+// Create a KMS configuration in the `openshift-storage` namespace.
 
-. If using `https` configure secrets
-. Create the external vault configuration map
-.. For ODF
-.. For CSI
-. Create the *HashiCorp Vault* access token secret
+// . If using `https` configure secrets
+// . Create the external vault configuration map
+// .. For ODF
+// .. For CSI
+// . Create the *HashiCorp Vault* access token secret
 
-=== `https` configuration
+// === `https` configuration
 
-All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
-command: `cat \{filename.pem\} | base64`
+// All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
+// command: `cat \{filename.pem\} | base64`
 
-* fullchain.pem
-* cert.pem
-* privkey.pem
+// * fullchain.pem
+// * cert.pem
+// * privkey.pem
 
-Create the following secrets in the `openshift-storage` namespace.
+// Create the following secrets in the `openshift-storage` namespace.
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  cert: {fullchain.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-ca-secret
-  namespace: openshift-storage
-type: Opaque
----
-apiVersion: v1
-data:
-  cert: {cert.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-client-cert
-  namespace: openshift-storage
-type: Opaque
----
-apiVersion: v1
-data:
-  cert: {privkey.pem_encoded_value}
-kind: Secret
-metadata:
-  name: ocs-kms-client-key
-  namespace: openshift-storage
-type: Opaque
-----
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   cert: {fullchain.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-ca-secret
+//   namespace: openshift-storage
+// type: Opaque
+// ---
+// apiVersion: v1
+// data:
+//   cert: {cert.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-client-cert
+//   namespace: openshift-storage
+// type: Opaque
+// ---
+// apiVersion: v1
+// data:
+//   cert: {privkey.pem_encoded_value}
+// kind: Secret
+// metadata:
+//   name: ocs-kms-client-key
+//   namespace: openshift-storage
+// type: Opaque
+// ----
 
-IMPORTANT: The vault access token secret to be used by the application is created in the application
-namespace and not in the `openshift-storage` namespace. See xref::ocs4-encryption.adoc#_test_application[]
+// IMPORTANT: The vault access token secret to be used by the application is created in the application
+// namespace and not in the `openshift-storage` namespace. See xref::ocs4-encryption.adoc#_test_application[]
 
-=== ODF configuration
+// === ODF configuration
 
-Create the external vault configuration for ODF using the secrets above.
+// Create the external vault configuration for ODF using the secrets above.
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  KMS_PROVIDER: vault
-  KMS_SERVICE_NAME: {vault_service_name} <1>
-  VAULT_ADDR: {vault_url}:{vault_port} <2>
-  VAULT_BACKEND_PATH: {backend_path} <3>
-  VAULT_CACERT: ocs-kms-ca-secret
-  VAULT_CLIENT_CERT: ocs-kms-client-cert
-  VAULT_CLIENT_KEY: ocs-kms-client-key
-  VAULT_NAMESPACE: ""
-  VAULT_TLS_SERVER_NAME: {vault_name} <4>
-kind: ConfigMap
-metadata:
-  name: ocs-kms-connection-details
-  namespace: openshift-storage
-----
-<1> Name your KMS configuration e.g. `external-vault`
-<2> Replace with your `vault` FQDN e.g. https://external-vault.ocstraining.com:8200[https://external-vault.ocstraining.com:8200]
-<3> Replace with your `vault` secret engine path e.g. `ocs/`
-<4> Specify a name for your server e.g. `external-vault.ocstraining.com`
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   KMS_PROVIDER: vault
+//   KMS_SERVICE_NAME: {vault_service_name} <1>
+//   VAULT_ADDR: {vault_url}:{vault_port} <2>
+//   VAULT_BACKEND_PATH: {backend_path} <3>
+//   VAULT_CACERT: ocs-kms-ca-secret
+//   VAULT_CLIENT_CERT: ocs-kms-client-cert
+//   VAULT_CLIENT_KEY: ocs-kms-client-key
+//   VAULT_NAMESPACE: ""
+//   VAULT_TLS_SERVER_NAME: {vault_name} <4>
+// kind: ConfigMap
+// metadata:
+//   name: ocs-kms-connection-details
+//   namespace: openshift-storage
+// ----
+// <1> Name your KMS configuration e.g. `external-vault`
+// <2> Replace with your `vault` FQDN e.g. https://external-vault.ocstraining.com:8200[https://external-vault.ocstraining.com:8200]
+// <3> Replace with your `vault` secret engine path e.g. `ocs/`
+// <4> Specify a name for your server e.g. `external-vault.ocstraining.com`
 
-NOTE: If *HashiCorp Vault* is not configured with `https` you can ommit the `VAULT_CACERT`,
-`VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
+// NOTE: If *HashiCorp Vault* is not configured with `https` you can ommit the `VAULT_CACERT`,
+// `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
 
-=== CSI configuration
+// === CSI configuration
 
-Create the external `vault` configuration for CSI using the secret above.
+// Create the external `vault` configuration for CSI using the secret above.
 
-[source,shell]
-----
-apiVersion: v1
-data:
-  1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
-kind: ConfigMap
-metadata:
-  name: csi-kms-connection-details
-  namespace: openshift-storage
-----
+// [source,shell]
+// ----
+// apiVersion: v1
+// data:
+//   1-external-vault: '{"KMS_PROVIDER":"vaulttokens","KMS_SERVICE_NAME":"{vault_service_name}","VAULT_ADDR":"{vault_url}:{vault_port}","VAULT_BACKEND_PATH":"{backend_path}","VAULT_CACERT":"ocs-kms-ca-secret","VAULT_TLS_SERVER_NAME":"{vault_name}","VAULT_CLIENT_CERT":"ocs-kms-client-cert","VAULT_CLIENT_KEY":"ocs-kms-client-key","VAULT_NAMESPACE":"","VAULT_TOKEN_NAME":"ocs-kms-token","VAULT_CACERT_FILE":"fullchain.pem","VAULT_CLIENT_CERT_FILE":"cert.pem","VAULT_CLIENT_KEY_FILE":"privkey.pem"}'
+// kind: ConfigMap
+// metadata:
+//   name: csi-kms-connection-details
+//   namespace: openshift-storage
+// ----
 
-IMPORTANT: Replace the values `\{vault_service_name\}`, `\{vault_url\}`, `\{vault_port\}`, `\{backend_path\}` and `\{vault_name\}`
-with the values you have configured.
+// IMPORTANT: Replace the values `\{vault_service_name\}`, `\{vault_url\}`, `\{vault_port\}`, `\{backend_path\}` and `\{vault_name\}`
+// with the values you have configured.
 
-NOTE: If *HashiCorp Vault* is not configured with `https` assign a `""` value to the `VAULT_CACERT`,
-`VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
+// NOTE: If *HashiCorp Vault* is not configured with `https` assign a `""` value to the `VAULT_CACERT`,
+// `VAULT_CLIENT_CERT`, `VAULT_CLIENT_KEY` and `VAULT_TLS_SERVER_NAME` parameters.
 
-IMPORTANT: You can combine PV level encryption that can only be configured with an external
-KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
+// IMPORTANT: You can combine PV level encryption that can only be configured with an external
+// KMS with at-rest cluster wide encryption using locally stored keys (ODF 4.6+).
 
 == Granular *PersistentVolume* at-rest encryption without cluster-wide encryption: Kubernetes Auth Method - ServiceAccounts
+
+WARNING: The following steps will be supported and further integrated with ODF 4.10. Following the below steps on a cluster before 4.10 will most likely result in an unsupported configuration.
 
 Before ODF can use external Vault with service account tokens, we have to configure the authentcation method and Vault roles and policies. Details of the Kubernetes Authentication Method are out of scope for this document but are well explained by https://cloud.redhat.com/blog/vault-integration-using-kubernetes-authentication-method[Vault Integration Using Kubernetes Authentication Method]. In addition, Hashicorp Vault provides tutorials on general https://learn.hashicorp.com/tutorials/vault/kubernetes-external-vault?in=vault/kubernetes[integration between Vault and Kubernetes]. 
 
