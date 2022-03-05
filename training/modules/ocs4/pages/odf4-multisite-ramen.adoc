@@ -490,7 +490,7 @@ storageclass.storage.k8s.io/ocs-storagecluster-ceph-rbdmirror created
 
 == Configure SSL access between S3 endpoints
 
-These steps are necessary so that metadata can be stored on the alternate cluster in a MultiClout MCG object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
+These steps are necessary so that metadata can be stored on the alternate cluster in a Multi-Cloud Gateway (MCG) object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
 
 NOTE: If all of your OpenShift clusters are deployed using signed and valid set of certificates for your environment then this section can be skipped.
 
