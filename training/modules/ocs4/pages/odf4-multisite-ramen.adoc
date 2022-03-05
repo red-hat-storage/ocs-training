@@ -275,7 +275,7 @@ Requirements:
 
 * Must be installed on `Hub cluster` after the `ODF Multicluster Orchestrator` is installed on `Hub cluster`.
 * There can only be two clusters per Mirror Peer.
-* Each cluster should be uniquely identifiable by cluster name (i.e., ocp4perf1).
+* Each cluster should be uniquely identifiable in ACM by cluster name (i.e., ocp4perf1).
 
 After selecting `View Operator` in prior step you should see the `Mirror Peer` API. Select *Create instance* and then select *YAML view*.
 
@@ -383,6 +383,8 @@ NAME                             PROVISIONER
 odf-rbd-volumereplicationclass   openshift-storage.rbd.csi.ceph.com
 ----
 
+NOTE: The *VolumeReplicationClass* is used to specify the `mirroringMode` for each volume to be replicated as well as how often a volume or image is replicated (for example, every 5 minutes) from the local cluster to the remote cluster.
+
 === Validate Object Buckets and s3StoreProfiles
 
 Validate there is a new *OBC* and corresponding *OB* in the *Primary managed cluster* and the *Secondary managed cluster* in the `openshift-storage` namespace.
@@ -417,7 +419,7 @@ oc get secrets -n openshift-dr-system | grep Opaque
 af5f82f21f8f77faf3de2553e223b535002e480   Opaque                                2      16m
 ----
 
-The *OBC* and *Secrets* are witten in the *ConfigMap* `ramen-hub-operator-config` on the *Hub cluster* in the newly created `s3StoreProfiles` section.
+The *OBC* and *Secrets* are written in the *ConfigMap* `ramen-hub-operator-config` on the *Hub cluster* in the newly created `s3StoreProfiles` section.
 
 [source,role="execute"]
 ----
@@ -428,14 +430,14 @@ oc get cm ramen-hub-operator-config -n openshift-dr-system -o yaml | grep -A 14 
 ----
     s3StoreProfiles:
     - s3Bucket: odrbucket-21eb5332f6b6
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf2.chris.ocs.ninja
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf2.example.com
       s3ProfileName: s3profile-ocp4perf2-ocs-storagecluster
       s3Region: noobaa
       s3SecretRef:
         name: 8b3fb9ed90f66808d988c7edfa76eba35647092
         namespace: openshift-dr-system
     - s3Bucket: odrbucket-21eb5332f6b6
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf1.chris.ocs.ninja
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf1.example.com
       s3ProfileName: s3profile-ocp4perf1-ocs-storagecluster
       s3Region: noobaa
       s3SecretRef:
@@ -488,9 +490,9 @@ storageclass.storage.k8s.io/ocs-storagecluster-ceph-rbdmirror created
 
 == Configure SSL access between S3 endpoints
 
-These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
+These steps are necessary so that metadata can be stored on the alternate cluster in a MultiClout MCG object bucket using a secure transport protocol and in addition the *Hub cluster* needs to verify access to the object buckets.
 
-NOTE: If all of your OpenShift clusters are deployed using signed and trusted set of certificates for your environment then this section can be skipped.
+NOTE: If all of your OpenShift clusters are deployed using signed and valid set of certificates for your environment then this section can be skipped.
 
 Extract the ingress certificate for the *Primary managed cluster* and save the output to `primary.crt`.
 
@@ -637,7 +639,7 @@ oc create -f drpolicy.yaml
 drpolicy.ramendr.openshift.io/odr-policy-5m created
 ----
 
-To validate that the *DRPolicy* is created successfully run this command.
+To validate that the *DRPolicy* is created successfully run this command on the *Hub cluster*.
 
 [source,role="execute"]
 ----
@@ -711,8 +713,9 @@ af5f82f21f8f77faf3de2553e223b535002e480   Opaque                                
 
 These *Secrets* need to be copied to the *Primary managed cluster* and the *Secondary managed cluster*. An easy way to do this is to export each *Secret* to a YAML file on the *Hub cluster*. Here is an example using the *Secret* names in the `Example output` above.
 
+[source]
 ----
-oc get secrets 8b3fb9ed90f66808d988c7edfa76eba35647092 -o yaml > odr-s3-secret1.yaml
+oc get secrets 8b3fb9ed90f66808d988c7edfa76eba35647092 -n openshift-dr-system -o yaml > odr-s3-secret1.yaml
 ----
 
 [source,role="execute"]
@@ -740,8 +743,9 @@ type: Opaque
 
 And then export the YAML for the other *Secret*.
 
+[source]
 ----
-oc get secrets af5f82f21f8f77faf3de2553e223b535002e480 -o yaml > odr-s3-secret2.yaml
+oc get secrets af5f82f21f8f77faf3de2553e223b535002e480 -n openshift-dr-system -o yaml > odr-s3-secret2.yaml
 ----
 
 NOTE: Make sure to use _your_ unique *Secret* names in the commands above. 
