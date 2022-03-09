@@ -13,6 +13,7 @@
 // * xref:ocs4-metro-stretched-no-ui.adoc[Metro disaster recovery CLI]
 * xref:odf4-multisite-ramen.adoc[Regional disaster recovery]
 * xref:ocs4-metro-stretched.adoc[Stretch Cluster disaster recovery]
+* xref:odf4-metro-ramen.adoc[Metro disaster recovery]
 
 .Development preview features
 * xref:ocs4-additionalfeatures-dbwal.adoc[BlueStore RocksDB metadata and WAL placement]
