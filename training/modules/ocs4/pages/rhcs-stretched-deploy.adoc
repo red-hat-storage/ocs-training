@@ -12,7 +12,7 @@
 
 Red Hat Ceph Storage (RHCS) is an enterprise open-source platform that provides unified software-defined storage on standard, economical servers and disks. With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.
 
-In this guide, we are going to explain how to properly set up a Red Hat Ceph Storage 5 cluster deployed on two different datacenters using the stretched mode functionality.
+In this guide, we will explain how to properly set up a Red Hat Ceph Storage 5 cluster deployed on two different datacenters using the stretched mode functionality.
 
 Also, RHCS provides other advanced characteristics like:
 
@@ -29,8 +29,8 @@ Also, RHCS provides other advanced characteristics like:
 - Data durability via erasure coding or replication.
 
 
-In the diagram depicted below we can see a graphical representation of the RHCS
-architecture that will be used:
+In the diagram depicted below, we can see a graphical representation of the RHCS
+architecture that will be used in this guide:
 
 image::RHCS-stretch-cluster-arbiter.png[High Level Architecture RHCS stretch mode]
 
@@ -38,20 +38,20 @@ image::RHCS-stretch-cluster-arbiter.png[High Level Architecture RHCS stretch mod
 
 When the stretch mode is enabled, the OSDs will only take PGs active when they peer across datacenters, assuming both are alive with the following constraints:
 
-* Pools will increase in size from the default 3 to 4, expecting 2 copies on each site.
-* OSDs will only be allowed to connect to monitors in the same datacenter.
-* New monitors will not be allowed to join the cluster if they do not specify a location.
+* Pools will increase in size from the default 3 to 4, expecting two copies on each site.
+* OSDs will only be allowed to connect to monitors in the same data center.
+* New monitors will not join the cluster if they do not specify a location.
 
 If all the OSDs and monitors from a datacenter become inaccessible at once, the surviving datacenter will enter a degraded stretch mode which implies:
 
 * This will issue a warning, reduce the pool's `min_size` to 1, and allow the cluster to go active with data in the single remaining site.
-* The pool `size` parameter is not changed so you will also get warnings that the pools are too small.
-* Although, a special stretch mode flag will prevent the OSDs from creating extra copies in the remaining datacenter (so it will only keep 2 copies, as before).
+* The pool `size` parameter is not changed, so you will also get warnings that the pools are too small.
+* Although, the stretch mode flag will prevent the OSDs from creating extra copies in the remaining datacenter (so it will only keep two copies, as before).
 
-When the missing datacenter comes back, the cluster will enter recovery stretch mode triggering the following actions:
+When the missing data center comes back, the cluster will enter recovery stretch mode triggering the following actions:
 
-* This changes the warning and allows peering, but still only requires OSDs from the datacenter which was up the whole time.
-* When all PGs are in a known state, and are neither degraded nor incomplete, the cluster transitions back to regular stretch mode where:
+* This changes the warning and allows peering, but still only requires OSDs from the datacenter, which was up the whole time.
+* When all PGs are in a known state and are neither degraded nor incomplete, the cluster transitions back to the regular stretch mode where:
 ** The cluster ends the warning.
 ** Restores `min_size` to its starting value (2) and requires both sites to peer.
 ** Stops requiring the always-alive site when peering (so that you can failover to the other site, if necessary).
@@ -59,30 +59,30 @@ When the missing datacenter comes back, the cluster will enter recovery stretch 
 == RHCS Stretch Mode With Arbiter Limitations
 
 
-As implied by the setup, stretch mode only handles 2 sites with OSDs. While it
-is not enforced, you should run 2 monitors in each site plus a tiebreaker, for
-a total of 5. This is because OSDs can only connect to monitors on their own site when in stretch mode.
+As implied by the setup, stretch mode only handles two sites with OSDs. While it
+is not obligatory, You should run two monitors on each site plus a tie-breaker, for
+a total of 5. We have to take into account that OSDs can only connect to monitors on their site when in stretch mode.
 
 **REVIEW**
 
-WARNING: Currently Red Hat does not support stretch mode when working in ODF external mode. It is expected to support this configuration in ODF 4.10 but this is subject to change.
+WARNING: Currently, Red Hat does not support stretch mode when working in ODF external mode. The plan is to support this configuration in ODF 4.11, but this is subject to change.
 
 WARNING: Erasure coded pools cannot be used with stretch mode.
 
-Custom CRUSH rules providing 2 copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
+Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
 
-Because it runs with `min_size=1` when degraded, you should only use stretch mode with all-flash OSDs. This minimizes the time needed to recover once connectivity is restored, and thus minimizes the potential for data loss.
+Because it runs with `min_size=1` when degraded, you should only use stretch mode with all-flash OSDs. Using all-flash OSDs minimises the time needed to recover once connectivity is restored, thus minimising the potential for data loss.
 
 
 == RHCS Stretch Mode Eith Arbiter Infrastructure Requirements
 
 
 **REVIEW**
-To be able to deploy RHCS if stretched mode we need to fulfil certain Infrastructure requirements:
+To be able to deploy RHCS if stretched mode, we need to fulfil certain Infrastructure requirements:
 
 - At least .
-- One Tie-breaker Site  
-- Latency. 
+- One Tie-breaker Site
+- Latency.
 - DNS
 
 
@@ -233,14 +233,15 @@ Install the `cephadm-ansible` RPM package:
 sudo dnf install -y cephadm-ansible
 ....
 
-
-To be able to run the ansible playbooks we need to have ssh passwordless access
+To be able to run the Ansible playbooks, we need to have ssh passwordless access
 to all the nodes that are going to confirm the RHCS cluster, in this deployment we
 have passwordless ssh access to all nodes configured for user ec2-user, the user
 needs to have root privileges using sudo.
 
 We are going to configure the ec2-user ssh config file to specify the user and id/key we
 want to use when we connect to the nodes via ssh:
+
+
 
 [source,role="execute"]
 **REVIEW**
@@ -367,24 +368,24 @@ The cephadm utility performs the following tasks during the bootstrap process:
 Installs and starts a Ceph Monitor daemon and a Ceph Manager daemon for a new Red Hat Ceph Storage cluster on the local node as containers.
 
 - Creates the /etc/ceph directory.
-- Writes a copy of the public key to /etc/ceph/ceph.pub for the Red Hat Ceph Storage cluster and adds the SSH key to the root user’s /root/.ssh/authorized_keys file.
+- Writes a copy of the public key to /etc/ceph/ceph.pub for the Red Hat Ceph Storage cluster and adds the SSH key to the root user's/root/.ssh/authorized_keys file.
 - Writes a minimal configuration file needed to communicate with the new cluster to /etc/ceph/ceph.conf.
 - Writes a copy of the client.admin administrative secret key to /etc/ceph/ceph.client.admin.keyring.
 - Deploys a basic monitoring stack with Prometheus, Grafana, and other tools such as node-exporter and alert-manager.
 
-There are 3 steps  we need to fullfil before running the bootstap cephadm command:
+There are three steps  we need to fulfil before running the bootstrap cephadm command:
 
  . Create json file to authenticate against the container registry.
  . Create Host Specs file.
- . Get the IP of our bootstrap node
+ . Get the IP of our bootstrap node.
 
 === Create json file to authenticate against the container registry.
 
 We are going to bootstrap our cluster from the `ceph1` host, from where we will
-run our cephadm command and the initial bootstrap monitor will be deployed.
+run our cephadm command, and then the initial bootstrap monitor will get deployed.
 
 Cephadm needs access to a container registry so it can download the RHCS 5
-container images, you can provide the credentials in different ways, we
+container images, you can provide the credentials in different ways. We
 recommend using a json file like in the following example:
 
 [source,role="execute"]
@@ -400,11 +401,11 @@ EOF
 
 === Configure Host Specs file.
 
-You can use a service configuration file and the --apply-spec option to bootstrap the storage cluster and configure additional hosts and daemons. The configuration file is a .yaml file that contains the service type, placement, and designated nodes for services that you want to deploy.
+You can use a service configuration file and the --apply-spec option to bootstrap the storage cluster and configure additional hosts and daemons. The configuration file is a .yaml file containing the service type, placement, and designated nodes for services you want to deploy.
 
-In our deployment we are only going to include the hosts into the spec file, so
+In our deployment, we are only going to include the hosts into the spec file, so
 they will get added to our ceph cluster at bootstrap, but you could configure
-other services too if needed.
+other services, too, if needed.
 
 
 [source,role="execute"]
@@ -441,15 +442,15 @@ EOF
 ....
 
 === Get our bootstrap node IP
-We need to use the IP of what will be our RHCS public network, in our case we
+We need to use the IP of what will be our RHCS public network. In our case we
 are using the same network for Cephs public/private network because the nodes
 only have one interface.
 
 
 === Run the Cephadm bootstrap command
-We are now going to run the cephadm bootstrap command as the root user, because
-we have configured a 
-non-root user for the passwordless ssh connection we have to specify the --ssh-user flag, also we use the
+We are now going to run the cephadm bootstrap command as the root user because
+we have configured a
+non-root user for the passwordless ssh connection, we have to specify the --ssh-user flag, also we use the
 --apply-spec to get all the nodes into the cluster and finally the
 --registry-json flag to use the registry authentication flag we created before
 
@@ -462,7 +463,7 @@ WARN: If the local node uses fully-qualified domain names (FQDN), then add the
 --allow-fqdn-hostname option to cephadm bootstrap on the command line.
 
 
-Once the bootstrap finishes you will see the following output from the previous cephadm
+Once the bootstrap finishes, you will see the following output from the previous cephadm
 bootstrap command:
 
 
@@ -554,8 +555,14 @@ NOTE: We can run direct ceph commands from the host because we configured ceph1 
 
 === Deploy five Ceph monitors
 
-As we mentioned before RHCS with cephadm deploys 5 monitors by default, so we
-already have the 5 daemons we need running on the cluster, now we need to
+NOTE: We can run direct ceph commands from the host because we configured ceph1 in the cephadm-ansible inventory as part of the [admin] group. As a result, the ceph admin keys were copied to the host
+
+== Deploying Ceph services(MDS,RGW,OSDs)
+
+=== Deploy five Ceph monitors
+
+As we mentioned before RHCS with cephadm deploys five monitors by default, so we
+already have the five daemons we need running on the cluster; now we need to
 locate them on specific DCs:
 
 * Two monitors in DC1 nodes: `ceph1`,`ceph2`,`ceph3`
@@ -563,7 +570,7 @@ locate them on specific DCs:
 * One monitor (tiebreaker) in DC3: `ceph7`
 
 if we check the current placement of the monitor services we can see that we
-have 2 monitors on nodes in DC1, and 2 monitors on nodes in DC2 but no monitors
+have two monitors on nodes in DC1, and two monitors on nodes in DC2 but no monitors
 in DC3
 
 [source,role="execute"]
@@ -582,8 +589,8 @@ mon.ceph6 ceph6
 
 So we are going to move a monitor to the node ceph7 located in our DC3 site, we
 can use the ceph orch apply mon with the placement hosts were we want the 5
-monitors to run, using the --dry-run parameter we see that the mon is going to
-be removed from ceph6 and deployed on ceph7
+monitors to run, using the --dry-run parameter, we see that the mon is going to
+be removed from ceph6 and deployed on ceph7.
 
 [source,role="execute"]
 ....
@@ -640,7 +647,7 @@ mon.ceph7 ceph7
 
 === Deploy Ceph OSDs
 
-We are now going to add OSDs to our RHCS Ceph cluster, in this lab each of our
+We are now going to add OSDs to our RHCS Ceph cluster; in this lab, each of our
 servers have a single 150Gb drive, so in total, we will have 6 OSDs in our
 cluster.
 
@@ -648,9 +655,11 @@ Cephadm is very flexible when adding OSDs to the cluster. Service
 specifications of type osd are a way to describe a cluster layout using the
 properties of disks. It gives the user an abstract way to tell ceph which disks should turn into an OSD with which configuration without knowing the specifics of device names and paths.
 
+
+
 Because we only have one drive and to keep things simple in this deployment we
 are going to use the `--all-available-devices` flag from the `ceph orch apply
-osd` command, using the all-available-devices flag will scan all the hosts for
+osd` command, using the all-available-devices flag, will scan all the hosts for
 available drives, each drive it finds that is available to be used by ceph will
 be configured as an osd.
 
@@ -658,30 +667,40 @@ We first do a `--dry-run` to check if we would achieve our desired outcome with
 the current command, when we run `ceph orch apply osd --all-available-devices
 --dry-run` command it has to scan the hosts for available disks
 
+
 [source,role="execute"]
+
 ....
+
 ceph orch apply osd --all-available-devices --dry-run
+
 ....
+
+
 
 .Example output.
-....
-####################
-SERVICESPEC PREVIEWS
-####################
-+---------+------+--------+-------------+
-|SERVICE  |NAME  |ADD_TO  |REMOVE_FROM  |
-+---------+------+--------+-------------+
-+---------+------+--------+-------------+
-################
-OSDSPEC PREVIEWS
-################
-Preview data is being generated.. Please re-run this command in a bit.
+
 ....
 
-After a few secondsi, we re-run the same command again and we get the OSD layout
-we would achieve using the `--all-available-devices`, we can 6 that 6 OSDs will
-be created one per each ceph hosts, ceph7 is our arbiter node so it won't have
-any OSD's configured
+####################
+
+SERVICESPEC PREVIEWS
+
+####################
+
++---------+------+--------+-------------+
+
+|SERVICE  |NAME  |ADD_TO  |REMOVE_FROM  |
+
++---------+------+--------+-------------+
+
++---------+------+--------+-------------+
+
+################
+
+OSDSPEC PREVIEWS
+
+################
 
 [source,role="execute"]
 ....
@@ -802,7 +821,7 @@ Scheduled mds.cephfs update...
 ....
 
 
-Finally, create the CephFS volume with the name cephfs , this will take care of
+Finally, create the CephFS volume with the name cephfs; this will take care of
 creating the metadata and data pools for us:
 
 [source,role="execute"]
@@ -811,12 +830,11 @@ ceph fs volume create cephfs --placement=ceph3,ceph6
 ....
 
 NOTE: The ceph fs volume create command will also take care of creating the
-needed data and meta cephs pools for us.
+needed data and meta cephfs pools for us.
 
-
-Get the Ceph status to verify how the MDS daemons have been deployed, we can
-check that the state is active, we ceph6 is the primary mds for this
-filesystem and ceph3 the secondary
+Get the Ceph status to verify how the MDS daemons have been deployed, and we can
+check that the state is active, we can see that ceph6 is the primary mds for this
+filesystem and ceph3 the secondary.
 
 [source,role="execute"]
 ....
@@ -878,14 +896,15 @@ ceph -s
 ....
 
 
+
 == Configure RHCS Stretch Cluster Mode
 
-Once we have fully deployed our RHCS5 cluster using `cephadm`, we are going to configure the stretch cluster mode. The following link:https://github.com/ceph/ceph/blob/master/doc/rados/operations/stretch-mode.rst[document] properly explains the features and blueprint of this feature. Specifically, the new stretch mode is designed to handle the 2-site case.
+Once we have fully deployed our RHCS5 cluster using `cephadm`, we will configure the stretch cluster mode. The following link:https://github.com/ceph/ceph/blob/master/doc/rados/operations/stretch-mode.rst[document] properly explains the features and blueprint of this feature. Specifically, the new stretch mode is designed to handle the 2-site case.
 
 === Configure monitor election strategies
 
-The first thing we have to do is to ensure we have 5 Ceph monitors in our
-cluster. This is required as when using the stretch mode, OSDs will only be allowed to connect to monitors in the same datacenter.
+The first thing we have to do is ensure we have 5 Ceph monitors in our
+cluster. This is required as OSDs will only be allowed to connect to monitors in the same data centre when using the stretch mode.
 
 As we have detailed before, our monitors are located at:
 
@@ -894,14 +913,14 @@ As we have detailed before, our monitors are located at:
 * One monitor (tiebreaker) in DC3: `ceph7`
 
 
-The first thing we have to do when working in stretch mode is to change the monitor elections from `classic` to `connectivity`. More information can be found in the following link:https://docs.ceph.com/en/latest/rados/operations/change-mon-elections/[upstream documentation].
+When working in stretch mode, the first thing we have to do is change the monitor elections from `classic` to `connectivity`. More information can be found in the following link:https://docs.ceph.com/en/latest/rados/operations/change-mon-elections/[upstream documentation].
 
 [NOTE]
 ====
-This mode evaluates connection scores provided by each monitor for its peers and elects the monitor with the highest score. This mode is designed to handle network partitioning or `net-splits`, which may happen if your cluster is stretched across multiple datacenters or otherwise has a non-uniform or unbalanced network topology.
+This mode evaluates connection scores provided by each monitor for its peers and elects the monitor with the highest score. This mode is designed to handle network partitioning or `net-splits`, which may happen if your cluster is stretched across multiple data centers or otherwise has a non-uniform or unbalanced network topology.
 ====
 
-By default in a ceph cluster, the connectivity is set to classic, we can check the
+By default, in a ceph cluster, the connectivity is set to classic; we can check the
 current election strategy being used by the monitors with the `ceph mon dump`
 command, if in classic election strategy mode we will see the value of 1 in the
 output:
@@ -917,16 +936,18 @@ dumped monmap epoch 9
 election_strategy: 1
 ....
 
-To change the monitor election to `connectivity` we have to execute the following command:
+To change the monitor election to `connectivity`, we have to execute the following command:
 
 [source,role="execute"]
 ....
-ceph mon set election_strategy connectivity 
+ceph mon set election_strategy connectivity
 ....
 
 
-If we run again the previous `ceph mon dump` we can see that the
-election_strategy value is now 3, this is the equivalent of `connectivity` mode
+If we run  the previous `ceph mon dump`, we can see that the
+election_strategy value is now 3; this is the equivalent of `connectivity`
+mode.
+
 
 [source,role="execute"]
 ....
@@ -945,7 +966,7 @@ You can also see the actual scores for each monitor doing a query to the
 monitor socket, for example: `ceph daemon /var/run/ceph/6c685342-6330-11ec-b0d4-525400a45877/ceph-mon.`ceph1.asok connection scores dump`
 ====
 
-As the final step, we need to set the proper location for all our Ceph monitors:
+As a final step, we need to set the proper location for all our Ceph monitors:
 
 [source,role="execute"]
 ....
@@ -981,7 +1002,7 @@ election_strategy: 3
 
 === Configure the OSD stretched layout in the CRUSH map
 
-Once we have configured all our Ceph monitors, we are going to generate a new CRUSH map with the location of the OSDs.
+Once we have configured all our Ceph monitors, we will generate a new CRUSH map with the location of the OSDs.
 
 Our current CRUSH map is the following:
 
@@ -994,24 +1015,24 @@ ceph osd tree
 ....
 
 ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
- -1         0.87900  root default                             
--11         0.14650      host ceph1                           
+ -1         0.87900  root default
+-11         0.14650      host ceph1
   2    ssd  0.14650          osd.2       up   1.00000  1.00000
- -3         0.14650      host ceph2                           
+ -3         0.14650      host ceph2
   3    ssd  0.14650          osd.3       up   1.00000  1.00000
--13         0.14650      host ceph3                           
+-13         0.14650      host ceph3
   4    ssd  0.14650          osd.4       up   1.00000  1.00000
- -5         0.14650      host ceph4                           
+ -5         0.14650      host ceph4
   0    ssd  0.14650          osd.0       up   1.00000  1.00000
- -9         0.14650      host ceph5                           
+ -9         0.14650      host ceph5
   1    ssd  0.14650          osd.1       up   1.00000  1.00000
- -7         0.14650      host ceph6                           
+ -7         0.14650      host ceph6
   5    ssd  0.14650          osd.5       up   1.00000  1.00000
 ....
 
 With this default crush map, our failure domain is at the host level and ceph
 has no understanding of what our infrastructure topology looks like, we need to
-tell Ceph via the crush map that we have 2 datacenters with OSDs
+tell Ceph via the crush map that we have two datacenters with OSDs
 
 We are going to modify the current crush map with the following layout:
 
@@ -1025,8 +1046,8 @@ We are going to modify the current crush map with the following layout:
 *** host ceph5
 *** host ceph6
 
-So to achieve this task we will be using the `ceph osd crush` command, first we
-will create the new buckets for `root allDC`, `datacenter DC1`, `datacenter DC2`
+So to achieve this task, we will be using the `ceph osd crush` command. First we
+will create the new buckets for `root allDC`, `datacenter DC1`, `datacenter DC2`.
 
 [NOTE]
 ====
@@ -1088,7 +1109,7 @@ ceph osd crush move DC2 root=allDC
 moved item id -17 name 'DC2' to location {root=allDC} in crush map
 ....
 
-Now we will move each of our hosts and their osds under each datacenter.
+Next we will move each of our hosts and their osds under each datacenter.
 
 [source,role="execute"]
 ....
@@ -1107,7 +1128,7 @@ moved item id -7 name 'ceph6' to location {datacenter=DC2} in crush map
 ....
 
 
-We can now check our crush map again with the `ceph osd tree` and we can see
+Lets check our crush map again with the `ceph osd tree` so we can see
 how now ceph is aware of the underlying infrastructure topology.
 
 [source,role="execute"]
@@ -1138,18 +1159,18 @@ ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
 
 [NOTE]
 ====
-It is important not to remove the `root default` higher level bucket as we still have different pools selecting this bucket.
+It is essential not to remove the `root default` higher level bucket as we still have different pools selecting this bucket.
 ====
 
 Now that we have configured the  underlying infrastructure topology for our
 environment, we need to create a CRUSH rule that makes use of this new
 topology.
 
-Unfortunately, at the moment we can't create the needed crush rule via the ceph
-cli command, so we will have to manually compile a new crush map adding our
+Unfortunately, at the moment, we can't create the needed crush rule via the ceph
+cli command, so we will have to compile a new crush map adding our custom crush
 rule, so let's get started:
 
-Install the `ceph-base` RPM package in order to use the `crushtool` command:
+Install the `ceph-base` RPM package to use the `crushtool` command:
 
 [source,role="execute"]
 ....
@@ -1240,7 +1261,8 @@ to a binary file called `/etc/ceph/crushmap2.bin`:
 $ crushtool -c /etc/ceph/crushmap.txt -o /etc/ceph/crushmap2.bin
 ....
 
-Once we have tested the CRUSH rule we have just created, we can inject it back to the cluster:
+Once we have tested the CRUSH rule we have just created, we can inject it back
+into the cluster:
 
 [source,role="execute"]
 ....
@@ -1291,4 +1313,4 @@ Pool: default.rgw.control; crush_rule: stretch_rule
 Pool: default.rgw.meta; crush_rule: stretch_rule
 ....
 
-We now have a working RHCS cluster with stretched mode available
+We now have a working RHCS cluster with stretched mode enabled.
