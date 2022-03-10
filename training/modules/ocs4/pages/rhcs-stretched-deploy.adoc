@@ -231,7 +231,6 @@ want to use when we connect to the nodes via ssh:
 
 
 [source,role="execute"]
-**REVIEW**
 ....
 cat .ssh/config
 Host ceph*
