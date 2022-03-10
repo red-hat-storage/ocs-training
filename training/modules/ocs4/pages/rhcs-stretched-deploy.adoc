@@ -538,11 +538,6 @@ ceph7  10.0.150.221
 
 NOTE: We can run direct ceph commands from the host because we configured ceph1 in the cephadm-ansible inventory as part of the [admin] group, so the ceph admin keys were copied to the host 
 
-== Deploying Ceph services(MDS,RGW,OSDs)
-
-=== Deploy five Ceph monitors
-
-NOTE: We can run direct ceph commands from the host because we configured ceph1 in the cephadm-ansible inventory as part of the [admin] group. As a result, the ceph admin keys were copied to the host
 
 == Deploying Ceph services(MDS,RGW,OSDs)
 
@@ -642,7 +637,6 @@ Cephadm is very flexible when adding OSDs to the cluster. Service
 specifications of type osd are a way to describe a cluster layout using the
 properties of disks. It gives the user an abstract way to tell ceph which disks should turn into an OSD with which configuration without knowing the specifics of device names and paths.
 
-
 Because we only have one drive and to keep things simple in this deployment we
 are going to use the `--all-available-devices` flag from the `ceph orch apply
 osd` command, using the all-available-devices flag, will scan all the hosts for
@@ -667,26 +661,17 @@ ceph orch apply osd --all-available-devices --dry-run
 .Example output.
 
 ....
-
 ####################
-
 SERVICESPEC PREVIEWS
-
 ####################
-
 +---------+------+--------+-------------+
-
 |SERVICE  |NAME  |ADD_TO  |REMOVE_FROM  |
-
 +---------+------+--------+-------------+
-
 +---------+------+--------+-------------+
-
 ################
-
 OSDSPEC PREVIEWS
-
 ################
+....
 
 [source,role="execute"]
 ....
@@ -854,6 +839,7 @@ ceph orch apply rgw objectgw  --port=8080 --placement="2 ceph3 ceph5"
 Scheduled rgw.objectgw update...
 ....
 
+Checking with 'ceph -s' we can see that our RGW services are active.
 
 [source,role="execute"]
 ....
@@ -1044,31 +1030,8 @@ rows, etc. Not related at all with S3 object storage buckets.
 [source,role="execute"]
 ....
 ceph osd crush add-bucket allDC root
-....
-
-.Example output.
-....
-added bucket allDC type root to crush map
-....
-
-[source,role="execute"]
-....
 ceph osd crush add-bucket DC1 datacenter
-....
-
-.Example output.
-....
-added bucket DC1 type datacenter to crush map
-....
-
-[source,role="execute"]
-....
 ceph osd crush add-bucket DC2 datacenter
-....
-
-.Example output.
-....
-added bucket DC2 type datacenter to crush map
 ....
 
 
@@ -1078,39 +1041,19 @@ bucket.
 [source,role="execute"]
 ....
 ceph osd crush move DC1 root=allDC
-....
-
-.Example output.
-....
-moved item id -16 name 'DC1' to location {root=allDC} in crush map
-....
-
-[source,role="execute"]
-....
 ceph osd crush move DC2 root=allDC
-....
-
-.Example output.
-....
-moved item id -17 name 'DC2' to location {root=allDC} in crush map
 ....
 
 Next we will move each of our hosts and their osds under each datacenter.
 
 [source,role="execute"]
 ....
- ceph osd crush move ceph1 datacenter=DC1
-moved item id -11 name 'ceph1' to location {datacenter=DC1} in crush map
- ceph osd crush move ceph2 datacenter=DC1
-moved item id -3 name 'ceph2' to location {datacenter=DC1} in crush map
- ceph osd crush move ceph3 datacenter=DC1
-moved item id -13 name 'ceph3' to location {datacenter=DC1} in crush map
- ceph osd crush move ceph4 datacenter=DC2
-moved item id -5 name 'ceph4' to location {datacenter=DC2} in crush map
- ceph osd crush move ceph5 datacenter=DC2
-moved item id -9 name 'ceph5' to location {datacenter=DC2} in crush map
- ceph osd crush move ceph6 datacenter=DC2
-moved item id -7 name 'ceph6' to location {datacenter=DC2} in crush map
+ceph osd crush move ceph1 datacenter=DC1
+ceph osd crush move ceph2 datacenter=DC1
+ceph osd crush move ceph3 datacenter=DC1
+ceph osd crush move ceph4 datacenter=DC2
+ceph osd crush move ceph5 datacenter=DC2
+ceph osd crush move ceph6 datacenter=DC2
 ....
 
 
@@ -1160,21 +1103,21 @@ Install the `ceph-base` RPM package to use the `crushtool` command:
 
 [source,role="execute"]
 ....
-$ dnf -y install ceph-base
+dnf -y install ceph-base
 ....
 
 Get the compiled CRUSH map from the cluster:
 
 [source,role="execute"]
 ....
-$ ceph osd getcrushmap > /etc/ceph/crushmap.bin
+ceph osd getcrushmap > /etc/ceph/crushmap.bin
 ....
 
 Decompile the CRUSH map and convert it to a text file in order to be able to edit it:
 
 [source,role="execute"]
 ....
-$ crushtool -d /etc/ceph/crushmap.bin -o /etc/ceph/crushmap.txt
+crushtool -d /etc/ceph/crushmap.bin -o /etc/ceph/crushmap.txt
 ....
 
 Add the following rule to our CRUSH map by editing the text file
@@ -1183,7 +1126,7 @@ Add the following rule to our CRUSH map by editing the text file
 
 [source,role="execute"]
 ....
-$ vim /etc/ceph/crushmap.txt
+vim /etc/ceph/crushmap.txt
 ...
 rule stretch_rule {
         id 1
@@ -1244,7 +1187,7 @@ to a binary file called `/etc/ceph/crushmap2.bin`:
 
 [source,role="execute"]
 ....
-$ crushtool -c /etc/ceph/crushmap.txt -o /etc/ceph/crushmap2.bin
+crushtool -c /etc/ceph/crushmap.txt -o /etc/ceph/crushmap2.bin
 ....
 
 Once we have tested the CRUSH rule we have just created, we can inject it back
@@ -1252,7 +1195,7 @@ into the cluster:
 
 [source,role="execute"]
 ....
-$ ceph osd setcrushmap -i /etc/ceph/crushmap2.bin
+ceph osd setcrushmap -i /etc/ceph/crushmap2.bin
 ....
 
 We can verify the stretched rule we created is now available to be used:
