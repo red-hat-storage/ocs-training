@@ -742,22 +742,6 @@ ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
   5    ssd  0.14650          osd.5       up   1.00000  1.00000
 ....
 
-[source,role="execute"]
-....
-ceph orch device ls
-....
-
-.Example output.
-....
-Hostname  Path       Type  Serial  Size   Health   Ident  Fault  Available  
-ceph1     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-ceph2     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-ceph3     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-ceph4     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-ceph5     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-ceph6     /dev/xvdh  ssd            161G  Unknown  N/A    N/A    No         
-....
-
 === Deploy CephFS (MDS services)
 
 Now that we have a proper Ceph cluster, we want to deploy CephFS executing the following steps:
