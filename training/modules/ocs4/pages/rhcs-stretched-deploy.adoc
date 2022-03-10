@@ -60,10 +60,9 @@ When the missing data center comes back, the cluster will enter recovery stretch
 
 
 As implied by the setup, stretch mode only handles two sites with OSDs. While it
-is not obligatory, You should run two monitors on each site plus a tie-breaker, for
+is not mandatory, You should run two monitors on each site plus a tie-breaker, for
 a total of 5. We have to take into account that OSDs can only connect to monitors on their site when in stretch mode.
 
-**REVIEW**
 
 WARNING: Currently, Red Hat does not support stretch mode when working in ODF external mode. The plan is to support this configuration in ODF 4.11, but this is subject to change.
 
@@ -72,18 +71,6 @@ WARNING: Erasure coded pools cannot be used with stretch mode.
 Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
 
 Because it runs with `min_size=1` when degraded, you should only use stretch mode with all-flash OSDs. Using all-flash OSDs minimises the time needed to recover once connectivity is restored, thus minimising the potential for data loss.
-
-
-== RHCS Stretch Mode Eith Arbiter Infrastructure Requirements
-
-
-**REVIEW**
-To be able to deploy RHCS if stretched mode, we need to fulfil specific Infrastructure requirements:
-
-- At least .
-- One Tie-breaker Site
-- Latency.
-- DNS
 
 
 == Deployment Infrastructure Architecture 
@@ -654,7 +641,6 @@ cluster.
 Cephadm is very flexible when adding OSDs to the cluster. Service
 specifications of type osd are a way to describe a cluster layout using the
 properties of disks. It gives the user an abstract way to tell ceph which disks should turn into an OSD with which configuration without knowing the specifics of device names and paths.
-
 
 
 Because we only have one drive and to keep things simple in this deployment we
