@@ -673,6 +673,9 @@ OSDSPEC PREVIEWS
 ################
 ....
 
+If we re-run the same command after a minute we can see that the devices on the
+nodes have been discovered, and are available to be used as OSDs.
+
 [source,role="execute"]
 ....
 ceph orch apply osd --all-available-devices --dry-run
