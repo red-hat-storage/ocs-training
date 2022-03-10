@@ -72,12 +72,6 @@
     <a class="nav-link" href="odf4-install-no-ui.html">ODF CLI based install</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-install-no-ui-1scale.html">Single node scaling support</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="ocs4-metro-stretched.html">Metro disaster recovery</a>
-  </li>
-  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="ocs4-encryption.html">External KMS Encryption</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -90,16 +84,16 @@
   </li>
   <li class="nav-item" data-depth="0">
     <button class="nav-item-toggle"></button>
-    <span class="nav-text">Regional disaster recovery</span>
+    <span class="nav-text">Disaster recovery</span>
 <ul class="nav-list">
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../RegionalDR/manual/ocs4-multisite-replication.html">Regional disaster recovery (manual method)</a>
-  </li>
-  <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="../../RegionalDR/helper/requirements.html">Regional disaster recovery (RDRhelper)</a>
-  </li>
   <li class="nav-item is-current-page" data-depth="1">
-    <a class="nav-link" href="odf4-multisite-ramen.html">Regional disaster recovery (RHACM method)</a>
+    <a class="nav-link" href="odf4-multisite-ramen.html">Regional disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Stretch Cluster disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf4-metro-ramen.html">Metro disaster recovery</a>
   </li>
 </ul>
   </li>
@@ -172,8 +166,8 @@
 <nav class="breadcrumbs" aria-label="breadcrumbs">
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
-    <li>Regional disaster recovery</li>
-    <li><a href="odf4-multisite-ramen.html">Regional disaster recovery (RHACM method)</a></li>
+    <li>Disaster recovery</li>
+    <li><a href="odf4-multisite-ramen.html">Regional disaster recovery</a></li>
   </ul>
 </nav>
   <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/odf4-multisite-ramen.adoc">Edit this Page</a></div>
@@ -2112,9 +2106,9 @@ This process can be used to delete any application with a DRPlacementControl res
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML view. Add the <code>action</code> and <code>failoverCluster</code> as shown below. The <code>failoverCluster</code> should be the <strong>ACM</strong> cluster name for the <strong>Secondary managed cluster</strong>.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/ODR-DRPlacementControl-failover.png" alt="DRPlacementControl add action Failover">
+<img src="ODR-DRPlacementControl-failover.png" alt="DRPlacementControl add action Failover">
 </div>
 <div class="title">Figure 26. DRPlacementControl add action Failover</div>
 </div>
@@ -2173,9 +2167,9 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML form. Modify the <code>action</code> to <code>Relocate</code> as shown below.</p>
 </div>
-<div class="imageblock">
+<div class="imageblock unresolved">
 <div class="content">
-<img src="_images/ODR-DRPlacementControl-failback.png" alt="DRPlacementControl modify action to Relocate">
+<img src="ODR-DRPlacementControl-failback.png" alt="DRPlacementControl modify action to Relocate">
 </div>
 <div class="title">Figure 28. DRPlacementControl modify action to Relocate</div>
 </div>
