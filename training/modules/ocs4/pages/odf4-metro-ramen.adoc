@@ -11,9 +11,11 @@
 
 == Overview
 
-The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*. In this case the OCP clusters will be created or imported using *Red Hat Advanced Cluster Management* or `RHACM`. The persistent storage for applications will be provided by an external *Red Hat Ceph Storage* (RHCS) cluster stretched between the two locations where unique OCP instances are connected to the storage cluster. 
+The intent of this guide is to detail the `Metro Disaster Recovery` (Metro DR) steps and commands necessary to be able to failover an application from one `OpenShift Container Platform` (OCP) cluster to another and then failback the same application to the original *primary cluster*. In this case the OCP clusters will be created or imported using *Red Hat Advanced Cluster Management* or `RHACM` and have *_distance limitations between the OCP clusters of less than 10ms RTT latency_*. 
 
-This is a general overview of the steps required to configure and execute `OpenShift Disaster Recovery` (ODR) capabilities using OpenShift Data Foundation (ODF) *v4.10* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
+The persistent storage for applications will be provided by an external *Red Hat Ceph Storage* (RHCS) cluster stretched between the two locations with the OCP instances connected to this storage cluster. An arbiter node with a storage monitor service will be required at a third location (different location than where OCP instances are deployed) to establish quorum for the RHCS cluster in the case of a site outage. This third location does not have distance limitations and can be 100+ RTT latency from the storage cluster connected to the OCP instances. 
+
+This is a general overview of the Metro DR steps required to configure and execute `OpenShift Disaster Recovery` (ODR) capabilities using OpenShift Data Foundation (ODF) *v4.10* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
 
 NOTE: These steps are considered Development Preview in ODF 4.10 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
 
@@ -33,11 +35,11 @@ For each managed cluster extract the ingress certificate and inject into the alt
 . *Create Object Buckets and s3StoreProfiles.* +
 Using CLI, create that new MCG object buckets on the managed clusters including creating new S3 secrets stored in the hub cluster and s3StoreProfiles added to the hub cluster ramen config map. 
 . *Create the DRPolicy resource on the hub cluster.* +
-DRPolicy is an API available after the ODR Hub Operator is installed. It is used to deploy, failover, and relocate, workloads across managed clusters.
+Create the DRPolicy using the MetroDR configuration settings. DRPolicy is an API available after the ODR Hub Operator is installed.
 . *Enable Automatic Install of ODR Cluster operator.* +
-Enable the ODR Cluster operator to be installed from the hub cluster to the managed cluster by setting deploymentAutomationEnabled=true in the ramen config map.
+Enable the ODR Cluster operator to be installed from the hub cluster to the managed cluster by setting deploymentAutomationEnabled=true in the hub ramen config map.
 . *Create S3 secrets on managed clusters.* +
-Copy the S3 secrets on hub cluster to YAML files. Create both secrets on the managed clusters.
+Using the S3 secret YAML files for the object buckets access keys, create both secrets on the managed clusters as they were already created on the hub cluster.
 . *Create the Sample Application namespace on the hub cluster.* +
 Because the ODR Hub Operator APIs are namespace scoped, the sample application namespace must be created first.
 . *Create the DRPlacementControl resource on the hub cluster.* +
@@ -113,7 +115,7 @@ xref:rhcs-stretched-deploy.adoc[Red Hat Ceph Storage Stretch Cluster With Arbite
 
 In order to configure storage replication between the two OCP clusters `OpenShift Data Foundation` (ODF) must be installed first on each managed cluster. ODF deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.). 
 
-Make sure to choose `Red Hat Ceph Storage`. Select *Next*.
+After the ODF operators are installed, select *Create StorageSystem* and choose `Connect an external storage platform` and `Red Hat Ceph Storage` as shown below. Select *Next*.
 
 .ODF Connect external storage
 image::ODF-connect-external-storage.png[ODF Connect external storage]
@@ -446,7 +448,7 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRPolicy create instance
 image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
 
-Save the following YAML to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. Replace *<string_value>* and *<string_value>* with any values as long as they are the *_same_* (i.e. metro).
+Save the following YAML to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your managed clusters in *ACM*. Replace *<string_value>* with any value (i.e. metro).
 
 NOTE: There is no need to specify a namespace to create this resource because `DRPolicy` is a cluster-scoped resource.
 
@@ -455,7 +457,7 @@ NOTE: There is no need to specify a namespace to create this resource because `D
 apiVersion: ramendr.openshift.io/v1alpha1
 kind: DRPolicy
 metadata:
-  name: odr-policy-5m
+  name: odr-policy
 spec:
   drClusterSet:
   - name: <cluster1>
@@ -469,7 +471,7 @@ spec:
 
 Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
 
-You can also create this resource using CLI
+You can also create this resource using CLI:
 
 [source,role="execute"]
 ----
@@ -477,14 +479,14 @@ oc create -f drpolicy.yaml
 ----
 .Example output.
 ----
-drpolicy.ramendr.openshift.io/odr-policy-5m created
+drpolicy.ramendr.openshift.io/odr-policy created
 ----
 
-To validate that the *DRPolicy* is created successfully run this command on the *Hub cluster*.
+To validate that the *DRPolicy* is created successfully and that the MCG object buckets can be accessed using the *Secrets* created earlier, run this command on the *Hub cluster*.
 
 [source,role="execute"]
 ----
-oc get drpolicy odr-policy-5m -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drpolicy odr-policy -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
@@ -495,7 +497,7 @@ Succeeded
 
 Once the *DRPolicy* is created successfully the `ODR Cluster operator` can be installed on the *Primary managed cluster* and *Secondary managed cluster* in the `openshift-dr-system` namespace.
 
-This is done by editing the `ramen-hub-operator-config` *ConfigMap* on the *Hub cluster* and adding `deploymentAutomationEnabled=true`.
+This is done by editing the `ramen-hub-operator-config` *ConfigMap* on the *Hub cluster* and make `deploymentAutomationEnabled=true` (change false to true).
 
 [source,role="execute"]
 ----
@@ -646,7 +648,7 @@ metadata:
   name: busybox-drpc
 spec:
   drPolicyRef:
-    name: odr-policy-5m
+    name: odr-policy
   placementRef:
     kind: PlacementRule
     name: busybox-placement
@@ -734,24 +736,10 @@ image::ACM-application-form1.png[ACM Application name and namespace]
 
 The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
 
-[IMPORTANT]
-====
-Make sure that the new *StorageClass* `ocs-storagecluster-ceph-rbdmirror` is created as detailed in section <<Create Mirroring StorageClass resource>> on the *Primary managed cluster* and the *Secondary managed cluster* before proceeding. Verify it is created using the following command:
-
-[source,role="execute"]
-----
-oc get storageclass | grep rbdmirror | awk {'print $1}'
-----
-.Example Output:
-----
-ocs-storagecluster-ceph-rbdmirror
-----
-====
-
-NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr`. 
+NOTE: *Sample application repository* https://github.com/netzzer/ocm-ramen-samples. Branch is `main` and path is `busybox-odr-metro`. 
 
 .ACM application repository information
-image::ACM-application-form2a.png[ACM application repository information]
+image::ACM-application-form2a-metro.png[ACM application repository information]
 
 Scroll down in the form until you see *Select an existing placement configuration* and then put your cursor in the box below. You should see the *PlacementRule* created in prior section. Select this rule.
 
@@ -786,33 +774,17 @@ NAME                                STATUS   VOLUME                             
 persistentvolumeclaim/busybox-pvc   Bound    pvc-a56c138a-a1a9-4465-927f-af02afbbff37   1Gi        RWO            ocs-storagecluster-ceph-rbd   6m
 ----
 
-To validate that the replication resources are also created for the `busybox` *PVC* do the following:
+To validate that the replication resource is also created for the `busybox` *PVC* do the following:
 
 [source,role="execute"]
 ----
-oc get volumereplication,volumereplicationgroup -n busybox-sample
+oc get volumereplicationgroup -n busybox-sample
 ----
 .Example output.
 ----
-NAME                                                             AGE   VOLUMEREPLICATIONCLASS           PVCNAME       DESIREDSTATE   CURRENTSTATE
-volumereplication.replication.storage.openshift.io/busybox-pvc   6m   odf-rbd-volumereplicationclass   busybox-pvc   primary        Primary
-
 NAME                                                       AGE
 volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m
 ----
-
-To validate that the `busybox` volume has been replicated to the alternate cluster run this command on both the *Primary managed cluster* and the *Secondary managed cluster*.
-
-[source,role="execute"]
-----
-oc get cephblockpool ocs-storagecluster-cephblockpool -n openshift-storage -o jsonpath='{.status.mirroringStatus.summary}{"\n"}'
-----
-.Example output.
-----
-{"daemon_health":"OK","health":"OK","image_health":"OK","states":{"replaying":2}}
-----
-
-NOTE: Both managed clusters should have the exact same output with a new status of *"states":{"replaying":2}*.
 
 === Deleting the Sample Application
 
@@ -851,7 +823,7 @@ image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
 Select `drpc-busybox` and then the YAML view. Add the `action` and `failoverCluster` as shown below. The `failoverCluster` should be the *ACM* cluster name for the *Secondary managed cluster*.
 
 .DRPlacementControl add action Failover
-image::ODR-DRPlacementControl-failover.png[DRPlacementControl add action Failover]
+image::ODR-DRPlacementControl-failover-metro.png[DRPlacementControl add action Failover]
 
 Select *Save*.
 
@@ -893,7 +865,7 @@ image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
 Select `drpc-busybox` and then the YAML form. Modify the `action` to `Relocate` as shown below.
 
 .DRPlacementControl modify action to Relocate
-image::ODR-DRPlacementControl-failback.png[DRPlacementControl modify action to Relocate]
+image::ODR-DRPlacementControl-failback-metro.png[DRPlacementControl modify action to Relocate]
 
 Select *Save*.
 
