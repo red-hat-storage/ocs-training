@@ -78,7 +78,7 @@ Because it runs with `min_size=1` when degraded, you should only use stretch mod
 
 
 **REVIEW**
-To be able to deploy RHCS if stretched mode, we need to fulfil certain Infrastructure requirements:
+To be able to deploy RHCS if stretched mode, we need to fulfil specific Infrastructure requirements:
 
 - At least .
 - One Tie-breaker Site
