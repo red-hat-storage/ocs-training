@@ -204,13 +204,20 @@ You can validate the successful deployment of ODF on each managed OCP cluster wi
 oc get storagecluster -n openshift-storage ocs-storagecluster -o jsonpath='{.status.phase}{"\n"}'
 ----
 
-If the result is `Ready` on the *Primary managed cluster* and the *Secondary managed cluster* continue on to configuring mirroring.
+And for the Multi-Cluster Gateway (MCG):
 
-NOTE: The successful installation of ODF can also be validated in the *OCP Web Console* by navigating to *Storage* and then *Overview*. The `Block and File` and `Object` dashboards should show green status. 
+[source,role="execute"]
+----
+oc get noobaa -n openshift-storage noobaa -o jsonpath='{.status.phase}{"\n"}'
+----
 
-== Install ODR Hub Operator on Hub cluster
+If the result is `Ready` for both queries on the *Primary managed cluster* and the *Secondary managed cluster* continue on to configuring mirroring.
 
-On the *Hub cluster* navigate to *OperatorHub* and filter for `ODR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`. 
+NOTE: The successful installation of ODF can also be validated in the *OCP Web Console* by navigating to *Storage* and then *Data Foundation*.
+
+== Install OpenShift DR Hub Operator on Hub cluster
+
+On the *Hub cluster* navigate to *OperatorHub* and filter for `OpenShift DR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`. 
 
 Check to see the operator *Pod* is in a `Running` state.
 
@@ -561,28 +568,15 @@ IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using 
 
 After all the `user-ca-bundle` *ConfigMaps* are created, the default *Proxy* `cluster` resource needs to be modified.
 
-Create a new YAML file `proxy-ca.yaml` and then `apply` this file to the default *Proxy* resource on the *Primary managed cluster*, *Secondary managed cluster*, _and_ the *Hub cluster*.
-
-[source,yaml]
-----
-apiVersion: config.openshift.io/v1
-kind: Proxy
-metadata:
-  name: cluster
-spec:
-  trustedCA:
-    name: user-ca-bundle
-----
-
-Now modify the existing *Proxy* `cluster` resource:
+Patch the default proxy resource on the *Primary managed cluster*, *Secondary managed cluste*, and the *Hub cluster*.
   
 [source,role="execute"]
 ----
-oc apply -f proxy-ca.yaml
+oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'
 ----
 .Example output.
 ----
-proxy.config.openshift.io/cluster configured
+proxy.config.openshift.io/cluster patched
 ----
 
 == Create DRPolicy on Hub cluster
