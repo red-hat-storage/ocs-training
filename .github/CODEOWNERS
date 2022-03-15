@@ -2,8 +2,8 @@
 # the repo. Unless a later match takes precedence,
 # These people will be requested for
 # review when someone opens a pull request.
-*       @netzzer @jeanchlopez @mulbc @mid998
+*       @netzzer @likid0
 
 training/modules/infra-nodes @mmgaggle @netzzer
-training/modules/ocs4perf @netzzer @jeanchlopez
+training/modules/ocs4perf @netzzer
 training/modules/ocs4/pages/ocs4-enable-rgw.adoc @guimou
