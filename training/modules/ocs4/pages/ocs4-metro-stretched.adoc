@@ -1,4 +1,4 @@
-= OpenShift Metro Disaster Recovery using Stretch Cluster
+= OpenShift Disaster Recovery using Stretch Cluster
 :toc:
 :toclevels: 4
 :icons: font
@@ -11,13 +11,13 @@
 
 == Overview
 
-In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be `stretched` between two geographically different locations. To be resilient in the face of a disaster necessary OCP services, including storage, must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called `Metro DR stretch cluster` which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.
+In order to provide a level of disaster recovery an OpenShift Container Platform (OCP) deployment can be `stretched` between two geographically different locations. To be resilient in the face of a disaster necessary OCP services, including storage, must be able to survive when one of the two locations is partially or totally not available. This solution sometimes is called `OpenShift DR stretch cluster` which means the distance between the sites needs to be limited so that OpenShift services and storage can operate with acceptable performance.
 
-NOTE: Currently `Metro DR stretch cluster` is tested to be deployed where latencies do not exceed 4 milliseconds round-trip time (RTT) between OCP nodes in different locations. Contact https://access.redhat.com/support[Red Hat Customer Support] if you are planning to deploy with higher latencies.
+NOTE: Currently `OpenShift DR stretch cluster` is tested to be deployed where latencies do not exceed 10 milliseconds round-trip time (RTT) between OCP nodes in different locations. Contact https://access.redhat.com/support[Red Hat Customer Support] if you are planning to deploy with higher latencies.
 
 The intent of this solution guide is to detail the steps and commands necessary to deploy `OpenShift Data Foundation`(ODF) along with Kubernetes zone topology labels to achieve a highly available storage infrastructure.
 
-This is a general overview of the steps required to configure and execute `Metro DR stretch cluster` capabilities using ODF *4.7* or greater.
+This is a general overview of the steps required to configure and execute `OpenShift DR stretch cluster` capabilities using ODF *4.7* or greater.
 
 [start=1]
 . *Ensure you have at least 3 OCP master nodes in 3 different locations* +
@@ -35,9 +35,9 @@ Simulate a site outage by powering off all nodes (including master node) and val
 . *Power on all OCP nodes in failed location* +
 Simulate a recovery by powering back on all nodes and validate sample application availability.
 
-== Metro DR Stretch Cluster Prerequisites 
+== OpenShift DR Stretch Cluster Prerequisites 
 
-The diagram shows the most simple deployment for `Metro DR stretch cluster`. The ODF Monitor pod that is the `arbiter` in case of a site outage can be scheduled on a master node. The diagram does not show the master nodes in each `Data Zone`. They are required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations. 
+The diagram shows the most simple deployment for `OpenShift DR stretch cluster`. The ODF Monitor pod that is the `arbiter` in case of a site outage can be scheduled on a master node. The diagram does not show the master nodes in each `Data Zone`. They are required for a highly available OCP control plane. Also, it is critical that the OCP nodes in one location have network reachability to the OCP nodes in the other two locations. 
 
 .OpenShift nodes and ODF daemons
 image::OCS4-metrodr-zones.png[OpenShift nodes and ODF daemons]
@@ -95,7 +95,7 @@ node/perf1-mz8bt-worker-ntkp8
 node/perf1-mz8bt-worker-qpwsr
 ----
 
-The `Metro DR stretch cluster` topology zone labels are now applied to the appropriate OCP nodes to define the three locations. Next step is installing the storage operators from OCP *OperatorHub*.
+The `OpenShift DR stretch cluster` topology zone labels are now applied to the appropriate OCP nodes to define the three locations. Next step is installing the storage operators from OCP *OperatorHub*.
 
 == Local Storage Operator
 
@@ -154,7 +154,7 @@ IMPORTANT: Do not proceed with the next instructions until the Local Storage Ope
 
 In this section you will be installing ODF and enabling `arbiter` mode. For instruction specific to you environment reference https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage/4.7/[ODF documentation]. 
 
-NOTE: Currently the `Metro DR stretch cluster` solution is only designed for use on VMware and Bare Metal servers.
+NOTE: Currently the `OpenShift DR stretch cluster` solution is only designed for use on VMware and Bare Metal servers.
 
 The following will be installed:
 
@@ -396,7 +396,7 @@ rook-ceph-osd-prepare-ocs-deviceset-localblock-3-data-0j7md76tl   0/1     Comple
 //    client:   853 B/s rd, 1023 B/s wr, 1 op/s rd, 0 op/s wr
 //----    
 //
-//NOTE: As shown in `ceph status` output, the `Metro DR stretch cluster` is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
+//NOTE: As shown in `ceph status` output, the `OpenShift DR stretch cluster` is always deployed with 5 Monitors, 2 per active OSD failure domain and one in the Arbiter failure domain.
 //
 == Install Zone Aware Sample Application
 
@@ -404,7 +404,7 @@ In this section the `ocs-storagecluster-cephfs` *StorageClass* will be used to
 create a RWX (ReadWriteMany) *PVC* that can be used by multiple pods at the
 same time. The application we will use is called `File Uploader`. 
 
-Because this application will share the same RWX volume for storing files we can demonstrate how an application can be spread across topology zones so that in the event of a site outage it is still available. This works for persistent data access as well because ODF storage configured for `Metro DR stretch cluster` is also zone aware and highly available.
+Because this application will share the same RWX volume for storing files we can demonstrate how an application can be spread across topology zones so that in the event of a site outage it is still available. This works for persistent data access as well because ODF storage configured for `OpenShift DR stretch cluster` is also zone aware and highly available.
 
 Create a new project:
 
@@ -733,7 +733,7 @@ uploaded files.
 
 == Data Zone Failure and Recovery
 
-Given one of the important goals of the `Metro DR stretch cluster` is to provide resiliency in the face of a complete or partial site outage, it is important to understand the different methods of recovery for applications and their storage. 
+Given one of the important goals of the `OpenShift DR stretch cluster` is to provide resiliency in the face of a complete or partial site outage, it is important to understand the different methods of recovery for applications and their storage. 
 
 How the application is architected will determine how soon it can be available again on the active zone. 
 
@@ -971,9 +971,9 @@ oc patch -n openshift-ingress-operator ingresscontroller.operator.openshift.io d
 
 Scale the replicas for the `router-default` *Deployment* to `1` and then back to `2`. Verify the router *Pods* are scheduled on the OCP nodes with the new labels.
 
-== Appendix B: Metro DR StorageCluster for CLI deployment
+== Appendix B: OpenShift DR StorageCluster for CLI deployment
 
-Example *StorageCluster* CR for `Metro DR stretch cluster`. For each set of 4 OSDs increment the `count` by 1. Creating the ODF `StorageCluster` using `oc` CLI is a replacement for the method described earlier in this document using the *OpenShift Web Console* UI to do the deployment.
+Example *StorageCluster* CR for `OpenShift DR stretch cluster`. For each set of 4 OSDs increment the `count` by 1. Creating the ODF `StorageCluster` using `oc` CLI is a replacement for the method described earlier in this document using the *OpenShift Web Console* UI to do the deployment.
 
 NOTE: Under the `managedResources` section is the default setting of `manage` for OCS services (i.e., block, file, object using RGW, object using NooBaa). This means any changes to OCS `CustomResources` (CRs) will always reconcile back to default values. The other choices instead of `manage` are `init` and `ignore`. The setting of `init` for the service (i.e., cephBlockPools) will not reconcile back to default if changes are made to the CR. The setting of `ignore` will not deploy the particular service.
 
@@ -986,7 +986,7 @@ metadata:
   namespace: openshift-storage
 spec:
   arbiter:
-    enable: true  # <-- Enable arbiter mode for Metro Dr stretch cluster
+    enable: true  # <-- Enable arbiter mode for OpenShift Dr stretch cluster
   nodeTopologies:
     arbiterLocation: arbiter  # <-- Modify to label for arbiter zone
   manageNodes: false
