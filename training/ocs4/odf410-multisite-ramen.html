@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>OpenShift Regional Disaster Recovery with Advanced Cluster Management :: OCS Training</title>
-    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/odf4-multisite-ramen.html">
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/odf410-multisite-ramen.html">
     <meta name="generator" content="Antora 3.0.1">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
@@ -86,10 +86,10 @@
     <button class="nav-item-toggle"></button>
     <span class="nav-text">Disaster recovery</span>
 <ul class="nav-list">
-  <li class="nav-item is-current-page" data-depth="1">
+  <li class="nav-item" data-depth="1">
     <a class="nav-link" href="odf4-multisite-ramen.html">ODF 4.9 Regional disaster recovery</a>
   </li>
-  <li class="nav-item" data-depth="1">
+  <li class="nav-item is-current-page" data-depth="1">
     <a class="nav-link" href="odf410-multisite-ramen.html">ODF 4.10 Regional disaster recovery</a>
   </li>
   <li class="nav-item" data-depth="1">
@@ -170,10 +170,10 @@
   <ul>
     <li><a href="../index.html">OCS Installation and Configuration</a></li>
     <li>Disaster recovery</li>
-    <li><a href="odf4-multisite-ramen.html">ODF 4.9 Regional disaster recovery</a></li>
+    <li><a href="odf410-multisite-ramen.html">ODF 4.10 Regional disaster recovery</a></li>
   </ul>
 </nav>
-  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/odf4-multisite-ramen.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/odf410-multisite-ramen.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -194,42 +194,31 @@
 </ul>
 </li>
 <li><a href="#_openshift_data_foundation_installation">3. OpenShift Data Foundation Installation</a></li>
-<li><a href="#_configuring_multisite_storage_replication">4. Configuring Multisite Storage Replication</a>
+<li><a href="#_install_openshift_dr_hub_operator_on_hub_cluster">4. Install OpenShift DR Hub Operator on Hub cluster</a></li>
+<li><a href="#_configuring_multisite_storage_replication">5. Configuring Multisite Storage Replication</a>
 <ul class="sectlevel2">
-<li><a href="#_enable_omap_generator_volume_replication_on_the_managed_clusters">4.1. Enable OMAP Generator &amp; Volume Replication on the managed clusters</a></li>
-<li><a href="#_install_odf_multicluster_orchestrator">4.2. Install ODF Multicluster Orchestrator</a></li>
-<li><a href="#_create_mirror_peer_on_hub_cluster">4.3. Create Mirror Peer on Hub cluster</a></li>
-<li><a href="#_enable_mirroring_on_managed_clusters">4.4. Enable Mirroring on Managed clusters</a></li>
+<li><a href="#_install_odf_multicluster_orchestrator">5.1. Install ODF Multicluster Orchestrator</a></li>
+<li><a href="#_create_mirror_peer_on_hub_cluster">5.2. Create Mirror Peer on Hub cluster</a></li>
+<li><a href="#_validate_mirroring_on_managed_clusters">5.3. Validate Mirroring on Managed clusters</a></li>
+<li><a href="#_validate_object_buckets_and_s3storeprofiles">5.4. Validate Object Buckets and s3StoreProfiles</a></li>
 </ul>
 </li>
-<li><a href="#_create_volumereplicationclass_resource">5. Create VolumeReplicationClass resource</a></li>
 <li><a href="#_create_mirroring_storageclass_resource">6. Create Mirroring StorageClass resource</a></li>
-<li><a href="#_install_odr_cluster_operator_on_managed_clusters">7. Install ODR Cluster Operator on Managed clusters</a>
+<li><a href="#_configure_ssl_access_between_s3_endpoints">7. Configure SSL access between S3 endpoints</a></li>
+<li><a href="#_create_drpolicy_on_hub_cluster">8. Create DRPolicy on Hub cluster</a></li>
+<li><a href="#_enable_automatic_install_of_odr_cluster_operator">9. Enable Automatic Install of ODR Cluster operator</a></li>
+<li><a href="#_create_s3_secrets_on_managed_clusters">10. Create S3 Secrets on Managed clusters</a></li>
+<li><a href="#_create_sample_application_for_dr_testing">11. Create Sample Application for DR testing</a>
 <ul class="sectlevel2">
-<li><a href="#_configure_ssl_access_between_s3_endpoints">7.1. Configure SSL access between s3 endpoints</a></li>
-<li><a href="#_create_object_bucket_and_retrieve_access_keys">7.2. Create Object Bucket and Retrieve access keys</a></li>
-<li><a href="#_create_s3_secrets_for_mcg_object_buckets">7.3. Create S3 Secrets for MCG object buckets</a></li>
-<li><a href="#_configure_odr_cluster_operator_configmaps">7.4. Configure ODR cluster operator ConfigMaps</a></li>
+<li><a href="#_create_drplacementcontrol_resource">11.1. Create DRPlacementControl resource</a></li>
+<li><a href="#_create_placementrule_resource">11.2. Create PlacementRule resource</a></li>
+<li><a href="#_creating_sample_application_using_acm_console">11.3. Creating Sample Application using ACM console</a></li>
+<li><a href="#_validating_sample_application_deployment_and_replication">11.4. Validating Sample Application deployment and replication</a></li>
+<li><a href="#_deleting_the_sample_application">11.5. Deleting the Sample Application</a></li>
 </ul>
 </li>
-<li><a href="#_install_odr_hub_operator_on_hub_cluster">8. Install ODR Hub Operator on Hub cluster</a>
-<ul class="sectlevel2">
-<li><a href="#_create_s3_secrets_for_the_hub_cluster">8.1. Create S3 secrets for the Hub cluster</a></li>
-<li><a href="#_configure_odr_hub_operator_configmap">8.2. Configure ODR hub operator ConfigMap</a></li>
-</ul>
-</li>
-<li><a href="#_create_drpolicy_on_hub_cluster">9. Create DRPolicy on Hub cluster</a></li>
-<li><a href="#_create_sample_application_for_dr_testing">10. Create Sample Application for DR testing</a>
-<ul class="sectlevel2">
-<li><a href="#_create_drplacementcontrol_resource">10.1. Create DRPlacementControl resource</a></li>
-<li><a href="#_create_placementrule_resource">10.2. Create PlacementRule resource</a></li>
-<li><a href="#_creating_sample_application_using_acm_console">10.3. Creating Sample Application using ACM console</a></li>
-<li><a href="#_validating_sample_application_deployment_and_replication">10.4. Validating Sample Application deployment and replication</a></li>
-<li><a href="#_deleting_the_sample_application">10.5. Deleting the Sample Application</a></li>
-</ul>
-</li>
-<li><a href="#_application_failover_between_managed_clusters">11. Application Failover between managed clusters</a></li>
-<li><a href="#_application_failback_between_managed_clusters">12. Application Failback between managed clusters</a></li>
+<li><a href="#_application_failover_between_managed_clusters">12. Application Failover between managed clusters</a></li>
+<li><a href="#_application_failback_between_managed_clusters">13. Application Failback between managed clusters</a></li>
 </ul>
 </div>
 <div class="sect1">
@@ -239,7 +228,7 @@
 <p>The intent of this guide is to detail the steps and commands necessary to be able to failover an application from one <code>OpenShift Container Platform</code> (OCP) cluster to another and then failback the same application to the original <strong>primary cluster</strong>. In this case the OCP clusters will be created or imported using <strong>Red Hat Advanced Cluster Management</strong> or <code>RHACM</code>.</p>
 </div>
 <div class="paragraph">
-<p>This is a general overview of the steps required to configure and execute <code>OpenShift Disaster Recovery</code> or ODR capabilities using OpenShift Data Foundation (ODF) <strong>v4.9</strong> and <code>RHACM</code> <strong>v2.4</strong> across two distinct OCP clusters separated by distance. In addition to these two cluster called <code>managed</code> clusters, there is currently a requirement to have a third OCP cluster that will be the <code>Advanced Cluster Management</code> (ACM) <code>hub</code> cluster.</p>
+<p>This is a general overview of the steps required to configure and execute <code>OpenShift Disaster Recovery</code> (ODR) capabilities using OpenShift Data Foundation (ODF) <strong>v4.10</strong> and <code>RHACM</code> <strong>v2.4</strong> across two distinct OCP clusters separated by distance. In addition to these two cluster called <code>managed</code> clusters, there is currently a requirement to have a third OCP cluster that will be the <code>Advanced Cluster Management</code> (ACM) <code>hub</code> cluster.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -248,7 +237,7 @@
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-These steps are considered Tech Preview in ODF 4.9 and are provided for POC (Proof of Concept) purposes. OpenShift <code>Regional Disaster Recovery</code> will be supported for production usage in a future ODF release.
+These steps are considered Tech Preview in ODF 4.10 and are provided for POC (Proof of Concept) purposes. OpenShift <code>Regional Disaster Recovery</code> will be supported for production usage in a future ODF release.
 </td>
 </tr>
 </table>
@@ -261,7 +250,7 @@ After creating the OCP hub cluster, install from OperatorHub the ACM operator. A
 </li>
 <li>
 <p><strong>Create or import managed OCP clusters into ACM hub.</strong><br>
-Import or create the two managed clusters with adequate resources (compute nodes, memory, cpu) to deploy ODF 4.9 using the RHACM console.</p>
+Import or create the two managed clusters with adequate resources for ODF (compute nodes, memory, cpu) using the RHACM console.</p>
 </li>
 <li>
 <p><strong>Ensure clusters have unique private network address ranges.</strong><br>
@@ -272,12 +261,12 @@ Ensure the primary and secondary OCP clusters have unique private network addres
 Connect the managed OCP private networks (cluster and service) using the RHACM Submariner add-ons.</p>
 </li>
 <li>
-<p><strong>Install ODF 4.9 on managed clusters.</strong><br>
-Install ODF 4.9 on primary and secondary OCP managed clusters and validate deployment.</p>
+<p><strong>Install ODF 4.10 on managed clusters.</strong><br>
+Install ODF 4.10 on primary and secondary OCP managed clusters and validate deployment.</p>
 </li>
 <li>
-<p><strong>Create new CSI side-cars in each managed OCP cluster.</strong><br>
-Using CLI, manually add the volume-replication and omap-generator side-car containers to rbd-provisioning pod(s).</p>
+<p><strong>Install ODR Hub Operator on the ACM hub cluster.</strong><br>
+Install from OperatorHub on the ACM hub cluster the ODR Hub Operator.</p>
 </li>
 <li>
 <p><strong>Install ODF Multicluster-orchestrator operator on ACM hub cluster.</strong><br>
@@ -285,47 +274,35 @@ Using OperatorHub on ACM hub cluster install the multicluster orchestrator opera
 </li>
 <li>
 <p><strong>Install Mirror Peer resource on ACM hub cluster.</strong><br>
-Using the multicluster orchestrator operator install the MirrorPeer resource using CLI or the operator wizard.</p>
-</li>
-<li>
-<p><strong>Enable Ceph mirroring on managed OCP clusters.</strong><br>
-Using CLI, patch the ODF StorageCluster on each managed cluster to enable Ceph RBD mirroring.</p>
+Using the multicluster orchestrator operator, install the MirrorPeer resource using CLI or the operator wizard.</p>
 </li>
 <li>
 <p><strong>Validate Ceph mirroring is active between managed OCP clusters.</strong><br>
 Using CLI, validate the new rbd-mirroring pods are created in each managed cluster and that the default CephBlockPool has healthy mirroring status in both directions.</p>
 </li>
 <li>
-<p><strong>Create VolumeReplicationClass resource.</strong><br>
-Using CLI, create the VolumeReplicationClass to configure the replication schedule (i.e. replicate between peers every 5 minutes).</p>
+<p><strong>Validate Object Buckets and s3StoreProfiles.</strong><br>
+Using CLI, validate that new MCG object buckets are created on the managed clusters including new secrets stored in the hub cluster and s3StoreProfiles added to the ramen config map.</p>
 </li>
 <li>
 <p><strong>Create new mirroring StorageClass resource.</strong><br>
 Using CLI, create new StorageClass with correct image features for block volumes enabled for mirroring.</p>
 </li>
 <li>
-<p><strong>Install ODR Cluster Operator on managed clusters.</strong><br>
-Install from OperatorHub on both managed clusters the ODR Cluster Operator.</p>
-</li>
-<li>
-<p><strong>Configure SSL access between managed clusters.</strong><br>
+<p><strong>Configure SSL access between managed clusters if (if needed).</strong><br>
 For each managed cluster extract the ingress certificate and inject into the alternate cluster for MCG object bucket secure access.</p>
-</li>
-<li>
-<p><strong>Configure S3 secrets and ODR configmaps for managed clusters.</strong><br>
-Create the required secrets and add the s3StoreProfiles to the ODR configmap  on each managed cluster.</p>
-</li>
-<li>
-<p><strong>Install ODR Hub Operator on the hub cluster.</strong><br>
-Install from OperatorHub on the hub cluster the ODR Hub Operator.</p>
-</li>
-<li>
-<p><strong>Configure S3 secrets and ODR configmap for hub cluster.</strong><br>
-Using the same MCG S3 access/secret keys and S3 endpoints, create the required secrets as those created on managed clusters and add the same s3StoreProfiles to the ODR configmap on the hub cluster.</p>
 </li>
 <li>
 <p><strong>Create the DRPolicy resource on the hub cluster.</strong><br>
 DRPolicy is an API available after the ODR Hub Operator is installed. It is used to deploy, failover, and relocate, workloads across managed clusters.</p>
+</li>
+<li>
+<p><strong>Enable Automatic Install of ODR Cluster operator.</strong><br>
+Enable the ODR Cluster operator to be installed from the hub cluster to the managed cluster by setting deploymentAutomationEnabled=true in the ramen config map.</p>
+</li>
+<li>
+<p><strong>Create S3 secrets on managed clusters.</strong><br>
+Copy the S3 secrets on hub cluster to YAML files. Create both secrets on the managed clusters.</p>
 </li>
 <li>
 <p><strong>Create the Sample Application namespace on the hub cluster.</strong><br>
@@ -583,7 +560,15 @@ It can take more than 5 minutes for the Submariner add-ons installation to finis
 </div>
 </div>
 <div class="paragraph">
-<p>If the result is <code>Ready</code> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> continue on to configuring mirroring.</p>
+<p>And for the Multi-Cluster Gateway (MCG):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get noobaa -n openshift-storage noobaa -o jsonpath='{.status.phase}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the result is <code>Ready</code> for both queries on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> continue on to configuring mirroring.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -592,7 +577,7 @@ It can take more than 5 minutes for the Submariner add-ons installation to finis
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The successful installation of ODF can also be validated in the <strong>OCP Web Console</strong> by navigating to <strong>Storage</strong> and then <strong>Overview</strong>. The <code>Block and File</code> and <code>Object</code> dashboards should show green status.
+The successful installation of ODF can also be validated in the <strong>OCP Web Console</strong> by navigating to <strong>Storage</strong> and then <strong>Data Foundation</strong>.
 </td>
 </tr>
 </table>
@@ -600,7 +585,30 @@ The successful installation of ODF can also be validated in the <strong>OCP Web 
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configuring_multisite_storage_replication"><a class="anchor" href="#_configuring_multisite_storage_replication"></a>4. Configuring Multisite Storage Replication</h2>
+<h2 id="_install_openshift_dr_hub_operator_on_hub_cluster"><a class="anchor" href="#_install_openshift_dr_hub_operator_on_hub_cluster"></a>4. Install OpenShift DR Hub Operator on Hub cluster</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On the <strong>Hub cluster</strong> navigate to <strong>OperatorHub</strong> and filter for <code>OpenShift DR Hub Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-dr-system</code>.</p>
+</div>
+<div class="paragraph">
+<p>Check to see the operator <strong>Pod</strong> is in a <code>Running</code> state.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                 READY   STATUS    RESTARTS   AGE
+ramen-hub-operator-898c5989b-96k65   2/2     Running   0          4m14s</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configuring_multisite_storage_replication"><a class="anchor" href="#_configuring_multisite_storage_replication"></a>5. Configuring Multisite Storage Replication</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Mirroring or replication is enabled on a per <code>CephBlockPool</code> basis within peer managed clusters and can then be configured on a specific subset of images within the pool. The <code>rbd-mirror</code> daemon is responsible for replicating image updates from the local peer cluster to the same image in the remote cluster.</p>
@@ -609,72 +617,9 @@ The successful installation of ODF can also be validated in the <strong>OCP Web 
 <p>These instructions detail how to create the mirroring relationship between two ODF managed clusters.</p>
 </div>
 <div class="sect2">
-<h3 id="_enable_omap_generator_volume_replication_on_the_managed_clusters"><a class="anchor" href="#_enable_omap_generator_volume_replication_on_the_managed_clusters"></a>4.1. Enable OMAP Generator &amp; Volume Replication on the managed clusters</h3>
+<h3 id="_install_odf_multicluster_orchestrator"><a class="anchor" href="#_install_odf_multicluster_orchestrator"></a>5.1. Install ODF Multicluster Orchestrator</h3>
 <div class="paragraph">
-<p>Execute the following steps on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> to enable the OMAP and Volume-Replication CSI sidecar containers in the <code>csi-rbdplugin-provisioner</code> <strong>Pods</strong>.</p>
-</div>
-<div class="paragraph">
-<p>Edit the <code>rook-ceph-operator-config</code> <strong>ConfigMap</strong> and add <code>CSI_ENABLE_OMAP_GENERATOR</code> set to true.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_OMAP_GENERATOR", "value": "true" }]'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/rook-ceph-operator-config patched</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Edit the <code>rook-ceph-operator-config</code> <strong>ConfigMap</strong> and add <code>CSI_ENABLE_VOLUME_REPLICATION</code> set to true.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch cm rook-ceph-operator-config -n openshift-storage --type json --patch  '[{ "op": "add", "path": "/data/CSI_ENABLE_VOLUME_REPLICATION", "value": "true" }]'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/rook-ceph-operator-config patched</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Validate that the there are the two new CSI sidecar containers per <code>csi-rbdplugin-provisioner</code> <strong>Pod</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for l in $(oc get pods -n openshift-storage -l app=csi-rbdplugin-provisioner -o jsonpath={.items[*].spec.containers[*].name}) ; do echo $l ; done | egrep "csi-omap-generator|volume-replication"</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-omap-generator
-volume-replication
-csi-omap-generator
-volume-replication</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The new containers will be repeated because there are two csi-rbdplugin-provisioner pods for redundancy.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_install_odf_multicluster_orchestrator"><a class="anchor" href="#_install_odf_multicluster_orchestrator"></a>4.2. Install ODF Multicluster Orchestrator</h3>
-<div class="paragraph">
-<p>This is a new controller that will be installed from OCP <strong>OperatorHub</strong> on the <strong>Hub cluster</strong>. The job of this <code>Multicluster Orchestrator</code> controller, along with the <code>MirrorPeer</code> Custom Resource, is to create a bootstrap token and exchanges this token between the managed clusters.</p>
+<p>This is a controller that will be installed from OCP <strong>OperatorHub</strong> on the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="paragraph">
 <p>Navigate to <strong>OperatorHub</strong> on the <strong>Hub cluster</strong> and filter for <code>odf multicluster orchestrator</code>.</p>
@@ -707,19 +652,50 @@ The operator resources will be installed in <code>openshift-operators</code> and
 </table>
 </div>
 <div class="paragraph">
-<p>Validate successful installation by having the ability to select <code>View Operator</code>. This means the installation has completed.</p>
+<p>Validate successful installation by having the ability to select <code>View Operator</code>. This means the installation has completed and the operator <strong>Pod</strong> should be <code>Running</code>.</p>
 </div>
-<div class="imageblock">
+<div class="listingblock execute">
 <div class="content">
-<img src="_images/ODF-multicluster-orchestrator-installed.png" alt="ODF Multicluster Orchestrator installed">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-operators</code></pre>
 </div>
-<div class="title">Figure 11. ODF Multicluster Orchestrator installed</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        READY   STATUS    RESTARTS   AGE
+odfmo-controller-manager-65946fb99b-779v8   1/1     Running   0          5m3s</code></pre>
+</div>
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_mirror_peer_on_hub_cluster"><a class="anchor" href="#_create_mirror_peer_on_hub_cluster"></a>4.3. Create Mirror Peer on Hub cluster</h3>
+<h3 id="_create_mirror_peer_on_hub_cluster"><a class="anchor" href="#_create_mirror_peer_on_hub_cluster"></a>5.2. Create Mirror Peer on Hub cluster</h3>
 <div class="paragraph">
 <p><strong>Mirror Peer</strong> is a cluster-scoped resource to hold information about the managed clusters that will have a <code>peering</code> relationship.</p>
+</div>
+<div class="paragraph">
+<p>The job of the <code>Multicluster Orchestrator</code> controller and the <code>MirrorPeer</code> Custom Resource, is to do the following:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Create a bootstrap token and exchanges this token between the managed clusters.</p>
+</li>
+<li>
+<p>Enable mirroring for the default <code>CephBlockPool</code> on each managed clusters.</p>
+</li>
+<li>
+<p>Create an object bucket (using MCG) on each managed cluster for mirrored <strong>PVC</strong> and <strong>PV</strong> metadata.</p>
+</li>
+<li>
+<p>Create a <strong>Secret</strong> in the <code>openshift-dr-system</code> project on the <strong>Hub cluster</strong> for each new object bucket that has the base64 encoded access keys.</p>
+</li>
+<li>
+<p>Create a <strong>VolumeReplicationClass</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+</li>
+<li>
+<p>Modify the <code>ramen-hub-operator-config</code> <strong>ConfigMap</strong> on the <strong>Hub cluster</strong> and add the <code>s3StoreProfiles</code> entries.</p>
+</li>
+</ul>
 </div>
 <div class="paragraph">
 <p>Requirements:</p>
@@ -733,7 +709,7 @@ The operator resources will be installed in <code>openshift-operators</code> and
 <p>There can only be two clusters per Mirror Peer.</p>
 </li>
 <li>
-<p>Each cluster should be uniquely identifiable by cluster name (i.e., ocp4perf1).</p>
+<p>Each cluster should be uniquely identifiable in ACM by cluster name (i.e., ocp4perf1).</p>
 </li>
 </ul>
 </div>
@@ -744,7 +720,7 @@ The operator resources will be installed in <code>openshift-operators</code> and
 <div class="content">
 <img src="_images/ODF-mirror-peer-yaml.png" alt="Create Mirror Peer in YAML view">
 </div>
-<div class="title">Figure 12. Create Mirror Peer in YAML view</div>
+<div class="title">Figure 11. Create Mirror Peer in YAML view</div>
 </div>
 <div class="paragraph">
 <p>Save the following YAML (below) to filename <code>mirror-peer.yaml</code> after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>.</p>
@@ -776,7 +752,11 @@ spec:
   - clusterName: &lt;cluster2&gt;
     storageClusterRef:
       name: ocs-storagecluster
-      namespace: openshift-storage</code></pre>
+      namespace: openshift-storage
+  manageS3: true
+  mirroringMode: snapshot
+  replicationSecretName: rook-csi-rbd-provisioner
+  schedulingInterval: 5m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -822,49 +802,11 @@ Before executing the command replace <strong>&lt;cluster1&gt;</strong> and <stro
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ExchangedSecret</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-The output for the validation can also be <code>ExchangingSecret</code> which is also an acceptable result.
-</td>
-</tr>
-</table>
-</div>
 </div>
 <div class="sect2">
-<h3 id="_enable_mirroring_on_managed_clusters"><a class="anchor" href="#_enable_mirroring_on_managed_clusters"></a>4.4. Enable Mirroring on Managed clusters</h3>
+<h3 id="_validate_mirroring_on_managed_clusters"><a class="anchor" href="#_validate_mirroring_on_managed_clusters"></a>5.3. Validate Mirroring on Managed clusters</h3>
 <div class="paragraph">
-<p>Currently to enable <code>mirroring</code> the <strong>StorageCluster</strong> for each managed cluster will need to have the <code>mirroring</code> setting changed to <em>enabled</em>. This is a manual step using CLI and the <code>oc patch</code> command.</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Make sure to run the <code>oc patch storagecluster</code> command on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> as well as the follow-on validation commands after the <strong>StorageCluster</strong> has mirroring enabled.
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch storagecluster $(oc get storagecluster -n openshift-storage -o=jsonpath='{.items[0].metadata.name}')  -n openshift-storage --type json --patch  '[{ "op": "replace", "path": "/spec/mirroring", "value": {"enabled": true} }]'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">storagecluster.ocs.openshift.io/ocs-storagecluster patched</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Validate mirroring is enabled on default <strong>CephBlockPool</strong>.</p>
+<p>Validate mirroring is enabled on default <strong>CephBlockPool</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -878,7 +820,7 @@ Make sure to run the <code>oc patch storagecluster</code> command on the <strong
 </div>
 </div>
 <div class="paragraph">
-<p>Validate <code>rbd-mirror</code> <strong>Pod</strong> is up and running.</p>
+<p>Validate <code>rbd-mirror</code> <strong>Pod</strong> is up and running on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -892,7 +834,7 @@ Make sure to run the <code>oc patch storagecluster</code> command on the <strong
 </div>
 </div>
 <div class="paragraph">
-<p>Validate the status of the <code>daemon</code> health.</p>
+<p>Validate the status of the <code>daemon</code> health on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -905,66 +847,145 @@ Make sure to run the <code>oc patch storagecluster</code> command on the <strong
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">{"daemon_health":"OK","health":"OK","image_health":"OK","states":{}}</code></pre>
 </div>
 </div>
-<div class="admonitionblock note">
+<div class="admonitionblock caution">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-note" title="Note"></i>
+<i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-It could take up to 10 minutes for the <code>daemon_health</code> and <code>health</code> to go from <strong>Warning</strong> to <strong>OK</strong>. If the status does not become <strong>OK</strong> eventually then use the ACM console to verify that the submariner add-ons connection is still in a healthy state.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_create_volumereplicationclass_resource"><a class="anchor" href="#_create_volumereplicationclass_resource"></a>5. Create VolumeReplicationClass resource</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>The <strong>VolumeReplicationClass</strong> is used to specify the <code>mirroringMode</code> for each volume to be replicated as well as how often a volume or image is replicated (i.e., every 5 minutes) from the local cluster to the remote cluster.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-This resource must be created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
+It could take up to 10 minutes for the <code>daemon_health</code> and <code>health</code> to go from <strong>Warning</strong> to <strong>OK</strong>. If the status does not become <strong>OK</strong> eventually then use the ACM console to verify that the <code>Submariner add-ons</code> connection is still in a healthy state.
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Save this YAML to filename <code>rbd-volumereplicationclass.yaml</code>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: replication.storage.openshift.io/v1alpha1
-kind: VolumeReplicationClass
-metadata:
-  name: odf-rbd-volumereplicationclass
-spec:
-  provisioner: openshift-storage.rbd.csi.ceph.com
-  parameters:
-    mirroringMode: snapshot
-    schedulingInterval: "5m"  # &lt;-- Must be the same as scheduling interval in the DRPolicy
-    replication.storage.openshift.io/replication-secret-name: rook-csi-rbd-provisioner
-    replication.storage.openshift.io/replication-secret-namespace: openshift-storage</code></pre>
-</div>
+<p>Validate that the <strong>VolumeReplicationClass</strong> is created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f rbd-volumereplicationclass.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get volumereplicationclass</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">volumereplicationclass.replication.storage.openshift.io/odf-rbd-volumereplicationclass created</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                             PROVISIONER
+odf-rbd-volumereplicationclass   openshift-storage.rbd.csi.ceph.com</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <strong>VolumeReplicationClass</strong> is used to specify the <code>mirroringMode</code> for each volume to be replicated as well as how often a volume or image is replicated (for example, every 5 minutes) from the local cluster to the remote cluster.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_validate_object_buckets_and_s3storeprofiles"><a class="anchor" href="#_validate_object_buckets_and_s3storeprofiles"></a>5.4. Validate Object Buckets and s3StoreProfiles</h3>
+<div class="paragraph">
+<p>Validate there is a new <strong>OBC</strong> and corresponding <strong>OB</strong> in the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> in the <code>openshift-storage</code> namespace.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The new object buckets are created in the <code>openshift-storage</code> namespace on the managed clusters.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get obc,ob -n openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                             PROVISIONER
+NAME                                                       STORAGE-CLASS                 PHASE   AGE
+objectbucketclaim.objectbucket.io/odrbucket-21eb5332f6b6   openshift-storage.noobaa.io   Bound   13m
+
+NAME                                                                        STORAGE-CLASS                 CLAIM-NAMESPACE   CLAIM-NAME   RECLAIM-POLICY   PHASE   AGE
+objectbucket.objectbucket.io/obc-openshift-storage-odrbucket-21eb5332f6b6   openshift-storage.noobaa.io                                  Delete           Bound   13m</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Validate there are two new <strong>Secrets</strong> in the <strong>Hub cluster</strong> <code>openshift-dr-system</code> namespace that contain the access and secret key for each new <strong>OBC</strong>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The new secrets are created in the <code>openshift-dr-system</code> namespace on the <strong>Hub cluster</strong>. Later, these secrets will be copied to the managed clusters to access the object buckets.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secrets -n openshift-dr-system | grep Opaque</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">8b3fb9ed90f66808d988c7edfa76eba35647092   Opaque                                2      16m
+af5f82f21f8f77faf3de2553e223b535002e480   Opaque                                2      16m</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The <strong>OBC</strong> and <strong>Secrets</strong> are written in the <strong>ConfigMap</strong> <code>ramen-hub-operator-config</code> on the <strong>Hub cluster</strong> in the newly created <code>s3StoreProfiles</code> section.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm ramen-hub-operator-config -n openshift-dr-system -o yaml | grep -A 14 s3StoreProfiles</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">    s3StoreProfiles:
+    - s3Bucket: odrbucket-21eb5332f6b6
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf2.example.com
+      s3ProfileName: s3profile-ocp4perf2-ocs-storagecluster
+      s3Region: noobaa
+      s3SecretRef:
+        name: 8b3fb9ed90f66808d988c7edfa76eba35647092
+        namespace: openshift-dr-system
+    - s3Bucket: odrbucket-21eb5332f6b6
+      s3CompatibleEndpoint: https://s3-openshift-storage.apps.perf1.example.com
+      s3ProfileName: s3profile-ocp4perf1-ocs-storagecluster
+      s3Region: noobaa
+      s3SecretRef:
+        name: af5f82f21f8f77faf3de2553e223b535002e480
+        namespace: openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Record the names of the <code>s3ProfileName</code>. They will be used in the <strong>DRPolicy</strong> resource.
+</td>
+</tr>
+</table>
 </div>
 </div>
 </div>
@@ -1028,10 +1049,10 @@ volumeBindingMode: Immediate</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_install_odr_cluster_operator_on_managed_clusters"><a class="anchor" href="#_install_odr_cluster_operator_on_managed_clusters"></a>7. Install ODR Cluster Operator on Managed clusters</h2>
+<h2 id="_configure_ssl_access_between_s3_endpoints"><a class="anchor" href="#_configure_ssl_access_between_s3_endpoints"></a>7. Configure SSL access between S3 endpoints</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On each managed cluster navigate to <strong>OperatorHub</strong> and filter for <code>ODR Cluster Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-dr-system</code>.</p>
+<p>These steps are necessary so that metadata can be stored on the alternate cluster in a Multi-Cloud Gateway (MCG) object bucket using a secure transport protocol and in addition the <strong>Hub cluster</strong> needs to verify access to the object buckets.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1040,30 +1061,7 @@ volumeBindingMode: Immediate</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>ODR Cluster Operator</code> must be installed on both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong>.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>ODR requires one or more S3 stores to store relevant cluster data of a workload from the managed clusters and to orchestrate a recovery of the workload during failover or relocate actions.</p>
-</div>
-<div class="paragraph">
-<p>These instructions are applicable for creating the necessary object bucket(s) using the <strong>Multi-Cloud Gateway</strong> or MCG. MCG should already be installed as a result of installing ODF.</p>
-</div>
-<div class="sect2">
-<h3 id="_configure_ssl_access_between_s3_endpoints"><a class="anchor" href="#_configure_ssl_access_between_s3_endpoints"></a>7.1. Configure SSL access between s3 endpoints</h3>
-<div class="paragraph">
-<p>These steps are necessary so that metadata can be stored on the alternate cluster in a MCG object bucket using a secure transport protocol and in addition the <strong>Hub cluster</strong> needs to verify access to the object buckets.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-If all of your OpenShift clusters are deployed using signed and trusted set of certificates for your environment then this section can be skipped.
+If all of your OpenShift clusters are deployed using signed and valid set of certificates for your environment then this section can be skipped.
 </td>
 </tr>
 </table>
@@ -1177,412 +1175,18 @@ The <strong>Hub cluster</strong> needs to verify access to the object buckets us
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_create_object_bucket_and_retrieve_access_keys"><a class="anchor" href="#_create_object_bucket_and_retrieve_access_keys"></a>7.2. Create Object Bucket and Retrieve access keys</h3>
-<div class="paragraph">
-<p>Before starting this section check that MCG is installed on <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> and that the <code>Phase</code> is <strong>Ready</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get noobaa -n openshift-storage</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME     MGMT-ENDPOINTS                   S3-ENDPOINTS                    IMAGE                                                                                                 PHASE   AGE
-noobaa   ["https://10.70.56.161:30145"]   ["https://10.70.56.84:31721"]   quay.io/rhceph-dev/mcg-core@sha256:c4b8857ee9832e6efc5a8597a08b81730b774b2c12a31a436e0c3fadff48e73d   Ready   27h</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The first step is to create an MCG <code>object bucket</code> or <strong>OBC</strong> (Object Bucket Claim) to be used to store persistent volume metadata on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
-</div>
-<div class="paragraph">
-<p>Copy the following YAML file to filename <code>odrbucket.yaml</code></p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: objectbucket.io/v1alpha1
-kind: ObjectBucketClaim
-metadata:
-  name: odrbucket
-  namespace: openshift-dr-system
-spec:
-  generateBucketName: "odrbucket"
-  storageClassName: openshift-storage.noobaa.io</code></pre>
-</div>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odrbucket.yaml</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">objectbucketclaim.objectbucket.io/odrbucket created</code></pre>
-</div>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-Make sure to create the <strong>OBC</strong> <code>odrbucket</code> on both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Extract the <code>odrbucket</code> <strong>OBC</strong> access key and secret key for each managed cluster as their <strong><em>base-64</em> <em>encoded</em></strong> values. This can be done using these commands:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_ACCESS_KEY_ID}{"\n"}'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cFpIYTZWN1NhemJjbEUyWlpwN1E=</code></pre>
-</div>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secret odrbucket -n openshift-dr-system -o jsonpath='{.data.AWS_SECRET_ACCESS_KEY}{"\n"}'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">V1hUSnMzZUoxMHRRTXdGMU9jQXRmUlAyMmd5bGwwYjNvMHprZVhtNw==</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-The access key and secret key must be retrieved for the <code>odrbucket</code> <strong>OBC</strong> on both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong>.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_create_s3_secrets_for_mcg_object_buckets"><a class="anchor" href="#_create_s3_secrets_for_mcg_object_buckets"></a>7.3. Create S3 Secrets for MCG object buckets</h3>
-<div class="paragraph">
-<p>Now that the necessary MCG information has been extracted for the object buckets there must be new <strong>Secrets</strong> created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>. These new <strong>Secrets</strong> will store the MCG object bucket access key and secret key for both managed clusters.</p>
-</div>
-<div class="paragraph">
-<p>The S3 secret YAML format for the <strong>Primary managed cluster</strong> is similar to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: &lt;primary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded secret access key&gt;
-kind: Secret
-metadata:
-  name: odr-s3secret-primary
-  namespace: openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create this secret on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3secret-primary.yaml</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/odr-s3secret-primary created</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The S3 secret YAML format for the <strong>Secondary managed cluster</strong> is similar to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: &lt;secondary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded secret access key&gt;
-kind: Secret
-metadata:
-  name: odr-s3secret-secondary
-  namespace: openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create this secret on the <strong>Primary managed cluster</strong> <em>and</em> the <strong>Secondary managed cluster</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3secret-secondary.yaml</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/odr-s3secret-secondary created</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-The values for the access key and secret key must be <strong>base-64 encoded</strong>. The encoded values for the keys were retrieved in the prior section.
-</td>
-</tr>
-</table>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_configure_odr_cluster_operator_configmaps"><a class="anchor" href="#_configure_odr_cluster_operator_configmaps"></a>7.4. Configure ODR cluster operator ConfigMaps</h3>
-<div class="paragraph">
-<p>On each managed cluster the <strong>ConfigMap</strong> <code>ramen-dr-cluster-operator-config</code> will be edited and new content added.</p>
-</div>
-<div class="paragraph">
-<p>To find the <strong>s3CompatibleEndpoint</strong> or route for MCG on each managed cluster execute the following command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route s3 -n openshift-storage -o jsonpath --template="https://{.spec.host}{'\n'}"</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">https://s3-openshift-storage.apps.perf1.example.com</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-The unique <strong>s3CompatibleEndpoint</strong> route or <code><a href="https://s3-openshift-storage.apps.&lt;primary" class="bare">s3-openshift-storage.apps.&lt;primary</a> clusterID&gt;.&lt;baseDomain&gt;</code> and <code><a href="https://s3-openshift-storage.apps.&lt;secondary" class="bare">s3-openshift-storage.apps.&lt;secondary</a> clusterID&gt;.&lt;baseDomain&gt;</code> must be retrieved for both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong> respectively.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>To find the <strong>s3Bucket</strong> for the <code>odrbucket</code> <strong>OBC</strong> exact bucket name execute the following command:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get configmap odrbucket -n openshift-dr-system -o jsonpath='{.data.BUCKET_NAME}{"\n"}'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">odrbucket-2f2d44e4-59cb-4577-b303-7219be809dcd</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-The unique <strong>s3Bucket</strong> name <code>odrbucket-&lt;your value1&gt;</code> and <code>odrbucket-&lt;your value2&gt;</code> must be retrieved on both the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong> respectively.
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>Edit the <strong>ConfigMap</strong> to add the new content starting at <strong>s3StoreProfiles</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> after replacing the variables with correct values for <strong>your</strong> environment.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-dr-cluster-operator-config -n openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
-data:
-  ramen_manager_config.yaml: |
-    apiVersion: ramendr.openshift.io/v1alpha1
-    kind: RamenConfig
-[...]
-    ramenControllerType: "dr-cluster"
-    ### Start of new content to be added
-    s3StoreProfiles:
-    - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;baseDomain&gt;
-      s3Region: primary
-      s3Bucket: odrbucket-&lt;your value1&gt;
-      s3SecretRef:
-        name: odr-s3secret-primary
-        namespace: openshift-dr-system
-    - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;baseDomain&gt;
-      s3Region: secondary
-      s3Bucket: odrbucket-&lt;your value2&gt;
-      s3SecretRef:
-        name: odr-s3secret-secondary
-        namespace: openshift-dr-system
-[...]</code></pre>
-</div>
-</div>
-</div>
-</div>
 </div>
 <div class="sect1">
-<h2 id="_install_odr_hub_operator_on_hub_cluster"><a class="anchor" href="#_install_odr_hub_operator_on_hub_cluster"></a>8. Install ODR Hub Operator on Hub cluster</h2>
+<h2 id="_create_drpolicy_on_hub_cluster"><a class="anchor" href="#_create_drpolicy_on_hub_cluster"></a>8. Create DRPolicy on Hub cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On the <code>Hub cluster</code> navigate to <strong>OperatorHub</strong> and filter for <code>ODR Hub Operator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-dr-system</code>.</p>
-</div>
-<div class="sect2">
-<h3 id="_create_s3_secrets_for_the_hub_cluster"><a class="anchor" href="#_create_s3_secrets_for_the_hub_cluster"></a>8.1. Create S3 secrets for the Hub cluster</h3>
-<div class="paragraph">
-<p>The values for the access and secret key must be <strong>base-64 encoded</strong>.The encoded values for the keys were retrieved in the prior section and the resulting <strong>Secrets</strong> are <em>exactly</em> the same as those created already on the managed clusters.</p>
-</div>
-<div class="paragraph">
-<p>The S3 secret YAML format for the <strong>Primary managed cluster</strong> is similar to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: &lt;primary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;primary cluster base-64 encoded secret access key&gt;
-kind: Secret
-metadata:
-  name: odr-s3secret-primary
-  namespace: openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create this secret on the <strong>Hub cluster</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3secret-primary.yaml</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/odr-s3secret-primary created</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The S3 secret YAML format for the <strong>Secondary managed cluster</strong> is similar to the following:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: &lt;secondary cluster base-64 encoded access key&gt;
-  AWS_SECRET_ACCESS_KEY: &lt;secondary cluster base-64 encoded secret access key&gt;
-kind: Secret
-metadata:
-  name: odr-s3secret-secondary
-  namespace: openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Create this secret on the <strong>Hub cluster</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3secret-secondary.yaml</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/odr-s3secret-secondary created</code></pre>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_configure_odr_hub_operator_configmap"><a class="anchor" href="#_configure_odr_hub_operator_configmap"></a>8.2. Configure ODR hub operator ConfigMap</h3>
-<div class="paragraph">
-<p>After the operator is successfully created there will be a new <strong>ConfigMap</strong> called <code>ramen-hub-operator-config</code>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-hub-operator-config -n openshift-dr-system</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The following new content starting at <strong>s3StoreProfiles</strong> needs to be added to the <strong>ConfigMap</strong> on the <strong>Hub cluster</strong>.</p>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-Make sure to replace <code>&lt;primary clusterID&gt;</code>, <code>&lt;secondary clusterID&gt;</code>, <code>baseDomain</code>, <code>odrbucket-&lt;your value1&gt;</code>, and <code>odrbucket-&lt;your value2&gt;</code> variables with the <strong>exact</strong> same values as used for the <code>ramen-cluster-operator-config</code> <strong>ConfigMap</strong> on the managed clusters.
-</td>
-</tr>
-</table>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">[...]
-apiVersion: v1
-data:
-  ramen_manager_config.yaml: |
-    apiVersion: ramendr.openshift.io/v1alpha1
-    kind: RamenConfig
-[...]
-    ramenControllerType: "dr-hub"
-    ### Start of new content to be added
-    s3StoreProfiles:
-    - s3ProfileName: s3-primary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;primary clusterID&gt;.&lt;baseDomain&gt;
-      s3Region: primary
-      s3Bucket: odrbucket-&lt;your value1&gt;
-      s3SecretRef:
-        name: odr-s3secret-primary
-        namespace: openshift-dr-system
-    - s3ProfileName: s3-secondary
-      s3CompatibleEndpoint: https://s3-openshift-storage.apps.&lt;secondary clusterID&gt;.&lt;baseDomain&gt;
-      s3Region: secondary
-      s3Bucket: odrbucket-&lt;your value2&gt;
-      s3SecretRef:
-        name: odr-s3secret-secondary
-        namespace: openshift-dr-system
-[...]</code></pre>
-</div>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_create_drpolicy_on_hub_cluster"><a class="anchor" href="#_create_drpolicy_on_hub_cluster"></a>9. Create DRPolicy on Hub cluster</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>ODR uses <strong>DRPolicy</strong> resources (cluster scoped) on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A <strong>DRPolicy</strong> requires a set of two clusters, which are peered for storage level replication and <code>CSI</code> <strong>VolumeReplication</strong> is enabled. This <code>CSI</code> sidecar container was enabled in the prior section <a href="#_configuring_multisite_storage_replication">Configuring Multisite Storage Replication</a>.</p>
+<p>ODR uses the <strong>DRPolicy</strong> resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A <strong>DRPolicy</strong> requires a set of two clusters, which are peered for storage level replication and <code>CSI</code> <strong>VolumeReplication</strong> is enabled.</p>
 </div>
 <div class="paragraph">
 <p>Furthermore, <strong>DRPolicy</strong> requires a scheduling interval that determines at what frequency data replication will be performed and also serves as a coarse grained RPO (Recovery Point Objective) for the workload using the <strong>DRPolicy</strong>.</p>
 </div>
 <div class="paragraph">
-<p><strong>DRPolicy</strong> also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the <strong>ConfigMap</strong> of the ODR <a href="#_configure_odr_cluster_operator_configmaps">cluster</a> and <a href="#_configure_odr_hub_operator_configmap">hub</a> operators.</p>
+<p><strong>DRPolicy</strong> also requires that each cluster in the policy be assigned a S3 profile name, which is configured via the <strong>ConfigMap</strong> <code>ramen-hub-operator-config</code> in the <code>openshift-dr-system</code> on the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="paragraph">
 <p>On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> in the <code>openshift-dr-system</code> project and select <code>ODR Hub Operator</code>. You should see two available APIs, <strong>DRPolicy</strong> and <strong>DRPlacementControl</strong>.</p>
@@ -1591,7 +1195,7 @@ data:
 <div class="content">
 <img src="_images/ODR-DRPolicy-API.png" alt="ODR Hub cluster APIs">
 </div>
-<div class="title">Figure 13. ODR Hub cluster APIs</div>
+<div class="title">Figure 12. ODR Hub cluster APIs</div>
 </div>
 <div class="paragraph">
 <p><strong>Create instance</strong> for <strong>DRPolicy</strong> and then go to <strong>YAML view</strong>.</p>
@@ -1600,10 +1204,10 @@ data:
 <div class="content">
 <img src="_images/ODR-DRPolicy-create-instance.png" alt="DRPolicy create instance">
 </div>
-<div class="title">Figure 14. DRPolicy create instance</div>
+<div class="title">Figure 13. DRPolicy create instance</div>
 </div>
 <div class="paragraph">
-<p>Save the following YAML (below) to filename drpolicy.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>.</p>
+<p>Save the following YAML to filename drpolicy.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>. Replace <strong>&lt;string_value_1&gt;</strong> and <strong>&lt;string_value_2&gt;</strong> with any values as long as they unique (i.e., east and west).</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1626,11 +1230,25 @@ metadata:
 spec:
   drClusterSet:
   - name: &lt;cluster1&gt;
-    s3ProfileName: s3-primary
+    region: &lt;string_value_1&gt;
+    s3ProfileName: s3profile-&lt;cluster1&gt;-ocs-storagecluster
   - name: &lt;cluster2&gt;
-    s3ProfileName: s3-secondary
+    region: &lt;string_value_2&gt;
+    s3ProfileName: s3profile-&lt;cluster2&gt;-ocs-storagecluster
   schedulingInterval: 5m</code></pre>
 </div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong> match that configured in the default <strong>VolumeReplicationClass</strong> resource which is configured as <code>5m</code>. To have a different <code>schedulingInterval</code> for volume replication requires creating additional <strong>VolumeReplicationClass</strong> and <strong>DRPolicy</strong> with the same value (i.e., 15m).
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Now create the <code>DRPolicy</code> resource by copying the contents of your unique <code>drpolicy.yaml</code> file into the <code>YAML view</code> (completely replacing original content). Select <strong>Create</strong> at the bottom of the <code>YAML view</code> screen.</p>
@@ -1649,20 +1267,8 @@ spec:
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicy.ramendr.openshift.io/odr-policy-5m created</code></pre>
 </div>
 </div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong> match that configured in the <a href="#_create_volumereplicationclass_resource">Create VolumeReplicationClass resource</a> section.
-</td>
-</tr>
-</table>
-</div>
 <div class="paragraph">
-<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command.</p>
+<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command on the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1678,7 +1284,164 @@ The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_sample_application_for_dr_testing"><a class="anchor" href="#_create_sample_application_for_dr_testing"></a>10. Create Sample Application for DR testing</h2>
+<h2 id="_enable_automatic_install_of_odr_cluster_operator"><a class="anchor" href="#_enable_automatic_install_of_odr_cluster_operator"></a>9. Enable Automatic Install of ODR Cluster operator</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Once the <strong>DRPolicy</strong> is created successfully the <code>ODR Cluster operator</code> can be installed on the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong> in the <code>openshift-dr-system</code> namespace.</p>
+</div>
+<div class="paragraph">
+<p>This is done by editing the <code>ramen-hub-operator-config</code> <strong>ConfigMap</strong> on the <strong>Hub cluster</strong> and adding <code>deploymentAutomationEnabled=true</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit configmap ramen-hub-operator-config -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  ramen_manager_config.yaml: |
+    apiVersion: ramendr.openshift.io/v1alpha1
+    drClusterOperator:
+      deploymentAutomationEnabled: true  ## &lt;-- Add to enable installation of ODR Cluster operator on managed clusters
+      catalogSourceName: redhat-operators
+      catalogSourceNamespaceName: openshift-marketplace
+      channelName: stable-4.10
+      clusterServiceVersionName: odr-cluster-operator.v4.10.0
+      namespaceName: openshift-dr-system
+      packageName: odr-cluster-operator
+[...]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To validate that the installation was successful on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> do the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv,pod -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                                      DISPLAY                         VERSION   REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/odr-cluster-operator.v4.10.0   Openshift DR Cluster Operator   4.10.0               Succeeded
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m32s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also go to <strong>OperatorHub</strong> on each of the managed clusters and look to see the <code>OpenShift DR Cluster Operator</code> is installed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-Cluster-operator.png" alt="ODR Cluster Operator">
+</div>
+<div class="title">Figure 14. ODR Cluster Operator</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_s3_secrets_on_managed_clusters"><a class="anchor" href="#_create_s3_secrets_on_managed_clusters"></a>10. Create S3 Secrets on Managed clusters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The MCG object bucket <strong>Secrets</strong> were created and stored on the <strong>Hub cluster</strong> when the <strong>MirrorPeer</strong> was created.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secrets -n openshift-dr-system | grep Opaque</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">8b3fb9ed90f66808d988c7edfa76eba35647092   Opaque                                2      10h
+af5f82f21f8f77faf3de2553e223b535002e480   Opaque                                2      10h</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>These <strong>Secrets</strong> need to be copied to the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>. An easy way to do this is to export each <strong>Secret</strong> to a YAML file on the <strong>Hub cluster</strong>. Here is an example using the <strong>Secret</strong> names in the <code>Example output</code> above.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secrets 8b3fb9ed90f66808d988c7edfa76eba35647092 -n openshift-dr-system -o yaml &gt; odr-s3-secret1.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat odr-s3-secret1.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  AWS_ACCESS_KEY_ID: OXNsSk9aT3VVa3JEV0hRaXhwMmw=
+  AWS_SECRET_ACCESS_KEY: a2JPUE9XS25RekwzMWlyR1BhbDhtNlUraWx2NWJicGwrenhKNHlqdA==
+kind: Secret
+metadata:
+  creationTimestamp: "2022-02-26T01:26:40Z"
+  labels:
+    multicluster.odf.openshift.io/created-by: mirrorpeersecret
+  name: 8b3fb9ed90f66808d988c7edfa76eba35647092
+  namespace: openshift-dr-system
+  resourceVersion: "810592"
+  uid: cde532dc-2a87-47e5-97cd-8420b3c344de
+type: Opaque</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And then export the YAML for the other <strong>Secret</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get secrets af5f82f21f8f77faf3de2553e223b535002e480 -n openshift-dr-system -o yaml &gt; odr-s3-secret2.yaml</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to use <em>your</em> unique <strong>Secret</strong> names in the commands above.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now create both these <strong>Secrets</strong> on the <strong>Primary managed cluster</strong> <em>and</em> the <strong>Secondary managed cluster</strong>. They are created in the <code>openshift-dr-system</code> namespace.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3-secret1.yaml -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/8b3fb9ed90f66808d988c7edfa76eba35647092 created</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f odr-s3-secret2.yaml -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">secret/af5f82f21f8f77faf3de2553e223b535002e480 created</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_sample_application_for_dr_testing"><a class="anchor" href="#_create_sample_application_for_dr_testing"></a>11. Create Sample Application for DR testing</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In order to test failover from the <strong>Primary managed cluster</strong> to the <strong>Secondary managed cluster</strong> and back again we need a simple application. The sample application used for this example with be <code>busybox</code>.</p>
@@ -1704,7 +1467,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 </table>
 </div>
 <div class="sect2">
-<h3 id="_create_drplacementcontrol_resource"><a class="anchor" href="#_create_drplacementcontrol_resource"></a>10.1. Create DRPlacementControl resource</h3>
+<h3 id="_create_drplacementcontrol_resource"><a class="anchor" href="#_create_drplacementcontrol_resource"></a>11.1. Create DRPlacementControl resource</h3>
 <div class="paragraph">
 <p><strong>DRPlacementControl</strong> is an API available after the <code>ODR Hub Operator</code> is installed on the <strong>Hub cluster</strong>. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a <strong>DRPolicy</strong>.</p>
 </div>
@@ -1780,7 +1543,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_placementrule_resource"><a class="anchor" href="#_create_placementrule_resource"></a>10.2. Create PlacementRule resource</h3>
+<h3 id="_create_placementrule_resource"><a class="anchor" href="#_create_placementrule_resource"></a>11.2. Create PlacementRule resource</h3>
 <div class="paragraph">
 <p>Placement rules define the target clusters where resource templates can be deployed. Use placement rules to help you facilitate the multicluster deployment of your applications.</p>
 </div>
@@ -1831,7 +1594,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 </div>
 <div class="sect2">
-<h3 id="_creating_sample_application_using_acm_console"><a class="anchor" href="#_creating_sample_application_using_acm_console"></a>10.3. Creating Sample Application using ACM console</h3>
+<h3 id="_creating_sample_application_using_acm_console"><a class="anchor" href="#_creating_sample_application_using_acm_console"></a>11.3. Creating Sample Application using ACM console</h3>
 <div class="paragraph">
 <p>Start by loggin into the ACM console using your OpenShift credentials if not already logged in.</p>
 </div>
@@ -1878,7 +1641,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </td>
 <td class="content">
 <div class="paragraph">
-<p>Make sure that the new <strong>StorageClass</strong> <code>ocs-storagecluster-ceph-rbdmirror</code> is created as detailed in section <a href="#_create_mirroring_storageclass_resource">Create Mirroring StorageClass resource</a> before proceeding. Verify it is created using the following command:</p>
+<p>Make sure that the new <strong>StorageClass</strong> <code>ocs-storagecluster-ceph-rbdmirror</code> is created as detailed in section <a href="#_create_mirroring_storageclass_resource">Create Mirroring StorageClass resource</a> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> before proceeding. Verify it is created using the following command:</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1948,7 +1711,7 @@ To get more information click on any of the topology elements and a window will 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_validating_sample_application_deployment_and_replication"><a class="anchor" href="#_validating_sample_application_deployment_and_replication"></a>10.4. Validating Sample Application deployment and replication</h3>
+<h3 id="_validating_sample_application_deployment_and_replication"><a class="anchor" href="#_validating_sample_application_deployment_and_replication"></a>11.4. Validating Sample Application deployment and replication</h3>
 <div class="paragraph">
 <p>Now that the <code>busybox</code> application has been deployed to your <strong>preferredCluster</strong> (specified in the <code>DRPlacementControl</code>) the deployment can be validated.</p>
 </div>
@@ -2016,7 +1779,7 @@ Both managed clusters should have the exact same output with a new status of <st
 </div>
 </div>
 <div class="sect2">
-<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>10.5. Deleting the Sample Application</h3>
+<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>11.5. Deleting the Sample Application</h3>
 <div class="paragraph">
 <p>Deleting the <code>busybox</code> application can be done using the ACM console. Navigate to <strong>Applications</strong> and then find the application to be deleted (busybox in this case).</p>
 </div>
@@ -2078,7 +1841,7 @@ This process can be used to delete any application with a DRPlacementControl res
 </div>
 </div>
 <div class="sect1">
-<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>11. Application Failover between managed clusters</h2>
+<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>12. Application Failover between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
@@ -2139,7 +1902,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 </div>
 </div>
 <div class="sect1">
-<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>12. Application Failback between managed clusters</h2>
+<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>13. Application Failback between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that a <code>resync</code> is issued to make sure any new application data saved on the <strong>Secondary managed cluster</strong> is immediately, not waiting for the mirroring schedule interval, replicated to the <strong>Primary managed cluster</strong>.</p>
