@@ -13,7 +13,7 @@
 == Overview
 
 The intent of this guide is to detail the steps and commands necessary to
-configure OpenShift Data Foundation (ODF) 4.9 to enable the use of an 
+configure OpenShift Data Foundation (ODF) 4.9 to enable the use of an
 *HashiCorp Vault* instance for storing the at-rest or *PersistentVolume* encryption keys.
 
 The necessary components are one OCP 4.9 (or greater) clusters and the `OpenShift Data
@@ -155,7 +155,7 @@ vault-agent-injector-5bd747fdd6-dp24b   1/1     Running   0          37m
 That is because we have not unsealed them yet. You will have to do this every time the Vault Pod is restarted. This includes OpenShift upgrades. During a rolling reboot, you will have to unseal each Vault as the nodes come back up or the upgrade is interrupted by Vault's poddisruptionbudget.
 
 
-NOTE: Every time a Vault server is restarted, you will need to unseal it 
+NOTE: Every time a Vault server is restarted, you will need to unseal it
 
 [source,shell]
 ----
@@ -163,7 +163,7 @@ oc exec -ti vault-0 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -186,7 +186,7 @@ oc exec -ti vault-0 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                     Value
 ---                     -----
 Seal Type               shamir
@@ -227,7 +227,7 @@ oc exec -ti vault-1 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -250,7 +250,7 @@ oc exec -ti vault-1 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                     Value
 ---                     -----
 Seal Type               shamir
@@ -291,7 +291,7 @@ oc exec -ti vault-2 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                Value
 ---                -----
 Seal Type          shamir
@@ -314,7 +314,7 @@ oc exec -ti vault-2 -- vault operator unseal
 ----
 .Example output
 ----
-Unseal Key (will be hidden): 
+Unseal Key (will be hidden):
 Key                     Value
 ---                     -----
 Seal Type               shamir
@@ -337,7 +337,7 @@ Raft Applied Index      25
 === Create dedicated KV store
 
 Create a dedicated key-value store engine as a receptacle for the ODF keys
-as they get generated during the deployment of an OSD. Together with the 
+as they get generated during the deployment of an OSD. Together with the
 key-value store, create a dedicated security policy and a specific security
 token to be used by ODF to interact with the vault.
 
@@ -355,7 +355,7 @@ vault login
 ----
 .Example output
 ----
-Token (will be hidden): 
+Token (will be hidden):
 Success! You are now authenticated. The token information displayed below
 is already stored in the token helper. You do NOT need to run "vault login"
 again. Future Vault requests will automatically use this token.
@@ -579,7 +579,7 @@ vault login
 ----
 .Example output:
 ----
-Token (will be hidden): 
+Token (will be hidden):
 Success! You are now authenticated. The token information displayed below
 is already stored in the token helper. You do NOT need to run "vault login"
 again. Future Vault requests will automatically use this token.
@@ -831,7 +831,7 @@ vault login
 ----
 .Example output:
 ----
-Token (will be hidden): 
+Token (will be hidden):
 Success! You are now authenticated. The token information displayed below
 is already stored in the token helper. You do NOT need to run "vault login"
 again. Future Vault requests will automatically use this token.
@@ -965,7 +965,7 @@ with orphans PV keys in your vault.
 
 // ==== `https` CLI configuration
 
-// All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
+// All secrets for `https` are `base64` encoded. Encode each of the following files using the following
 // command: `cat \{filename.pem\} | base64`
 
 // * fullchain.pem
@@ -1216,7 +1216,7 @@ with orphans PV keys in your vault.
 
 // === `https` configuration
 
-// All secrets for `https` are `base64` encoded. Encode each of the following files using the following 
+// All secrets for `https` are `base64` encoded. Encode each of the following files using the following
 // command: `cat \{filename.pem\} | base64`
 
 // * fullchain.pem
@@ -1316,7 +1316,7 @@ with orphans PV keys in your vault.
 
 WARNING: The following steps will be supported and further integrated with ODF 4.10. Following the below steps on a cluster before 4.10 will most likely result in an unsupported configuration.
 
-Before ODF can use external Vault with service account tokens, we have to configure the authentcation method and Vault roles and policies. Details of the Kubernetes Authentication Method are out of scope for this document but are well explained by https://cloud.redhat.com/blog/vault-integration-using-kubernetes-authentication-method[Vault Integration Using Kubernetes Authentication Method]. In addition, Hashicorp Vault provides tutorials on general https://learn.hashicorp.com/tutorials/vault/kubernetes-external-vault?in=vault/kubernetes[integration between Vault and Kubernetes]. 
+Before ODF can use external Vault with service account tokens, we have to configure the authentcation method and Vault roles and policies. Details of the Kubernetes Authentication Method are out of scope for this document but are well explained by https://cloud.redhat.com/blog/vault-integration-using-kubernetes-authentication-method[Vault Integration Using Kubernetes Authentication Method]. In addition, Hashicorp Vault provides tutorials on general https://learn.hashicorp.com/tutorials/vault/kubernetes-external-vault?in=vault/kubernetes[integration between Vault and Kubernetes].
 
 This section outlines steps for using an external Vault instance with the following configuration options:
 
