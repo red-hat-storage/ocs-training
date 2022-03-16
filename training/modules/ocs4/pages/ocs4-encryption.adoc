@@ -157,6 +157,9 @@ That is because we have not unsealed them yet. You will have to do this every ti
 
 NOTE: Every time a Vault server is restarted, you will need to unseal it
 
+NOTE: It is possible to auto-unseal Vault during cluster reboots and upgrades. To learn how, check out the tutorials here: https://learn.hashicorp.com/collections/vault/auto-unseal +
+This does not remove the need to manually unseal Vault once after the initialization.
+
 [source,shell]
 ----
 oc exec -ti vault-0 -- vault operator unseal
