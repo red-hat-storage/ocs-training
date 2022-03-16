@@ -237,28 +237,15 @@ IMPORTANT: The *Hub cluster* needs to verify access to the object buckets using 
 
 After all the `user-ca-bundle` *ConfigMaps* are created, the default *Proxy* `cluster` resource needs to be modified.
 
-Create a new YAML file `proxy-ca.yaml` and then `apply` this file to the default *Proxy* resource on the *Primary managed cluster*, *Secondary managed cluster*, _and_ the *Hub cluster*.
-
-[source,yaml]
-----
-apiVersion: config.openshift.io/v1
-kind: Proxy
-metadata:
-  name: cluster
-spec:
-  trustedCA:
-    name: user-ca-bundle
-----
-
-Now modify the existing *Proxy* `cluster` resource:
+Patch the default *Proxy* resource on the *Primary managed cluster*, *Secondary managed cluster*, and the *Hub cluster*.
   
 [source,role="execute"]
 ----
-oc apply -f proxy-ca.yaml
+oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'
 ----
 .Example output.
 ----
-proxy.config.openshift.io/cluster configured
+proxy.config.openshift.io/cluster patched
 ----
 
 == Create Object Bucket and Retrieve access keys
@@ -463,10 +450,11 @@ spec:
   - name: <cluster1>
     region: <string_value>
     s3ProfileName: s3-primary
+    clusterFence: Unfenced
   - name: <cluster2>
     region: <string_value>
     s3ProfileName: s3-secondary
-  schedulingInterval: 5m
+    clusterFence: Unfenced
 ----    
 
 Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
@@ -736,7 +724,7 @@ image::ACM-application-form1.png[ACM Application name and namespace]
 
 The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
 
-NOTE: *Sample application repository* https://github.com/netzzer/ocm-ramen-samples. Branch is `main` and path is `busybox-odr-metro`. 
+NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr-metro`. 
 
 .ACM application repository information
 image::ACM-application-form2a-metro.png[ACM application repository information]
@@ -814,6 +802,103 @@ NOTE: This process can be used to delete any application with a DRPlacementContr
 == Application Failover between managed clusters
 
 This section will detail how to failover the `busybox` sample application. The failover method for `Regional Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
+
+=== Create NetworkFence resource and enable Fencing 
+
+In order to failover the OpenShift cluster where the application is currently running must have all applications `fenced` from communicating with the external *ODF* storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
+
+The user needs to specify the list of `CIDR blocks` or `IP addresses` on which network fencing operation will be performed. In our case, this will be the `EXTERNAL-IP` of every OpenShift node in the cluster that needs to be `fenced` from using the external `RHCS` cluster.
+
+Execute this command to get the IP addresses for the *Primary managed cluster*.
+
+[source,role="execute"]
+----
+oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}'
+----
+.Example output.
+----
+10.70.56.118
+10.70.56.193
+10.70.56.154
+10.70.56.242
+10.70.56.136
+10.70.56.99
+----
+
+The IP addresses for all nodes will be added to the *NetworkFence* example resource as shown below.
+
+[source,yaml]
+----
+apiVersion: csiaddons.openshift.io/v1alpha1
+kind: NetworkFence
+metadata:
+  name: network-fence-<cluster1>
+spec:
+  driver: openshift-storage.rbd.csi.ceph.com
+  cidrs:
+    -  10.70.56.118/32
+    -  10.70.56.193/32
+    -  10.70.56.154/32
+    -  10.70.56.242/32
+    -  10.70.56.136/32
+    -  10.70.56.99/32
+  secret:
+    name: rook-csi-rbd-provisioner
+    namespace: openshift-storage
+  parameters:
+    clusterID: openshift-storage
+----
+
+NOTE: NetworkFence is a cluster-scoped custom resource. The creation of NetworkFence for a list of IP addresses will add a network fence, and its deletion will undo the operation.
+
+For the YAML file example above modify for your IP addresses and correct `<cluster1>` to be the cluster name found in *ACM* for the *Primary managed cluster*. Save to filename `network-fence-<cluster1>.yaml`.
+
+IMPORTANT: The *NetworkFence* must be created from the opposite managed cluster from where the application is currently running prior to `failover`.
+
+In the same cluster as where the *NetworkFence* was created, verify that the status is `Succeeded`.
+
+[source,role="execute"]
+----
+oc create -f network-fence-<cluster1>.yaml
+----
+.Example output.
+----
+networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 created
+----
+
+[source,role="execute"]
+----
+export NETWORKFENCE=network-fence-ocp4perf1
+oc get networkfences.csiaddons.openshift.io/$NETWORKFENCE -n openshift-dr-system -o jsonpath='{.status.result}{"\n"}'
+----
+.Example output.
+----
+Succeeded
+----
+
+In order for the *NetworkFence* status of `Fenced` to be known to the ODR HUB operator the *DRPolicy* must be modified for `fenced` cluster. Edit the *DRPolicy* and change `<cluster1>` (example ocp4perf1) from `Unfenced` to `Fenced`.
+
+[source,role="execute"]
+----
+oc edit drpolicy odr-policy
+----
+.Example output.
+----
+[...]
+spec:
+  drClusterSet:
+  - clusterFence: Fenced  ## <-- Modify from Unfenced to Fenced
+    name: ocp4perf1
+    region: metro
+    s3ProfileName: s3-primary
+  - clusterFence: Unfenced
+    name: ocp4perf2
+    region: metro
+    s3ProfileName: s3-secondary
+[...]
+----
+
+=== Modify DRPlacementControl to failover
 
 To failover requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
 
