@@ -437,6 +437,19 @@ Every time a Vault server is restarted, you will need to unseal it
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It is possible to auto-unseal Vault during cluster reboots and upgrades. To learn how, check out the tutorials here: <a href="https://learn.hashicorp.com/collections/vault/auto-unseal" class="bare">learn.hashicorp.com/collections/vault/auto-unseal</a><br>
+This does not remove the need to manually unseal Vault once after the initialization.
+</td>
+</tr>
+</table>
+</div>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc exec -ti vault-0 -- vault operator unseal</code></pre>
