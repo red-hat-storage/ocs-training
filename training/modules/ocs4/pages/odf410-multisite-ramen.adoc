@@ -312,7 +312,8 @@ spec:
   manageS3: true
   mirroringMode: snapshot
   replicationSecretName: rook-csi-rbd-provisioner
-  schedulingInterval: 5m
+  schedulingInterval:
+  - 5m
 ----      
 
 Now create the `Mirror Peer` resource by copying the contents of your unique `mirror-peer.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
