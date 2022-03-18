@@ -312,7 +312,7 @@ spec:
   manageS3: true
   mirroringMode: snapshot
   replicationSecretName: rook-csi-rbd-provisioner
-  schedulingInterval:
+  schedulingIntervals:
   - 5m
 ----      
 
