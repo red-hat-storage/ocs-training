@@ -97,13 +97,13 @@ Hardware details for the RHCS 5 cluster we are going to deploy:
 [cols=5,cols="^,^,^,^,^",options=header]
 |===
 |Node name|CPU|Memory|Datacenter|Ceph components
-|ceph1|2|8 GB|DC1| OSD+MON
-|ceph2|2|8 GB|DC1| OSD+MON
-|ceph3|2|8 GB|DC1| OSD+MDS+RGW
-|ceph4|2|8 GB|DC2| OSD+MON
-|ceph5|2|8 GB|DC2| OSD+MON
-|ceph6|2|8 GB|DC2| OSD+MDS+RGW
-|ceph7|2|8 GB|DC3| MON
+|ceph1|3|8 GB|DC1| OSD+MON
+|ceph2|3|8 GB|DC1| OSD+MON
+|ceph3|3|8 GB|DC1| OSD+MDS+RGW
+|ceph4|3|8 GB|DC2| OSD+MON
+|ceph5|3|8 GB|DC2| OSD+MON
+|ceph6|3|8 GB|DC2| OSD+MDS+RGW
+|ceph7|3|8 GB|DC3| MON
 |===
 
 Software Details:
@@ -162,7 +162,7 @@ dnf update -y
 reboot
 ....
 
-=== Configure hostname and FQDN for `cephadm`
+=== Configure hostname and FQDN for `cephadm`(optional)
 
 One of the important things about `cephadm` is that link:https://docs.ceph.com/en/octopus/cephadm/concepts/#fully-qualified-domain-names-vs-bare-host-names[certain requirements] exist regarding hostname and FQDN.
 
@@ -173,15 +173,14 @@ Specifically, we need to be able to set the hostname of our host and:
 
 One of the ways to achieve this is the following:
 
-In all our hosts we need to configure the hostname using the bare/short hostname.
+In all our hosts we configure the hostname using the bare/short hostname.
 
 [source,role="execute"]
 ....
 hostnamectl set-hostname <short_name>
 ....
 
-Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 ip , We are
-setting the DOMAIN variable with our DNS domain name.
+Then we modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 ip , We are setting the DOMAIN variable with our lab DNS domain name.
 
 [source,role="execute"]
 ....
@@ -219,8 +218,7 @@ ceph1.bkgzv.sandbox762.opentlc.com
 
 === Running the cephadm-ansible preflight playbook to finish with cephadm pre-requisites
 
-The next steps will be only run on ceph1, as we are going to install
-cephadm-ansible and configure it to run the preflight playbook
+The next steps will be only run on ceph1, as we are going to install cephadm-ansible and configure it to run the preflight playbook
 
 Install the `cephadm-ansible` RPM package:
 
@@ -232,21 +230,19 @@ sudo dnf install -y cephadm-ansible
 
 To be able to run the Ansible playbooks, we need to have ssh passwordless access
 
-to all the nodes that are going to confirm the RHCS cluster, in this deployment we
-have passwordless ssh access to all nodes configured for user ec2-user, the user
-needs to have root privileges using sudo.
+to all the nodes that are going to confirm the RHCS cluster, in this deployment we have passwordless ssh access to all nodes configured for user ec2-user, the user needs to have root privileges using sudo.
 
-We are going to configure the ec2-user ssh config file to specify the user and id/key we
-want to use when we connect to the nodes via ssh:
+We are going to configure the ec2-user ssh config file to specify the user and id/key we want to use when we connect to the nodes via ssh:
 
 
 [source,role="execute"]
 
 ....
-cat .ssh/config
+cat <<EOF > ~/.ssh/config
 Host ceph*
    User ec2-user
    IdentityFile ~/.ssh/ceph.pem
+EOF
 ....
 
 A quick check to see if the passwordless ssh access is working:
@@ -285,7 +281,7 @@ EOF
 ....
 
 
-NOTE: The [admin] group is defined in the inventory file with a node where the admin keyring is present at /etc/ceph/ceph.client.admin.keyring.
+NOTE: The [admin] group is optional, when defined in the ansible inventory file, cephadm-ansible will deploy the RHCS admin keyring to all hosts beloging to the [admin] group at the following location /etc/ceph/ceph.client.admin.keyring.
 
 One final check before running the pre-flight playbook, we will use the ping
 module to verify ansible can access all of the nodes
@@ -348,7 +344,7 @@ ceph7 | SUCCESS => {
 ....
 
 
-The preflight playbook Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.
+The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.
 
 The preflight playbook uses the cephadm-ansible inventory file to identify all the admin and client nodes in the storage cluster.
 
@@ -446,10 +442,7 @@ EOF
 
 === Get our bootstrap node IP
 
-We need to use the IP of what will be our RHCS public network. In our case we
-
-are using the same network for Cephs public/private network because the nodes
-only have one interface.
+We need to use the IP of what will be our RHCS public network. In our case we are using the same network for Cephs public/private network because the nodes only have one interface. So the IP for our bootstrap node ceph1 will be: `10.0.143.78`
 
 
 === Run the Cephadm bootstrap command
@@ -518,7 +511,7 @@ ceph -s
     pgs:
 ....
 
-We have 5 monitors running ( now the default with cephadm) if enough nodes are available
+We have 5 monitors running (this is now the default with cephadm deployments) if enough nodes are available, the cluster is in HEALTH_WARN state because we haven't deployed any OSDs yet.
 
 [source,role="execute"]
 ....
