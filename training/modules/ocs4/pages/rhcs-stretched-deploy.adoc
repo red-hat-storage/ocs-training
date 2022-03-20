@@ -228,11 +228,12 @@ sudo dnf install -y cephadm-ansible
 ....
 
 
-To be able to run the Ansible playbooks, we need to have ssh passwordless access
+To be able to run the Ansible playbooks, we need to have ssh passwordless
+access to all the nodes that are going to be part of the RHCS cluster, in this
+deployment we have passwordless ssh access to all nodes configured for user
+ec2-user, the user also needs to have root privileges using sudo.
 
-to all the nodes that are going to confirm the RHCS cluster, in this deployment we have passwordless ssh access to all nodes configured for user ec2-user, the user needs to have root privileges using sudo.
-
-We are going to configure the ec2-user ssh config file to specify the user and id/key we want to use when we connect to the nodes via ssh:
+As we are using a custom key we are going to configure the ec2-user ssh config file to specify the id/key we want to use when we connect to the nodes via ssh:
 
 
 [source,role="execute"]
@@ -283,8 +284,10 @@ EOF
 
 NOTE: The [admin] group is optional, when defined in the ansible inventory file, cephadm-ansible will deploy the RHCS admin keyring to all hosts beloging to the [admin] group at the following location /etc/ceph/ceph.client.admin.keyring.
 
-One final check before running the pre-flight playbook, we will use the ping
-module to verify ansible can access all of the nodes
+One final check before running the pre-flight playbook, we will use the ping module to verify ansible can access all of the nodes.
+
+We are running ansible commands as `cloud-user`.
+
 
 [source,role="execute"]
 ....
@@ -347,6 +350,8 @@ ceph7 | SUCCESS => {
 The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.
 
 The preflight playbook uses the cephadm-ansible inventory file to identify all the admin and client nodes in the storage cluster.
+
+We are running ansible commands as `cloud-user`.
 
 [source,role="execute"]
 ....
@@ -446,26 +451,20 @@ We need to use the IP of what will be our RHCS public network. In our case we ar
 
 
 === Run the Cephadm bootstrap command
-We are now going to run the cephadm bootstrap command as the root user because
-we have configured a
-non-root user for the passwordless ssh connection, we have to specify the --ssh-user flag, also we use the
-
---apply-spec to get all the nodes into the cluster and finally the
---registry-json flag to use the registry authentication flag we created before
+We are now going to run the cephadm bootstrap command, the bootstrap command needs root permissions to execute.
+ - Becasue we have configured a non-root user for the passwordless ssh connection, we have to specify the --ssh-user flag, 
+ - We use the --apply-spec to get all the nodes into the cluster
+ - Finally the --registry-json flag to use the registry authentication file we created before
 
 [source,role="execute"]
 ....
 cephadm  bootstrap --ssh-user=ec2-user --mon-ip 10.0.143.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json
 ....
 
-WARN: If the local node uses fully-qualified domain names (FQDN), then add the
---allow-fqdn-hostname option to cephadm bootstrap on the command line.
+WARN: If the local node uses fully-qualified domain names (FQDN), then add the --allow-fqdn-hostname option to cephadm bootstrap on the command line.
 
 
-
-Once the bootstrap finishes, you will see the following output from the previous cephadm
-
-bootstrap command:
+Once the bootstrap finishes, you will see the following output from the previous cephadm bootstrap command:
 
 
 [source,role="execute"]
@@ -530,6 +529,8 @@ mon                5/5  118s ago   7m   count:5
 node-exporter      7/7  2m ago     6m   *          
 prometheus         1/1  52s ago    6m   count:1   
 ....
+
+NOTE: It may take a while for all the services to start.
 
 We can also check if all our nodes are part of the cephadm cluster.
 
@@ -816,10 +817,7 @@ NOTE: The ceph fs volume create command will also take care of creating the
 
 needed data and meta cephfs pools for us.
 
-Get the Ceph status to verify how the MDS daemons have been deployed, and we can
-check that the state is active, we can see that ceph6 is the primary mds for this
-filesystem and ceph3 the secondary.
-
+Get the Ceph status to verify how the MDS daemons have been deployed, and we can check that the state is active, we can see that ceph6 is the primary mds for this filesystem and ceph3 the secondary.
 [source,role="execute"]
 ....
 ceph fs status
@@ -910,11 +908,7 @@ When working in stretch mode, the first thing we have to do is change the monito
 This mode evaluates connection scores provided by each monitor for its peers and elects the monitor with the highest score. This mode is designed to handle network partitioning or `net-splits`, which may happen if your cluster is stretched across multiple data centers or otherwise has a non-uniform or unbalanced network topology.
 ====
 
-By default, in a ceph cluster, the connectivity is set to classic; we can check the
-
-current election strategy being used by the monitors with the `ceph mon dump`
-command, if in classic election strategy mode we will see the value of 1 in the
-output:
+By default, in a ceph cluster, the connectivity is set to classic; we can check the current election strategy being used by the monitors with the `ceph mon dump` command, if in classic election strategy mode we will see the value of 1 in the output:
 
 [source,role="execute"]
 ....
@@ -1000,7 +994,6 @@ election_strategy: 3
 
 Once we have configured all our Ceph monitors, we will generate a new CRUSH map with the location of the OSDs.
 
-
 Our current CRUSH map is the following:
 
 [source,role="execute"]
@@ -1034,7 +1027,7 @@ tell Ceph via the crush map that we have two datacenters with OSDs
 
 We are going to modify the current crush map with the following layout:
 
-* `root allDC`
+* `root default`
 ** `datacenter DC1`
 *** host ceph1
 *** host ceph2
@@ -1046,7 +1039,7 @@ We are going to modify the current crush map with the following layout:
 
 
 So to achieve this task, we will be using the `ceph osd crush` command. First we
-will create the new buckets for `root allDC`, `datacenter DC1`, `datacenter DC2`.
+will create the new buckets for `datacenter DC1`, `datacenter DC2`.
 
 
 [NOTE]
@@ -1057,20 +1050,16 @@ rows, etc. Not related at all with S3 object storage buckets.
 
 [source,role="execute"]
 ....
-ceph osd crush add-bucket allDC root
-
 ceph osd crush add-bucket DC1 datacenter
 ceph osd crush add-bucket DC2 datacenter
 ....
 
-
-We now have to move the DC1 and DC2 datacenter buckets under the root allDC
-bucket.
+We now have to move the DC1 and DC2 datacenter buckets under the root default bucket.
 
 [source,role="execute"]
 ....
-ceph osd crush move DC1 root=allDC
-ceph osd crush move DC2 root=allDC
+ceph osd crush move DC1 root=default
+ceph osd crush move DC2 root=default
 ....
 
 Next we will move each of our hosts and their osds under each datacenter.
@@ -1098,7 +1087,7 @@ ceph osd tree
 .Example output.
 ....
 ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
--15         0.87900  root allDC
+-1          0.87900  root default
 -16         0.43950      datacenter DC1
 -11         0.14650          host ceph1
   2    ssd  0.14650              osd.2       up   1.00000  1.00000
@@ -1113,13 +1102,8 @@ ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
   1    ssd  0.14650              osd.1       up   1.00000  1.00000
  -7         0.14650          host ceph6
   5    ssd  0.14650              osd.5       up   1.00000  1.00000
- -1               0  root default
 ....
 
-[NOTE]
-====
-It is essential not to remove the `root default` higher level bucket as we still have different pools selecting this bucket.
-====
 
 Now that we have configured the  underlying infrastructure topology for our
 environment, we need to create a CRUSH rule that makes use of this new
