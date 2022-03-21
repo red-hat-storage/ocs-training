@@ -72,8 +72,6 @@ is not mandatory, You should run two monitors on each site plus a tie-breaker, f
 a total of 5. We have to take into account that OSDs can only connect to monitors on their site when in stretch mode.
 
 
-WARNING: Currently, Red Hat does not support stretch mode when working in ODF external mode. The plan is to support this configuration in ODF 4.11, but this is subject to change.
-
 WARNING: Erasure coded pools cannot be used with stretch mode.
 
 Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
