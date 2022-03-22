@@ -213,8 +213,18 @@
 <li><a href="#_deleting_the_sample_application">12.5. Deleting the Sample Application</a></li>
 </ul>
 </li>
-<li><a href="#_application_failover_between_managed_clusters">13. Application Failover between managed clusters</a></li>
-<li><a href="#_application_failback_between_managed_clusters">14. Application Failback between managed clusters</a></li>
+<li><a href="#_application_failover_between_managed_clusters">13. Application Failover between managed clusters</a>
+<ul class="sectlevel2">
+<li><a href="#_create_networkfence_resource_and_enable_fencing">13.1. Create NetworkFence resource and Enable Fencing</a></li>
+<li><a href="#_modify_drplacementcontrol_to_failover">13.2. Modify DRPlacementControl to failover</a></li>
+</ul>
+</li>
+<li><a href="#_application_failback_between_managed_clusters">14. Application Failback between managed clusters</a>
+<ul class="sectlevel2">
+<li><a href="#_remove_networkfence_resource_and_disable_fencing">14.1. Remove NetworkFence resource and Disable Fencing</a></li>
+<li><a href="#_modify_drplacementcontrol_to_failback">14.2. Modify DRPlacementControl to failback</a></li>
+</ul>
+</li>
 </ul>
 </div>
 <div class="sect1">
@@ -623,31 +633,17 @@ The <strong>Hub cluster</strong> needs to verify access to the object buckets us
 <p>After all the <code>user-ca-bundle</code> <strong>ConfigMaps</strong> are created, the default <strong>Proxy</strong> <code>cluster</code> resource needs to be modified.</p>
 </div>
 <div class="paragraph">
-<p>Create a new YAML file <code>proxy-ca.yaml</code> and then <code>apply</code> this file to the default <strong>Proxy</strong> resource on the <strong>Primary managed cluster</strong>, <strong>Secondary managed cluster</strong>, <em>and</em> the <strong>Hub cluster</strong>.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: config.openshift.io/v1
-kind: Proxy
-metadata:
-  name: cluster
-spec:
-  trustedCA:
-    name: user-ca-bundle</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now modify the existing <strong>Proxy</strong> <code>cluster</code> resource:</p>
+<p>Patch the default <strong>Proxy</strong> resource on the <strong>Primary managed cluster</strong>, <strong>Secondary managed cluster</strong>, and the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc apply -f proxy-ca.yaml</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">proxy.config.openshift.io/cluster configured</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">proxy.config.openshift.io/cluster patched</code></pre>
 </div>
 </div>
 </div>
@@ -960,10 +956,11 @@ spec:
   - name: &lt;cluster1&gt;
     region: &lt;string_value&gt;
     s3ProfileName: s3-primary
+    clusterFence: Unfenced
   - name: &lt;cluster2&gt;
     region: &lt;string_value&gt;
     s3ProfileName: s3-secondary
-  schedulingInterval: 5m</code></pre>
+    clusterFence: Unfenced</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1353,7 +1350,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<strong>Sample application repository</strong> <a href="https://github.com/netzzer/ocm-ramen-samples" class="bare">github.com/netzzer/ocm-ramen-samples</a>. Branch is <code>main</code> and path is <code>busybox-odr-metro</code>.
+<strong>Sample application repository</strong> <a href="https://github.com/RamenDR/ocm-ramen-samples" class="bare">github.com/RamenDR/ocm-ramen-samples</a>. Branch is <code>main</code> and path is <code>busybox-odr-metro</code>.
 </td>
 </tr>
 </table>
@@ -1505,6 +1502,178 @@ This process can be used to delete any application with a DRPlacementControl res
 <div class="paragraph">
 <p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
 </div>
+<div class="sect2">
+<h3 id="_create_networkfence_resource_and_enable_fencing"><a class="anchor" href="#_create_networkfence_resource_and_enable_fencing"></a>13.1. Create NetworkFence resource and Enable Fencing</h3>
+<div class="paragraph">
+<p>In order to failover the OpenShift cluster where the application is currently running all applications must be <code>fenced</code> from communicating with the external <strong>ODF</strong> storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters.</p>
+</div>
+<div class="paragraph">
+<p>The user needs to specify the list of <code>CIDR blocks</code> or <code>IP addresses</code> on which network fencing operation will be performed. In our case, this will be the <code>EXTERNAL-IP</code> of every OpenShift node in the cluster that needs to be <code>fenced</code> from using the external <code>RHCS</code> cluster.</p>
+</div>
+<div class="paragraph">
+<p>Execute this command to get the IP addresses for the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">10.70.56.118
+10.70.56.193
+10.70.56.154
+10.70.56.242
+10.70.56.136
+10.70.56.99</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+It is important to collect the current IP addresses of all OpenShift nodes <strong><em>before</em></strong> there is a site outage. Best practice would be to create the <strong>NetworkFence</strong> YAML file and have it available and up-to-date for a disaster recovery event.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>The IP addresses for all nodes will be added to the <strong>NetworkFence</strong> example resource as shown below. Example is for six nodes but there could be more nodes in your cluster.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: csiaddons.openshift.io/v1alpha1
+kind: NetworkFence
+metadata:
+  name: network-fence-&lt;cluster1&gt;
+spec:
+  driver: openshift-storage.rbd.csi.ceph.com
+  cidrs:
+    -  &lt;IP_Address1&gt;/32
+    -  &lt;IP_Address2&gt;/32
+    -  &lt;IP_Address3&gt;/32
+    -  &lt;IP_Address4&gt;/32
+    -  &lt;IP_Address5&gt;/32
+    -  &lt;IP_Address6&gt;/32
+    [...]
+  secret:
+    name: rook-csi-rbd-provisioner
+    namespace: openshift-storage
+  parameters:
+    clusterID: openshift-storage</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For the YAML file example above modify for your IP addresses and correct <code>&lt;cluster1&gt;</code> to be the cluster name found in <strong>ACM</strong> for the <strong>Primary managed cluster</strong>. Save to filename <code>network-fence-&lt;cluster1&gt;.yaml</code>.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The <strong>NetworkFence</strong> must be created from the opposite managed cluster from where the application is currently running prior to <code>failover</code>. In this case, that is the <strong>Secondary managed cluster</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Once the <strong>NetworkFence</strong> is created, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> storage will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. ContainerCreateError, CrashBackOff) on the cluster that is now <code>fenced</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f network-fence-&lt;cluster1&gt;.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 created</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the same cluster as where the <strong>NetworkFence</strong> was created, verify that the status is <code>Succeeded</code>. Modify <code>&lt;cluster1&gt;</code> to be correct.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">export NETWORKFENCE=network-fence-&lt;cluster1&gt;
+oc get networkfences.csiaddons.openshift.io/$NETWORKFENCE -n openshift-dr-system -o jsonpath='{.status.result}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In order for the <strong>NetworkFence</strong> status of <code>Fenced</code> to be known to the <code>ODR HUB operator</code>, the <strong>DRPolicy</strong> must be modified for the <code>fenced</code> cluster. Edit the <strong>DRPolicy</strong> on the <strong>Hub cluster</strong> and change <code>&lt;cluster1&gt;</code> (example ocp4perf1) from <code>Unfenced</code> to <code>ManuallyFenced</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit drpolicy odr-policy</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[...]
+spec:
+  drClusterSet:
+  - clusterFence: ManuallyFenced  ## &lt;-- Modify from Unfenced to ManuallyFenced
+    name: ocp4perf1
+    region: metro
+    s3ProfileName: s3-primary
+  - clusterFence: Unfenced
+    name: ocp4perf2
+    region: metro
+    s3ProfileName: s3-secondary
+[...]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicies.ramendr.openshift.io/odr-policy configured</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now validate the <strong>DRPolicy</strong> status in the <strong>Hub cluster</strong> has changed to <code>Fenced</code> for the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  drClusters:
+    ocp4perf1:
+      status: Fenced
+      string: ocp4perf1
+    ocp4perf2:
+      status: Unfenced
+      string: ocp4perf2</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_drplacementcontrol_to_failover"><a class="anchor" href="#_modify_drplacementcontrol_to_failover"></a>13.2. Modify DRPlacementControl to failover</h3>
 <div class="paragraph">
 <p>To failover requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
 </div>
@@ -1560,12 +1729,124 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 </div>
 </div>
 </div>
+</div>
 <div class="sect1">
 <h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>14. Application Failback between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that a <code>resync</code> is issued to make sure any new application data saved on the <strong>Secondary managed cluster</strong> is immediately, not waiting for the mirroring schedule interval, replicated to the <strong>Primary managed cluster</strong>.</p>
+<p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that the application is scaled down on the <code>failoverCluster</code> and therefore creating a <strong>NetworkFence</strong> is not required.</p>
 </div>
+<div class="sect2">
+<h3 id="_remove_networkfence_resource_and_disable_fencing"><a class="anchor" href="#_remove_networkfence_resource_and_disable_fencing"></a>14.1. Remove NetworkFence resource and Disable Fencing</h3>
+<div class="paragraph">
+<p>Before a failback or relocate action can be successful the <strong>NetworkFence</strong> for the <strong>Primary managed cluster</strong> must be deleted. Execute this command in the <strong>Secondary managed cluster</strong> and modify <code>&lt;cluster1&gt;</code> to be correct for the <strong>NetworkFence</strong> YAML filename created in the prior section.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc delete -f network-fence-&lt;cluster1&gt;.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 deleted</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In order for the <strong>NetworkFence</strong> status of <code>Unfenced</code> to be known to the <code>ODR HUB operator</code>, the <strong>DRPolicy</strong> must be modified for the newly <code>Unfenced</code> cluster. Edit the <strong>DRPolicy</strong> on the <strong>Hub cluster</strong> and change <code>&lt;cluster1&gt;</code> (example ocp4perf1) from <code>Manuallyfenced</code> to <code>Unfenced</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit drpolicy odr-policy</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[...]
+spec:
+  drClusterSet:
+  - clusterFence: Unfenced  ## &lt;-- Modify from ManuallyFenced to Unfenced
+    name: ocp4perf1
+    region: metro
+    s3ProfileName: s3-primary
+  - clusterFence: Unfenced
+    name: ocp4perf2
+    region: metro
+    s3ProfileName: s3-secondary
+[...]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicies.ramendr.openshift.io/odr-policy configured</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now validate the <strong>DRPolicy</strong> status in the <strong>Hub cluster</strong> has changed to <code>Unfenced</code> for the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  drClusters:
+    ocp4perf1:
+      status: Unfenced
+      string: ocp4perf1
+    ocp4perf2:
+      status: Unfenced
+      string: ocp4perf2</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The last step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. ContainerCreateError, CrashBackOff). This can be most easily fixed by <strong>rebooting all OpenShift nodes</strong> in the cluster one at a time.</p>
+</div>
+<div class="paragraph">
+<p>After all OpenShift nodes are reboot and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <strong>OpenShift Web Console</strong> dashboards and <strong>Overview</strong> can also be used to assess the health of applications and the external storage. The detailed <strong>ODF</strong> dashboard is found by navigating to <code>Storage</code> &#8594; <code>Data Foundation</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -A | egrep -v 'Running|Completed'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If there are <strong>Pods</strong> still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_drplacementcontrol_to_failback"><a class="anchor" href="#_modify_drplacementcontrol_to_failback"></a>14.2. Modify DRPlacementControl to failback</h3>
 <div class="paragraph">
 <p>To failback requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
 </div>
@@ -1617,6 +1898,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="title">Example output.</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">No resources found in busybox-sample namespace.</code></pre>
+</div>
 </div>
 </div>
 </div>
