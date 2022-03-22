@@ -690,7 +690,7 @@ odfmo-controller-manager-65946fb99b-779v8   1/1     Running   0          5m3s</c
 <p>Create a <strong>Secret</strong> in the <code>openshift-dr-system</code> project on the <strong>Hub cluster</strong> for each new object bucket that has the base64 encoded access keys.</p>
 </li>
 <li>
-<p>Create a <strong>VolumeReplicationClass</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+<p>Create a <strong>VolumeReplicationClass</strong> on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> for each <code>schedulingIntervals</code> (e.g. 5m, 15m, 30m).</p>
 </li>
 <li>
 <p>Modify the <code>ramen-hub-operator-config</code> <strong>ConfigMap</strong> on the <strong>Hub cluster</strong> and add the <code>s3StoreProfiles</code> entries.</p>
@@ -757,8 +757,21 @@ spec:
   mirroringMode: snapshot
   replicationSecretName: rook-csi-rbd-provisioner
   schedulingIntervals:
-  - 5m</code></pre>
+  - 5m
+  - 15m</code></pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The time values (e.g. 5m) for <code>schedulingIntervals</code> will be used to configure the desired interval for replicating persistent volumes. These values can be mapped to your <code>Recovery Point Objective</code> (RPO) for critical applications. Modify the values in <code>schedulingIntervals</code> to be correct for your application requirements. The minimum value is <code>1m</code> and the default is <code>5m</code>.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>Now create the <code>Mirror Peer</code> resource by copying the contents of your unique <code>mirror-peer.yaml</code> file into the <code>YAML view</code> (completely replacing original content). Select <strong>Create</strong> at the bottom of the <code>YAML view</code> screen.</p>
@@ -861,7 +874,7 @@ It could take up to 10 minutes for the <code>daemon_health</code> and <code>heal
 </table>
 </div>
 <div class="paragraph">
-<p>Validate that the <strong>VolumeReplicationClass</strong> is created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+<p>Validate that a <strong>VolumeReplicationClass</strong> is created on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> for each <code>schedulingIntervals</code> listed in the <strong>MirrorPeer</strong> (e.g. 5m, 15m).</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -871,8 +884,9 @@ It could take up to 10 minutes for the <code>daemon_health</code> and <code>heal
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                             PROVISIONER
-odf-rbd-volumereplicationclass   openshift-storage.rbd.csi.ceph.com</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                    PROVISIONER
+rbd-volumereplicationclass-1625360775   openshift-storage.rbd.csi.ceph.com
+rbd-volumereplicationclass-539797778    openshift-storage.rbd.csi.ceph.com</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1208,7 +1222,7 @@ The <strong>Hub cluster</strong> needs to verify access to the object buckets us
 <div class="title">Figure 13. DRPolicy create instance</div>
 </div>
 <div class="paragraph">
-<p>Save the following YAML to filename drpolicy.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>. Replace <strong>&lt;string_value_1&gt;</strong> and <strong>&lt;string_value_2&gt;</strong> with any values as long as they unique (i.e., east and west).</p>
+<p>Save the following YAML to filename drpolicy.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>. Replace <strong>&lt;string_value_1&gt;</strong> and <strong>&lt;string_value_2&gt;</strong> with any values as long as they unique (i.e., east and west). The <code>schedulingInterval</code> should be one of the values configured in the <strong>MirrorPeer</strong> earlier (e.g. 5m).</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1246,13 +1260,13 @@ spec:
 <i class="fa icon-important" title="Important"></i>
 </td>
 <td class="content">
-The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong> match that configured in the default <strong>VolumeReplicationClass</strong> resource which is configured as <code>5m</code>. To have a different <code>schedulingInterval</code> for volume replication requires creating additional <strong>VolumeReplicationClass</strong> and <strong>DRPolicy</strong> with the same value (i.e., 15m).
+The <strong>DRPolicy</strong> <code>schedulingInterval</code> <strong><em>must</em></strong> match one of the values configured in <strong>MirroPeer</strong> resource (e.g. 5m). To use one of the other <code>schedulingIntervals</code> for volume replication configured in the <strong>MirrorPeer</strong> requires creating additional <strong>DRPolicy</strong> resources with the new values (i.e., 15m). Make sure to change the <strong>DRPolicy</strong> <code>name</code> to be unique and useful in identifying the replication interval (e.g. odr-policy-15m).
 </td>
 </tr>
 </table>
 </div>
 <div class="paragraph">
-<p>Now create the <code>DRPolicy</code> resource by copying the contents of your unique <code>drpolicy.yaml</code> file into the <code>YAML view</code> (completely replacing original content). Select <strong>Create</strong> at the bottom of the <code>YAML view</code> screen.</p>
+<p>Now create the <code>DRPolicy</code> resource(s) by copying the contents of your unique <code>drpolicy.yaml</code> file into the <code>YAML view</code> (completely replacing original content). Select <strong>Create</strong> at the bottom of the <code>YAML view</code> screen.</p>
 </div>
 <div class="paragraph">
 <p>You can also create this resource using CLI</p>
@@ -1269,7 +1283,7 @@ The <strong>DRPolicy</strong> scheduling interval <strong><em>must</em></strong>
 </div>
 </div>
 <div class="paragraph">
-<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command on the <strong>Hub cluster</strong>.</p>
+<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command on the <strong>Hub cluster</strong> for each <strong>DRPolicy</strong> resource created. Example is for <code>odr-policy-5m</code>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1491,7 +1505,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 <div class="title">Figure 16. DRPlacementControl create instance</div>
 </div>
 <div class="paragraph">
-<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct name of your managed cluster in <strong>ACM</strong>.</p>
+<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct name of your managed cluster in <strong>ACM</strong>. Modify <code>drPolicyRef</code> <strong><em>name</em></strong> for the <strong>DRPolicy</strong> that has the desired replication interval.</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -1503,7 +1517,7 @@ metadata:
   name: busybox-drpc
 spec:
   drPolicyRef:
-    name: odr-policy-5m
+    name: odr-policy-5m  ## &lt;-- Modify to specify desired DRPolicy and RPO
   placementRef:
     kind: PlacementRule
     name: busybox-placement
