@@ -1000,7 +1000,7 @@ NAMESPACE                                          NAME                         
 
 IMPORTANT: If there are *Pods* still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
 
-==== Modify DRPolicy to Unfenced
+==== Modify DRPolicy to Unfenced status
 
 In order for the `ODR HUB operator` to know the *NetworkFence* has been removed for the *Primary managed cluster the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `ManuallyFenced` to `Unfenced`.
 
