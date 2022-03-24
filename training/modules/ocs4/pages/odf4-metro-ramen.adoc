@@ -1002,7 +1002,7 @@ IMPORTANT: If there are *Pods* still in an unhealthy status because of severed s
 
 ==== Modify DRPolicy to Unfenced
 
-In order for the `ODR HUB operator` to know the *NetworkFence* has been removed for the *Primary managed cluster the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `Manuallyfenced` to `Unfenced`.
+In order for the `ODR HUB operator` to know the *NetworkFence* has been removed for the *Primary managed cluster the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `ManuallyFenced` to `Unfenced`.
 
 [source,role="execute"]
 ----
