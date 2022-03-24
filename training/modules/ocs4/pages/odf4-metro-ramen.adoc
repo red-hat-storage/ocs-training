@@ -51,9 +51,9 @@ Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to 
 . *Validate Sample Application deployment and alternate cluster replication* +
 Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
 . *Failover Sample Application to secondary managed cluster.* +
-Using the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
+After creating a network fence for the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
 . *Failback Sample Application to primary managed cluster.* +
-Using the application DRPlacementControl resource on the Hub Cluster, modify the action to Relocate and trigger failover to  the preferredCluster.
+After removing the network fence for the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.
  
 == Deploy and Configure ACM for Multisite connectivity
 
@@ -803,7 +803,7 @@ NOTE: This process can be used to delete any application with a DRPlacementContr
 
 This section will detail how to failover the `busybox` sample application. The failover method for `Regional Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
 
-=== Create NetworkFence resource and Enable Fencing 
+=== Create NetworkFence resource and enable Fencing 
 
 In order to failover the OpenShift cluster where the application is currently running all applications must be `fenced` from communicating with the external *ODF* storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
 
@@ -856,7 +856,7 @@ For the YAML file example above modify for your IP addresses and correct `<clust
 
 IMPORTANT: The *NetworkFence* must be created from the opposite managed cluster from where the application is currently running prior to `failover`. In this case, that is the *Secondary managed cluster*. 
 
-CAUTION: Once the *NetworkFence* is created, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. ContainerCreateError, CrashBackOff) on the cluster that is now `fenced`.
+CAUTION: Once the *NetworkFence* is created, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
 
 [source,role="execute"]
 ----
@@ -878,6 +878,8 @@ oc get networkfences.csiaddons.openshift.io/$NETWORKFENCE -n openshift-dr-system
 ----
 Succeeded
 ----
+
+==== Modify DRPolicy to Fenced status
 
 In order for the *NetworkFence* status of `Fenced` to be known to the `ODR HUB operator`, the *DRPolicy* must be modified for the `fenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `Unfenced` to `ManuallyFenced`.
 
@@ -902,7 +904,7 @@ spec:
 ----
 .Example output.
 ----
-drpolicies.ramendr.openshift.io/odr-policy configured
+drpolicy.ramendr.openshift.io/odr-policy edited
 ----
 
 Now validate the *DRPolicy* status in the *Hub cluster* has changed to `Fenced` for the *Primary managed cluster*.
@@ -966,7 +968,7 @@ No resources found in busybox-sample namespace.
 
 A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback. The main difference for failback is that the application is scaled down on the `failoverCluster` and therefore creating a *NetworkFence* is not required.
 
-=== Remove NetworkFence resource and Disable Fencing
+=== Remove NetworkFence resource and disable Fencing
 
 Before a failback or relocate action can be successful the *NetworkFence* for the *Primary managed cluster* must be deleted. Execute this command in the *Secondary managed cluster* and modify `<cluster1>` to be correct for the *NetworkFence* YAML filename created in the prior section.
 
@@ -976,10 +978,31 @@ oc delete -f network-fence-<cluster1>.yaml
 ----
 .Example output.
 ----
-networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 deleted
+networkfence.csiaddons.openshift.io "network-fence-ocp4perf1" deleted
 ----
 
-In order for the *NetworkFence* status of `Unfenced` to be known to the `ODR HUB operator`, the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `Manuallyfenced` to `Unfenced`.
+==== Reboot OCP nodes that were Fenced
+
+This step is required because some application *Pods* on the prior `fenced` cluster, in this case the *Primary managed cluster*, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by *rebooting all worker OpenShift nodes* one at a time.
+
+After all OpenShift nodes are reboot and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*. The output for this query should be zero *Pods*. 
+
+NOTE: The *OpenShift Web Console* dashboards and *Overview* can also be used to assess the health of applications and the external storage. The detailed *ODF* dashboard is found by navigating to `Storage` -> `Data Foundation`.
+
+[source,role="execute"]
+----
+oc get pods -A | egrep -v 'Running|Completed'
+----
+.Example output.
+----
+NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE
+----
+
+IMPORTANT: If there are *Pods* still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
+
+==== Modify DRPolicy to Unfenced
+
+In order for the `ODR HUB operator` to know the *NetworkFence* has been removed for the *Primary managed cluster the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `Manuallyfenced` to `Unfenced`.
 
 [source,role="execute"]
 ----
@@ -1002,7 +1025,7 @@ spec:
 ----
 .Example output.
 ----
-drpolicies.ramendr.openshift.io/odr-policy configured
+drpolicy.ramendr.openshift.io/odr-policy edited
 ----
 
 Now validate the *DRPolicy* status in the *Hub cluster* has changed to `Unfenced` for the *Primary managed cluster*.
@@ -1021,23 +1044,6 @@ oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters
       status: Unfenced
       string: ocp4perf2
 ----
-
-The last step is required because some application *Pods* on the prior `fenced` cluster, in this case the *Primary managed cluster*, are in an unhealthy state (e.g. ContainerCreateError, CrashBackOff). This can be most easily fixed by *rebooting all OpenShift nodes* in the cluster one at a time.
-
-After all OpenShift nodes are reboot and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*. The output for this query should be zero *Pods*. 
-
-NOTE: The *OpenShift Web Console* dashboards and *Overview* can also be used to assess the health of applications and the external storage. The detailed *ODF* dashboard is found by navigating to `Storage` -> `Data Foundation`.
-
-[source,role="execute"]
-----
-oc get pods -A | egrep -v 'Running|Completed'
-----
-.Example output.
-----
-NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE
-----
-
-IMPORTANT: If there are *Pods* still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
 
 === Modify DRPlacementControl to failback
 
