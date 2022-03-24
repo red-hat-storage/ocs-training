@@ -215,13 +215,22 @@
 </li>
 <li><a href="#_application_failover_between_managed_clusters">13. Application Failover between managed clusters</a>
 <ul class="sectlevel2">
-<li><a href="#_create_networkfence_resource_and_enable_fencing">13.1. Create NetworkFence resource and Enable Fencing</a></li>
+<li><a href="#_create_networkfence_resource_and_enable_fencing">13.1. Create NetworkFence resource and enable Fencing</a>
+<ul class="sectlevel3">
+<li><a href="#_modify_drpolicy_to_fenced_status">13.1.1. Modify DRPolicy to Fenced status</a></li>
+</ul>
+</li>
 <li><a href="#_modify_drplacementcontrol_to_failover">13.2. Modify DRPlacementControl to failover</a></li>
 </ul>
 </li>
 <li><a href="#_application_failback_between_managed_clusters">14. Application Failback between managed clusters</a>
 <ul class="sectlevel2">
-<li><a href="#_remove_networkfence_resource_and_disable_fencing">14.1. Remove NetworkFence resource and Disable Fencing</a></li>
+<li><a href="#_remove_networkfence_resource_and_disable_fencing">14.1. Remove NetworkFence resource and disable Fencing</a>
+<ul class="sectlevel3">
+<li><a href="#_reboot_ocp_nodes_that_were_fenced">14.1.1. Reboot OCP nodes that were Fenced</a></li>
+<li><a href="#_modify_drpolicy_to_unfenced_status">14.1.2. Modify DRPolicy to Unfenced status</a></li>
+</ul>
+</li>
 <li><a href="#_modify_drplacementcontrol_to_failback">14.2. Modify DRPlacementControl to failback</a></li>
 </ul>
 </li>
@@ -315,11 +324,11 @@ Using CLI commands on both managed clusters validate that the application is run
 </li>
 <li>
 <p><strong>Failover Sample Application to secondary managed cluster.</strong><br>
-Using the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.</p>
+After creating a network fence for the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.</p>
 </li>
 <li>
 <p><strong>Failback Sample Application to primary managed cluster.</strong><br>
-Using the application DRPlacementControl resource on the Hub Cluster, modify the action to Relocate and trigger failover to  the preferredCluster.</p>
+After removing the network fence for the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.</p>
 </li>
 </ol>
 </div>
@@ -1503,7 +1512,7 @@ This process can be used to delete any application with a DRPlacementControl res
 <p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
 </div>
 <div class="sect2">
-<h3 id="_create_networkfence_resource_and_enable_fencing"><a class="anchor" href="#_create_networkfence_resource_and_enable_fencing"></a>13.1. Create NetworkFence resource and Enable Fencing</h3>
+<h3 id="_create_networkfence_resource_and_enable_fencing"><a class="anchor" href="#_create_networkfence_resource_and_enable_fencing"></a>13.1. Create NetworkFence resource and enable Fencing</h3>
 <div class="paragraph">
 <p>In order to failover the OpenShift cluster where the application is currently running all applications must be <code>fenced</code> from communicating with the external <strong>ODF</strong> storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters.</p>
 </div>
@@ -1589,7 +1598,7 @@ The <strong>NetworkFence</strong> must be created from the opposite managed clus
 <i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-Once the <strong>NetworkFence</strong> is created, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> storage will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. ContainerCreateError, CrashBackOff) on the cluster that is now <code>fenced</code>.
+Once the <strong>NetworkFence</strong> is created, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> storage will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now <code>fenced</code>.
 </td>
 </tr>
 </table>
@@ -1620,6 +1629,8 @@ oc get networkfences.csiaddons.openshift.io/$NETWORKFENCE -n openshift-dr-system
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_modify_drpolicy_to_fenced_status"><a class="anchor" href="#_modify_drpolicy_to_fenced_status"></a>13.1.1. Modify DRPolicy to Fenced status</h4>
 <div class="paragraph">
 <p>In order for the <strong>NetworkFence</strong> status of <code>Fenced</code> to be known to the <code>ODR HUB operator</code>, the <strong>DRPolicy</strong> must be modified for the <code>fenced</code> cluster. Edit the <strong>DRPolicy</strong> on the <strong>Hub cluster</strong> and change <code>&lt;cluster1&gt;</code> (example ocp4perf1) from <code>Unfenced</code> to <code>ManuallyFenced</code>.</p>
 </div>
@@ -1648,7 +1659,7 @@ spec:
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicies.ramendr.openshift.io/odr-policy configured</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicy.ramendr.openshift.io/odr-policy edited</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1669,6 +1680,7 @@ spec:
     ocp4perf2:
       status: Unfenced
       string: ocp4perf2</code></pre>
+</div>
 </div>
 </div>
 </div>
@@ -1737,7 +1749,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that the application is scaled down on the <code>failoverCluster</code> and therefore creating a <strong>NetworkFence</strong> is not required.</p>
 </div>
 <div class="sect2">
-<h3 id="_remove_networkfence_resource_and_disable_fencing"><a class="anchor" href="#_remove_networkfence_resource_and_disable_fencing"></a>14.1. Remove NetworkFence resource and Disable Fencing</h3>
+<h3 id="_remove_networkfence_resource_and_disable_fencing"><a class="anchor" href="#_remove_networkfence_resource_and_disable_fencing"></a>14.1. Remove NetworkFence resource and disable Fencing</h3>
 <div class="paragraph">
 <p>Before a failback or relocate action can be successful the <strong>NetworkFence</strong> for the <strong>Primary managed cluster</strong> must be deleted. Execute this command in the <strong>Secondary managed cluster</strong> and modify <code>&lt;cluster1&gt;</code> to be correct for the <strong>NetworkFence</strong> YAML filename created in the prior section.</p>
 </div>
@@ -1749,62 +1761,13 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <div class="listingblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 deleted</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">networkfence.csiaddons.openshift.io "network-fence-ocp4perf1" deleted</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_reboot_ocp_nodes_that_were_fenced"><a class="anchor" href="#_reboot_ocp_nodes_that_were_fenced"></a>14.1.1. Reboot OCP nodes that were Fenced</h4>
 <div class="paragraph">
-<p>In order for the <strong>NetworkFence</strong> status of <code>Unfenced</code> to be known to the <code>ODR HUB operator</code>, the <strong>DRPolicy</strong> must be modified for the newly <code>Unfenced</code> cluster. Edit the <strong>DRPolicy</strong> on the <strong>Hub cluster</strong> and change <code>&lt;cluster1&gt;</code> (example ocp4perf1) from <code>Manuallyfenced</code> to <code>Unfenced</code>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit drpolicy odr-policy</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[...]
-spec:
-  drClusterSet:
-  - clusterFence: Unfenced  ## &lt;-- Modify from ManuallyFenced to Unfenced
-    name: ocp4perf1
-    region: metro
-    s3ProfileName: s3-primary
-  - clusterFence: Unfenced
-    name: ocp4perf2
-    region: metro
-    s3ProfileName: s3-secondary
-[...]</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicies.ramendr.openshift.io/odr-policy configured</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Now validate the <strong>DRPolicy</strong> status in the <strong>Hub cluster</strong> has changed to <code>Unfenced</code> for the <strong>Primary managed cluster</strong>.</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  drClusters:
-    ocp4perf1:
-      status: Unfenced
-      string: ocp4perf1
-    ocp4perf2:
-      status: Unfenced
-      string: ocp4perf2</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>The last step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. ContainerCreateError, CrashBackOff). This can be most easily fixed by <strong>rebooting all OpenShift nodes</strong> in the cluster one at a time.</p>
+<p>This step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by <strong>rebooting all worker OpenShift nodes</strong> one at a time.</p>
 </div>
 <div class="paragraph">
 <p>After all OpenShift nodes are reboot and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
@@ -1843,6 +1806,61 @@ If there are <strong>Pods</strong> still in an unhealthy status because of sever
 </td>
 </tr>
 </table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_modify_drpolicy_to_unfenced_status"><a class="anchor" href="#_modify_drpolicy_to_unfenced_status"></a>14.1.2. Modify DRPolicy to Unfenced status</h4>
+<div class="paragraph">
+<p>In order for the <code>ODR HUB operator</code> to know the <strong>NetworkFence</strong> has been removed for the <strong>Primary managed cluster the *DRPolicy</strong> must be modified for the newly <code>Unfenced</code> cluster. Edit the <strong>DRPolicy</strong> on the <strong>Hub cluster</strong> and change <code>&lt;cluster1&gt;</code> (example ocp4perf1) from <code>ManuallyFenced</code> to <code>Unfenced</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit drpolicy odr-policy</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">[...]
+spec:
+  drClusterSet:
+  - clusterFence: Unfenced  ## &lt;-- Modify from ManuallyFenced to Unfenced
+    name: ocp4perf1
+    region: metro
+    s3ProfileName: s3-primary
+  - clusterFence: Unfenced
+    name: ocp4perf2
+    region: metro
+    s3ProfileName: s3-secondary
+[...]</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drpolicy.ramendr.openshift.io/odr-policy edited</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now validate the <strong>DRPolicy</strong> status in the <strong>Hub cluster</strong> has changed to <code>Unfenced</code> for the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">  drClusters:
+    ocp4perf1:
+      status: Unfenced
+      string: ocp4perf1
+    ocp4perf2:
+      status: Unfenced
+      string: ocp4perf2</code></pre>
+</div>
+</div>
 </div>
 </div>
 <div class="sect2">
