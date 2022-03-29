@@ -778,6 +778,8 @@ volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m
 
 Deleting the `busybox` application can be done using the ACM console. Navigate to *Applications* and then find the application to be deleted (busybox in this case).
 
+NOTE: The instructions to delete the sample application should not be executed until the failover and failback (relocate) testing is completed and you want to remove this application from RHACM and from the managed clusters.
+
 .ACM delete busybox application
 image::ACM-application-delete.png[ACM delete busybox application]
 
