@@ -95,9 +95,7 @@ spec:
     nodeSelectorTerms:
       - matchExpressions:
         - key: cluster.ocs.openshift.io/openshift-storage
-          operator: In
-          values:
-            - ""
+          operator: Exists
 EOF
 ....
 
