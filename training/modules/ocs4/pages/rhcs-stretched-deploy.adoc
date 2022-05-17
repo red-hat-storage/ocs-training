@@ -88,7 +88,7 @@ link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-s
 
 Physical server locations and Ceph component layout for Red Hat Ceph Storage cluster deployment. 
 
-[cols=5,cols="^,^,^,^,^",options=header]
+[cols=3,cols="^,^,^",options=header]
 |===
 |Node name|Datacenter|Ceph components
 |ceph1|DC1| OSD+MON
@@ -132,56 +132,54 @@ Before installing the RHCS Ceph cluster we need to perform the following steps i
 
 === Repositories and packages
 
-1.Register all the nodes to the Red Hat Network or Red Hat Satellite and subscribe to a valid pool:
-
+. Register all the nodes to the Red Hat Network or Red Hat Satellite and subscribe to a valid pool:
++
 [source,role="execute"]
 ....
 subscription-manager register
 subscription-manager subscribe --pool=8a8XXXXXX9e0
 ....
-
++
 For example you can use `ceph1` as the deployment node. On ceph1, run the cephadm preflight ansible playbooks. For this you will need ansible 2.9 repos enabled in ceph1.
-
-
-2.Enable the following repositories:
-
++
+. Enable the following repositories:
++
 * `rhel-8-for-x86_64-baseos-rpms`
 * `rhel-8-for-x86_64-appstream-rpms`
 * `rhceph-5-tools-for-rhel-8-x86_64-rpms`
 * `ansible-2.9-for-rhel-8-x86_64-rpms` (only in the `ceph1` host)
-
-3.Enable the repos on all the servers that are going to be part of the RCHS cluster
-
++
+. Enable the repos on all the servers that are going to be part of the RCHS cluster
++
 [source,role="execute"]
 ....
 subscription-manager repos --disable="*" --enable="rhel-8-for-x86_64-baseos-rpms" --enable="rhel-8-for-x86_64-appstream-rpms" --enable="rhceph-5-tools-for-rhel-8-x86_64-rpms"
 ....
-
-4.On the `ceph1` host also enable the `ansible-2.9-for-rhel-8-x86_64-rpms` repository:
-
++
+. On the `ceph1` host also enable the `ansible-2.9-for-rhel-8-x86_64-rpms` repository:
++
 [source,role="execute"]
 ....
 subscription-manager repos --enable="ansible-2.9-for-rhel-8-x86_64-rpms"
 ....
-
-5.Update the system rpms to the latest version and reboot if needed:
-
++
+. Update the system rpms to the latest version and reboot if needed:
++
 [source,role="execute"]
 ....
 dnf update -y
 reboot
 ....
-
-6.In all our hosts we configure the hostname using the bare/short hostname.
-
++
+. In all our hosts we configure the hostname using the bare/short hostname.
++
 [source,role="execute"]
 ....
 hostnamectl set-hostname <short_name>
 ....
-
-
-7.Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 IP by setting the DOMAIN variable with our DNS domain name.
-
++
+. Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 IP by setting the DOMAIN variable with our DNS domain name.
++
 [source,role="execute"]
 ....
 DOMAIN="bkgzv.sandbox762.opentlc.com"
@@ -190,9 +188,10 @@ cat <<EOF >/etc/hosts
 ::1       $(hostname).${DOMAIN} $(hostname) localhost6 localhost6.localdomain6
 EOF
 ....
-
-8.Verify the configuration for deploying Red Hat Ceph Storage with cephadm.
-
++
+. Verify the configuration for deploying Red Hat Ceph Storage with cephadm.
++
+--
 [source,role="execute"]
 ....
 hostname
@@ -202,9 +201,11 @@ hostname
 ....
 ceph1
 ....
-
-9.Check the long hostname with the fqdn using the hostname -f option.
-
+--
++
+. Check the long hostname with the fqdn using the hostname -f option.
++
+--
 [source,role="execute"]
 ....
 hostname -f
@@ -214,9 +215,11 @@ hostname -f
 ....
 ceph1.bkgzv.sandbox762.opentlc.com
 ....
-
-10.Install the `cephadm-ansible` RPM package:
-
+--
++
+. Install the `cephadm-ansible` RPM package:
++
+--
 [source,role="execute"]
 ....
 sudo dnf install -y cephadm-ansible
@@ -224,10 +227,11 @@ sudo dnf install -y cephadm-ansible
 
 
 IMPORTANT: To run the ansible playbooks, you must have ssh passwordless access to all the nodes that are configured to the Red Hat Ceph Storage cluster. Ensure that the configured user (for example, ec2-user) has root privileges to use the `sudo` command.
-
-
-11.Configure the ec2-user ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:
-
+--
++
+. Configure the ec2-user ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:
++
+--
 [source,role="execute"]
 
 ....
@@ -237,9 +241,11 @@ Host ceph*
    IdentityFile ~/.ssh/ceph.pem
 EOF
 ....
-
-12.Build our ansible inventory
-
+--
++
+. Build our ansible inventory
++
+--
 [source,role="execute"]
 ....
 cat <<EOF > /usr/share/cephadm-ansible/inventory
@@ -257,10 +263,11 @@ EOF
 
 
 NOTE: The `cephadm-ansible` pre-flight playbook deploys the RHCS admin keyring to all hosts belonging to the [admin] group at the following location /etc/ceph/ceph.client.admin.keyring.
-
-
-13.Verify ansible can access all of the nodes using the ping module before running the pre-flight playbook.
-
+--
++
+. Verify ansible can access all of the nodes using the ping module before running the pre-flight playbook.
++
+--
 [source,role="execute"]
 ....
 ansible -i /usr/share/cephadm-ansible/inventory -m ping all -b
@@ -320,15 +327,16 @@ ceph7 | SUCCESS => {
 
 
 The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.
-
-
-14.Run the following ansible playbook.
-
+--
++
+. Run the following ansible playbook.
++
+--
 [source,role="execute"]
 ....
 ansible-playbook -i /usr/share/cephadm-ansible/inventory /usr/share/cephadm-ansible/cephadm-preflight.yml --extra-vars "ceph_origin=rhcs"
 ....
-
+--
 
 == Cluster Bootstrapping with Cephadm
 
@@ -338,10 +346,10 @@ NOTE: For additional information on the bootstrapping process, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/red-hat-ceph-storage-installation#bootstrapping-a-new-storage-cluster_install[Bootstrapping
 a new storage cluster.]
 
-*Procedure*
+`Procedure`
 
-1.Create json file to authenticate against the container registry using a json file as follows:
-
+. Create json file to authenticate against the container registry using a json file as follows:
++
 [source,role="execute"]
 ....
 cat <<EOF > /root/registry.json
@@ -352,11 +360,11 @@ cat <<EOF > /root/registry.json
 }
 EOF
 ....
-
-2.Configure Host Specs file.
-
++
+. Configure Host Specs file.
++
+--
 You can use a service configuration file and the --apply-spec option to bootstrap the storage cluster and configure additional hosts and daemons. The configuration file is a .yaml file that contains the service type, placement, and designated nodes for services that you want to deploy.
-
 
 [source,role="execute"]
 ....
@@ -390,9 +398,11 @@ addr: 10.0.40.221
 hostname: ceph7
 EOF
 ....
-
-3.Retrieve the IP for the NIC that has the RHCS public network configured from the bootstrap node. You can use the following example command after substituting the `10.0.40.0` with the subnet you have defined in your ceph public network.
-
+--
++
+. Retrieve the IP for the NIC that has the RHCS public network configured from the bootstrap node. You can use the following example command after substituting the `10.0.40.0` with the subnet you have defined in your ceph public network.
++
+--
 
 [source,role="execute"]
 ....
@@ -404,9 +414,11 @@ Example output:
 ....
 10.0.40.78
 ....
-
-4.Run the `Cephadm` bootstrap command as the root user on the node that will be the initial Monitor node in the cluster. The `IP_ADDRESS` option is the IP address of the node that you are using to run the `cephadm bootstrap` command.
-
+--
++
+. Run the `Cephadm` bootstrap command as the root user on the node that will be the initial Monitor node in the cluster. The `IP_ADDRESS` option is the IP address of the node that you are using to run the `cephadm bootstrap` command.
++
+--
 NOTE: If you have configured a different user than root for passwordless SSH access use the `--ssh-user=` flag with the cepadm bootstrap command
 
 
@@ -434,10 +446,11 @@ For more information see:
 
 	https://docs.ceph.com/docs/pacific/mgr/telemetry/
 ....
-
-
-5.Verify the status of Red Hat Ceph Storage cluster deployment using the ceph cli client from ceph1:
-
+--
++
+. Verify the status of Red Hat Ceph Storage cluster deployment using the ceph cli client from ceph1:
++
+--
 [source,role="execute"]
 ....
 ceph -s
@@ -466,8 +479,11 @@ ceph -s
 You now have 5 monitors running (this is now the default with cephadm deployments) if enough nodes are available. The cluster is in HEALTH_WARN state since no OSDs are deployed as yet.
 
 NOTE: It is normal if you get a global recovery event while you don't have any osds configured.
-
-6.Check if all the services have started.
+--
++
+. Check if all the services have started.
++
+--
 
 [source,role="execute"]
 ....
@@ -488,9 +504,11 @@ prometheus         1/1  52s ago    6m   count:1
 ....
 
 NOTE: It may take a while for all the services to start.
-
-7.Verify if all the nodes are part of the cephadm cluster.
-
+--
++
+. Verify if all the nodes are part of the cephadm cluster.
++
+--
 [source,role="execute"]
 ....
 ceph orch host ls
@@ -511,14 +529,15 @@ ceph7  10.0.40.221
 NOTE: We can run direct ceph commands from the host because we configured ceph1
 in the cephadm-ansible inventory as part of the [admin] group, so the ceph
 admin keys were copied to the host during the cephadm bootstrap process 
-
+--
 
 == Relocating the monitors and managers to an appropriate location
 
 Red Hat Ceph Storage with `cephadm` deploys five monitors by default.  If they are not placed according to the topology architecture, use this procedure to correctly configure the ceph monitors to the appropriate datacenters.
 
-1.Check the current placement of the Ceph monitor services on the datacenters.
-
+. Check the current placement of the Ceph monitor services on the datacenters.
++
+--
 [source,role="execute"]
 ....
 ceph orch ps | grep mon | awk '{print $1 " " $2}'
@@ -534,22 +553,25 @@ mon.ceph6 ceph6
 ....
 
 You can see that there are 2 monitors on nodes in datacenter1, and three  monitors on nodes in datacenter2 but no monitors in datacenter3. Refer to the table in the Hardware requirements section to verify the layout of the ceph servers per datacenter.
-
-
-2.Move a monitor to the node `ceph7` located in our datacenter3 site.
-
+--
++
+. Move a monitor to the node `ceph7` located in our datacenter3 site.
++
+--
 [source,role="execute"]
 ....
-ceph orch apply mon --placement="ceph1,ceph3,ceph4,ceph5,ceph7"
+ceph orch apply mon --placement="ceph1,ceph2,ceph4,ceph5,ceph7"
 ....
 
 .Example output.
 ....
 Scheduled mon update...
 ....
-
-3.Verify that the monitors are in the correct layout:
-
+--
++
+. Verify that the monitors are in the correct layout:
++
+--
 [source,role="execute"]
 ....
 ceph orch ps | grep mon | awk '{print $1 " " $2}'
@@ -563,9 +585,11 @@ mon.ceph4 ceph4
 mon.ceph5 ceph5
 mon.ceph7 ceph7
 ....
-
-4.Check the current placement of the Ceph manager services on the datacenters.
-
+--
++
+. Check the current placement of the Ceph manager services on the datacenters.
++
+--
 ....
 ceph orch ps | grep mgr | awk '{print $1 " " $2}'
 ....
@@ -577,49 +601,54 @@ mgr.ceph2.kremtt ceph2
 ....
 
 You can see that there are 2 managers on nodes datacenter1, and no managers in datacenter2. Refer to the table in the Hardware requirements section to verify the layout of the ceph servers per datacenter.
-
-
-5.Move a manager to the node `ceph5` located in our datacenter2 site.
-
+--
++
+. Move a manager to the node `ceph5` located in our datacenter2 site.
++
+--
 ....
-$ ceph orch apply mgr --placement="ceph-bos-2,ceph-bos-5"
+$ ceph orch apply mgr --placement="ceph2,ceph5"
 ....
 
 .Example output:
 ....
 Scheduled mgr update…
 ....
-
-6.Verify that the managers are in the correct layout:
+--
++
+. Verify that the managers are in the correct layout:
++
+--
 ....
 $ ceph orch ps | grep mgr | awk '{print $1 " " $2}'
 ....
 
 .Example output:
 ....
-mgr.ceph-bos-2.ycgwyz ceph-bos-2
-mgr.ceph-bos-5.kremtt ceph-bos-5
+mgr.ceph2.ycgwyz ceph2
+mgr.ceph5.kremtt ceph5
 ....
-
+--
 
 == Deploying Ceph services
 
 This section provides examples of how you can deploy the following Ceph services:
 
-**Object Storage Devices (OSDs)
+* `Object Storage Devices (OSDs)`
 
-**Metadata services (MDS) required for CephFS
+* `Metadata services (MDS) required for CephFS`
 
-**Rados Gateway Services(RGW) required for object storage
+* `Rados Gateway Services(RGW) required for object storage`
 
-**Rados Block Device (RBD) pool required for block storage
+* `Rados Block Device (RBD) pool required for block storage`
 
 IMPORTANT: it is mandatory to deploy the OSDs for the cluster to work.
 
-*Procedure*
+`Procedure`
 
-1.Scan the hosts to check for available disks and to get the OSD layout. In this example, 6 OSDs will be created one per each ceph hosts where `ceph7` is the arbiter node which does not have any OSD's configured.
-
+. Scan the hosts to check for available disks and to get the OSD layout. In this example, 6 OSDs will be created one per each ceph hosts where `ceph7` is the arbiter node which does not have any OSD's configured.
++
+--
 NOTE: Use the --all-available-devices option in the command if you wish to use all the free disks in the ceph nodes. Run this command twice; the first time to scan the nodes, and the second time to view the results. For details, see Management of services using the Ceph Orchestrator.
 
 [source,role="execute"]
@@ -675,8 +704,11 @@ OSDSPEC PREVIEWS
 |osd      |all-available-devices  |ceph6  |/dev/xvdh  |-   |-    |
 +---------+-----------------------+-------+-----------+----+-----+
 ....
-
-2.Run the command without –dry-run to create the OSD services
+--
++
+. Run the command without –dry-run to create the OSD services
++
+--
 
 [source,role="execute"]
 ....
@@ -687,9 +719,11 @@ ceph orch apply osd --all-available-devices
 ....
 Scheduled osd.all-available-devices update...
 ....
-
-3.Check the ceph osd crush map layout to ensure that each host has one OSD configured and its status is UP.
-
+--
++
+. Check the ceph osd crush map layout to ensure that each host has one OSD configured and its status is UP.
++
+--
 [source,role="execute"]
 ....
 ceph osd tree
@@ -712,8 +746,11 @@ ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
  -7         0.14650      host ceph6
   5    ssd  0.14650          osd.5       up   1.00000  1.00000
 ....
-
-4.Create and enable RBD a new block pool.
+--
++
+. Create and enable RBD a new block pool.
++
+--
 
 [source,role="execute"]
 ....
@@ -734,13 +771,13 @@ ceph osd lspools | grep rbdpool
 ....
 3 rbdpool
 ....
-
-6.Using cephadm, deploy two new MDS daemons one in each datacenter. For more
-information, see
-link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/operations_guide/management-of-mds-service-using-the-ceph-orchestrator[Management
-of MDS service using the Ceph Orchestrator.]
+--
++
+. Using cephadm, deploy two new MDS daemons one in each datacenter. For more information, see link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/operations_guide/management-of-mds-service-using-the-ceph-orchestrator[Management of MDS service using the Ceph Orchestrator.]
++
+--
  
- In our example, we are using hosts `ceph3` and `ceph6`:
+In our example, we are using hosts `ceph3` and `ceph6`:
 
 
 [source,role="execute"]
@@ -752,9 +789,11 @@ ceph orch apply mds cephfs --placement=ceph3,ceph6
 ....
 Scheduled mds.cephfs update...
 ....
-
-7.Verify that MDS services are active.
-
+--
++
+. Verify that MDS services are active.
++
+--
 [source,role="execute"]
 ....
 ceph -s | grep mds
@@ -765,8 +804,11 @@ ceph -s | grep mds
 ....
     mds: 1/1 daemons up, 1 standby
 ....
-
-8.Create the CephFS volume. For placements, use the same `hostname` as used in the previous command. 
+--
++
+. Create the CephFS volume. For placements, use the same `hostname` as used in the previous command. 
++
+--
 
 [source,role="execute"]
 ....
@@ -777,8 +819,11 @@ NOTE: The ceph fs volume create command also creates the needed data and meta
 CephFS pools. For more information, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/file_system_guide/index[Configuring
 and Mounting Ceph File Systems.]
-
-9.Check the Ceph status to verify how the MDS daemons have been deployed. Ensure that the state is active where `ceph6` is the primary MDS for this filesystem and ceph3 is the secondary MDS.
+--
++
+. Check the Ceph status to verify how the MDS daemons have been deployed. Ensure that the state is active where `ceph6` is the primary MDS for this filesystem and ceph3 is the secondary MDS.
++
+--
 [source,role="execute"]
 ....
 ceph fs status
@@ -796,10 +841,12 @@ cephfs.cephfs.data    data       0    284G
     STANDBY MDS
 cephfs.ceph3.ogcqkl
 ....
-
-10.Deploy the object services such that there is one RGW service per OSD datacenter.
+--
++
+. Deploy the object services such that there is one RGW service per OSD datacenter.
 Use the --placement argument as shown in below command. The initial number 2 in the example represents the number of RGW daemons to deploy, followed by the placement for the daemons specifying the hostname where the daemon must run. In this example, the hostname’s are ceph3 and ceph6.
-
++
+--
 
 [source,role="execute"]
 ....
@@ -814,10 +861,11 @@ Scheduled rgw.objectgw update...
 To know more about RGW, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/object_gateway_guide/index[The
 Ceph Object Gateway.]
-
-
-11.Verify that RGW services are active.
-
+--
++
+. Verify that RGW services are active.
++
+--
 [source,role="execute"]
 ....
 ceph -s | grep rgw
@@ -827,16 +875,17 @@ ceph -s | grep rgw
 ....
 rgw: 2 daemons active (2 hosts, 1 zones)
 ....
-
+--
 
 
 
 == Configuring Red Hat Ceph Storage stretch cluster
 
-**Procedure**
+`Procedure`
 
-1.Check the current election strategy being used by the monitors with the ceph mon dump command. By default in a ceph cluster, the connectivity is set to classic.
-
+. Check the current election strategy being used by the monitors with the ceph mon dump command. By default in a ceph cluster, the connectivity is set to classic.
++
+--
 [source,role="execute"]
 ....
 $ ceph mon dump | grep election_strategy
@@ -846,15 +895,20 @@ $ ceph mon dump | grep election_strategy
 dumped monmap epoch 9
 election_strategy: 1
 ....
-
-2.Change the monitor election to connectivity.
-
+--
++
+. Change the monitor election to connectivity.
++
+--
 [source,role="execute"]
 ....
 ceph mon set election_strategy connectivity
 ....
-
-3.Run the previous ceph mon dump command again to verify the election_strategy value.
+--
++
+. Run the previous ceph mon dump command again to verify the election_strategy value.
++
+--
 [source,role="execute"]
 ....
 $ ceph mon dump | grep election_strategy
@@ -869,10 +923,11 @@ election_strategy: 3
 NOTE: To know more about the different election strategies, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/operations_guide/management-of-monitors-using-the-ceph-orchestrator#configuring-monitor-election-strategy_ops[Configuring
 monitor election strategy.]
-
-
-4.Set the location for all our Ceph monitors:
-
+--
++
+. Set the location for all our Ceph monitors:
++
+--
 
 [source,role="execute"]
 ....
@@ -882,15 +937,15 @@ ceph mon set_location ceph4 datacenter=DC2
 ceph mon set_location ceph5 datacenter=DC2
 ceph mon set_location ceph7 datacenter=DC3
 ....
-
-5.Verify that each monitor has its appropriate location.
-
-
+--
++
+. Verify that each monitor has its appropriate location.
++
 [source,role="execute"]
 ....
 ceph mon dump
 ....
-
++
 .Example output.
 ....
 epoch 17
@@ -905,16 +960,14 @@ election_strategy: 3
 3: [v2:10.0.150.221:3300/0,v1:10.0.150.221:6789/0] mon.ceph7; crush_location {datacenter=DC3}
 4: [v2:10.0.155.35:3300/0,v1:10.0.155.35:6789/0] mon.ceph2; crush_location {datacenter=DC1}
 ....
-
-
-6.View the current CRUSH map
-
-
++
+. View the current CRUSH map
++
 [source,role="execute"]
 ....
 ceph osd tree
 ....
-
++
 .Example output.
 ....
 
@@ -933,29 +986,30 @@ ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
  -7         0.14650      host ceph6
   5    ssd  0.14650          osd.5       up   1.00000  1.00000
 ....
-
++
 This default crush map indicates that the failure domain is at the host level and ceph has no understanding of what the infrastructure topology looks like.
-
-7.Use the following command to create the new buckets for `datacenter DC1` and `datacenter DC2`:
-
++
+. Use the following command to create the new buckets for `datacenter DC1` and `datacenter DC2`:
++
+--
 
 [source,role="execute"]
 ....
 ceph osd crush add-bucket DC1 datacenter
 ceph osd crush add-bucket DC2 datacenter
 ....
-
-8.Move the DC1 and DC2 datacenter buckets under the root default bucket.
-
+--
++
+. Move the DC1 and DC2 datacenter buckets under the root default bucket.
++
 [source,role="execute"]
 ....
 ceph osd crush move DC1 root=default
 ceph osd crush move DC2 root=default
 ....
-
-9.Move each of the hosts and their osds under each datacenter.
-
-
++
+. Move each of the hosts and their osds under each datacenter.
++
 [source,role="execute"]
 ....
 ceph osd crush move ceph1 datacenter=DC1
@@ -965,10 +1019,10 @@ ceph osd crush move ceph4 datacenter=DC2
 ceph osd crush move ceph5 datacenter=DC2
 ceph osd crush move ceph6 datacenter=DC2
 ....
-
-
-10.Check the CRUSH map again with the ceph osd tree command to see how ceph is now mapped.
-
++
+. Check the CRUSH map again with the ceph osd tree command to see how ceph is now mapped.
++
+--
 [source,role="execute"]
 ....
 ceph osd tree
@@ -993,11 +1047,11 @@ ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
  -7         0.14650          host ceph6
   5    ssd  0.14650              osd.5       up   1.00000  1.00000
 ....
-
-
-11.Create a CRUSH rule that makes use of this new topology by installing the ceph-base RPM package in order to use the crushtool command:
-
-
+--
++
+. Create a CRUSH rule that makes use of this new topology by installing the ceph-base RPM package in order to use the crushtool command:
++
+--
 [source,role="execute"]
 ....
 dnf -y install ceph-base
@@ -1006,25 +1060,25 @@ dnf -y install ceph-base
 To know more about CRUSH ruleset, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/architecture_guide/the-core-ceph-components#ceph-crush-ruleset_arch[Ceph
 CRUSH ruleset.]
-
-12.Get the compiled CRUSH map from the cluster:
-
+--
++
+. Get the compiled CRUSH map from the cluster:
++
 [source,role="execute"]
 ....
 ceph osd getcrushmap > /etc/ceph/crushmap.bin
 ....
-
-13.Decompile the CRUSH map and convert it to a text file in order to be able to edit it:
-
++
+. Decompile the CRUSH map and convert it to a text file in order to be able to edit it:
++
 [source,role="execute"]
 ....
 crushtool -d /etc/ceph/crushmap.bin -o /etc/ceph/crushmap.txt
 ....
-
-14.Add the following rule to the CRUSH map by editing the text file /etc/ceph/crushmap.txt at the end of the file. 
-
-
-
++
+. Add the following rule to the CRUSH map by editing the text file /etc/ceph/crushmap.txt at the end of the file. 
++
+--
 [source,role="execute"]
 ....
 
@@ -1083,16 +1137,18 @@ The CRUSH rule we have declared contains the following information:
 ** Description: Selects the number of buckets of the given type, in this case, is two different hosts located in DC2.
 * `step emit`
 ** Description: Outputs the current value and empties the stack. Typically used at the end of a rule, but may also be used to pick from different trees in the same rule.
-
-15.Compile the new CRUSH map from the file /etc/ceph/crushmap.txt and convert it to a binary file called /etc/ceph/crushmap2.bin:
-
+--
++
+. Compile the new CRUSH map from the file /etc/ceph/crushmap.txt and convert it to a binary file called /etc/ceph/crushmap2.bin:
++
 [source,role="execute"]
 ....
 crushtool -c /etc/ceph/crushmap.txt -o /etc/ceph/crushmap2.bin
 ....
-
-16.Inject the new crushmap we created back into the cluster:
-
++
+. Inject the new crushmap we created back into the cluster:
++
+--
 [source,role="execute"]
 ....
 ceph osd setcrushmap -i /etc/ceph/crushmap2.bin
@@ -1104,9 +1160,11 @@ ceph osd setcrushmap -i /etc/ceph/crushmap2.bin
 ....
 
 NOTE: The number 17 is a counter and it will increase (18,19, and so on) depending on the changes you make to the crush map
-
-17.Verify that the stretched rule created is now available for use.
-
+--
++
+. Verify that the stretched rule created is now available for use.
++
+--
 [source,role="execute"]
 ....
 ceph osd crush rule ls
@@ -1117,10 +1175,11 @@ ceph osd crush rule ls
 replicated_rule
 stretch_rule
 ....
-
-18.Enable stretch cluster mode
-
-
+--
++
+. Enable stretch cluster mode
++
+--
 [source,role="execute"]
 ....
 ceph mon enable_stretch_mode ceph7 stretch_rule datacenter
@@ -1144,7 +1203,9 @@ Pool: .rgw.root; crush_rule: stretch_rule
 Pool: default.rgw.log; crush_rule: stretch_rule
 Pool: default.rgw.control; crush_rule: stretch_rule
 Pool: default.rgw.meta; crush_rule: stretch_rule
+Pool: rbdpool; crush_rule: stretch_rule
 ....
 
 This indicates that a working Red Hat Ceph Storage stretched cluster with  arbiter mode is now available.
+--
 
