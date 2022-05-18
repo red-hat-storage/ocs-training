@@ -185,38 +185,21 @@
 <ul class="sectlevel1">
 <li><a href="#_overview">1. Overview</a></li>
 <li><a href="#_rhcs_stretch_mode_introduction">2. RHCS stretch mode introduction</a></li>
-<li><a href="#_rhcs_stretch_mode_with_arbiter_limitations">3. RHCS Stretch Mode With Arbiter Limitations</a></li>
-<li><a href="#_deployment_infrastructure_architecture">4. Deployment Infrastructure Architecture</a></li>
-<li><a href="#_node_pre_deployment_requirements">5. Node Pre-Deployment Requirements</a>
+<li><a href="#_requirements_for_deploying_red_hat_ceph_storage_stretch_cluster_with_arbiter">3. Requirements for deploying Red Hat Ceph Storage stretch cluster with arbiter</a>
 <ul class="sectlevel2">
-<li><a href="#_repositories_and_packages">5.1. Repositories and packages</a></li>
-<li><a href="#_configure_hostname_and_fqdn_for_cephadm">5.2. Configure hostname and FQDN for <code>cephadm</code></a></li>
-<li><a href="#_running_the_cephadm_ansible_preflight_playbook_to_finish_with_cephadm_pre_requisites">5.3. Running the cephadm-ansible preflight playbook to finish with cephadm pre-requisites</a></li>
+<li><a href="#_hardware_requirements">3.1. Hardware requirements</a></li>
+<li><a href="#_network_configurations">3.2. Network Configurations</a></li>
 </ul>
 </li>
-<li><a href="#_cluster_bootstrapping_with_cephadm">6. Cluster Bootstrapping with Cephadm</a>
+<li><a href="#_node_pre_deployment_requirements">4. Node Pre-Deployment Requirements</a>
 <ul class="sectlevel2">
-<li><a href="#_create_json_file_to_authenticate_against_the_container_registry">6.1. Create json file to authenticate against the container registry.</a></li>
-<li><a href="#_configure_host_specs_file">6.2. Configure Host Specs file.</a></li>
-<li><a href="#_get_our_bootstrap_node_ip">6.3. Get our bootstrap node IP</a></li>
-<li><a href="#_run_the_cephadm_bootstrap_command">6.4. Run the Cephadm bootstrap command</a></li>
+<li><a href="#_repositories_and_packages">4.1. Repositories and packages</a></li>
 </ul>
 </li>
-<li><a href="#_deploying_ceph_servicesmdsrgwosds">7. Deploying Ceph services(MDS,RGW,OSDs)</a>
-<ul class="sectlevel2">
-<li><a href="#_deploy_five_ceph_monitors">7.1. Deploy five Ceph monitors</a></li>
-<li><a href="#_deploy_ceph_osds">7.2. Deploy Ceph OSDs</a></li>
-<li><a href="#_deploy_cephfs_mds_services">7.3. Deploy CephFS (MDS services)</a></li>
-<li><a href="#_deploy_ceph_object_services_radosgw_or_rgw">7.4. Deploy Ceph Object services (RadosGW or RGW)</a></li>
-</ul>
-</li>
-<li><a href="#_configure_rhcs_stretch_cluster_mode">8. Configure RHCS Stretch Cluster Mode</a>
-<ul class="sectlevel2">
-<li><a href="#_configure_monitor_election_strategies">8.1. Configure monitor election strategies</a></li>
-<li><a href="#_configure_the_osd_stretched_layout_in_the_crush_map">8.2. Configure the OSD stretched layout in the CRUSH map</a></li>
-<li><a href="#_enable_stretch_cluster_mode">8.3. Enable stretch cluster mode</a></li>
-</ul>
-</li>
+<li><a href="#_cluster_bootstrapping_with_cephadm">5. Cluster Bootstrapping with Cephadm</a></li>
+<li><a href="#_relocating_the_monitors_and_managers_to_an_appropriate_location">6. Relocating the monitors and managers to an appropriate location</a></li>
+<li><a href="#_deploying_ceph_services">7. Deploying Ceph services</a></li>
+<li><a href="#_configuring_red_hat_ceph_storage_stretch_cluster">8. Configuring Red Hat Ceph Storage stretch cluster</a></li>
 </ul>
 </div>
 <div class="sect1">
@@ -343,12 +326,26 @@ architecture that will be used in this guide:</p>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_rhcs_stretch_mode_with_arbiter_limitations"><a class="anchor" href="#_rhcs_stretch_mode_with_arbiter_limitations"></a>3. RHCS Stretch Mode With Arbiter Limitations</h2>
+<h2 id="_requirements_for_deploying_red_hat_ceph_storage_stretch_cluster_with_arbiter"><a class="anchor" href="#_requirements_for_deploying_red_hat_ceph_storage_stretch_cluster_with_arbiter"></a>3. Requirements for deploying Red Hat Ceph Storage stretch cluster with arbiter</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>As implied by the setup, stretch mode only handles two sites with OSDs. While it
-is not mandatory, You should run two monitors on each site plus a tie-breaker, for
-a total of 5. We have to take into account that OSDs can only connect to monitors on their site when in stretch mode.</p>
+<p>Red Hat Ceph Storage (RHCS) is an enterprise open-source platform that provides unified software-defined storage on standard, economical servers and disks. With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.</p>
+</div>
+<div class="paragraph">
+<p>This section provides a basic overview of the RHCS deployment. For more complex
+deployment, refer to the <a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5">official documentation guide for RHCS 5.</a></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Only Flash media is supported since it runs with <code>min_size=1</code> when degraded. Use stretch mode only with all-flash OSDs. Using all-flash OSDs minimizes the time needed to recover once connectivity is restored, thus minimizing the potential for data loss. Erasure coded pools cannot be used with stretch mode.
+</td>
+</tr>
+</table>
 </div>
 <div class="admonitionblock warning">
 <table>
@@ -362,20 +359,98 @@ Erasure coded pools cannot be used with stretch mode.
 </tr>
 </table>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_hardware_requirements"><a class="anchor" href="#_hardware_requirements"></a>3.1. Hardware requirements</h3>
 <div class="paragraph">
-<p>Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.</p>
+<p>For information on minimum hardware requirements for deploying Red Hat Ceph
+Storage, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/hardware_guide/index#minimum-hardware-recommendations-for-containerized-ceph_hwMinimum">hardware recommendations for containerized Ceph.</a></p>
 </div>
 <div class="paragraph">
-<p>Because it runs with <code>min_size=1</code> when degraded, you should only use stretch mode with all-flash OSDs. Using all-flash OSDs minimises the time needed to recover once connectivity is restored, thus minimising the potential for data loss.</p>
+<p>Physical server locations and Ceph component layout for Red Hat Ceph Storage cluster deployment.</p>
 </div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_deployment_infrastructure_architecture"><a class="anchor" href="#_deployment_infrastructure_architecture"></a>4. Deployment Infrastructure Architecture</h2>
-<div class="sectionbody">
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 33.3333%;">
+<col style="width: 33.3333%;">
+<col style="width: 33.3334%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-center valign-top">Node name</th>
+<th class="tableblock halign-center valign-top">Datacenter</th>
+<th class="tableblock halign-center valign-top">Ceph components</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON+MGR</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph3</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MDS+RGW</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph4</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph5</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON+MGR</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph6</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MDS+RGW</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-center valign-top"><p class="tableblock">ceph7</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">DC3</p></td>
+<td class="tableblock halign-center valign-top"><p class="tableblock">MON</p></td>
+</tr>
+</tbody>
+</table>
 <div class="paragraph">
-<p>We have 3 different datacenters, the three of them are using the same
-vlan/subnet for Cephs private and public network:</p>
+<p>Software Details:</p>
+</div>
+<div class="paragraph">
+<p>Use the latest software version of RHCS 5. See
+<a href="https://access.redhat.com/articles/1548993">the knowledgebase article on
+Red Hat Ceph Storage: Supported configurations.</a></p>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_network_configurations"><a class="anchor" href="#_network_configurations"></a>3.2. Network Configurations</h3>
+<div class="paragraph">
+<p>The recommended Red Hat Ceph Storage configuration are as follows:
+You must have two separate networks, one public network and one private network.
+You must have three different datacenters with L2 or L3 connectivity between all the nodes that form the Ceph cluster.
+NOTE: You can use different subnets for each of the datacenters.</p>
+</div>
+<div class="paragraph">
+<p>Here is an example of a basic network configuration that we have used in this guide:</p>
 </div>
 <div class="ulist">
 <ul>
@@ -391,106 +466,25 @@ vlan/subnet for Cephs private and public network:</p>
 </ul>
 </div>
 <div class="paragraph">
-<p>Hardware details for the RHCS 5 cluster we are going to deploy:</p>
+<p>For more information on the required network environment, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/configuration_guide/ceph-network-configuration">Ceph
+network configuration.</a></p>
 </div>
-<table class="tableblock frame-all grid-all stretch">
-<colgroup>
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-<col style="width: 20%;">
-</colgroup>
-<thead>
-<tr>
-<th class="tableblock halign-center valign-top">Node name</th>
-<th class="tableblock halign-center valign-top">CPU</th>
-<th class="tableblock halign-center valign-top">Memory</th>
-<th class="tableblock halign-center valign-top">Datacenter</th>
-<th class="tableblock halign-center valign-top">Ceph components</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph1</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph2</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC1</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MDS+RGW</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph4</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph5</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MON</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph6</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC2</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">OSD+MDS+RGW</p></td>
-</tr>
-<tr>
-<td class="tableblock halign-center valign-top"><p class="tableblock">ceph7</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">8 GB</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">DC3</p></td>
-<td class="tableblock halign-center valign-top"><p class="tableblock">MON</p></td>
-</tr>
-</tbody>
-</table>
-<div class="paragraph">
-<p>Software Details:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><strong>Red Hat Ceph Storage version:</strong> 5.0z3</p>
-</li>
-<li>
-<p><strong>Ceph upstream version:</strong> 16.2.0-146.el8cp (56f5e9cfe88a08b6899327eca5166ca1c4a392aa) pacific (stable)</p>
-</li>
-<li>
-<p><strong>RHEL version:</strong> 8.5 (Ootpa)</p>
-</li>
-</ul>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_node_pre_deployment_requirements"><a class="anchor" href="#_node_pre_deployment_requirements"></a>5. Node Pre-Deployment Requirements</h2>
+<h2 id="_node_pre_deployment_requirements"><a class="anchor" href="#_node_pre_deployment_requirements"></a>4. Node Pre-Deployment Requirements</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Before installing the RHCS Ceph cluster we need to perform the following steps in order to fulfil all the requirements needed:</p>
 </div>
 <div class="sect2">
-<h3 id="_repositories_and_packages"><a class="anchor" href="#_repositories_and_packages"></a>5.1. Repositories and packages</h3>
-<div class="paragraph">
+<h3 id="_repositories_and_packages"><a class="anchor" href="#_repositories_and_packages"></a>4.1. Repositories and packages</h3>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
 <p>Register all the nodes to the Red Hat Network or Red Hat Satellite and subscribe to a valid pool:</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subscription-manager register
@@ -498,13 +492,11 @@ subscription-manager subscribe --pool=8a8XXXXXX9e0</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>We are going to use ceph1 as our deployment node, on ceph1 we are going to run the
-cephadm preflight ansible playbooks, that&#8217;s why we will need to have ansible
-2.9 repos enabled in ceph1.</p>
+<p>For example you can use <code>ceph1</code> as the deployment node. On ceph1, run the cephadm preflight ansible playbooks. For this you will need ansible 2.9 repos enabled in ceph1.</p>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>Enable the following repositories:</p>
-</div>
 <div class="ulist">
 <ul>
 <li>
@@ -521,64 +513,42 @@ cephadm preflight ansible playbooks, that&#8217;s why we will need to have ansib
 </li>
 </ul>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>Enable the repos on all the servers that are going to be part of the RCHS cluster</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subscription-manager repos --disable="*" --enable="rhel-8-for-x86_64-baseos-rpms" --enable="rhel-8-for-x86_64-appstream-rpms" --enable="rhceph-5-tools-for-rhel-8-x86_64-rpms"</code></pre>
 </div>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>On the <code>ceph1</code> host also enable the <code>ansible-2.9-for-rhel-8-x86_64-rpms</code> repository:</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">subscription-manager repos --enable="ansible-2.9-for-rhel-8-x86_64-rpms"</code></pre>
 </div>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>Update the system rpms to the latest version and reboot if needed:</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">dnf update -y
 reboot</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_configure_hostname_and_fqdn_for_cephadm"><a class="anchor" href="#_configure_hostname_and_fqdn_for_cephadm"></a>5.2. Configure hostname and FQDN for <code>cephadm</code></h3>
-<div class="paragraph">
-<p>One of the important things about <code>cephadm</code> is that <a href="https://docs.ceph.com/en/octopus/cephadm/concepts/#fully-qualified-domain-names-vs-bare-host-names">certain requirements</a> exist regarding hostname and FQDN.</p>
-</div>
-<div class="paragraph">
-<p>Specifically, we need to be able to set the hostname of our host and:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>hostname</code> returns the bare host name.</p>
 </li>
 <li>
-<p><code>hostname -f</code> returns the FQDN.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>One of the ways to achieve this is the following:</p>
-</div>
-<div class="paragraph">
 <p>In all our hosts we configure the hostname using the bare/short hostname.</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">hostnamectl set-hostname &lt;short_name&gt;</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Then we modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 ip , We are setting the DOMAIN variable with our lab DNS domain name.</p>
-</div>
+</li>
+<li>
+<p>Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 IP by setting the DOMAIN variable with our DNS domain name.</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">DOMAIN="bkgzv.sandbox762.opentlc.com"
@@ -588,9 +558,11 @@ cat &lt;&lt;EOF &gt;/etc/hosts
 EOF</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>With this configuration we will get the recommended output for deploying RHCS with cephadm.</p>
-</div>
+</li>
+<li>
+<p>Verify the configuration for deploying Red Hat Ceph Storage with cephadm.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">hostname</code></pre>
@@ -602,9 +574,13 @@ EOF</code></pre>
 <pre>ceph1</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>And for the <code>hostname -f</code> option the long hostname with the fqdn.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Check the long hostname with the fqdn using the hostname -f option.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">hostname -f</code></pre>
@@ -617,28 +593,36 @@ EOF</code></pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_running_the_cephadm_ansible_preflight_playbook_to_finish_with_cephadm_pre_requisites"><a class="anchor" href="#_running_the_cephadm_ansible_preflight_playbook_to_finish_with_cephadm_pre_requisites"></a>5.3. Running the cephadm-ansible preflight playbook to finish with cephadm pre-requisites</h3>
-<div class="paragraph">
-<p>The next steps will be only run on ceph1, as we are going to install cephadm-ansible and configure it to run the preflight playbook.</p>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>Install the <code>cephadm-ansible</code> RPM package:</p>
-</div>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">sudo dnf install -y cephadm-ansible</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>To be able to run the Ansible playbooks, we need to have ssh passwordless
-access to all the nodes that are going to be part of the RHCS cluster, in this
-deployment we have passwordless ssh access to all nodes configured for user
-ec2-user, the user also needs to have root privileges using sudo.</p>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+To run the ansible playbooks, you must have ssh passwordless access to all the nodes that are configured to the Red Hat Ceph Storage cluster. Ensure that the configured user (for example, ec2-user) has root privileges to use the <code>sudo</code> command.
+</td>
+</tr>
+</table>
 </div>
-<div class="paragraph">
-<p>As we are using a custom key we are going to configure the ec2-user ssh config file to specify the id/key we want to use when we connect to the nodes via ssh:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Configure the ec2-user ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF &gt; ~/.ssh/config
@@ -648,29 +632,13 @@ Host ceph*
 EOF</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>A quick check to see if the passwordless ssh access is working:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">for i in 1 2 3 4 5 6 7; do ssh ceph$i date ; done</code></pre>
 </div>
 </div>
-<div class="literalblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre>Thu Mar  3 12:56:16 UTC 2022
-Thu Mar  3 12:56:16 UTC 2022
-Thu Mar  3 12:56:17 UTC 2022
-Thu Mar  3 12:56:17 UTC 2022
-Thu Mar  3 12:56:17 UTC 2022
-Thu Mar  3 12:56:17 UTC 2022
-Thu Mar  3 12:56:18 UTC 2022</pre>
-</div>
-</div>
-<div class="paragraph">
+</li>
+<li>
 <p>Build our ansible inventory</p>
-</div>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF &gt; /usr/share/cephadm-ansible/inventory
@@ -693,17 +661,18 @@ EOF</code></pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The [admin] group is optional, when defined in the ansible inventory file, cephadm-ansible will deploy the RHCS admin keyring to all hosts beloging to the [admin] group at the following location /etc/ceph/ceph.client.admin.keyring.
+The <code>cephadm-ansible</code> pre-flight playbook deploys the RHCS admin keyring to all hosts belonging to the [admin] group at the following location /etc/ceph/ceph.client.admin.keyring.
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>One final check before running the pre-flight playbook, we will use the ping module to verify ansible can access all of the nodes.</p>
 </div>
-<div class="paragraph">
-<p>We are running ansible commands as <code>cloud-user</code>.</p>
 </div>
+</li>
+<li>
+<p>Verify ansible can access all of the nodes using the ping module before running the pre-flight playbook.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ansible -i /usr/share/cephadm-ansible/inventory -m ping all -b</code></pre>
@@ -766,12 +735,13 @@ ceph7 | SUCCESS =&gt; {
 <div class="paragraph">
 <p>The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.</p>
 </div>
-<div class="paragraph">
-<p>The preflight playbook uses the cephadm-ansible inventory file to identify all the admin and client nodes in the storage cluster.</p>
 </div>
-<div class="paragraph">
-<p>We are running ansible commands as <code>cloud-user</code>.</p>
 </div>
+</li>
+<li>
+<p>Run the following ansible playbook.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ansible-playbook -i /usr/share/cephadm-ansible/inventory /usr/share/cephadm-ansible/cephadm-preflight.yml --extra-vars "ceph_origin=rhcs"</code></pre>
@@ -779,61 +749,39 @@ ceph7 | SUCCESS =&gt; {
 </div>
 </div>
 </div>
+</li>
+</ol>
+</div>
+</div>
+</div>
 </div>
 <div class="sect1">
-<h2 id="_cluster_bootstrapping_with_cephadm"><a class="anchor" href="#_cluster_bootstrapping_with_cephadm"></a>6. Cluster Bootstrapping with Cephadm</h2>
+<h2 id="_cluster_bootstrapping_with_cephadm"><a class="anchor" href="#_cluster_bootstrapping_with_cephadm"></a>5. Cluster Bootstrapping with Cephadm</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>The cephadm utility performs the following tasks during the bootstrap process:</p>
+<p>The cephadm utility installs and starts a Ceph Monitor daemon and a Ceph Manager daemon for a new Red Hat Ceph Storage cluster on the local node where the cephadm bootstrap command is run.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+For additional information on the bootstrapping process, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/red-hat-ceph-storage-installation#bootstrapping-a-new-storage-cluster_install">Bootstrapping
+a new storage cluster.</a>
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Installs and starts a Ceph Monitor daemon and a Ceph Manager daemon for a new Red Hat Ceph Storage cluster on the local node as containers.</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p>Creates the /etc/ceph directory.</p>
-</li>
-<li>
-<p>Writes a copy of the public key to /etc/ceph/ceph.pub for the Red Hat Ceph Storage cluster and adds the SSH key to the root user&#8217;s/root/.ssh/authorized_keys file.</p>
-</li>
-<li>
-<p>Writes a minimal configuration file needed to communicate with the new cluster to /etc/ceph/ceph.conf.</p>
-</li>
-<li>
-<p>Writes a copy of the client.admin administrative secret key to /etc/ceph/ceph.client.admin.keyring.</p>
-</li>
-<li>
-<p>Deploys a basic monitoring stack with Prometheus, Grafana, and other tools such as node-exporter and alert-manager.</p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>There are three steps  we need to fulfil before running the bootstrap cephadm command:</p>
+<p><code>Procedure</code></p>
 </div>
 <div class="olist arabic">
 <ol class="arabic">
 <li>
-<p>Create json file to authenticate against the container registry.</p>
-</li>
-<li>
-<p>Create Host Specs file.</p>
-</li>
-<li>
-<p>Get the IP of our bootstrap node.</p>
-</li>
-</ol>
-</div>
-<div class="sect2">
-<h3 id="_create_json_file_to_authenticate_against_the_container_registry"><a class="anchor" href="#_create_json_file_to_authenticate_against_the_container_registry"></a>6.1. Create json file to authenticate against the container registry.</h3>
-<div class="paragraph">
-<p>We are going to bootstrap our cluster from the <code>ceph1</code> host, from where we will run our cephadm command, and then the initial bootstrap monitor will get deployed.</p>
-</div>
-<div class="paragraph">
-<p>Cephadm needs access to a container registry so it can download the RHCS 5
-container images, you can provide the credentials in different ways. We
-recommend using a json file like in the following example:</p>
-</div>
+<p>Create json file to authenticate against the container registry using a json file as follows:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF &gt; /root/registry.json
@@ -845,78 +793,99 @@ recommend using a json file like in the following example:</p>
 EOF</code></pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_configure_host_specs_file"><a class="anchor" href="#_configure_host_specs_file"></a>6.2. Configure Host Specs file.</h3>
+</li>
+<li>
+<p>Configure Host Specs file.</p>
+<div class="openblock">
+<div class="content">
 <div class="paragraph">
-<p>You can use a service configuration file and the --apply-spec option to bootstrap the storage cluster and configure additional hosts and daemons. The configuration file is a .yaml file containing the service type, placement, and designated nodes for services you want to deploy.</p>
-</div>
-<div class="paragraph">
-<p>In our deployment, we are only going to include the hosts into the spec file, so
-they will get added to our ceph cluster at bootstrap, but you could configure
-other services, too, if needed.</p>
+<p>You can use a service configuration file and the --apply-spec option to bootstrap the storage cluster and configure additional hosts and daemons. The configuration file is a .yaml file that contains the service type, placement, and designated nodes for services that you want to deploy.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cat &lt;&lt;EOF &gt; /root/cluster-spec.yaml
 service_type: host
-addr: 10.0.143.78
-hostname: ceph1
+addr: 10.0.40.78  ## &lt;XXX.XXX.XXX.XXX&gt;
+hostname: ceph1   ##  &lt;ceph-hostname-1&gt;
 ---
 service_type: host
-addr: 10.0.155.35
+addr: 10.0.40.35
 hostname: ceph2
 ---
 service_type: host
-addr: 10.0.157.24
+addr: 10.0.40.24
 hostname: ceph3
 ---
 service_type: host
-addr: 10.0.155.185
+addr: 10.0.40.185
 hostname: ceph4
 ---
 service_type: host
-addr: 10.0.139.88
+addr: 10.0.40.88
 hostname: ceph5
 ---
 service_type: host
-addr: 10.0.150.66
+addr: 10.0.40.66
 hostname: ceph6
 ---
 service_type: host
-addr: 10.0.150.221
+addr: 10.0.40.221
 hostname: ceph7
 EOF</code></pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_get_our_bootstrap_node_ip"><a class="anchor" href="#_get_our_bootstrap_node_ip"></a>6.3. Get our bootstrap node IP</h3>
-<div class="paragraph">
-<p>We need to use the IP of what will be our RHCS public network. In our case we are using the same network for Cephs public/private network because the nodes only have one interface. So the IP for our bootstrap node ceph1 will be: <code>10.0.143.78</code></p>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_run_the_cephadm_bootstrap_command"><a class="anchor" href="#_run_the_cephadm_bootstrap_command"></a>6.4. Run the Cephadm bootstrap command</h3>
-<div class="paragraph">
-<p>We are now going to run the cephadm bootstrap command, the bootstrap command needs root permissions to execute.
- - Becasue we have configured a non-root user for the passwordless ssh connection, we have to specify the --ssh-user flag,
- - We use the --apply-spec to get all the nodes into the cluster
- - Finally the --registry-json flag to use the registry authentication file we created before</p>
-</div>
+</li>
+<li>
+<p>Retrieve the IP for the NIC that has the RHCS public network configured from the bootstrap node. You can use the following example command after substituting the <code>10.0.40.0</code> with the subnet you have defined in your ceph public network.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cephadm  bootstrap --ssh-user=ec2-user --mon-ip 10.0.143.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ip a | grep 10.0.40</code></pre>
 </div>
 </div>
-<div class="admonitionblock warning">
+<div class="paragraph">
+<p>Example output:</p>
+</div>
+<div class="literalblock">
+<div class="content">
+<pre>10.0.40.78</pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Run the <code>Cephadm</code> bootstrap command as the root user on the node that will be the initial Monitor node in the cluster. The <code>IP_ADDRESS</code> option is the IP address of the node that you are using to run the <code>cephadm bootstrap</code> command.</p>
+<div class="openblock">
+<div class="content">
+<div class="admonitionblock note">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-warning" title="Warning"></i>
+<i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-If the local node uses fully-qualified domain names (FQDN), then add the --allow-fqdn-hostname option to cephadm bootstrap on the command line.
+If you have configured a different user than root for passwordless SSH access use the <code>--ssh-user=</code> flag with the cepadm bootstrap command
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">cephadm  bootstrap --ssh-user=ec2-user --mon-ip 10.0.40.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If the local node uses fully-qualified domain names (FQDN), then add the <code>--allow-fqdn-hostname</code> option to cephadm bootstrap on the command line.
 </td>
 </tr>
 </table>
@@ -939,9 +908,13 @@ For more information see:
 	https://docs.ceph.com/docs/pacific/mgr/telemetry/</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>We can verify our RHCS cluster deployment using the ceph cli client from ceph1:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Verify the status of Red Hat Ceph Storage cluster deployment using the ceph cli client from ceph1:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph -s</code></pre>
@@ -968,8 +941,27 @@ For more information see:
 </div>
 </div>
 <div class="paragraph">
-<p>We have 5 monitors running (this is now the default with cephadm deployments) if enough nodes are available. The cluster is in HEALTH_WARN state because we haven&#8217;t deployed any OSDs yet.</p>
+<p>You now have 5 monitors running (this is now the default with cephadm deployments) if enough nodes are available. The cluster is in HEALTH_WARN state since no OSDs are deployed as yet.</p>
 </div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+It is normal if you get a global recovery event while you don&#8217;t have any osds configured.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Check if all the services have started.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch ls</code></pre>
@@ -1000,9 +992,13 @@ It may take a while for all the services to start.
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>We can also check if all our nodes are part of the cephadm cluster.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Verify if all the nodes are part of the cephadm cluster.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch host ls</code></pre>
@@ -1012,13 +1008,13 @@ It may take a while for all the services to start.
 <div class="title">Example output.</div>
 <div class="content">
 <pre>HOST   ADDR          LABELS  STATUS
-ceph1  10.0.143.78
-ceph2  10.0.155.35
-ceph3  10.0.157.24
-ceph4  10.0.155.185
-ceph5  10.0.139.88
-ceph6  10.0.150.66
-ceph7  10.0.150.221</pre>
+ceph1  10.0.40.78
+ceph2  10.0.40.35
+ceph3  10.0.40.24
+ceph4  10.0.40.185
+ceph5  10.0.40.88
+ceph6  10.0.40.66
+ceph7  10.0.40.221</pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -1028,43 +1024,32 @@ ceph7  10.0.150.221</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-We can run direct ceph commands from the host because we configured ceph1 in the cephadm-ansible inventory as part of the [admin] group, so the ceph admin keys were copied to the host
+We can run direct ceph commands from the host because we configured ceph1
+in the cephadm-ansible inventory as part of the [admin] group, so the ceph
+admin keys were copied to the host during the cephadm bootstrap process
 </td>
 </tr>
 </table>
 </div>
 </div>
 </div>
+</li>
+</ol>
+</div>
+</div>
 </div>
 <div class="sect1">
-<h2 id="_deploying_ceph_servicesmdsrgwosds"><a class="anchor" href="#_deploying_ceph_servicesmdsrgwosds"></a>7. Deploying Ceph services(MDS,RGW,OSDs)</h2>
+<h2 id="_relocating_the_monitors_and_managers_to_an_appropriate_location"><a class="anchor" href="#_relocating_the_monitors_and_managers_to_an_appropriate_location"></a>6. Relocating the monitors and managers to an appropriate location</h2>
 <div class="sectionbody">
-<div class="sect2">
-<h3 id="_deploy_five_ceph_monitors"><a class="anchor" href="#_deploy_five_ceph_monitors"></a>7.1. Deploy five Ceph monitors</h3>
 <div class="paragraph">
-<p>As we mentioned before RHCS deployments with cephadm configures five monitors by default, so we
-already have the five Monitor daemons we need for the stretched mode running on
-the cluster.</p>
+<p>Red Hat Ceph Storage with <code>cephadm</code> deploys five monitors by default.  If they are not placed according to the topology architecture, use this procedure to correctly configure the ceph monitors to the appropriate datacenters.</p>
 </div>
-<div class="paragraph">
-<p>Now we need to locate the MONs on specific DCs:</p>
-</div>
-<div class="ulist">
-<ul>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
-<p>Two monitors in DC1 nodes: <code>ceph1</code>,<code>ceph2</code>,<code>ceph3</code></p>
-</li>
-<li>
-<p>Two monitors in DC2 nodes: <code>ceph4</code>,<code>ceph5</code>,<code>ceph6</code></p>
-</li>
-<li>
-<p>One monitor (tiebreaker) in DC3: <code>ceph7</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>if we check the current placement of the monitor services we can see that we have two monitors on nodes in DC1, and two monitors on nodes in DC2 but no monitors in DC3</p>
-</div>
+<p>Check the current placement of the Ceph monitor services on the datacenters.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch ps | grep mon | awk '{print $1 " " $2}'</code></pre>
@@ -1081,43 +1066,18 @@ mon.ceph6 ceph6</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>So we are going to move a monitor to the node ceph7 located in our DC3 site, we
-can use the ceph orch apply mon with the placement hosts were we want the 5
-monitors to run, using the --dry-run parameter, we see that the mon is going to
-be removed from ceph6 and deployed on ceph7.</p>
+<p>You can see that there are 2 monitors on nodes in datacenter1, and three  monitors on nodes in datacenter2 but no monitors in datacenter3. Refer to the table in the Hardware requirements section to verify the layout of the ceph servers per datacenter.</p>
 </div>
+</div>
+</div>
+</li>
+<li>
+<p>Move a monitor to the node <code>ceph7</code> located in our datacenter3 site.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply mon --placement="ceph1,ceph3,ceph4,ceph5,ceph7" --dry-run</code></pre>
-</div>
-</div>
-<div class="literalblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre>####################
-SERVICESPEC PREVIEWS
-####################
-+---------+------+--------+-------------+
-|SERVICE  |NAME  |ADD_TO  |REMOVE_FROM  |
-+---------+------+--------+-------------+
-|mon      |mon   |ceph7   |ceph6        |
-+---------+------+--------+-------------+
-################
-OSDSPEC PREVIEWS
-################
-+---------+------+------+------+----+-----+
-|SERVICE  |NAME  |HOST  |DATA  |DB  |WAL  |
-+---------+------+------+------+----+-----+
-+---------+------+------+------+----+-----+</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Once confirmed that running the ceph orch apply mon achieves our goal of
-moving the mon from ceph6 to ceph7,  we run the same command without the --dry-run flag:</p>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply mon --placement="ceph1,ceph3,ceph4,ceph5,ceph7"</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply mon --placement="ceph1,ceph2,ceph4,ceph5,ceph7"</code></pre>
 </div>
 </div>
 <div class="literalblock">
@@ -1126,9 +1086,13 @@ moving the mon from ceph6 to ceph7,  we run the same command without the --dry-r
 <pre>Scheduled mon update...</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>We have to verify that we now have the right placement layout for our monitors:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Verify that the monitors are in the correct layout:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch ps | grep mon | awk '{print $1 " " $2}'</code></pre>
@@ -1145,29 +1109,125 @@ mon.ceph7 ceph7</pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_deploy_ceph_osds"><a class="anchor" href="#_deploy_ceph_osds"></a>7.2. Deploy Ceph OSDs</h3>
-<div class="paragraph">
-<p>We are now going to add OSDs to our RHCS Ceph cluster; in this lab, each of our
-servers have a single 150Gb drive, so in total, we will have 6 OSDs in our
-cluster.</p>
+</div>
+</li>
+<li>
+<p>Check the current placement of the Ceph manager services on the datacenters.</p>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre>ceph orch ps | grep mgr | awk '{print $1 " " $2}'</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>mgr.ceph1.ycgwy ceph1
+mgr.ceph2.kremtt ceph2</pre>
+</div>
 </div>
 <div class="paragraph">
-<p>Cephadm is very flexible when adding OSDs to the cluster. Service
-specifications of type osd are a way to describe a cluster layout using the
-properties of disks. It gives the user an abstract way to tell ceph which disks should turn into an OSD with which configuration without knowing the specifics of device names and paths.</p>
+<p>You can see that there are 2 managers on nodes datacenter1, and no managers in datacenter2. Refer to the table in the Hardware requirements section to verify the layout of the ceph servers per datacenter.</p>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Move a manager to the node <code>ceph5</code> located in our datacenter2 site.</p>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre>ceph orch apply mgr --placement="ceph2,ceph5"</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>Scheduled mgr update…</pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that the managers are in the correct layout:</p>
+<div class="openblock">
+<div class="content">
+<div class="literalblock">
+<div class="content">
+<pre>ceph orch ps | grep mgr | awk '{print $1 " " $2}'</pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre>mgr.ceph2.ycgwyz ceph2
+mgr.ceph5.kremtt ceph5</pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+</ol>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deploying_ceph_services"><a class="anchor" href="#_deploying_ceph_services"></a>7. Deploying Ceph services</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section provides examples of how you can deploy the following Ceph services:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>Object Storage Devices (OSDs)</code></p>
+</li>
+<li>
+<p><code>Metadata services (MDS) required for CephFS</code></p>
+</li>
+<li>
+<p><code>Rados Gateway Services(RGW) required for object storage</code></p>
+</li>
+<li>
+<p><code>Rados Block Device (RBD) pool required for block storage</code></p>
+</li>
+</ul>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+it is mandatory to deploy the OSDs for the cluster to work.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
-<p>Because we only have one drive and to keep things simple in this deployment we
-are going to use the <code>--all-available-devices</code> flag from the <code>ceph orch apply
-osd</code> command, using the all-available-devices flag, will scan all the hosts for
-available drives, each drive it finds that is available to be used by ceph will
-be configured as an osd.</p>
+<p><code>Procedure</code></p>
 </div>
-<div class="paragraph">
-<p>We first do a <code>--dry-run</code> to check if we would achieve our desired outcome with
-the current command, when we run <code>ceph orch apply osd --all-available-devices
---dry-run</code> command it has to scan the hosts for available disks.</p>
+<div class="olist arabic">
+<ol class="arabic">
+<li>
+<p>Scan the hosts to check for available disks and to get the OSD layout. In this example, 6 OSDs will be created one per each ceph hosts where <code>ceph7</code> is the arbiter node which does not have any OSD&#8217;s configured.</p>
+<div class="openblock">
+<div class="content">
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Use the --all-available-devices option in the command if you wish to use all the free disks in the ceph nodes. Run this command twice; the first time to scan the nodes, and the second time to view the results. For details, see Management of services using the Ceph Orchestrator.
+</td>
+</tr>
+</table>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -1223,9 +1283,13 @@ OSDSPEC PREVIEWS
 +---------+-----------------------+-------+-----------+----+-----+</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Everything looks ok so we remove the <code>--dry-run</code> flag and run the command again</p>
 </div>
+</div>
+</li>
+<li>
+<p>Run the command without –dry-run to create the OSD services</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply osd --all-available-devices</code></pre>
@@ -1237,9 +1301,13 @@ OSDSPEC PREVIEWS
 <pre>Scheduled osd.all-available-devices update...</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>After a minute we can check our ceph osd crush map layout with the <code>ceph osd tree</code>, each host has one OSD configured and its status is UP.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Check the ceph osd crush map layout to ensure that each host has one OSD configured and its status is UP.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd tree</code></pre>
@@ -1265,38 +1333,61 @@ OSDSPEC PREVIEWS
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_deploy_cephfs_mds_services"><a class="anchor" href="#_deploy_cephfs_mds_services"></a>7.3. Deploy CephFS (MDS services)</h3>
-<div class="paragraph">
-<p>Now that we have a proper Ceph cluster, we want to deploy CephFS executing the following steps:</p>
 </div>
-<div class="paragraph">
-<p>Using <code>cephadm</code>, deploy two new MDS daemons in hosts <code>ceph3</code> and <code>ceph6</code>. In this case, we are going to test if this movement is ok using the <code>--dry-run</code> flag:</p>
-</div>
+</li>
+<li>
+<p>Create and enable RBD a new block pool.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply mds cephfs --placement=ceph3,ceph6 --dry-run</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd pool create rbdpool 32 32
+ceph osd pool application enable rbdpool rbd</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The number 32 at the end of the command is the number of PGs assigned to this pool, the number of PGs can vary depending on several factors like the number of OSDs in the cluster, expected % used of the pool, etc. You can use the following calculator to help you determine the number of PGs needed: <a href="https://access.redhat.com/labs/cephpgc/" class="bare">https://access.redhat.com/labs/cephpgc/</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that the RBD pool has been created.</p>
+<div class="openblock">
+<div class="content">
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd lspools | grep rbdpool</code></pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>####################
-SERVICESPEC PREVIEWS
-####################
-+---------+------------+-------------+-------------+
-|SERVICE  |NAME        |ADD_TO       |REMOVE_FROM  |
-+---------+------------+-------------+-------------+
-|mds      |mds.cephfs  |ceph3 ceph6  |             |
-+---------+------------+-------------+-------------+
-################
-OSDSPEC PREVIEWS
-################
-+---------+------+------+------+----+-----+
-|SERVICE  |NAME  |HOST  |DATA  |DB  |WAL  |
-+---------+------+------+------+----+-----+
-+---------+------+------+------+----+-----+
-ceph orch apply mds cephfs --placement=ceph3,ceph6</pre>
+<pre>3 rbdpool</pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Using cephadm, deploy two new MDS daemons one in each datacenter. For more information, see <a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/operations_guide/management-of-mds-service-using-the-ceph-orchestrator">Management of MDS service using the Ceph Orchestrator.</a></p>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>In our example, we are using hosts <code>ceph3</code> and <code>ceph6</code>:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply mds cephfs --placement=ceph3,ceph6</code></pre>
 </div>
 </div>
 <div class="literalblock">
@@ -1305,9 +1396,31 @@ ceph orch apply mds cephfs --placement=ceph3,ceph6</pre>
 <pre>Scheduled mds.cephfs update...</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Finally, create the CephFS volume with the name cephfs; this will take care of creating the metadata and data pools for us:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Verify that MDS services are active.</p>
+<div class="openblock">
+<div class="content">
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph -s | grep mds</code></pre>
+</div>
+</div>
+<div class="literalblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>    mds: 1/1 daemons up, 1 standby</pre>
+</div>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Create the CephFS volume. For placements, use the same <code>hostname</code> as used in the previous command.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph fs volume create cephfs --placement=ceph3,ceph6</code></pre>
@@ -1320,14 +1433,21 @@ ceph orch apply mds cephfs --placement=ceph3,ceph6</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The ceph fs volume create command will also take care of creating the needed data and meta cephfs pools for us.
+The ceph fs volume create command also creates the needed data and meta
+CephFS pools. For more information, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/file_system_guide/index">Configuring
+and Mounting Ceph File Systems.</a>
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>Get the Ceph status to verify how the MDS daemons have been deployed, and we can check that the state is active, we can see that ceph6 is the primary mds for this filesystem and ceph3 the secondary.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Check the Ceph status to verify how the MDS daemons have been deployed. Ensure that the state is active where <code>ceph6</code> is the primary MDS for this filesystem and ceph3 is the secondary MDS.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph fs status</code></pre>
@@ -1348,14 +1468,16 @@ cephfs.ceph3.ogcqkl</pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_deploy_ceph_object_services_radosgw_or_rgw"><a class="anchor" href="#_deploy_ceph_object_services_radosgw_or_rgw"></a>7.4. Deploy Ceph Object services (RadosGW or RGW)</h3>
-<div class="paragraph">
-<p>Also, we want to deploy the object services executing the following steps:</p>
 </div>
+</li>
+<li>
+<p>Deploy the object services such that there is one RGW service per OSD datacenter.
+Use the --placement argument as shown in below command. The initial number 2 in the example represents the number of RGW daemons to deploy, followed by the placement for the daemons specifying the hostname where the daemon must run. In this example, the hostname’s are ceph3 and ceph6.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply rgw objectgw  --port=8080 --placement="2 ceph3 ceph5"</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch apply rgw objectgw  --port=8080 --placement="2 ceph3 ceph6"</code></pre>
 </div>
 </div>
 <div class="literalblock">
@@ -1365,89 +1487,50 @@ cephfs.ceph3.ogcqkl</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Checking with 'ceph -s' we can see that our RGW services are active.</p>
+<p>To know more about RGW, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/object_gateway_guide/index">The
+Ceph Object Gateway.</a></p>
 </div>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that RGW services are active.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph -s</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph -s | grep rgw</code></pre>
 </div>
 </div>
 <div class="literalblock">
 <div class="title">Example output.</div>
 <div class="content">
-<pre>  cluster:
-    id:     dd77f050-9afe-11ec-a56c-029f8148ea14
-    health: HEALTH_OK
-
-  services:
-    mon: 5 daemons, quorum ceph1,ceph4,ceph3,ceph5,ceph7 (age 102m)
-    mgr: ceph1.laagvc(active, since 2h), standbys: ceph4.adlrnk
-    mds: 1/1 daemons up, 1 standby
-    osd: 6 osds: 6 up (since 36m), 6 in (since 36m)
-    rgw: 2 daemons active (2 hosts, 1 zones)
-
-  data:
-    volumes: 1/1 healthy
-    pools:   7 pools, 169 pgs
-    objects: 211 objects, 7.2 KiB
-    usage:   96 MiB used, 900 GiB / 900 GiB avail
-    pgs:     169 active+clean</pre>
+<pre>rgw: 2 daemons active (2 hosts, 1 zones)</pre>
 </div>
 </div>
+</div>
+</div>
+</li>
+</ol>
 </div>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_configure_rhcs_stretch_cluster_mode"><a class="anchor" href="#_configure_rhcs_stretch_cluster_mode"></a>8. Configure RHCS Stretch Cluster Mode</h2>
+<h2 id="_configuring_red_hat_ceph_storage_stretch_cluster"><a class="anchor" href="#_configuring_red_hat_ceph_storage_stretch_cluster"></a>8. Configuring Red Hat Ceph Storage stretch cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Once we have fully deployed our RHCS5 cluster using <code>cephadm</code>, we will configure the stretch cluster mode. The following <a href="https://github.com/ceph/ceph/blob/master/doc/rados/operations/stretch-mode.rst">document</a> properly explains the features and blueprint of this feature. Specifically, the new stretch mode is designed to handle the 2-site case.</p>
+<p><code>Procedure</code></p>
 </div>
-<div class="sect2">
-<h3 id="_configure_monitor_election_strategies"><a class="anchor" href="#_configure_monitor_election_strategies"></a>8.1. Configure monitor election strategies</h3>
-<div class="paragraph">
-<p>The first thing we have to do is ensure we have 5 Ceph monitors in our
-cluster. This is required as OSDs will only be allowed to connect to monitors in the same data centre when using the stretch mode.</p>
-</div>
-<div class="paragraph">
-<p>As we have detailed before, our monitors are located at:</p>
-</div>
-<div class="ulist">
-<ul>
+<div class="olist arabic">
+<ol class="arabic">
 <li>
-<p>Two monitors in DC1 nodes: <code>ceph1</code>,<code>ceph2</code></p>
-</li>
-<li>
-<p>Two monitors in DC2 nodes: <code>ceph4</code>,<code>ceph5</code></p>
-</li>
-<li>
-<p>One monitor (tiebreaker) in DC3: <code>ceph7</code></p>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>When working in stretch mode, the first thing we have to do is change the monitor elections from <code>classic</code> to <code>connectivity</code>. More information can be found in the following <a href="https://docs.ceph.com/en/latest/rados/operations/change-mon-elections/">upstream documentation</a>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>This mode evaluates connection scores provided by each monitor for its peers and elects the monitor with the highest score. This mode is designed to handle network partitioning or <code>net-splits</code>, which may happen if your cluster is stretched across multiple data centers or otherwise has a non-uniform or unbalanced network topology.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
-<div class="paragraph">
-<p>By default, in a ceph cluster, the connectivity is set to classic; we can check the current election strategy being used by the monitors with the <code>ceph mon dump</code> command, if in classic election strategy mode we will see the value of 1 in the output:</p>
-</div>
+<p>Check the current election strategy being used by the monitors with the ceph mon dump command. By default in a ceph cluster, the connectivity is set to classic.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon dump | grep election_strategy</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ceph mon dump | grep election_strategy</code></pre>
 </div>
 </div>
 <div class="literalblock">
@@ -1457,22 +1540,28 @@ cluster. This is required as OSDs will only be allowed to connect to monitors in
 election_strategy: 1</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>To change the monitor election to <code>connectivity</code>, we have to execute the following command:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Change the monitor election to connectivity.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon set election_strategy connectivity</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>If we run  the previous <code>ceph mon dump</code>, we can see that the
-election_strategy value is now 3; this is the equivalent of <code>connectivity</code>
-mode.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Run the previous ceph mon dump command again to verify the election_strategy value.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon dump | grep election_strategy</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">$ ceph mon dump | grep election_strategy</code></pre>
 </div>
 </div>
 <div class="literalblock">
@@ -1489,17 +1578,20 @@ election_strategy: 3</pre>
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-<div class="paragraph">
-<p>You can also see the actual scores for each monitor doing a query to the
-monitor socket, for example: <code>ceph daemon /var/run/ceph/6c685342-6330-11ec-b0d4-525400a45877/ceph-mon.`ceph1.asok connection scores dump</code></p>
-</div>
+To know more about the different election strategies, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/operations_guide/management-of-monitors-using-the-ceph-orchestrator#configuring-monitor-election-strategy_ops">Configuring
+monitor election strategy.</a>
 </td>
 </tr>
 </table>
 </div>
-<div class="paragraph">
-<p>As a final step, we need to set the proper location for all our Ceph monitors:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Set the location for all our Ceph monitors:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon set_location ceph1 datacenter=DC1
@@ -1509,10 +1601,11 @@ ceph mon set_location ceph5 datacenter=DC2
 ceph mon set_location ceph7 datacenter=DC3</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>With the help of the <code>ceph mon dump</code> command, we can verify that each monitor
-has its appropiate location.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Verify that each monitor has its appropriate location.</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon dump</code></pre>
@@ -1534,15 +1627,9 @@ election_strategy: 3
 4: [v2:10.0.155.35:3300/0,v1:10.0.155.35:6789/0] mon.ceph2; crush_location {datacenter=DC1}</pre>
 </div>
 </div>
-</div>
-<div class="sect2">
-<h3 id="_configure_the_osd_stretched_layout_in_the_crush_map"><a class="anchor" href="#_configure_the_osd_stretched_layout_in_the_crush_map"></a>8.2. Configure the OSD stretched layout in the CRUSH map</h3>
-<div class="paragraph">
-<p>Once we have configured all our Ceph monitors, we will generate a new CRUSH map with the location of the OSDs.</p>
-</div>
-<div class="paragraph">
-<p>Our current CRUSH map is the following:</p>
-</div>
+</li>
+<li>
+<p>View the current CRUSH map</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd tree</code></pre>
@@ -1568,93 +1655,33 @@ election_strategy: 3
 </div>
 </div>
 <div class="paragraph">
-<p>With this default crush map, our failure domain is at the host level and ceph
-has no understanding of what our infrastructure topology looks like, we need to
-tell Ceph via the crush map that we have two datacenters with OSDs</p>
-</div>
-<div class="paragraph">
-<p>We are going to modify the current crush map with the following layout:</p>
-</div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>root default</code></p>
-<div class="ulist">
-<ul>
-<li>
-<p><code>datacenter DC1</code></p>
-<div class="ulist">
-<ul>
-<li>
-<p>host ceph1</p>
-</li>
-<li>
-<p>host ceph2</p>
-</li>
-<li>
-<p>host ceph3</p>
-</li>
-</ul>
+<p>This default crush map indicates that the failure domain is at the host level and ceph has no understanding of what the infrastructure topology looks like.</p>
 </div>
 </li>
 <li>
-<p><code>datacenter DC2</code></p>
-<div class="ulist">
-<ul>
-<li>
-<p>host ceph4</p>
-</li>
-<li>
-<p>host ceph5</p>
-</li>
-<li>
-<p>host ceph6</p>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-</li>
-</ul>
-</div>
-<div class="paragraph">
-<p>So to achieve this task, we will be using the <code>ceph osd crush</code> command. First we
-will create the new buckets for <code>datacenter DC1</code>, <code>datacenter DC2</code>.</p>
-</div>
-<div class="admonitionblock note">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-note" title="Note"></i>
-</td>
-<td class="content">
-<div class="paragraph">
-<p>A bucket is the CRUSH term for internal nodes in the hierarchy: hosts, racks,
-rows, etc. Not related at all with S3 object storage buckets.</p>
-</div>
-</td>
-</tr>
-</table>
-</div>
+<p>Use the following command to create the new buckets for <code>datacenter DC1</code> and <code>datacenter DC2</code>:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd crush add-bucket DC1 datacenter
 ceph osd crush add-bucket DC2 datacenter</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>We now have to move the DC1 and DC2 datacenter buckets under the root default bucket.</p>
 </div>
+</div>
+</li>
+<li>
+<p>Move the DC1 and DC2 datacenter buckets under the root default bucket.</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd crush move DC1 root=default
 ceph osd crush move DC2 root=default</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Next we will move each of our hosts and their osds under each datacenter.</p>
-</div>
+</li>
+<li>
+<p>Move each of the hosts and their osds under each datacenter.</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd crush move ceph1 datacenter=DC1
@@ -1665,9 +1692,11 @@ ceph osd crush move ceph5 datacenter=DC2
 ceph osd crush move ceph6 datacenter=DC2</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Lets check our crush map again with the <code>ceph osd tree</code> so we can see how now ceph is aware of the underlying infrastructure topology.</p>
-</div>
+</li>
+<li>
+<p>Check the CRUSH map again with the ceph osd tree command to see how ceph is now mapped.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd tree</code></pre>
@@ -1694,44 +1723,46 @@ ceph osd crush move ceph6 datacenter=DC2</code></pre>
   5    ssd  0.14650              osd.5       up   1.00000  1.00000</pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Now that we have configured the  underlying infrastructure topology for our
-environment, we need to create a CRUSH rule that makes use of this new
-topology.</p>
 </div>
-<div class="paragraph">
-<p>Unfortunately, at the moment, we can&#8217;t create the needed crush rule via the ceph
-cli command, so we will have to compile a new crush map adding our custom crush
-rule, so let&#8217;s get started:</p>
 </div>
-<div class="paragraph">
-<p>Install the <code>ceph-base</code> RPM package to use the <code>crushtool</code> command:</p>
-</div>
+</li>
+<li>
+<p>Create a CRUSH rule that makes use of this new topology by installing the ceph-base RPM package in order to use the crushtool command:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">dnf -y install ceph-base</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Get the compiled CRUSH map from the cluster:</p>
+<p>To know more about CRUSH ruleset, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/architecture_guide/the-core-ceph-components#ceph-crush-ruleset_arch">Ceph
+CRUSH ruleset.</a></p>
 </div>
+</div>
+</div>
+</li>
+<li>
+<p>Get the compiled CRUSH map from the cluster:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd getcrushmap &gt; /etc/ceph/crushmap.bin</code></pre>
 </div>
 </div>
-<div class="paragraph">
+</li>
+<li>
 <p>Decompile the CRUSH map and convert it to a text file in order to be able to edit it:</p>
-</div>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">crushtool -d /etc/ceph/crushmap.bin -o /etc/ceph/crushmap.txt</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Add the following rule to our CRUSH map by editing the text file
-<code>/etc/ceph/crushmap.txt</code> , we have to add our rule at the end of file.</p>
-</div>
+</li>
+<li>
+<p>Add the following rule to the CRUSH map by editing the text file /etc/ceph/crushmap.txt at the end of the file.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">vim /etc/ceph/crushmap.txt
@@ -1901,27 +1932,51 @@ please use the next free id.</p>
 </li>
 </ul>
 </div>
-<div class="paragraph">
-<p>Compile the new CRUSH map from our file <code>/etc/ceph/crushmap.txt</code> and convert it
-to a binary file called <code>/etc/ceph/crushmap2.bin</code>:</p>
 </div>
+</div>
+</li>
+<li>
+<p>Compile the new CRUSH map from the file /etc/ceph/crushmap.txt and convert it to a binary file called /etc/ceph/crushmap2.bin:</p>
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">crushtool -c /etc/ceph/crushmap.txt -o /etc/ceph/crushmap2.bin</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>Once we have tested the CRUSH rule we have just created, we can inject it back
-into the cluster:</p>
-</div>
+</li>
+<li>
+<p>Inject the new crushmap we created back into the cluster:</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd setcrushmap -i /etc/ceph/crushmap2.bin</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>We can verify the stretched rule we created is now available to be used:</p>
+<div class="literalblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre>17</pre>
 </div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The number 17 is a counter and it will increase (18,19, and so on) depending on the changes you make to the crush map
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</li>
+<li>
+<p>Verify that the stretched rule created is now available for use.</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph osd crush rule ls</code></pre>
@@ -1935,28 +1990,19 @@ stretch_rule</pre>
 </div>
 </div>
 </div>
-<div class="sect2">
-<h3 id="_enable_stretch_cluster_mode"><a class="anchor" href="#_enable_stretch_cluster_mode"></a>8.3. Enable stretch cluster mode</h3>
-<div class="paragraph">
-<p>We have one final step, and it&#8217;s enabling the stretch cluster mode where:</p>
 </div>
-<div class="ulist">
-<ul>
-<li>
-<p><code>ceph7</code> is the tiebreaker node name.</p>
 </li>
 <li>
-<p><code>stretch_rule</code> is the CRUSH rule we have created.</p>
-</li>
-<li>
-<p><code>datacenter</code> is the location tag used to locate the OSDs and monitors.</p>
-</li>
-</ul>
-</div>
+<p>Enable stretch cluster mode</p>
+<div class="openblock">
+<div class="content">
 <div class="listingblock execute">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph mon enable_stretch_mode ceph7 stretch_rule datacenter</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>In this example, <code>ceph7</code> is the arbiter node, <code>stretch_rule</code> is the crush rule we created in the previous step and <code>datacenter</code> is the dividing bucket.</p>
 </div>
 <div class="paragraph">
 <p>Verify all our pools are using the <code>stretch_rule</code> CRUSH rule we have created in our Ceph cluster:</p>
@@ -1975,12 +2021,17 @@ Pool: cephfs.cephfs.data; crush_rule: stretch_rule
 Pool: .rgw.root; crush_rule: stretch_rule
 Pool: default.rgw.log; crush_rule: stretch_rule
 Pool: default.rgw.control; crush_rule: stretch_rule
-Pool: default.rgw.meta; crush_rule: stretch_rule</pre>
+Pool: default.rgw.meta; crush_rule: stretch_rule
+Pool: rbdpool; crush_rule: stretch_rule</pre>
 </div>
 </div>
 <div class="paragraph">
-<p>We now have a working RHCS cluster with stretched mode enabled.</p>
+<p>This indicates that a working Red Hat Ceph Storage stretched cluster with  arbiter mode is now available.</p>
 </div>
+</div>
+</div>
+</li>
+</ol>
 </div>
 </div>
 </div>
