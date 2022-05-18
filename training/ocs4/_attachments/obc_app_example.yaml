@@ -27,11 +27,11 @@ spec:
     spec:
       restartPolicy: OnFailure
       containers:
-        - image: mesosphere/aws-cli:latest
+        - image: amazon/aws-cli:latest
           command: ["sh"]
           args: 
             - '-c'
-            - 'set -x && s3cmd --no-check-certificate --signature-v2 --host $BUCKET_HOST:$BUCKET_PORT --host-bucket $BUCKET_HOST:$BUCKET_PORT du'
+            - 'aws --endpoint https://$BUCKET_HOST:$BUCKET_PORT --no-verify-ssl s3 ls'
           name: obc-test
           env:
             - name: BUCKET_NAME
