@@ -370,12 +370,12 @@ You can use a service configuration file and the --apply-spec option to bootstra
 ....
 cat <<EOF > /root/cluster-spec.yaml
 service_type: host
-addr: 10.0.40.78  —> <XXX.XXX.XXX.XXX>
-hostname: ceph1   —>  <ceph-hostname-1>
+addr: 10.0.40.78  ## <XXX.XXX.XXX.XXX>
+hostname: ceph1   ##  <ceph-hostname-1>
 ---
 service_type: host
-addr: 10.0.40.35  —> <XXX.XXX.XXX.XXX>
-hostname: ceph2  —>  <ceph-hostname-2>
+addr: 10.0.40.35 
+hostname: ceph2 
 ---
 service_type: host
 addr: 10.0.40.24
@@ -607,7 +607,7 @@ You can see that there are 2 managers on nodes datacenter1, and no managers in d
 +
 --
 ....
-$ ceph orch apply mgr --placement="ceph2,ceph5"
+ceph orch apply mgr --placement="ceph2,ceph5"
 ....
 
 .Example output:
@@ -620,7 +620,7 @@ Scheduled mgr update…
 +
 --
 ....
-$ ceph orch ps | grep mgr | awk '{print $1 " " $2}'
+ceph orch ps | grep mgr | awk '{print $1 " " $2}'
 ....
 
 .Example output:
@@ -759,9 +759,11 @@ ceph osd pool application enable rbdpool rbd
 ....
 
 NOTE: The number 32 at the end of the command is the number of PGs assigned to this pool, the number of PGs can vary depending on several factors like the number of OSDs in the cluster, expected % used of the pool, etc. You can use the following calculator to help you determine the number of PGs needed: https://access.redhat.com/labs/cephpgc/ 
-
-5.Verify that the RBD pool has been created.
-
+--
++
+. Verify that the RBD pool has been created.
++
+--
 [source,role="execute"]
 ....
 ceph osd lspools | grep rbdpool
@@ -1187,7 +1189,7 @@ ceph mon enable_stretch_mode ceph7 stretch_rule datacenter
 
 In this example, `ceph7` is the arbiter node, `stretch_rule` is the crush rule we created in the previous step and `datacenter` is the dividing bucket.
 
-$ Verify all our pools are using the `stretch_rule` CRUSH rule we have created in our Ceph cluster:
+Verify all our pools are using the `stretch_rule` CRUSH rule we have created in our Ceph cluster:
 
 [source,role="execute"]
 ....
