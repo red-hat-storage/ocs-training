@@ -76,23 +76,12 @@ cluster-ocs4-8613-bc282-worker-us-east-2b   1         1         1       1       
 cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                             4d4h
 ----
 
-Create new *MachineSets* that will in turn create storage-specific nodes for
-your OCP cluster in the AWS AZs:
 
-WARNING: *Make sure you do the next steps for finding and using your CLUSTERID*
+Create new *MachineSets* that will run storage-specific nodes for your OCP cluster:
 
 [source,role="execute"]
 ----
-CLUSTERID=$(oc get machineset -n openshift-machine-api -o jsonpath='{.items[0].metadata.labels.machine\.openshift\.io/cluster-api-cluster}')
-echo $CLUSTERID
-----
-
-Similar to the infrastructure nodes lab, create new *MachineSets* that will run
-storage-specific nodes for your OCP cluster:
-
-[source,role="execute"]
-----
-curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/cluster-workerocs-us-east-2.yaml | sed -e "s/CLUSTERID/${CLUSTERID}/g" | oc apply -f -
+curl https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/create_machinesets.sh | bash 
 ----
 
 Check that you have new *machines* created.
