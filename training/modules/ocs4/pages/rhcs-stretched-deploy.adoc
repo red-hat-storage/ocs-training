@@ -163,11 +163,12 @@ dnf update -y
 reboot
 ....
 
-Select a node from the cluster to be your bootstrap node. `ceph1` is our
-bootstrap and deployment node. 
 --
 +
-. Only on the bootstrap node `ceph1`, enable the `ansible-2.9-for-rhel-8-x86_64-rpms` and `rhceph-5-tools-for-rhel-8-x86_64-rpms` repositories:
+. Select a node from the cluster to be your bootstrap node. `ceph1` is our
+bootstrap and deployment node. 
++
+Only on the bootstrap node `ceph1`, enable the `ansible-2.9-for-rhel-8-x86_64-rpms` and `rhceph-5-tools-for-rhel-8-x86_64-rpms` repositories:
 +
 --
 [source,role="execute"]
@@ -176,7 +177,7 @@ subscription-manager repos --enable="ansible-2.9-for-rhel-8-x86_64-rpms" --enabl
 ....
 --
 +
-. In all our hosts we configure the hostname using the bare/short hostname.
+. In all our RHCS hosts we configure the hostname using the bare/short hostname.
 +
 --
 [source,role="execute"]
@@ -236,9 +237,9 @@ sudo dnf install -y cephadm-ansible
 
 
 IMPORTANT: To run the ansible playbooks, you must have ssh passwordless access
-to all the nodes that are configured to the Red Hat Ceph Storage cluster.
+to all the nodes that are part of the Red Hat Ceph Storage cluster.
 Ensure that the configured user (in our example, deployment-user) has
-privileges to invoke the `sudo` command.
+privileges to invoke the `sudo` command without needing password.
 --
 +
 . Configure the selected user in our case `deployment-user` ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:
@@ -274,10 +275,10 @@ EOF
 ....
 
 
-NOTE: The `cephadm-ansible` pre-flight playbook tags all hosts belonging to the
-ansible inventory
-[admin] group so later on during the bootstrap cephadm will copy the RHCS admin
-keyring to the tagged hosts at the following location /etc/ceph/ceph.client.admin.keyring.
+NOTE: Hosts configured as part of the [admin] group on the inventory file will be
+tagged as _admin by cephadm so they recieve the admin ceph keyring during
+the bootstrap process 
+
 --
 +
 . Verify ansible can access all of the nodes using the ping module before running the pre-flight playbook.
@@ -340,11 +341,11 @@ ceph7 | SUCCESS => {
 }
 ....
 
-
-The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible.
 --
 +
-. Run the following ansible playbook.
+. The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible. 
++
+Run the following ansible playbook.
 +
 --
 [source,role="execute"]
@@ -361,6 +362,54 @@ NOTE: For additional information on the bootstrapping process, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/red-hat-ceph-storage-installation#bootstrapping-a-new-storage-cluster_install[Bootstrapping
 a new storage cluster.]
 
+In this example we will use the cluster-spec.yaml file to deploy and configure the following RHCS services:
+
+* `Ceph cluster Monitors(MONs) and Managers(MGRs)`
+
+Using the spec file in this example five monitors will get deployed and they will
+get allocated according to the labels we have specified on each node.
+
+Two managers will get deployed in Active/Pasive fashion, Each Manager daemon
+will be allocated on a different datacenter.
+
+NOTE: For additional information on configuring Monitors using the service specification file.
+See
+https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-ceph-monitor-daemons-using-the-service-specification_ops[Configure MONs
+service using service specification file.]
+
+
+* `Object Storage Devices (OSDs)`
+
+Using the spec file in this example all free disks on the nodes will be used as
+osds, in this example we have one driver per node so 7 OSDs will be created one per each ceph hosts where ceph7 is the arbiter node which does not have any OSD’s configured.
+
+NOTE: For additional information on configuring OSDs using the service specification file.
+See
+https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#advanced-service-specifications-and-filters-for-deploying-osds_ops[Configure OSD Advanced filters.]
+
+* `Metadata services (MDS) required for CephFS`
+
+Using the spec file in this example 2 MDS servers will be deployed in
+Active/Passive, each MDS service will localted on a different site.
+
+NOTE: For additional information on the MDS service spec configuration. See
+https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-mds-service-using-the-service-specification_ops[Configure MDS
+service using service specification file.]
+
+* `Rados Gateway Services(RGW) required for object storage`
+
+Using the spec file in this example 2 RGW servies will be deployed listening on
+port 8080, each RGW service will allocated on a different datacenter.
+
+NOTE: For additional information on the GRW service spec configuration. See
+https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-ceph-object-gateway-using-the-service-specification_ops[Configure RGW service using service specification file.]
+
+NOTE: To know more about RGW, see
+link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/object_gateway_guide/index[The
+Ceph Object Gateway.]
+
+
+
 `Procedure`
 
 . Create json file to authenticate against the container registry using a json file as follows:
@@ -376,62 +425,9 @@ cat <<EOF > /root/registry.json
 EOF
 ....
 +
-. Configure Hosts and Services Specs file.
+. Create a cluster-spec.yaml that adds the nodes to the RHCS cluster and also sets specific labels for where the services should run in accordance with table X.X
 +
 --
-You can use a service specification file and the --apply-spec option to
-bootstrap the ceph storage cluster and also at the same time configure
-additional hosts and service daemons. The specification file is a .yaml file that contains the service type, placement, and designated nodes for services that you want to deploy.
-
-In the cluster-spec.yaml file we are configuring the following RHCS services:
-
-* `Ceph cluster Monitors(MONs) and Managers(MGRs)`
-
-With the service spec configured five monitors will get deployed and they will
-get located according to the labels we have specified on each node.
-
-Two managers will get deployed in Active/Pasive fashion, Each Manager daemon
-will be located on a different site.
-
-NOTE: For additional information on configuring Monitors using the service specification file.
-See
-https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-ceph-monitor-daemons-using-the-service-specification_ops[Configure MONs
-service using service specification file.]
-
-
-* `Object Storage Devices (OSDs)`
-
-With the service spec configured all free disks on the nodes will be used as
-osds, in this example we have one driver per node so 7 OSDs will be created one per each ceph hosts where ceph7 is the arbiter node which does not have any OSD’s configured.
-
-NOTE: For additional information on configuring OSDs using the service specification file.
-See
-https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#advanced-service-specifications-and-filters-for-deploying-osds_ops[Configure OSD Advanced filters.]
-
-* `Metadata services (MDS) required for CephFS`
-
-With the service spec configured 2 MDS servers will be deployed in
-Active/Passive, each MDS service will localted on a different site.
-
-NOTE: For additional information on the MDS service spec configuration. See
-https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-mds-service-using-the-service-specification_ops[Configure MDS
-service using service specification file.]
-
-* `Rados Gateway Services(RGW) required for object storage`
-
-With the service spec configured 2 RGW servies will be deployed listening on
-port 8080, each RGW service will located on a different site.
-
-NOTE: For additional information on the GRW service spec configuration. See
-https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-ceph-object-gateway-using-the-service-specification_ops[Configure RGW service using service specification file.]
-
-NOTES: To know more about RGW, see
-link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/object_gateway_guide/index[The
-Ceph Object Gateway.]
-
-
-
-Create a cluster-spec.yaml that adds the nodes to the RHCS cluster and also sets specific labels for where the services should run in accordance with table X.X
 ....
 
 cat <<EOF > /root/cluster-spec.yaml
@@ -549,7 +545,7 @@ NOTE: If you have configured a different user than root for passwordless SSH acc
 
 [source,role="execute"]
 ....
-cephadm  bootstrap --ssh-user=ec2-user --mon-ip 10.0.40.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json
+cephadm  bootstrap --ssh-user=deployment-user --mon-ip 10.0.40.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json
 ....
 
 IMPORTANT: If the local node uses fully-qualified domain names (FQDN), then add the `--allow-fqdn-hostname` option to cephadm bootstrap on the command line.
@@ -602,8 +598,11 @@ ceph -s
 
 
 NOTE: It is normal if you get a global recovery event while you don't have any osds configured.
+
 NOTE: It may take several minutes for all the services to start.
+
 NOTE: You can use `ceph orch ps` and `ceph orch ls` to further check the status of the services
+
 --
 +
 .  Verify if all the nodes are part of the cephadm cluster.
@@ -617,13 +616,13 @@ ceph orch host ls
 .Example output.
 ....
 HOST   ADDR          LABELS  STATUS
-ceph1  10.0.40.78
-ceph2  10.0.40.35
-ceph3  10.0.40.24
-ceph4  10.0.40.185
-ceph5  10.0.40.88
-ceph6  10.0.40.66
-ceph7  10.0.40.221
+ceph1  10.0.40.78    _admin osd mon mgr
+ceph2  10.0.40.35    osd mon
+ceph3  10.0.40.24    osd mds rgw
+ceph4  10.0.40.185   osd mon mgr
+ceph5  10.0.40.88    osd mon
+ceph6  10.0.40.66    osd mds rgw
+ceph7  10.0.40.221   mon
 ....
 
 NOTE: We can run direct ceph commands from the host because we configured ceph1
@@ -690,7 +689,7 @@ ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
 ....
 --
 +
-. Create and enable RBD a new block pool.
+. Create and enable a new RBD block pool.
 +
 --
 
@@ -771,7 +770,7 @@ cephfs.ceph3.ogcqkl
 ....
 --
 +
-. Verify that RGW services are active and located one per OSD datenceter.
+. Verify that RGW services are active and running one on each OSD datenceter.
 +
 --
 [source,role="execute"]
@@ -781,8 +780,8 @@ ceph orch ps | grep rgw
 
 .Example output.
 ....
-rgw.objectgw.ceph-2.kkmxgb  ceph3  *:8080       running (7m)      3m ago   7m    52.7M        -  16.2.9   3520ead5eb19  bd95baac5760  
-rgw.objectgw.ceph-5.xmnpah  ceph6  *:8080       running (7m)      3m ago   7m    53.3M        -  16.2.9   3520ead5eb19  c6be9aad45de  
+rgw.objectgw.ceph-2.kkmxgb  ceph3  *:8080       running (7m)      3m ago   7m    52.7M        -  16.2.9  
+rgw.objectgw.ceph-5.xmnpah  ceph6  *:8080       running (7m)      3m ago   7m    53.3M        -  16.2.9 
 ....
 --
 
