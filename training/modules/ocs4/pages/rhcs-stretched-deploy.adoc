@@ -100,7 +100,7 @@ Physical server locations and Ceph component layout for Red Hat Ceph Storage clu
 |ceph7|DC3| MON
 |===
 
-Software Details:
+=== Software Details:
 
 Use the latest software version of RHCS 5. See
 link:https://access.redhat.com/articles/1548993[the knowledgebase article on
@@ -135,51 +135,59 @@ Before installing the RHCS Ceph cluster we need to perform the following steps i
 
 . Register all the nodes to the Red Hat Network or Red Hat Satellite and subscribe to a valid pool:
 +
+--
 [source,role="execute"]
 ....
 subscription-manager register
 subscription-manager subscribe --pool=8a8XXXXXX9e0
 ....
-+
+--
 +
 . All nodes in the Ceph cluster need access to the following repositories:
++
+--
 * `rhel-8-for-x86_64-baseos-rpms`
 * `rhel-8-for-x86_64-appstream-rpms`
 [source,role="execute"]
 ....
 subscription-manager repos --disable="*" --enable="rhel-8-for-x86_64-baseos-rpms" --enable="rhel-8-for-x86_64-appstream-rpms"
 ....
+--
 +
 . Update the Operating system rpms to the latest version and reboot if needed:
 +
+--
 [source,role="execute"]
 ....
 dnf update -y
 reboot
 ....
-+
 
-
-+
 Select a node from the cluster to be your bootstrap node. `ceph1` is our
 bootstrap and deployment node. 
+--
 +
 . Only on the bootstrap node `ceph1`, enable the `ansible-2.9-for-rhel-8-x86_64-rpms` and `rhceph-5-tools-for-rhel-8-x86_64-rpms` repositories:
 +
+--
 [source,role="execute"]
 ....
 subscription-manager repos --enable="ansible-2.9-for-rhel-8-x86_64-rpms" --enable="rhceph-5-tools-for-rhel-8-x86_64-rpms"
 ....
+--
 +
 . In all our hosts we configure the hostname using the bare/short hostname.
 +
+--
 [source,role="execute"]
 ....
 hostnamectl set-hostname <short_name>
 ....
+--
 +
 . Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 IP by setting the DOMAIN variable with our DNS domain name.
 +
+--
 [source,role="execute"]
 ....
 DOMAIN="bkgzv.sandbox762.opentlc.com"
@@ -188,8 +196,9 @@ cat <<EOF >/etc/hosts
 ::1       $(hostname).${DOMAIN} $(hostname) localhost6 localhost6.localdomain6
 EOF
 ....
+--
 +
-. Verify the configuration for deploying Red Hat Ceph Storage with cephadm.
+. Verify the hostname configuration for deploying Red Hat Ceph Storage with cephadm.
 +
 --
 [source,role="execute"]
