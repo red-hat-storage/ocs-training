@@ -10,10 +10,11 @@
 
 == Overview
 
-Red Hat Ceph Storage (RHCS) is an enterprise open-source platform that provides unified software-defined storage on standard, economical servers and disks. With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.
+Red Hat Ceph Storage (RHCS) is an open-source enterprise platform that provides
+unified software-defined storage on standard, economical servers and disks.With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.
 
 
-In this guide, we will explain how to properly set up a Red Hat Ceph Storage 5 cluster deployed on two different datacenters using the stretched mode functionality.
+This guide, will explain how to properly set up a Red Hat Ceph Storage 5 cluster deployed on two different datacenters using the stretched mode functionality.
 
 
 Also, RHCS provides other advanced characteristics like:
@@ -36,7 +37,7 @@ In the diagram depicted below, we can see a graphical representation of the RHCS
 architecture that will be used in this guide:
 
 
-image::RHCS-stretch-cluster-arbiter.png[High Level Architecture RHCS stretch mode]
+image::RHCS-stretch-cluster-arbiter.png[High-Level Architecture RHCS stretch mode]
 
 == RHCS stretch mode introduction
 
@@ -44,19 +45,19 @@ When the stretch mode is enabled, the OSDs will only take PGs active when they p
 
 
 * Pools will increase in size from the default 3 to 4, expecting two copies on each site.
-* OSDs will only be allowed to connect to monitors in the same data center.
+* OSDs will only be allowed to connect to monitors in the same datacenter.
 * New monitors will not join the cluster if they do not specify a location.
 
 
 If all the OSDs and monitors from a datacenter become inaccessible at once, the surviving datacenter will enter a degraded stretch mode which implies:
 
-* This will issue a warning, reduce the pool's `min_size` to 1, and allow the cluster to go active with data in the single remaining site.
+* This will issue a warning, reduce the pool's `min_size` to 1, and allow the cluster to go active with data in the remaining site.
 * The pool `size` parameter is not changed, so you will also get warnings that the pools are too small.
 * Although, the stretch mode flag will prevent the OSDs from creating extra copies in the remaining datacenter (so it will only keep two copies, as before).
 
-When the missing data center comes back, the cluster will enter recovery stretch mode triggering the following actions:
+When the missing datacenter comes back, the cluster will enter recovery stretch mode triggering the following actions:
 
-* This changes the warning and allows peering, but still only requires OSDs from the datacenter, which was up the whole time.
+* This changes the warning and allows peering but still only requires OSDs from the datacenter, which was up the whole time.
 * When all PGs are in a known state and are neither degraded nor incomplete, the cluster transitions back to the regular stretch mode where:
 
 ** The cluster ends the warning.
@@ -67,7 +68,7 @@ When the missing data center comes back, the cluster will enter recovery stretch
 
 == Requirements for deploying Red Hat Ceph Storage stretch cluster with arbiter
 
-Red Hat Ceph Storage (RHCS) is an enterprise open-source platform that provides unified software-defined storage on standard, economical servers and disks. With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.
+Red Hat Ceph Storage (RHCS) is an open-source enterprise platform that provides unified software-defined storage on standard, economical servers and disks. With block, object, and file storage combined into one platform, Red Hat Ceph Storage efficiently and automatically manages all your data, so you can focus on the applications and workloads that use it.
 
 This section provides a basic overview of the RHCS deployment. For more complex
 deployment, refer to the link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5[official documentation guide for RHCS 5.]
@@ -76,7 +77,7 @@ NOTE: Only Flash media is supported since it runs with `min_size=1` when degrade
 
 WARNING: Erasure coded pools cannot be used with stretch mode.
 
-NOTE: Custom CRUSH rules providing two copies in each site (using a total of 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
+NOTE: Custom CRUSH rules providing two copies in each site (using 4 copies) must be created when configuring the stretch mode in the Ceph cluster.
 
 
 === Hardware requirements
@@ -100,7 +101,7 @@ Physical server locations and Ceph component layout for Red Hat Ceph Storage clu
 |ceph7|DC3| MON
 |===
 
-=== Software Details:
+=== Software Details
 
 Use the latest software version of RHCS 5. See
 link:https://access.redhat.com/articles/1548993[the knowledgebase article on
@@ -109,7 +110,7 @@ Red Hat Ceph Storage: Supported configurations.]
 
 === Network Configurations
 
-The recommended Red Hat Ceph Storage configuration are as follows:
+The recommended Red Hat Ceph Storage configuration is as follows:
 You must have two separate networks, one public network and one private network.
 You must have three different datacenters with L2 or L3 connectivity between all the nodes that form the Ceph cluster.
 
@@ -128,7 +129,7 @@ network configuration.]
 
 == Node Pre-Deployment Requirements
 
-Before installing the RHCS Ceph cluster we need to perform the following steps in order to fulfil all the requirements needed:
+Before installing the RHCS Ceph cluster, we need to perform the following steps to fulfil all the requirements needed:
 
 
 === Repositories and packages
@@ -154,7 +155,7 @@ subscription-manager repos --disable="*" --enable="rhel-8-for-x86_64-baseos-rpms
 ....
 --
 +
-. Update the Operating system rpms to the latest version and reboot if needed:
+. Update the Operating system RPMs to the latest version and reboot if needed:
 +
 --
 [source,role="execute"]
@@ -177,7 +178,7 @@ subscription-manager repos --enable="ansible-2.9-for-rhel-8-x86_64-rpms" --enabl
 ....
 --
 +
-. In all our RHCS hosts we configure the hostname using the bare/short hostname.
+. In all our RHCS hosts, we configure the hostname using the bare/short hostname.
 +
 --
 [source,role="execute"]
@@ -239,10 +240,10 @@ sudo dnf install -y cephadm-ansible
 IMPORTANT: To run the ansible playbooks, you must have ssh passwordless access
 to all the nodes that are part of the Red Hat Ceph Storage cluster.
 Ensure that the configured user (in our example, deployment-user) has
-privileges to invoke the `sudo` command without needing password.
+privileges to invoke the `sudo` command without needing a password.
 --
 +
-. Configure the selected user in our case `deployment-user` ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:
+. Configure the selected user, in our case `deployment-user` ssh config file to specify the user and id/key that can be used for connecting to the nodes via ssh:
 +
 --
 [source,role="execute"]
@@ -276,12 +277,12 @@ EOF
 
 
 NOTE: Hosts configured as part of the [admin] group on the inventory file will be
-tagged as _admin by cephadm so they recieve the admin ceph keyring during
+tagged as _admin by cephadm, so they receive the admin ceph keyring during
 the bootstrap process 
 
 --
 +
-. Verify ansible can access all of the nodes using the ping module before running the pre-flight playbook.
+. Verify that ansible can access all nodes using the ping module before running the pre-flight playbook.
 +
 --
 [source,role="execute"]
@@ -343,9 +344,9 @@ ceph7 | SUCCESS => {
 
 --
 +
-. The preflight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible. 
+. The pre-flight Ansible playbook configures the Ceph repository and prepares the storage cluster for bootstrapping. It also installs some prerequisites, such as podman, lvm2, chronyd, and cephadm. The default location for cephadm-ansible and cephadm-preflight.yml is /usr/share/cephadm-ansible. 
 +
-Run the following ansible playbook.
+Run the following ansible-playbook.
 +
 --
 [source,role="execute"]
@@ -362,15 +363,15 @@ NOTE: For additional information on the bootstrapping process, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/red-hat-ceph-storage-installation#bootstrapping-a-new-storage-cluster_install[Bootstrapping
 a new storage cluster.]
 
-In this example we will use the cluster-spec.yaml file to deploy and configure the following RHCS services:
+In this example, we will use the cluster-spec.yaml file to deploy and configure the following RHCS services:
 
 * `Ceph cluster Monitors(MONs) and Managers(MGRs)`
 
-Using the spec file in this example five monitors will get deployed and they will
+Using the spec file in this example, five monitors will get deployed and they will
 get allocated according to the labels we have specified on each node.
 
-Two managers will get deployed in Active/Pasive fashion, Each Manager daemon
-will be allocated on a different datacenter.
+Two managers will get deployed in Active/Passive fashion, Each Manager daemon
+will be allocated to a different datacenter.
 
 NOTE: For additional information on configuring Monitors using the service specification file.
 See
@@ -380,17 +381,17 @@ service using service specification file.]
 
 * `Object Storage Devices (OSDs)`
 
-Using the spec file in this example all free disks on the nodes will be used as
-osds, in this example we have one driver per node so 7 OSDs will be created one per each ceph hosts where ceph7 is the arbiter node which does not have any OSD’s configured.
+Using the spec file in this example, all free disks on the nodes will be used as
+osds, in this example we have one driver per node, so 7 OSDs will be created, one per each ceph host where ceph7 is the arbiter node which does not have any OSD’s configured.
 
 NOTE: For additional information on configuring OSDs using the service specification file.
 See
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#advanced-service-specifications-and-filters-for-deploying-osds_ops[Configure OSD Advanced filters.]
 
-* `Metadata services (MDS) required for CephFS`
+* `Metadata Services (MDS) required for CephFS`
 
 Using the spec file in this example 2 MDS servers will be deployed in
-Active/Passive, each MDS service will localted on a different site.
+Active/Passive, each MDS service will allocated to a different site.
 
 NOTE: For additional information on the MDS service spec configuration. See
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-mds-service-using-the-service-specification_ops[Configure MDS
@@ -398,8 +399,8 @@ service using service specification file.]
 
 * `Rados Gateway Services(RGW) required for object storage`
 
-Using the spec file in this example 2 RGW servies will be deployed listening on
-port 8080, each RGW service will allocated on a different datacenter.
+Using the spec file in this example 2 RGW services will be deployed, listening on
+port 8080, Will allocate each RGW service to a different datacenter.
 
 NOTE: For additional information on the GRW service spec configuration. See
 https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html-single/operations_guide/index#deploying-the-ceph-object-gateway-using-the-service-specification_ops[Configure RGW service using service specification file.]
@@ -425,7 +426,8 @@ cat <<EOF > /root/registry.json
 EOF
 ....
 +
-. Create a cluster-spec.yaml that adds the nodes to the RHCS cluster and also sets specific labels for where the services should run in accordance with table X.X
+. Create a cluster-spec.yaml that adds the nodes to the RHCS cluster and also
+sets specific labels for where the services should run following table X.X
 +
 --
 ....
@@ -521,7 +523,8 @@ EOF
 
 --
 +
-. Retrieve the IP for the NIC that has the RHCS public network configured from the bootstrap node. You can use the following example command after substituting the `10.0.40.0` with the subnet you have defined in your ceph public network.
+. Retrieve the IP for the NIC with the RHCS public network configured from the
+bootstrap node. After substituting the `10.0.40.0` with the subnet you have defined in your ceph public network, you can use the following example command.
 +
 --
 
@@ -537,10 +540,11 @@ Example output:
 ....
 --
 +
-. Run the `Cephadm` bootstrap command as the root user on the node that will be the initial Monitor node in the cluster. The `IP_ADDRESS` option is the IP address of the node that you are using to run the `cephadm bootstrap` command.
+. Run the `Cephadm` bootstrap command as the root user on the node that will be the initial Monitor node in the cluster. The `IP_ADDRESS` option is the node's IP address that you are using to run the `cephadm bootstrap` command.
 +
 --
-NOTE: If you have configured a different user than root for passwordless SSH access use the `--ssh-user=` flag with the cepadm bootstrap command
+NOTE: If you have configured a different user than root for passwordless SSH
+access, use the `--ssh-user=` flag with the cepadm bootstrap command
 
 
 [source,role="execute"]
@@ -548,7 +552,7 @@ NOTE: If you have configured a different user than root for passwordless SSH acc
 cephadm  bootstrap --ssh-user=deployment-user --mon-ip 10.0.40.78 --apply-spec /root/cluster-spec.yaml --registry-json /root/registry.json
 ....
 
-IMPORTANT: If the local node uses fully-qualified domain names (FQDN), then add the `--allow-fqdn-hostname` option to cephadm bootstrap on the command line.
+IMPORTANT: If the local node uses fully-qualified domain names (FQDN), add the `--allow-fqdn-hostname` option to cephadm bootstrap on the command line.
 
 Once the bootstrap finishes, you will see the following output from the previous cephadm bootstrap command:
 
@@ -563,7 +567,7 @@ Please consider enabling telemetry to help improve Ceph:
 
 	ceph telemetry on
 
-For more information see:
+For more information, see:
 
 	https://docs.ceph.com/docs/pacific/mgr/telemetry/
 ....
@@ -597,7 +601,7 @@ ceph -s
 ....
 
 
-NOTE: It is normal if you get a global recovery event while you don't have any osds configured.
+NOTE: It is normal to get a global recovery event while you don't have any osds configured.
 
 NOTE: It may take several minutes for all the services to start.
 
@@ -648,7 +652,7 @@ mon.ceph7 ceph7
 ....
 --
 +
-. Check the current placement of the Ceph manager services on the datacenters.
+. Check the current placement of the Ceph manager services in the datacenters.
 +
 --
 ....
@@ -662,7 +666,8 @@ mgr.ceph5.kremtt ceph5
 ....
 --
 +
-. Check the ceph osd crush map layout to ensure that each host has one OSD configured and its status is UP.
+. Check the ceph osd crush map layout to ensure that each host has one OSD
+configuredi, and its status is UP.
 +
 --
 [source,role="execute"]
@@ -770,7 +775,7 @@ cephfs.ceph3.ogcqkl
 ....
 --
 +
-. Verify that RGW services are active and running one on each OSD datenceter.
+. Verify that the RGW services are active and running.
 +
 --
 [source,role="execute"]
@@ -791,7 +796,7 @@ rgw.objectgw.ceph6.xmnpah  ceph6  *:8080       running (7m)      3m ago   7m    
 
 `Procedure`
 
-. Check the current election strategy being used by the monitors with the ceph mon dump command. By default in a ceph cluster, the connectivity is set to classic.
+. Check the current election strategy the monitors use with the `ceph mon dump` command. By default in a ceph cluster, the connectivity is set to classic.
 +
 --
 [source,role="execute"]
