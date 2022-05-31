@@ -167,7 +167,7 @@ reboot
 --
 +
 . Select a node from the cluster to be your bootstrap node. `ceph1` is our
-bootstrap and deployment node. 
+bootstrap node in this example going forward.
 +
 Only on the bootstrap node `ceph1`, enable the `ansible-2.9-for-rhel-8-x86_64-rpms` and `rhceph-5-tools-for-rhel-8-x86_64-rpms` repositories:
 +
@@ -507,8 +507,6 @@ placement:
 spec:
   data_devices:
     all: true
-  filter_logic: AND
-  objectstore: bluestore
 ---
 service_type: rgw
 service_id: objectgw
