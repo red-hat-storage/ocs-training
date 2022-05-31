@@ -728,8 +728,8 @@ ceph orch ps | grep mds
 .Example output.
 
 ....
-mds.cephfs.ceph3.cjpbqo    ceph-2               running (17m)   117s ago  17m    16.1M        -  16.2.9  
-mds.cephfs.ceph6.lqmgqt    ceph-5               running (17m)   117s ago  17m    16.1M        -  16.2.9 
+mds.cephfs.ceph3.cjpbqo    ceph3               running (17m)   117s ago  17m    16.1M        -  16.2.9  
+mds.cephfs.ceph6.lqmgqt    ceph6               running (17m)   117s ago  17m    16.1M        -  16.2.9 
 ....
 --
 +
@@ -780,8 +780,8 @@ ceph orch ps | grep rgw
 
 .Example output.
 ....
-rgw.objectgw.ceph-2.kkmxgb  ceph3  *:8080       running (7m)      3m ago   7m    52.7M        -  16.2.9  
-rgw.objectgw.ceph-5.xmnpah  ceph6  *:8080       running (7m)      3m ago   7m    53.3M        -  16.2.9 
+rgw.objectgw.ceph3.kkmxgb  ceph3  *:8080       running (7m)      3m ago   7m    52.7M        -  16.2.9  
+rgw.objectgw.ceph6.xmnpah  ceph6  *:8080       running (7m)      3m ago   7m    53.3M        -  16.2.9 
 ....
 --
 
