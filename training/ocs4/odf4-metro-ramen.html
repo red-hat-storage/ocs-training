@@ -1521,7 +1521,7 @@ This process can be used to delete any application with a DRPlacementControl res
 <h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>13. Application Failover between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
+<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Metro Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
 </div>
 <div class="sect2">
 <h3 id="_create_networkfence_resource_and_enable_fencing"><a class="anchor" href="#_create_networkfence_resource_and_enable_fencing"></a>13.1. Create NetworkFence resource and enable Fencing</h3>
@@ -1782,7 +1782,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <p>This step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by <strong>rebooting all worker OpenShift nodes</strong> one at a time.</p>
 </div>
 <div class="paragraph">
-<p>After all OpenShift nodes are reboot and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
+<p>After all OpenShift nodes are rebooted and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
