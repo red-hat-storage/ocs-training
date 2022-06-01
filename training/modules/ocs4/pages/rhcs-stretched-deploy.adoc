@@ -187,19 +187,6 @@ hostnamectl set-hostname <short_name>
 ....
 --
 +
-. Modify /etc/hosts file and add the fqdn entry to the 127.0.0.1 IP by setting the DOMAIN variable with our DNS domain name.
-+
---
-[source,role="execute"]
-....
-DOMAIN="bkgzv.sandbox762.opentlc.com"
-cat <<EOF >/etc/hosts
-127.0.0.1 $(hostname).${DOMAIN} $(hostname) localhost localhost.localdomain localhost4 localhost4.localdomain4
-::1       $(hostname).${DOMAIN} $(hostname) localhost6 localhost6.localdomain6
-EOF
-....
---
-+
 . Verify the hostname configuration for deploying Red Hat Ceph Storage with cephadm.
 +
 --
