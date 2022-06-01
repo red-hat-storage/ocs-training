@@ -803,7 +803,7 @@ NOTE: This process can be used to delete any application with a DRPlacementContr
 
 == Application Failover between managed clusters
 
-This section will detail how to failover the `busybox` sample application. The failover method for `Regional Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
+This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
 
 === Create NetworkFence resource and enable Fencing 
 
@@ -987,7 +987,7 @@ networkfence.csiaddons.openshift.io "network-fence-ocp4perf1" deleted
 
 This step is required because some application *Pods* on the prior `fenced` cluster, in this case the *Primary managed cluster*, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by *rebooting all worker OpenShift nodes* one at a time.
 
-After all OpenShift nodes are reboot and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*. The output for this query should be zero *Pods*. 
+After all OpenShift nodes are rebooted and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*. The output for this query should be zero *Pods*. 
 
 NOTE: The *OpenShift Web Console* dashboards and *Overview* can also be used to assess the health of applications and the external storage. The detailed *ODF* dashboard is found by navigating to `Storage` -> `Data Foundation`.
 
