@@ -363,7 +363,9 @@ NOTE: For additional information on the bootstrapping process, see
 link:https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5/html/installation_guide/red-hat-ceph-storage-installation#bootstrapping-a-new-storage-cluster_install[Bootstrapping
 a new storage cluster.]
 
-In this example, we will use the cluster-spec.yaml file to deploy and configure the following RHCS services:
+In this example, with the bootstrap command we will use a service specification file called
+cluster-spec.yaml to deploy the remaining 6 Nodes into the RHCS cluster and
+also configure the following RHCS services:
 
 * `Ceph cluster Monitors(MONs) and Managers(MGRs)`
 
@@ -427,7 +429,7 @@ EOF
 ....
 +
 . Create a cluster-spec.yaml that adds the nodes to the RHCS cluster and also
-sets specific labels for where the services should run following table X.X
+sets specific labels for where the services should run following table 3.1
 +
 --
 ....
@@ -436,6 +438,9 @@ cat <<EOF > /root/cluster-spec.yaml
 service_type: host
 addr: 10.0.40.78  ## <XXX.XXX.XXX.XXX>
 hostname: ceph1   ##  <ceph-hostname-1>
+location:
+  root: default
+  datacenter: DC1
 labels:
   - osd
   - mon
@@ -444,6 +449,8 @@ labels:
 service_type: host
 addr: 10.0.40.35
 hostname: ceph2
+location:
+  datacenter: DC1
 labels:
   - osd
   - mon
@@ -451,6 +458,8 @@ labels:
 service_type: host
 addr: 10.0.40.24
 hostname: ceph3
+location:
+  datacenter: DC1
 labels:
   - osd
   - mds
@@ -459,6 +468,9 @@ labels:
 service_type: host
 addr: 10.0.40.185
 hostname: ceph4
+location:
+  root: default
+  datacenter: DC2
 labels:
   - osd
   - mon
@@ -467,6 +479,8 @@ labels:
 service_type: host
 addr: 10.0.40.88
 hostname: ceph5
+location:
+  datacenter: DC2
 labels:
   - osd
   - mon
@@ -474,6 +488,8 @@ labels:
 service_type: host
 addr: 10.0.40.66
 hostname: ceph6
+location:
+  datacenter: DC2
 labels:
   - osd
   - mds
@@ -665,7 +681,8 @@ mgr.ceph5.kremtt ceph5
 --
 +
 . Check the ceph osd crush map layout to ensure that each host has one OSD
-configuredi, and its status is UP.
+configured and its status is UP. Also, double-check that each node is under the
+right datacenter bucket as specified in table 3.1 
 +
 --
 [source,role="execute"]
@@ -675,20 +692,22 @@ ceph osd tree
 
 .Example output.
 ....
-ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
- -1         0.87900  root default
--11         0.14650      host ceph1
-  2    ssd  0.14650          osd.2       up   1.00000  1.00000
- -3         0.14650      host ceph2
-  3    ssd  0.14650          osd.3       up   1.00000  1.00000
--13         0.14650      host ceph3
-  4    ssd  0.14650          osd.4       up   1.00000  1.00000
- -5         0.14650      host ceph4
-  0    ssd  0.14650          osd.0       up   1.00000  1.00000
- -9         0.14650      host ceph5
-  1    ssd  0.14650          osd.1       up   1.00000  1.00000
- -7         0.14650      host ceph6
-  5    ssd  0.14650          osd.5       up   1.00000  1.00000
+ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
+-1          0.87900  root default
+-16         0.43950      datacenter DC1
+-11         0.14650          host ceph1
+  2    ssd  0.14650              osd.2       up   1.00000  1.00000
+ -3         0.14650          host ceph2
+  3    ssd  0.14650              osd.3       up   1.00000  1.00000
+-13         0.14650          host ceph3
+  4    ssd  0.14650              osd.4       up   1.00000  1.00000
+-17         0.43950      datacenter DC2
+ -5         0.14650          host ceph4
+  0    ssd  0.14650              osd.0       up   1.00000  1.00000
+ -9         0.14650          host ceph5
+  1    ssd  0.14650              osd.1       up   1.00000  1.00000
+ -7         0.14650          host ceph6
+  5    ssd  0.14650              osd.5       up   1.00000  1.00000
 ....
 --
 +
@@ -872,95 +891,8 @@ election_strategy: 3
 4: [v2:10.0.155.35:3300/0,v1:10.0.155.35:6789/0] mon.ceph2; crush_location {datacenter=DC1}
 ....
 +
-. View the current CRUSH map
 +
-[source,role="execute"]
-....
-ceph osd tree
-....
-+
-.Example output.
-....
-
-ID   CLASS  WEIGHT   TYPE NAME       STATUS  REWEIGHT  PRI-AFF
- -1         0.87900  root default
--11         0.14650      host ceph1
-  2    ssd  0.14650          osd.2       up   1.00000  1.00000
- -3         0.14650      host ceph2
-  3    ssd  0.14650          osd.3       up   1.00000  1.00000
--13         0.14650      host ceph3
-  4    ssd  0.14650          osd.4       up   1.00000  1.00000
- -5         0.14650      host ceph4
-  0    ssd  0.14650          osd.0       up   1.00000  1.00000
- -9         0.14650      host ceph5
-  1    ssd  0.14650          osd.1       up   1.00000  1.00000
- -7         0.14650      host ceph6
-  5    ssd  0.14650          osd.5       up   1.00000  1.00000
-....
-+
-This default crush map indicates that the failure domain is at the host level and ceph has no understanding of what the infrastructure topology looks like.
-+
-. Use the following command to create the new buckets for `datacenter DC1` and `datacenter DC2`:
-+
---
-
-[source,role="execute"]
-....
-ceph osd crush add-bucket DC1 datacenter
-ceph osd crush add-bucket DC2 datacenter
-....
---
-+
-. Move the DC1 and DC2 datacenter buckets under the root default bucket.
-+
-[source,role="execute"]
-....
-ceph osd crush move DC1 root=default
-ceph osd crush move DC2 root=default
-....
-+
-. Move each of the hosts and their osds under each datacenter.
-+
-[source,role="execute"]
-....
-ceph osd crush move ceph1 datacenter=DC1
-ceph osd crush move ceph2 datacenter=DC1
-ceph osd crush move ceph3 datacenter=DC1
-ceph osd crush move ceph4 datacenter=DC2
-ceph osd crush move ceph5 datacenter=DC2
-ceph osd crush move ceph6 datacenter=DC2
-....
-+
-. Check the CRUSH map again with the ceph osd tree command to see how ceph is now mapped.
-+
---
-[source,role="execute"]
-....
-ceph osd tree
-....
-
-.Example output.
-....
-ID   CLASS  WEIGHT   TYPE NAME           STATUS  REWEIGHT  PRI-AFF
--1          0.87900  root default
--16         0.43950      datacenter DC1
--11         0.14650          host ceph1
-  2    ssd  0.14650              osd.2       up   1.00000  1.00000
- -3         0.14650          host ceph2
-  3    ssd  0.14650              osd.3       up   1.00000  1.00000
--13         0.14650          host ceph3
-  4    ssd  0.14650              osd.4       up   1.00000  1.00000
--17         0.43950      datacenter DC2
- -5         0.14650          host ceph4
-  0    ssd  0.14650              osd.0       up   1.00000  1.00000
- -9         0.14650          host ceph5
-  1    ssd  0.14650              osd.1       up   1.00000  1.00000
- -7         0.14650          host ceph6
-  5    ssd  0.14650              osd.5       up   1.00000  1.00000
-....
---
-+
-. Create a CRUSH rule that makes use of this new topology by installing the ceph-base RPM package in order to use the crushtool command:
+. Create a CRUSH rule that makes use of the OSD crush topology by installing the ceph-base RPM package in order to use the crushtool command:
 +
 --
 [source,role="execute"]
