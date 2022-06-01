@@ -437,8 +437,26 @@ image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
 .DRCluster create instance
 image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
 
-Use the following YAML to create two yaml files after replacing *<cluster>* with the correct names of your managed clusters in *ACM*. Replace *<string_value>* with any value that describes the region of these clusters. Replace the cidrs range with the one corresponding to your cluster.
+Use the following YAML to create two yaml files after replacing *<cluster>* with the correct names of your managed clusters in *ACM*. Replace *<string_value>* with any value that describes the region of these clusters.
 
+Replace the list of cidrs with the one corresponding to your cluster. The IPs in this CIDR will be the `EXTERNAL-IP` of every OpenShift node in the cluster that needs to be `fenced` from using the external `RHCS` cluster.
+
+
+Execute this command to get the IP addresses for the *managed cluster*.
+
+[source,role="execute"]
+----
+oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}'
+----
+.Example output.
+----
+10.70.56.110
+10.70.56.111
+10.70.56.112
+10.70.56.113
+10.70.56.114
+10.70.56.115
+----
 
 NOTE: There is no need to specify a namespace to create this resource because `DRCluster` is a cluster-scoped resource.
 
@@ -454,7 +472,12 @@ spec:
   region: <string_value>
   s3ProfileName: <s3-for-cluster>
   cidrs:
-    - "192.168.40.40/24"
+    - "10.70.56.110/32"
+    - "10.70.56.111/32"
+    - "10.70.56.112/32"
+    - "10.70.56.113/32"
+    - "10.70.56.114/32"
+    - "10.70.56.115/32"
 
 
 Now create the `DRCluster` resources by copying the contents of your files into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
