@@ -873,40 +873,27 @@ NOTE: This process can be used to delete any application with a DRPlacementContr
 
 This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
 
-=== Create NetworkFence resource and enable Fencing 
+=== Enable Fencing 
 
 In order to failover the OpenShift cluster where the application is currently running all applications must be `fenced` from communicating with the external *ODF* storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
 
-The user needs to specify the list of `CIDR blocks` or `IP addresses` on which network fencing operation will be performed. In our case, this will be the `EXTERNAL-IP` of every OpenShift node in the cluster that needs to be `fenced` from using the external `RHCS` cluster.
 
-Execute this command to get the IP addresses for the *Primary managed cluster*.
+Edit the DRCluster resource from the above examples, edit `drcluster1.yaml` to fence your managed cluster  
 
 [source,role="execute"]
 ----
-oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}'
+oc edit -f drcluster1.yaml
 ----
-.Example output.
-----
-10.70.56.118
-10.70.56.193
-10.70.56.154
-10.70.56.242
-10.70.56.136
-10.70.56.99
-----
-
-CAUTION: It is important to collect the current IP addresses of all OpenShift nodes *_before_* there is a site outage. Best practice would be to create the *NetworkFence* YAML file and have it available and up-to-date for a disaster recovery event.
-
-The IP addresses for all nodes will be added to the *NetworkFence* example resource as shown below. Example is for six nodes but there could be more nodes in your cluster. 
 
 [source,yaml]
 ----
-apiVersion: csiaddons.openshift.io/v1alpha1
-kind: NetworkFence
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRCluster
 metadata:
-  name: network-fence-<cluster1>
+  name: <cluster1>
 spec:
-  driver: openshift-storage.rbd.csi.ceph.com
+  region: <string_value>
+  s3ProfileName: <s3-for-cluster>
   cidrs:
     -  <IP_Address1>/32
     -  <IP_Address2>/32
@@ -914,84 +901,20 @@ spec:
     -  <IP_Address4>/32
     -  <IP_Address5>/32
     -  <IP_Address6>/32
-    [...]
-  secret:
-    name: rook-csi-rbd-provisioner
-    namespace: openshift-storage
-  parameters:
-    clusterID: openshift-storage
+  clusterFence: Fenced    # here is the change
 ----
 
-For the YAML file example above modify for your IP addresses and correct `<cluster1>` to be the cluster name found in *ACM* for the *Primary managed cluster*. Save to filename `network-fence-<cluster1>.yaml`.
+CAUTION: Once the  managed cluster is fenced, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
 
-IMPORTANT: The *NetworkFence* must be created from the opposite managed cluster from where the application is currently running prior to `failover`. In this case, that is the *Secondary managed cluster*. 
-
-CAUTION: Once the *NetworkFence* is created, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
+Now validate the fencing status in the Hub cluster for the Primary managed cluster.
 
 [source,role="execute"]
 ----
-oc create -f network-fence-<cluster1>.yaml
-----
-.Example output.
-----
-networkfences.csiaddons.openshift.io/network-fence-ocp4perf1 created
-----
-
-In the same cluster as where the *NetworkFence* was created, verify that the status is `Succeeded`. Modify `<cluster1>` to be correct.
-
-[source,role="execute"]
-----
-export NETWORKFENCE=network-fence-<cluster1>
-oc get networkfences.csiaddons.openshift.io/$NETWORKFENCE -n openshift-dr-system -o jsonpath='{.status.result}{"\n"}'
+oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
 Succeeded
-----
-
-==== Modify DRPolicy to Fenced status
-
-In order for the *NetworkFence* status of `Fenced` to be known to the `ODR HUB operator`, the *DRPolicy* must be modified for the `fenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `Unfenced` to `ManuallyFenced`.
-
-[source,role="execute"]
-----
-oc edit drpolicy odr-policy
-----
-.Example output.
-----
-[...]
-spec:
-  drClusterSet:
-  - clusterFence: ManuallyFenced  ## <-- Modify from Unfenced to ManuallyFenced
-    name: ocp4perf1
-    region: metro
-    s3ProfileName: s3-primary
-  - clusterFence: Unfenced
-    name: ocp4perf2
-    region: metro
-    s3ProfileName: s3-secondary
-[...]
-----
-.Example output.
-----
-drpolicy.ramendr.openshift.io/odr-policy edited
-----
-
-Now validate the *DRPolicy* status in the *Hub cluster* has changed to `Fenced` for the *Primary managed cluster*.
-
-[source,role="execute"]
-----
-oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters
-----
-.Example output.
-----
-  drClusters:
-    ocp4perf1:
-      status: Fenced
-      string: ocp4perf1
-    ocp4perf2:
-      status: Unfenced
-      string: ocp4perf2
 ----
 
 === Modify DRPlacementControl to failover
@@ -1036,19 +959,55 @@ No resources found in busybox-sample namespace.
 
 == Application Failback between managed clusters
 
-A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback. The main difference for failback is that the application is scaled down on the `failoverCluster` and therefore creating a *NetworkFence* is not required.
+A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback
 
-=== Remove NetworkFence resource and disable Fencing
 
-Before a failback or relocate action can be successful the *NetworkFence* for the *Primary managed cluster* must be deleted. Execute this command in the *Secondary managed cluster* and modify `<cluster1>` to be correct for the *NetworkFence* YAML filename created in the prior section.
+=== Disable Fencing
+
+Before a failback or relocate action can be successful the *DRCluster* for the *Primary managed cluster* must be unfenced.
+
+==== Modify DRCluster to Unfenced
+
+Edit the *DRCluster* on the *Hub cluster* and change `clusterFence` value from `Fenced` to `Unfenced`.
 
 [source,role="execute"]
 ----
-oc delete -f network-fence-<cluster1>.yaml
+oc edit drcluster1.yaml
+----
+
+[source,yaml]
+----
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRCluster
+metadata:
+  name: cluster1
+spec:
+  region: <string_value>
+  s3ProfileName: <s3-for-cluster>
+  cidrs:
+    -  <IP_Address1>/32
+    -  <IP_Address2>/32
+    -  <IP_Address3>/32
+    -  <IP_Address4>/32
+    -  <IP_Address5>/32
+    -  <IP_Address6>/32
+  clusterFence: Unfenced   # here is the change
+----
+
+.Example output.
+----
+drcluster.ramendr.openshift.io/cluster1 edited
+----
+
+Now validate the *DRCluster* status in the *Hub cluster* that has changed to `Unfenced` for the *Primary managed cluster*.
+
+[source,role="execute"]
+----
+oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
-networkfence.csiaddons.openshift.io "network-fence-ocp4perf1" deleted
+Succeeded
 ----
 
 ==== Reboot OCP nodes that were Fenced
@@ -1069,51 +1028,6 @@ NAMESPACE                                          NAME                         
 ----
 
 IMPORTANT: If there are *Pods* still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
-
-==== Modify DRPolicy to Unfenced status
-
-In order for the `ODR HUB operator` to know the *NetworkFence* has been removed for the *Primary managed cluster the *DRPolicy* must be modified for the newly `Unfenced` cluster. Edit the *DRPolicy* on the *Hub cluster* and change `<cluster1>` (example ocp4perf1) from `ManuallyFenced` to `Unfenced`.
-
-[source,role="execute"]
-----
-oc edit drpolicy odr-policy
-----
-.Example output.
-----
-[...]
-spec:
-  drClusterSet:
-  - clusterFence: Unfenced  ## <-- Modify from ManuallyFenced to Unfenced
-    name: ocp4perf1
-    region: metro
-    s3ProfileName: s3-primary
-  - clusterFence: Unfenced
-    name: ocp4perf2
-    region: metro
-    s3ProfileName: s3-secondary
-[...]
-----
-.Example output.
-----
-drpolicy.ramendr.openshift.io/odr-policy edited
-----
-
-Now validate the *DRPolicy* status in the *Hub cluster* has changed to `Unfenced` for the *Primary managed cluster*.
-
-[source,role="execute"]
-----
-oc get drpolicies.ramendr.openshift.io odr-policy -o yaml | grep -A 6 drClusters
-----
-.Example output.
-----
-  drClusters:
-    ocp4perf1:
-      status: Unfenced
-      string: ocp4perf1
-    ocp4perf2:
-      status: Unfenced
-      string: ocp4perf2
-----
 
 === Modify DRPlacementControl to failback
 
