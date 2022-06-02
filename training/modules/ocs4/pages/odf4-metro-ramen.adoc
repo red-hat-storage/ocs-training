@@ -125,30 +125,33 @@ it to you RHCS bootstrap node, the script needs to be run from a host with the
 ceph admin key, in our example the hostname for the RHCS
 bootstrap node that has the admin keys available is `ceph1`.
 
-The ceph-external-cluster-details-exporter.py will create a configuration file
-with details for ODF to connect with the RHCS cluster. Because we are
-connecting two OCP clusters to our RHCS storage, we need to run the
-ceph-external-cluster-details-exporter.py two times, one per OCP cluster.
+.ODF Download the RHCS script
+image::ODF_download_script_external_storage.png[ODF download RHCS script]
+
+The ceph-external-cluster-details-exporter.py python script will create a configuration file
+with details for ODF to connect with the RHCS cluster.
+
+Because we are
+connecting two OCP clusters to the RHCS storage, you need to run the
+ceph-external-cluster-details-exporter.py script two times, one per OCP cluster.
 
 To see all configuration options available for the
 ceph-external-cluster-details-exporter.py script run the following command:
 
 [source,role="execute"]
 ----
-# python3 ceph-external-cluster-details-exporter.py --help
+python3 ceph-external-cluster-details-exporter.py --help
 ----
 
-To know more about CRUSH ruleset, see
+To know more about the External ODF deployment options, see
 https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.10/html-single/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhodf[ODF external mode deployment.]
 
 At a minimum, we need to use the following three flags with the
 ceph-external-cluster-details-exporter.py script:
 
-* *--rbd-data-pool-name*: With the name of the RBD pool we created for OCP, in
-* our example, the pool is called `rbdpool`.
-* *--rgw-endpoint*: With the RGW IP of the RGW daemon running on the same site
-* as the OCP cluster, we are configuring.
-* *--run-as-user*: With a different client name for each site.
+* **--rbd-data-pool-name** : With the name of the RBD pool we created during RHCS deployment for OCP, in  our example, the pool is called `rbdpool`.
+* **--rgw-endpoint** : With the RGW IP of the RGW daemon running on the same site as the OCP cluster, we are configuring.
+* **--run-as-user** : With a different client name for each site.
 
 Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:
 
@@ -191,9 +194,10 @@ python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool -
 
 Save the two files generated in the bootstrap cluster(ceph1) ocp-cluster1.json and ocp-cluster2.json to your
 local machine.
-Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed. 
-Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed. 
+* Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed. 
+* Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed. 
 
+The next figure has an example for OCP cluster1.
 
 .ODF Connection details for external storage
 image::ODF-external-storage-details.png[Connection details for external storage]
