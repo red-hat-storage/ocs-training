@@ -14,7 +14,7 @@
 * xref:odf4-multisite-ramen.adoc[ODF 4.9 Regional disaster recovery]
 * xref:odf410-multisite-ramen.adoc[ODF 4.10 Regional disaster recovery]
 * xref:ocs4-metro-stretched.adoc[Stretch Cluster disaster recovery]
-* xref:odf4-metro-ramen.adoc[ODF 4.10 Metro disaster recovery]
+* xref:odf410-metro-ramen.adoc[ODF 4.10 Metro disaster recovery]
 
 .Development preview features
 * xref:ocs4-additionalfeatures-dbwal.adoc[BlueStore RocksDB metadata and WAL placement]
