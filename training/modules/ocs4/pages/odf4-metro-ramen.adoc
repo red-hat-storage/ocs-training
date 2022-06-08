@@ -17,7 +17,7 @@ The persistent storage for applications will be provided by an external *Red Hat
 
 This is a general overview of the Metro DR steps required to configure and execute `OpenShift Disaster Recovery` (ODR) capabilities using OpenShift Data Foundation (ODF) *v4.11* and `RHACM` *v2.5* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
 
-NOTE: These steps are considered Development Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
+NOTE: These steps are considered Technical Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
 
 [start=1]
 . *Install the ACM operator on the hub cluster.* +
