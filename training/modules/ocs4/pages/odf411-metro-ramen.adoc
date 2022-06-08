@@ -946,6 +946,17 @@ NOTE: If desired, the `DRPlacementControl` resource can also be deleted in the a
 
 NOTE: This process can be used to delete any application with a DRPlacementControl resource.
 
+== Add annotations required for fencing operations
+
+Ramen operator creates NetworkFencing CRs on the managedclusters as part of automated fencing operations. The NetworkFencing CR requires details about the storage CSI driver and that needs to be provided to Ramen through annotations on the DRCluster CR. Add the following annotations to all the DRCluster CRs.
+
+----
+drcluster.ramendr.openshift.io/storage-clusterid: openshift-storage
+drcluster.ramendr.openshift.io/storage-driver: openshift-storage.rbd.csi.ceph.com
+drcluster.ramendr.openshift.io/storage-secret-name: rook-csi-rbd-provisioner
+drcluster.ramendr.openshift.io/storage-secret-namespace: openshift-storage
+----
+
 == Application Failover between managed clusters
 
 This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
