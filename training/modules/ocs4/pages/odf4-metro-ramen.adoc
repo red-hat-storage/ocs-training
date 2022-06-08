@@ -15,9 +15,9 @@ The intent of this guide is to detail the `Metro Disaster Recovery` (Metro DR) s
 
 The persistent storage for applications will be provided by an external *Red Hat Ceph Storage* (RHCS) cluster stretched between the two locations with the OCP instances connected to this storage cluster. An arbiter node with a storage monitor service will be required at a third location (different location than where OCP instances are deployed) to establish quorum for the RHCS cluster in the case of a site outage. This third location does not have distance limitations and can be 100+ RTT latency from the storage cluster connected to the OCP instances. 
 
-This is a general overview of the Metro DR steps required to configure and execute `OpenShift Disaster Recovery` (ODR) capabilities using OpenShift Data Foundation (ODF) *v4.10* and `RHACM` *v2.4* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
+This is a general overview of the Metro DR steps required to configure and execute `OpenShift Disaster Recovery` (ODR) capabilities using OpenShift Data Foundation (ODF) *v4.11* and `RHACM` *v2.5* across two distinct OCP clusters separated by distance. In addition to these two cluster called `managed` clusters, there is currently a requirement to have a third OCP cluster that will be the `Advanced Cluster Management` (ACM) `hub` cluster.
 
-NOTE: These steps are considered Development Preview in ODF 4.10 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
+NOTE: These steps are considered Development Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
 
 [start=1]
 . *Install the ACM operator on the hub cluster.* +
@@ -26,8 +26,8 @@ After creating the OCP hub cluster, install from OperatorHub the ACM operator. A
 Import or create the two managed clusters with adequate resources for ODF (compute nodes, memory, cpu) using the RHACM console.
 . *Install Red Hat Ceph Storage Stretch Cluster With Arbiter.* +
 Properly set up a Ceph cluster deployed on two different datacenters using the stretched mode functionality.
-. *Install ODF 4.10 on managed clusters.* +
-Install ODF 4.10 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.
+. *Install ODF 4.11 on managed clusters.* +
+Install ODF 4.11 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.
 . *Install ODR Hub Operator on the ACM hub cluster.* +
 Install from OperatorHub on the ACM hub cluster the ODR Hub Operator.
 . *Configure SSL access between managed clusters if (if needed).* +
@@ -120,7 +120,84 @@ After the ODF operators are installed, select *Create StorageSystem* and choose 
 .ODF Connect external storage
 image::ODF-connect-external-storage.png[ODF Connect external storage]
 
-Save the connection details generated using the python script `ceph-external-cluster-details-exporter.py` (ran on your RHCS cluster) into a file and then browse and select this file on your local machine. Select *Next*.
+Download the ceph-external-cluster-details-exporter.py python script and upload
+it to you RHCS bootstrap node, the script needs to be run from a host with the
+ceph admin key, in our example the hostname for the RHCS
+bootstrap node that has the admin keys available is `ceph1`.
+
+.ODF Download the RHCS script
+image::ODF_download_script_external_storage.png[ODF download RHCS script]
+
+The ceph-external-cluster-details-exporter.py python script will create a configuration file
+with details for ODF to connect with the RHCS cluster.
+
+Because we are
+connecting two OCP clusters to the RHCS storage, you need to run the
+ceph-external-cluster-details-exporter.py script two times, one per OCP cluster.
+
+To see all configuration options available for the
+ceph-external-cluster-details-exporter.py script run the following command:
+
+[source,role="execute"]
+----
+python3 ceph-external-cluster-details-exporter.py --help
+----
+
+To know more about the External ODF deployment options, see
+https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.11/html-single/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhodf[ODF external mode deployment.]
+
+At a minimum, we need to use the following three flags with the
+ceph-external-cluster-details-exporter.py script:
+
+* **--rbd-data-pool-name** : With the name of the RBD pool we created during RHCS deployment for OCP, in  our example, the pool is called `rbdpool`.
+* **--rgw-endpoint** : With the RGW IP of the RGW daemon running on the same site as the OCP cluster, we are configuring.
+* **--run-as-user** : With a different client name for each site.
+
+Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:
+
+[source,role="execute"]
+----
+ceph orch ps | grep rgw.objectgw
+----
+.Example output.
+----
+rgw.objectgw.ceph3.mecpzm  ceph3  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp
+rgw.objectgw.ceph6.mecpzm  ceph6  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp
+----
+
+[source,role="execute"]
+----
+host ceph3
+host ceph6
+----
+.Example output.
+----
+ceph3.example.com has address 10.0.40.24
+ceph6.example.com has address 10.0.40.66
+----
+
+Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster `cluster1`.
+
+[source,role="execute"]
+----
+python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.24:8080 --run-as-user client.odf.cluster1 > ocp-cluster1.json
+----
+
+Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster `cluster2`
+
+[source,role="execute"]
+----
+python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.66:8080 --run-as-user client.odf.cluster2 > ocp-cluster2.json
+----
+
+
+
+Save the two files generated in the bootstrap cluster(ceph1) ocp-cluster1.json and ocp-cluster2.json to your
+local machine.
+* Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed. 
+* Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed. 
+
+The next figure has an example for OCP cluster1.
 
 .ODF Connection details for external storage
 image::ODF-external-storage-details.png[Connection details for external storage]
@@ -570,8 +647,8 @@ data:
       deploymentAutomationEnabled: true  ## <-- Modify to true if needed
       catalogSourceName: redhat-operators
       catalogSourceNamespaceName: openshift-marketplace
-      channelName: stable-4.10
-      clusterServiceVersionName: odr-cluster-operator.v4.10.0
+      channelName: stable-4.11
+      clusterServiceVersionName: odr-cluster-operator.v4.11.0
       namespaceName: openshift-dr-system
       packageName: odr-cluster-operator
 [...]
@@ -586,7 +663,7 @@ oc get csv,pod -n openshift-dr-system
 .Example output.
 ----
 NAME                                                                      DISPLAY                         VERSION   REPLACES   PHASE
-clusterserviceversion.operators.coreos.com/odr-cluster-operator.v4.10.0   Openshift DR Cluster Operator   4.10.0               Succeeded
+clusterserviceversion.operators.coreos.com/odr-cluster-operator.v4.11.0   Openshift DR Cluster Operator   4.11.0               Succeeded
 
 NAME                                             READY   STATUS    RESTARTS   AGE
 pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m32s
