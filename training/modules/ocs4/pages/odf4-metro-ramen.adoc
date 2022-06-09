@@ -143,14 +143,14 @@ ceph-external-cluster-details-exporter.py script run the following command:
 python3 ceph-external-cluster-details-exporter.py --help
 ----
 
-To know more about the External ODF deployment options, see
+NOTE: To know more about the External ODF deployment options, see
 https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.10/html-single/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhodf[ODF external mode deployment.]
 
 At a minimum, we need to use the following three flags with the ceph-external-cluster-details-exporter.py script:
 
-* **--rbd-data-pool-name** : The value of RBD pool name will be the same on both OCP clusters, the value is the name of the RBD pool we created during RHCS deployment for OCP, in our example, the pool is called `rbdpool`.
-* **--rgw-endpoint** : The value required is the RGW IP of the RGW daemon running on the same datacenter as the OCP cluster, we are configuring.
-* **--run-as-user** : The run as use option will have a different client name for each datacenter.
+* *_--rbd-data-pool-name_* : The value of RBD pool name will be the same on both OCP clusters, the value is the name of the RBD pool we created during RHCS deployment for OCP, in our example, the pool is called `rbdpool`.
+* *_--rgw-endpoint_* : The value required is the RGW IP of the RGW daemon running on the same datacenter as the OCP cluster, we are configuring.
+* *_--run-as-user_* : The run as use option will have a different client name for each datacenter.
 
 Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:
 
