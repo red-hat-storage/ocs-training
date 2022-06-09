@@ -456,13 +456,161 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 <div class="title">Figure 5. ODF Connect external storage</div>
 </div>
 <div class="paragraph">
-<p>Save the connection details generated using the python script <code>ceph-external-cluster-details-exporter.py</code> (ran on your RHCS cluster) into a file and then browse and select this file on your local machine. Select <strong>Next</strong>.</p>
+<p>Download the ceph-external-cluster-details-exporter.py python script and upload
+it to you RHCS bootstrap node, the script needs to be run from a host with the
+ceph admin key, in our example the hostname for the RHCS
+bootstrap node that has the admin keys available is <code>ceph1</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF_download_script_external_storage.png" alt="ODF download RHCS script">
+</div>
+<div class="title">Figure 6. ODF Download the RHCS script</div>
+</div>
+<div class="paragraph">
+<p>The ceph-external-cluster-details-exporter.py python script will create a configuration file
+with details for ODF to connect with the RHCS cluster.</p>
+</div>
+<div class="paragraph">
+<p>Because we are
+connecting two OCP clusters to the RHCS storage, you need to run the
+ceph-external-cluster-details-exporter.py script two times, one per OCP cluster.</p>
+</div>
+<div class="paragraph">
+<p>To see all configuration options available for the
+ceph-external-cluster-details-exporter.py script run the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --help</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To know more about the External ODF deployment options, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.10/html-single/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhodf">ODF external mode deployment.</a>
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>At a minimum, we need to use the following three flags with the ceph-external-cluster-details-exporter.py script:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong><em>--rbd-data-pool-name</em></strong> : The value of RBD pool name will be the same on both OCP clusters, the value is the name of the RBD pool we created during RHCS deployment for OCP, in our example, the pool is called <code>rbdpool</code>.</p>
+</li>
+<li>
+<p><strong><em>--rgw-endpoint</em></strong> : The value required is the RGW IP of the RGW daemon running on the same datacenter as the OCP cluster, we are configuring.</p>
+</li>
+<li>
+<p><strong><em>--run-as-user</em></strong> : The run as use option will have a different client name for each datacenter.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch ps | grep rgw.objectgw</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rgw.objectgw.ceph3.mecpzm  ceph3  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp
+rgw.objectgw.ceph6.mecpzm  ceph6  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>In the example we have in datacenter1 <code>ceph3</code> running an RGW service, and in datacenter2 <code>ceph6</code> running another RGW service.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">host ceph3
+host ceph6</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph3.example.com has address 10.0.40.24
+ceph6.example.com has address 10.0.40.66</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster <code>cluster1</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The IP used in the next command 10.0.40.24 is the IP of the node <code>ceph3</code>
+that is located in datacenter1 in our example, this IP will change depending on
+your deployment configuration.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.24:8080 --run-as-user client.odf.cluster1 &gt; ocp-cluster1.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster <code>cluster2</code></p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The IP used in the next command 10.0.40.66 is the IP of the node <code>ceph6</code>
+that is located in datacenter2 in our example, this IP will change depending on
+your deployment configuration.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.66:8080 --run-as-user client.odf.cluster2 &gt; ocp-cluster2.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Save the two files generated in the bootstrap cluster(ceph1) ocp-cluster1.json and ocp-cluster2.json to your
+local machine.</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p>Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed.</p>
+</li>
+<li>
+<p>Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>The next figure has an example for OCP cluster1.</p>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/ODF-external-storage-details.png" alt="Connection details for external storage">
 </div>
-<div class="title">Figure 6. ODF Connection details for external storage</div>
+<div class="title">Figure 7. ODF Connection details for external storage</div>
 </div>
 <div class="paragraph">
 <p>Review the settings and then select <strong>Create StorageSystem</strong>.</p>
@@ -471,7 +619,7 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 <div class="content">
 <img src="_images/ODF-create-storagesystem.png" alt="ODF Create StorageSystem">
 </div>
-<div class="title">Figure 7. ODF Create StorageSystem</div>
+<div class="title">Figure 8. ODF Create StorageSystem</div>
 </div>
 <div class="paragraph">
 <p>You can validate the successful deployment of ODF on each managed OCP cluster with the following command:</p>
@@ -928,7 +1076,7 @@ data:
 <div class="content">
 <img src="_images/ODR-DRPolicy-API.png" alt="ODR Hub cluster APIs">
 </div>
-<div class="title">Figure 8. ODR Hub cluster APIs</div>
+<div class="title">Figure 9. ODR Hub cluster APIs</div>
 </div>
 <div class="paragraph">
 <p><strong>Create instance</strong> for <strong>DRPolicy</strong> and then go to <strong>YAML view</strong>.</p>
@@ -937,7 +1085,7 @@ data:
 <div class="content">
 <img src="_images/ODR-DRPolicy-create-instance.png" alt="DRPolicy create instance">
 </div>
-<div class="title">Figure 9. DRPolicy create instance</div>
+<div class="title">Figure 10. DRPolicy create instance</div>
 </div>
 <div class="paragraph">
 <p>Save the following YAML to filename drpolicy.yaml after replacing <strong>&lt;cluster1&gt;</strong> and <strong>&lt;cluster2&gt;</strong> with the correct names of your managed clusters in <strong>ACM</strong>. Replace <strong>&lt;string_value&gt;</strong> with any value (i.e. metro).</p>
@@ -1062,7 +1210,7 @@ pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m
 <div class="content">
 <img src="_images/ODR-Cluster-operator.png" alt="ODR Cluster Operator">
 </div>
-<div class="title">Figure 10. ODR Cluster Operator</div>
+<div class="title">Figure 11. ODR Cluster Operator</div>
 </div>
 </div>
 </div>
@@ -1197,7 +1345,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 <div class="content">
 <img src="_images/ODR-DRPolicy-API.png" alt="ODR Hub cluster APIs">
 </div>
-<div class="title">Figure 11. ODR Hub cluster APIs</div>
+<div class="title">Figure 12. ODR Hub cluster APIs</div>
 </div>
 <div class="paragraph">
 <p><strong>Create instance</strong> for <strong>DRPlacementControl</strong> and then go to <strong>YAML view</strong>. Make sure the <code>busybox-sample</code> namespace is selected at the top.</p>
@@ -1206,7 +1354,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-create-instance.png" alt="DRPlacementControl create instance">
 </div>
-<div class="title">Figure 12. DRPlacementControl create instance</div>
+<div class="title">Figure 13. DRPlacementControl create instance</div>
 </div>
 <div class="paragraph">
 <p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct name of your managed cluster in <strong>ACM</strong>.</p>
@@ -1338,7 +1486,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <div class="content">
 <img src="_images/ACM-Create-application.png" alt="ACM Create application">
 </div>
-<div class="title">Figure 13. ACM Create application</div>
+<div class="title">Figure 14. ACM Create application</div>
 </div>
 <div class="paragraph">
 <p>Fill out the top of the <code>Create an application</code> form as shown below and select repository type <strong>Git</strong>.</p>
@@ -1347,7 +1495,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <div class="content">
 <img src="_images/ACM-application-form1.png" alt="ACM Application name and namespace">
 </div>
-<div class="title">Figure 14. ACM Application name and namespace</div>
+<div class="title">Figure 15. ACM Application name and namespace</div>
 </div>
 <div class="paragraph">
 <p>The next section to fill out is below the <strong>Git</strong> box and is the repository URL for the sample application, the <strong>github</strong> branch and path to resources that will be created, the <code>busybox</code> <strong>Pod</strong> and <strong>PVC</strong>.</p>
@@ -1368,7 +1516,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <div class="content">
 <img src="_images/ACM-application-form2a-metro.png" alt="ACM application repository information">
 </div>
-<div class="title">Figure 15. ACM application repository information</div>
+<div class="title">Figure 16. ACM application repository information</div>
 </div>
 <div class="paragraph">
 <p>Scroll down in the form until you see <strong>Select an existing placement configuration</strong> and then put your cursor in the box below. You should see the <strong>PlacementRule</strong> created in prior section. Select this rule.</p>
@@ -1377,7 +1525,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <div class="content">
 <img src="_images/ACM-application-form3.png" alt="ACM application placement rule">
 </div>
-<div class="title">Figure 16. ACM application placement rule</div>
+<div class="title">Figure 17. ACM application placement rule</div>
 </div>
 <div class="paragraph">
 <p>After selecting available rule then select <strong>Save</strong> in the upper right hand corner.</p>
@@ -1389,7 +1537,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 <div class="content">
 <img src="_images/ACM-application-successfull.png" alt="ACM application successful topology view">
 </div>
-<div class="title">Figure 17. ACM application successful topology view</div>
+<div class="title">Figure 18. ACM application successful topology view</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1464,7 +1612,7 @@ The instructions to delete the sample application should not be executed until t
 <div class="content">
 <img src="_images/ACM-application-delete.png" alt="ACM delete busybox application">
 </div>
-<div class="title">Figure 18. ACM delete busybox application</div>
+<div class="title">Figure 19. ACM delete busybox application</div>
 </div>
 <div class="paragraph">
 <p>When <strong>Delete application</strong> is selected a new screen will appear asking if the <code>application related resources</code> should also be deleted. Make sure to <code>check</code> the box to delete the <code>Subscription</code> and <code>PlacementRule</code>.</p>
@@ -1473,7 +1621,7 @@ The instructions to delete the sample application should not be executed until t
 <div class="content">
 <img src="_images/ACM-application-delete-resources.png" alt="ACM delete busybox application resources">
 </div>
-<div class="title">Figure 19. ACM delete busybox application resources</div>
+<div class="title">Figure 20. ACM delete busybox application resources</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Delete</strong> in this screen. This will delete the <code>busybox</code> application on the <strong>Primary managed cluster</strong> (or whatever cluster the application was running on).</p>
@@ -1485,7 +1633,7 @@ The instructions to delete the sample application should not be executed until t
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-delete.png" alt="Delete busybox application DRPlacementControl">
 </div>
-<div class="title">Figure 20. Delete busybox application DRPlacementControl</div>
+<div class="title">Figure 21. Delete busybox application DRPlacementControl</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Delete DRPlacementControl</strong>.</p>
@@ -1705,7 +1853,7 @@ spec:
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
 </div>
-<div class="title">Figure 21. DRPlacementControl busybox instance</div>
+<div class="title">Figure 22. DRPlacementControl busybox instance</div>
 </div>
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML view. Add the <code>action</code> and <code>failoverCluster</code> as shown below. The <code>failoverCluster</code> should be the <strong>ACM</strong> cluster name for the <strong>Secondary managed cluster</strong>.</p>
@@ -1714,7 +1862,7 @@ spec:
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-failover-metro.png" alt="DRPlacementControl add action Failover">
 </div>
-<div class="title">Figure 22. DRPlacementControl add action Failover</div>
+<div class="title">Figure 23. DRPlacementControl add action Failover</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Save</strong>.</p>
@@ -1884,7 +2032,7 @@ spec:
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
 </div>
-<div class="title">Figure 23. DRPlacementControl busybox instance</div>
+<div class="title">Figure 24. DRPlacementControl busybox instance</div>
 </div>
 <div class="paragraph">
 <p>Select <code>drpc-busybox</code> and then the YAML form. Modify the <code>action</code> to <code>Relocate</code> as shown below.</p>
@@ -1893,7 +2041,7 @@ spec:
 <div class="content">
 <img src="_images/ODR-DRPlacementControl-failback-metro.png" alt="DRPlacementControl modify action to Relocate">
 </div>
-<div class="title">Figure 24. DRPlacementControl modify action to Relocate</div>
+<div class="title">Figure 25. DRPlacementControl modify action to Relocate</div>
 </div>
 <div class="paragraph">
 <p>Select <strong>Save</strong>.</p>
