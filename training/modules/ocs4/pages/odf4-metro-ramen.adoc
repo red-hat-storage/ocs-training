@@ -181,7 +181,7 @@ Execute the ceph-external-cluster-details-exporter.py with the parameters config
 
 NOTE: The IP used in the next command 10.0.40.24 is the IP of the node `ceph3`
 that is located in datacenter1 in our example, this IP will change depending on
-your deployment configuration
+your deployment configuration.
 
 [source,role="execute"]
 ----
@@ -192,7 +192,7 @@ Execute the ceph-external-cluster-details-exporter.py with the parameters config
 
 NOTE: The IP used in the next command 10.0.40.66 is the IP of the node `ceph6`
 that is located in datacenter2 in our example, this IP will change depending on
-your deployment configuration
+your deployment configuration.
 
 [source,role="execute"]
 ----
