@@ -19,12 +19,12 @@ This is a general overview of the Metro DR steps required to configure and execu
 
 NOTE: These steps are considered Technical Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
 
+////
+These steps are outdated and I will fix them later.
 [start=1]
-. *Install the ACM operator on the hub cluster.* +
+. *Deploy and Configure ACM for Multisite connectivity.* +
 After creating the OCP hub cluster, install from OperatorHub the ACM operator. After the operator and associated pods are running, create the MultiClusterHub resource.
-. *Create or import managed OCP clusters into ACM hub.* +
-Import or create the two managed clusters with adequate resources for ODF (compute nodes, memory, cpu) using the RHACM console.
-. *Install Red Hat Ceph Storage Stretch Cluster With Arbiter.* +
+. *Install Red Hat Ceph Storage Stretch Cluster With Arbiter Red Hat Ceph Storage Installation.* +
 Properly set up a Ceph cluster deployed on two different datacenters using the stretched mode functionality.
 . *Install ODF 4.11 on managed clusters.* +
 Install ODF 4.11 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.
@@ -48,7 +48,8 @@ Using CLI commands on both managed clusters validate that the application is run
 After creating a network fence for the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
 . *Failback Sample Application to primary managed cluster.* +
 After removing the network fence for the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.
- 
+////
+
 == Deploy and Configure ACM for Multisite connectivity
 
 This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:
@@ -221,7 +222,7 @@ NOTE: The successful installation of ODF can also be validated in the *OCP Web C
 
 == Install ODF Multicluster Orchestrator Operator on Hub cluster
 
-On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`. 
+On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`.  The `ODF Multicluster Orchestrator` also installs the `ODR Hub Operator` on the ACM hub cluster as its dependency.
 
 Check to see the operator *Pod* is in a `Running` state.
 
@@ -234,6 +235,8 @@ oc get pods -n openshift-operators
 NAME                                       READY   STATUS    RESTARTS   AGE
 
 odfmo-controller-manager-f6fc95f7f-7wtjl   1/1     Running   0          4m14s
+ramen-hub-operator-85465bd487-7sl2k        2/2     Running   0          3m40s
+odf-multicluster-console-76b88b444c-vl9s4  1/1     Running   0          3m50s
 ----
 
 == Configure SSL access between S3 endpoints
@@ -321,88 +324,16 @@ proxy.config.openshift.io/cluster patched
 ----
 
 
-== Create DRPolicy on Hub cluster
+== Create DataPolicy on Hub cluster
 
-ODR uses the *DRPolicy* resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two DRClusters.
+ODR uses the *DRPolicy* resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two DRClusters. The `ODF MultiCluster Orchestrator Operator` facilitates the creation of DRPolicy and the corresponding DRClusters through the web console.
  
 
-On the *Hub cluster* navigate to `Installed Operators` in the `openshift-dr-system` project and select `OpenShift DR Hub Operator`. You should see three available APIs, *DRCluster*,  *DRPolicy* and *DRPlacementControl*.
+On the *Hub cluster* navigate to `All Clusters`. Navigate to Data Policies under Data services menu. You should see a tab for *Disaster Recovery*.
 
-.ODR Hub cluster APIs
-image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
+Click on *Create DRPolicy*. Select the clusters presented from the list of managed clusters that you would like to participate in the DRPolicy. In the dropdown option for `replication policy` select *Synchronous*
 
-*Create instance* for *DRPolicy* and then go to *YAML view*.
-
-.DRPolicy create instance
-image::ODR-DRPolicy-create-instance.png[DRPolicy create instance]
-
-Save the following YAML to filename drpolicy.yaml after replacing *<cluster1>* and *<cluster2>* with the correct names of your DRCluster CRs.
-
-NOTE: There is no need to specify a namespace to create this resource because `DRPolicy` is a cluster-scoped resource.
-
-[source,yaml]
-----
-apiVersion: ramendr.openshift.io/v1alpha1
-kind: DRPolicy
-metadata:
-  name: odr-policy
-spec:
-  drClusters:
-    - <cluster1>
-    - <cluster2>
-----    
-
-Now create the `DRPolicy` resource by copying the contents of your unique `drpolicy.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
-
-You can also create this resource using CLI:
-
-[source,role="execute"]
-----
-oc create -f drpolicy.yaml
-----
-.Example output.
-----
-drpolicy.ramendr.openshift.io/odr-policy created
-----
-
-To validate that the *DRPolicy* is created successfully and that the MCG object buckets can be accessed using the *Secrets* created earlier, run this command on the *Hub cluster*.
-
-[source,role="execute"]
-----
-oc get drpolicy odr-policy -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
-----
-.Example output.
-----
-Succeeded
-----
-
-== Enable Automatic Install of ODR Cluster operator
-
-Once the *DRPolicy* is created successfully the `ODR Cluster operator` can be installed on the *Primary managed cluster* and *Secondary managed cluster* in the `openshift-dr-system` namespace.
-
-This is done by editing the `ramen-hub-operator-config` *ConfigMap* on the *Hub cluster* and make `deploymentAutomationEnabled=true` (change false to true).
-
-[source,role="execute"]
-----
-oc edit configmap ramen-hub-operator-config -n openshift-dr-system
-----
-[source,yaml]
-----
-apiVersion: v1
-data:
-  ramen_manager_config.yaml: |
-    apiVersion: ramendr.openshift.io/v1alpha1
-    [...]
-    drClusterOperator:
-      deploymentAutomationEnabled: true  ## <-- Modify to true if needed
-      catalogSourceName: redhat-operators
-      catalogSourceNamespaceName: openshift-marketplace
-      channelName: stable-4.11
-      clusterServiceVersionName: odr-cluster-operator.v4.11.0
-      namespaceName: openshift-dr-system
-      packageName: odr-cluster-operator
-[...]
-----
+This should create the two *DRCluster* objects and also the *DRPolicy*. *ODF DR Hub Operator* will also install the ODF Cluster Operator in the managed clusters automatically.
 
 To validate that the installation was successful on the *Primary managed cluster* and the *Secondary managed cluster* do the following command:
 
@@ -424,73 +355,7 @@ You can also go to *OperatorHub* on each of the managed clusters and look to see
 .ODR Cluster Operator
 image::ODR-Cluster-operator.png[ODR Cluster Operator]
 
-== Create S3 Secrets on Managed clusters
-
-The MCG object bucket *Secrets* were created and stored on the *Hub cluster*.
-
-[source,role="execute"]
-----
-oc get secrets -n openshift-dr-system | grep Opaque
-----
-.Example output.
-----
-odr-s3secret-primary                 Opaque                                2      39m
-odr-s3secret-secondary               Opaque                                2      39m
-----
-
-These *Secrets* need to be copied to the *Primary managed cluster* and the *Secondary managed cluster*. 
-
-The S3 secret YAML format for the *Primary managed cluster* is similar to the following: 
-
-[source,yaml]
-----
-apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: <primary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <primary cluster base-64 encoded secret access key>
-kind: Secret
-metadata:
-  name: odr-s3secret-primary
-  namespace: openshift-dr-system
-----
-
-Create this secret on the *Primary managed cluster* and the *Secondary managed cluster*.
-
-[source,role="execute"]
-----
-oc create -f odr-s3secret-primary.yaml
-----
-.Example output.
-----
-secret/odr-s3secret-primary created
-----
-
-The S3 secret YAML format for the *Secondary managed cluster* is similar to the following:
-
-[source,yaml]
-----
-apiVersion: v1
-data:
-  AWS_ACCESS_KEY_ID: <secondary cluster base-64 encoded access key>
-  AWS_SECRET_ACCESS_KEY: <secondary cluster base-64 encoded secret access key>
-kind: Secret
-metadata:
-  name: odr-s3secret-secondary
-  namespace: openshift-dr-system
-----
-
-Create this secret on the *Primary managed cluster* and the *Secondary managed cluster*.
-
-[source,role="execute"]
-----
-oc create -f odr-s3secret-secondary.yaml
-----
-.Example output.
-----
-secret/odr-s3secret-secondary created
-----
-
-IMPORTANT: The values for the access key and secret key must be *base-64 encoded*. The encoded values for the keys were retrieved in a prior section. 
+NOTE:  There is a bug which prevents from correct syncing of the s3 secrets, follow the workaround mentioned in https://bugzilla.redhat.com/show_bug.cgi?id=2099724 
 
 == Create Sample Application for DR testing
 
