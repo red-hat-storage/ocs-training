@@ -219,20 +219,21 @@ If the result is `Ready` for both queries on the *Primary managed cluster* and t
 
 NOTE: The successful installation of ODF can also be validated in the *OCP Web Console* by navigating to *Storage* and then *Data Foundation*. 
 
-== Install OpenShift DR Hub Operator on Hub cluster
+== Install ODF Multicluster Orchestrator Operator on Hub cluster
 
-On the *Hub cluster* navigate to *OperatorHub* and filter for `OpenShift DR Hub Operator`. Follow instructions to *Install* the operator into the project `openshift-dr-system`. 
+On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`. 
 
 Check to see the operator *Pod* is in a `Running` state.
 
 [source,role="execute"]
 ----
-oc get pods -n openshift-dr-system
+oc get pods -n openshift-operators
 ----
 .Example output.
 ----
-NAME                                 READY   STATUS    RESTARTS   AGE
-ramen-hub-operator-898c5989b-96k65   2/2     Running   0          4m14s
+NAME                                       READY   STATUS    RESTARTS   AGE
+
+odfmo-controller-manager-f6fc95f7f-7wtjl   1/1     Running   0          4m14s
 ----
 
 == Configure SSL access between S3 endpoints
@@ -660,7 +661,7 @@ To validate that the replication resource is also created for the `busybox` *PVC
 
 [source,role="execute"]
 ----
-oc get volumereplicationgroup -n busybox-sample
+oc get volumereplicationgroup -n busybox-sa/mple
 ----
 .Example output.
 ----
