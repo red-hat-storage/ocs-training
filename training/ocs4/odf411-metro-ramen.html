@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>OpenShift Metro Disaster Recovery with Advanced Cluster Management :: OCS Training</title>
+    <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/odf411-metro-ramen.html">
+    <meta name="generator" content="Antora 3.0.1">
+    <link rel="stylesheet" href="../../_/css/site.css">
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
+    <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
+    <script>var uiRootPath = '../../_'</script>
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+          <img src="../../_/img/header_logo_reverse.svg" height="40px" alt="Red Hat Data Services">
+      </a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Get Help</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://access.redhat.com/documentation/en-us/red_hat_openshift_container_storage" target="_blank">OCS Documentation</a>
+            <a class="navbar-item" href="https://bugzilla.redhat.com/describecomponents.cgi?product=Red%20Hat%20OpenShift%20Container%20Storage" target="_blank">Browse Bugs</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">Improve Guides</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/blob/master/CONTRIBUTING.adoc" target="_blank">Guidelines</a>
+            <a class="navbar-item" href="https://github.com/red-hat-storage/ocs-training/issues/new/choose" target="_blank">Open Issue</a>
+          </div>
+        </div>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Infos</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://www.redhat.com/en/blog/channel/red-hat-storage" target="_blank">Our Blog</a>
+            <a class="navbar-item" href="https://www.youtube.com/channel/UCoyG8VyvB-XUxQl1mD3T3Gw" target="_blank">Youtube</a>
+            <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">OCS Technology</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="training" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="../index.html">OCS Installation and Configuration</a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf.html">ODF General deploy and use</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-install-no-ui.html">OCS CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf4-install-no-ui.html">ODF CLI based install</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-encryption.html">External KMS Encryption</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-enable-rgw.html">Use RGW in OCS deployment</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-cluster-storage-quotas.html">Cluster wide storage management</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Disaster recovery</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf4-multisite-ramen.html">ODF 4.9 Regional disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf410-multisite-ramen.html">ODF 4.10 Regional disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-metro-stretched.html">Stretch Cluster disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf410-metro-ramen.html">ODF 4.10 Metro disaster recovery</a>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <a class="nav-link" href="odf411-metro-ramen.html">ODF 4.11 Metro disaster recovery</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+    <button class="nav-item-toggle"></button>
+    <span class="nav-text">Development preview features</span>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-dbwal.html">BlueStore RocksDB metadata and WAL placement</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-devtype.html">Mixed OSD device type configuration</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-override.html">Ceph configuration override</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="ocs4-additionalfeatures-segregation.html">Data Segregation</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../infra-nodes/ocs4-infra-nodes.html">Deploying on Infra nodes</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="../ocs4perf/ocs4perf.html">Test deployment post-install</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+<div class="nav-panel-explore" data-panel="explore">
+  <div class="context">
+    <span class="title">OCS Installation and Configuration</span>
+    <span class="version">master</span>
+  </div>
+  <ul class="components">
+    <li class="component is-current">
+      <a class="title" href="../index.html">OCS Installation and Configuration</a>
+      <ul class="versions">
+        <li class="version is-current is-latest">
+          <a href="../index.html">master</a>
+        </li>
+      </ul>
+    </li>
+    <li class="component">
+      <a class="title" href="../../RegionalDR/index.html">ODF Regional DR</a>
+      <ul class="versions">
+        <li class="version is-latest">
+          <a href="../../RegionalDR/index.html">master</a>
+        </li>
+      </ul>
+    </li>
+  </ul>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="../index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="../index.html">OCS Installation and Configuration</a></li>
+    <li>Disaster recovery</li>
+    <li><a href="odf411-metro-ramen.html">ODF 4.11 Metro disaster recovery</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/red-hat-storage/ocs-training/edit/master/training/modules/ocs4/pages/odf411-metro-ramen.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+<article class="doc">
+<h1 class="page">OpenShift Metro Disaster Recovery with Advanced Cluster Management</h1>
+<div id="toc" class="toc">
+<div id="toctitle">Table of Contents</div>
+<ul class="sectlevel1">
+<li><a href="#_overview">1. Overview</a></li>
+<li><a href="#_deploy_and_configure_acm_for_multisite_connectivity">2. Deploy and Configure ACM for Multisite connectivity</a>
+<ul class="sectlevel2">
+<li><a href="#_install_acm_and_multiclusterhub">2.1. Install ACM and MultiClusterHub</a></li>
+<li><a href="#_import_or_create_managed_clusters">2.2. Import or Create Managed clusters</a></li>
+</ul>
+</li>
+<li><a href="#_red_hat_ceph_storage_installation">3. Red Hat Ceph Storage Installation</a></li>
+<li><a href="#_openshift_data_foundation_installation">4. OpenShift Data Foundation Installation</a></li>
+<li><a href="#_install_odf_multicluster_orchestrator_operator_on_hub_cluster">5. Install ODF Multicluster Orchestrator Operator on Hub cluster</a></li>
+<li><a href="#_configure_ssl_access_between_s3_endpoints">6. Configure SSL access between S3 endpoints</a></li>
+<li><a href="#_create_datapolicy_on_hub_cluster">7. Create DataPolicy on Hub cluster</a></li>
+<li><a href="#_create_sample_application_for_dr_testing">8. Create Sample Application for DR testing</a>
+<ul class="sectlevel2">
+<li><a href="#_create_drplacementcontrol_resource">8.1. Create DRPlacementControl resource</a></li>
+<li><a href="#_create_placementrule_resource">8.2. Create PlacementRule resource</a></li>
+<li><a href="#_creating_sample_application_using_acm_console">8.3. Creating Sample Application using ACM console</a></li>
+<li><a href="#_validating_sample_application_deployment_and_replication">8.4. Validating Sample Application deployment and replication</a></li>
+<li><a href="#_deleting_the_sample_application">8.5. Deleting the Sample Application</a></li>
+</ul>
+</li>
+<li><a href="#_add_annotations_required_for_fencing_operations">9. Add annotations required for fencing operations</a></li>
+<li><a href="#_application_failover_between_managed_clusters">10. Application Failover between managed clusters</a>
+<ul class="sectlevel2">
+<li><a href="#_enable_fencing">10.1. Enable Fencing</a></li>
+<li><a href="#_modify_drplacementcontrol_to_failover">10.2. Modify DRPlacementControl to failover</a></li>
+</ul>
+</li>
+<li><a href="#_application_failback_between_managed_clusters">11. Application Failback between managed clusters</a>
+<ul class="sectlevel2">
+<li><a href="#_disable_fencing">11.1. Disable Fencing</a>
+<ul class="sectlevel3">
+<li><a href="#_modify_drcluster_to_unfenced">11.1.1. Modify DRCluster to Unfenced</a></li>
+<li><a href="#_reboot_ocp_nodes_that_were_fenced">11.1.2. Reboot OCP nodes that were Fenced</a></li>
+</ul>
+</li>
+<li><a href="#_modify_drplacementcontrol_to_failback">11.2. Modify DRPlacementControl to failback</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="sect1">
+<h2 id="_overview"><a class="anchor" href="#_overview"></a>1. Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>The intent of this guide is to detail the <code>Metro Disaster Recovery</code> (Metro DR) steps and commands necessary to be able to failover an application from one <code>OpenShift Container Platform</code> (OCP) cluster to another and then failback the same application to the original <strong>primary cluster</strong>. In this case the OCP clusters will be created or imported using <strong>Red Hat Advanced Cluster Management</strong> or <code>RHACM</code> and have <strong><em>distance limitations between the OCP clusters of less than 10ms RTT latency</em></strong>.</p>
+</div>
+<div class="paragraph">
+<p>The persistent storage for applications will be provided by an external <strong>Red Hat Ceph Storage</strong> (RHCS) cluster stretched between the two locations with the OCP instances connected to this storage cluster. An arbiter node with a storage monitor service will be required at a third location (different location than where OCP instances are deployed) to establish quorum for the RHCS cluster in the case of a site outage. This third location does not have distance limitations and can be 100+ RTT latency from the storage cluster connected to the OCP instances.</p>
+</div>
+<div class="paragraph">
+<p>This is a general overview of the Metro DR steps required to configure and execute <code>OpenShift Disaster Recovery</code> (ODR) capabilities using OpenShift Data Foundation (ODF) <strong>v4.11</strong> and <code>RHACM</code> <strong>v2.5</strong> across two distinct OCP clusters separated by distance. In addition to these two cluster called <code>managed</code> clusters, there is currently a requirement to have a third OCP cluster that will be the <code>Advanced Cluster Management</code> (ACM) <code>hub</code> cluster.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+These steps are considered Technical Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift <code>Metro DR</code> will be supported for production usage in a future ODF release.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_deploy_and_configure_acm_for_multisite_connectivity"><a class="anchor" href="#_deploy_and_configure_acm_for_multisite_connectivity"></a>2. Deploy and Configure ACM for Multisite connectivity</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This installation method requires you have three OpenShift clusters that have network reachability between them. For the purposes of this document we will use this reference for the clusters:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>Hub cluster</strong> is where ACM, ODF Multisite-orchestrator and ODR Hub controllers are installed.</p>
+</li>
+<li>
+<p><strong>Primary managed cluster</strong> is where ODF, ODR Cluster controller, and Applications are installed.</p>
+</li>
+<li>
+<p><strong>Secondary managed cluster</strong> is where ODF, ODR Cluster controller, and Applications are installed.</p>
+</li>
+</ul>
+</div>
+<div class="sect2">
+<h3 id="_install_acm_and_multiclusterhub"><a class="anchor" href="#_install_acm_and_multiclusterhub"></a>2.1. Install ACM and MultiClusterHub</h3>
+<div class="paragraph">
+<p>Find ACM in OperatorHub on the <strong>Hub cluster</strong> and follow instructions to install this operator.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-OperatorHub.png" alt="OperatorHub filter for Advanced Cluster Management">
+</div>
+<div class="title">Figure 1. OperatorHub filter for Advanced Cluster Management</div>
+</div>
+<div class="paragraph">
+<p>Verify that the operator was successfully installed and that the <code>MultiClusterHub</code> is ready to be installed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-Installed-Operator.png" alt="ACM Installed Operator">
+</div>
+<div class="title">Figure 2. ACM Installed Operator</div>
+</div>
+<div class="paragraph">
+<p>Select <code>MultiClusterHub</code> and use either <code>Form view</code> or <code>YAML view</code> to configure the deployment and select <code>Create</code>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Most <strong>MultiClusterHub</strong> deployments can use default settings in the <code>Form view</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Once the deployment is complete you can logon to the ACM console using your OpenShift credentials.</p>
+</div>
+<div class="paragraph">
+<p>First, find the <strong>Route</strong> that has been created for the ACM console:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route multicloud-console -n open-cluster-management -o jsonpath --template="https://{.spec.host}/multicloud/clusters{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example Output:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">https://multicloud-console.apps.perf3.example.com/multicloud/clusters</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After logging in you should see your local cluster imported.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-local-cluster-import.png" alt="ACM local cluster imported">
+</div>
+<div class="title">Figure 3. ACM local cluster imported</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_import_or_create_managed_clusters"><a class="anchor" href="#_import_or_create_managed_clusters"></a>2.2. Import or Create Managed clusters</h3>
+<div class="paragraph">
+<p>Now that ACM is installed on the <code>Hub cluster</code> it is time to either create or import the <code>Primary managed cluster</code> and the <code>Secondary managed cluster</code>. You should see selections (as in above diagram) for <strong>Create cluster</strong> and <strong>Import cluster</strong>. Chose the selection appropriate for your environment. After the managed clusters are successfully created or imported you should see something similar to below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-managed-clusters-import.png" alt="ACM managed cluster imported">
+</div>
+<div class="title">Figure 4. ACM managed cluster imported</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_red_hat_ceph_storage_installation"><a class="anchor" href="#_red_hat_ceph_storage_installation"></a>3. Red Hat Ceph Storage Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p><a href="rhcs-stretched-deploy.html" class="xref page">Red Hat Ceph Storage Stretch Cluster With Arbiter Deployment</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_openshift_data_foundation_installation"><a class="anchor" href="#_openshift_data_foundation_installation"></a>4. OpenShift Data Foundation Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to configure storage replication between the two OCP clusters <code>OpenShift Data Foundation</code> (ODF) must be installed first on each managed cluster. ODF deployment guides and instructions are specific to your infrastructure (i.e. AWS, VMware, BM, Azure, etc.).</p>
+</div>
+<div class="paragraph">
+<p>After the ODF operators are installed, select <strong>Create StorageSystem</strong> and choose <code>Connect an external storage platform</code> and <code>Red Hat Ceph Storage</code> as shown below. Select <strong>Next</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-connect-external-storage.png" alt="ODF Connect external storage">
+</div>
+<div class="title">Figure 5. ODF Connect external storage</div>
+</div>
+<div class="paragraph">
+<p>Download the ceph-external-cluster-details-exporter.py python script and upload
+it to you RHCS bootstrap node, the script needs to be run from a host with the
+ceph admin key, in our example the hostname for the RHCS
+bootstrap node that has the admin keys available is <code>ceph1</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF_download_script_external_storage.png" alt="ODF download RHCS script">
+</div>
+<div class="title">Figure 6. ODF Download the RHCS script</div>
+</div>
+<div class="paragraph">
+<p>The ceph-external-cluster-details-exporter.py python script will create a configuration file
+with details for ODF to connect with the RHCS cluster.</p>
+</div>
+<div class="paragraph">
+<p>Because we are
+connecting two OCP clusters to the RHCS storage, you need to run the
+ceph-external-cluster-details-exporter.py script two times, one per OCP cluster.</p>
+</div>
+<div class="paragraph">
+<p>To see all configuration options available for the
+ceph-external-cluster-details-exporter.py script run the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --help</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To know more about the External ODF deployment options, see
+<a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.11/html-single/deploying_openshift_data_foundation_in_external_mode/index#overview-of-deploying-in-external-mode_rhodf">ODF external mode deployment.</a></p>
+</div>
+<div class="paragraph">
+<p>At a minimum, we need to use the following three flags with the
+ceph-external-cluster-details-exporter.py script:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>--rbd-data-pool-name</strong> : With the name of the RBD pool we created during RHCS deployment for OCP, in  our example, the pool is called <code>rbdpool</code>.</p>
+</li>
+<li>
+<p><strong>--rgw-endpoint</strong> : With the RGW IP of the RGW daemon running on the same site as the OCP cluster, we are configuring.</p>
+</li>
+<li>
+<p><strong>--run-as-user</strong> : With a different client name for each site.</p>
+</li>
+</ul>
+</div>
+<div class="paragraph">
+<p>Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph orch ps | grep rgw.objectgw</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rgw.objectgw.ceph3.mecpzm  ceph3  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp
+rgw.objectgw.ceph6.mecpzm  ceph6  *:8080       running (5d)     31s ago   7w     204M        -  16.2.7-112.el8cp</code></pre>
+</div>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">host ceph3
+host ceph6</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ceph3.example.com has address 10.0.40.24
+ceph6.example.com has address 10.0.40.66</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster <code>cluster1</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.24:8080 --run-as-user client.odf.cluster1 &gt; ocp-cluster1.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster <code>cluster2</code></p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.66:8080 --run-as-user client.odf.cluster2 &gt; ocp-cluster2.json</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Save the two files generated in the bootstrap cluster(ceph1) ocp-cluster1.json and ocp-cluster2.json to your
+local machine.
+* Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed.
+* Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed.</p>
+</div>
+<div class="paragraph">
+<p>The next figure has an example for OCP cluster1.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-external-storage-details.png" alt="Connection details for external storage">
+</div>
+<div class="title">Figure 7. ODF Connection details for external storage</div>
+</div>
+<div class="paragraph">
+<p>Review the settings and then select <strong>Create StorageSystem</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODF-create-storagesystem.png" alt="ODF Create StorageSystem">
+</div>
+<div class="title">Figure 8. ODF Create StorageSystem</div>
+</div>
+<div class="paragraph">
+<p>You can validate the successful deployment of ODF on each managed OCP cluster with the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get storagecluster -n openshift-storage ocs-external-storagecluster -o jsonpath='{.status.phase}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>And for the Multi-Cluster Gateway (MCG):</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get noobaa -n openshift-storage noobaa -o jsonpath='{.status.phase}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>If the result is <code>Ready</code> for both queries on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> continue on to the next step.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The successful installation of ODF can also be validated in the <strong>OCP Web Console</strong> by navigating to <strong>Storage</strong> and then <strong>Data Foundation</strong>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_install_odf_multicluster_orchestrator_operator_on_hub_cluster"><a class="anchor" href="#_install_odf_multicluster_orchestrator_operator_on_hub_cluster"></a>5. Install ODF Multicluster Orchestrator Operator on Hub cluster</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>On the <strong>Hub cluster</strong> navigate to <strong>OperatorHub</strong> and filter for <code>ODF Multicluster Orchestrator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-operators</code>.  The <code>ODF Multicluster Orchestrator</code> also installs the <code>ODR Hub Operator</code> on the ACM hub cluster as its dependency.</p>
+</div>
+<div class="paragraph">
+<p>Check to see the operator <strong>Pod</strong> is in a <code>Running</code> state.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -n openshift-operators</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                       READY   STATUS    RESTARTS   AGE
+
+odfmo-controller-manager-f6fc95f7f-7wtjl   1/1     Running   0          4m14s
+ramen-hub-operator-85465bd487-7sl2k        2/2     Running   0          3m40s
+odf-multicluster-console-76b88b444c-vl9s4  1/1     Running   0          3m50s</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_configure_ssl_access_between_s3_endpoints"><a class="anchor" href="#_configure_ssl_access_between_s3_endpoints"></a>6. Configure SSL access between S3 endpoints</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>These steps are necessary so that metadata can be stored on the alternate cluster in a Multi-Cloud Gateway (MCG) object bucket using a secure transport protocol and in addition the <strong>Hub cluster</strong> needs to verify access to the object buckets.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If all of your OpenShift clusters are deployed using signed and valid set of certificates for your environment then this section can be skipped.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Extract the ingress certificate for the <strong>Primary managed cluster</strong> and save the output to <code>primary.crt</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" &gt; primary.crt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Extract the ingress certificate for the <strong>Secondary managed cluster</strong> and save the output to <code>secondary.crt</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get cm default-ingress-cert -n openshift-config-managed -o jsonpath="{['data']['ca-bundle\.crt']}" &gt; secondary.crt</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Create a new YAML file <code>cm-clusters-crt.yaml</code> to hold the certificate bundle for both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There could be more or less than three certificates for each cluster as shown in this example file.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+data:
+  ca-bundle.crt: |
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert1 from primary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert2 from primary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert3 primary.crt here&gt;
+    -----END CERTIFICATE----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert1 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert2 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+
+    -----BEGIN CERTIFICATE-----
+    &lt;copy contents of cert3 from secondary.crt here&gt;
+    -----END CERTIFICATE-----
+kind: ConfigMap
+metadata:
+  name: user-ca-bundle
+  namespace: openshift-config</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This <strong>ConfigMap</strong> needs to be created on the <strong>Primary managed cluster</strong>, <strong>Secondary managed cluster</strong>, <em>and</em> the <strong>Hub cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f cm-clusters-crt.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">configmap/user-ca-bundle created</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+The <strong>Hub cluster</strong> needs to verify access to the object buckets using the <strong>DRPolicy</strong> resource. Therefore the same <strong>ConfigMap</strong>, <code>cm-clusters-crt.yaml</code>, needs to be created on the <strong>Hub cluster</strong>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>After all the <code>user-ca-bundle</code> <strong>ConfigMaps</strong> are created, the default <strong>Proxy</strong> <code>cluster</code> resource needs to be modified.</p>
+</div>
+<div class="paragraph">
+<p>Patch the default <strong>Proxy</strong> resource on the <strong>Primary managed cluster</strong>, <strong>Secondary managed cluster</strong>, and the <strong>Hub cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user-ca-bundle"}}}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">proxy.config.openshift.io/cluster patched</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_datapolicy_on_hub_cluster"><a class="anchor" href="#_create_datapolicy_on_hub_cluster"></a>7. Create DataPolicy on Hub cluster</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>ODR uses the <strong>DRPolicy</strong> resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A <strong>DRPolicy</strong> requires a set of two DRClusters. The <code>ODF MultiCluster Orchestrator Operator</code> facilitates the creation of DRPolicy and the corresponding DRClusters through the web console.</p>
+</div>
+<div class="paragraph">
+<p>On the <strong>Hub cluster</strong> navigate to <code>All Clusters</code>. Navigate to Data Policies under Data services menu. You should see a tab for <strong>Disaster Recovery</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Click on <strong>Create DRPolicy</strong>. Select the clusters presented from the list of managed clusters that you would like to participate in the DRPolicy. In the dropdown option for <code>replication policy</code> select <strong>Synchronous</strong></p>
+</div>
+<div class="paragraph">
+<p>This should create the two <strong>DRCluster</strong> objects and also the <strong>DRPolicy</strong>. <strong>ODF DR Hub Operator</strong> will also install the ODF Cluster Operator in the managed clusters automatically.</p>
+</div>
+<div class="paragraph">
+<p>To validate that the installation was successful on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> do the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv,pod -n openshift-dr-system</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                                      DISPLAY                         VERSION   REPLACES   PHASE
+clusterserviceversion.operators.coreos.com/odr-cluster-operator.v4.11.0   Openshift DR Cluster Operator   4.11.0               Succeeded
+
+NAME                                             READY   STATUS    RESTARTS   AGE
+pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m32s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>You can also go to <strong>OperatorHub</strong> on each of the managed clusters and look to see the <code>OpenShift DR Cluster Operator</code> is installed.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-Cluster-operator.png" alt="ODR Cluster Operator">
+</div>
+<div class="title">Figure 9. ODR Cluster Operator</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+There is a bug which prevents from correct syncing of the s3 secrets, follow the workaround mentioned in <a href="https://bugzilla.redhat.com/show_bug.cgi?id=2099724" class="bare">bugzilla.redhat.com/show_bug.cgi?id=2099724</a>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_sample_application_for_dr_testing"><a class="anchor" href="#_create_sample_application_for_dr_testing"></a>8. Create Sample Application for DR testing</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>In order to test failover from the <strong>Primary managed cluster</strong> to the <strong>Secondary managed cluster</strong> and back again we need a simple application. The sample application used for this example with be <code>busybox</code>.</p>
+</div>
+<div class="paragraph">
+<p>The first step is to create a namespace or project on the <strong>Hub cluster</strong> for <code>busybox</code> sample application.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc new-project busybox-sample</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+A different project name other than <code>busybox-sample</code> can be used if desired. Make sure when deploying the sample application via the ACM console to use the same project name as what is created in this step.
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_create_drplacementcontrol_resource"><a class="anchor" href="#_create_drplacementcontrol_resource"></a>8.1. Create DRPlacementControl resource</h3>
+<div class="paragraph">
+<p><strong>DRPlacementControl</strong> is an API available after the <code>ODR Hub Operator</code> is installed on the <strong>Hub cluster</strong>. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a <strong>DRPolicy</strong>.</p>
+</div>
+<div class="paragraph">
+<p>On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> in the <code>busybox-sample</code> project and select <code>ODR Hub Operator</code>. You should see two available APIs, <strong>DRPolicy</strong> and <strong>DRPlacementControl</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPolicy-API.png" alt="ODR Hub cluster APIs">
+</div>
+<div class="title">Figure 10. ODR Hub cluster APIs</div>
+</div>
+<div class="paragraph">
+<p><strong>Create instance</strong> for <strong>DRPlacementControl</strong> and then go to <strong>YAML view</strong>. Make sure the <code>busybox-sample</code> namespace is selected at the top.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-create-instance.png" alt="DRPlacementControl create instance">
+</div>
+<div class="title">Figure 11. DRPlacementControl create instance</div>
+</div>
+<div class="paragraph">
+<p>Save the following YAML (below) to filename busybox-drpc.yaml after replacing <strong>&lt;cluster1&gt;</strong> with the correct name of your managed cluster in <strong>ACM</strong>.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRPlacementControl
+metadata:
+  labels:
+    app: busybox-sample
+  name: busybox-drpc
+spec:
+  drPolicyRef:
+    name: odr-policy
+  placementRef:
+    kind: PlacementRule
+    name: busybox-placement
+  preferredCluster: &lt;cluster1&gt;
+  pvcSelector:
+    matchLabels:
+      appname: busybox</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now create the <strong>DRPlacementControl</strong> resource by copying the contents of your unique <code>busybox-drpc.yaml</code> file into the <code>YAML view</code> (completely replacing original content). Select <strong>Create</strong> at the bottom of the <code>YAML view</code> screen.</p>
+</div>
+<div class="paragraph">
+<p>You can also create this resource using CLI.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+This resource must be created in the <code>busybox-sample</code> namespace (or whatever namespace you created earlier).
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f busybox-drpc.yaml -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drplacementcontrol.ramendr.openshift.io/busybox-drpc created</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_create_placementrule_resource"><a class="anchor" href="#_create_placementrule_resource"></a>8.2. Create PlacementRule resource</h3>
+<div class="paragraph">
+<p>Placement rules define the target clusters where resource templates can be deployed. Use placement rules to help you facilitate the multicluster deployment of your applications.</p>
+</div>
+<div class="paragraph">
+<p>Save the following YAML (below) to filename busybox-placementrule.yaml.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps.open-cluster-management.io/v1
+kind: PlacementRule
+metadata:
+  labels:
+    app: busybox-sample
+  name: busybox-placement
+spec:
+  clusterConditions:
+  - status: "True"
+    type: ManagedClusterConditionAvailable
+  clusterReplicas: 1
+  schedulerName: ramen</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now create the <strong>PlacementRule</strong> resource for the <code>busybox-sample</code> application.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+This resource must be created in the <code>busybox-sample</code> namespace (or whatever namespace you created earlier).
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc create -f busybox-placementrule.yaml -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">placementrule.apps.open-cluster-management.io/busybox-placement created</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_creating_sample_application_using_acm_console"><a class="anchor" href="#_creating_sample_application_using_acm_console"></a>8.3. Creating Sample Application using ACM console</h3>
+<div class="paragraph">
+<p>Start by loggin into the ACM console using your OpenShift credentials if not already logged in.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get route multicloud-console -n open-cluster-management -o jsonpath --template="https://{.spec.host}/multicloud/applications{'\n'}"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This will return a route similar to this one.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example Output:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">https://multicloud-console.apps.perf3.example.com/multicloud/applications</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>After logging in select <strong>Create application</strong> in the top right and choose <strong>Subscription</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-Create-application.png" alt="ACM Create application">
+</div>
+<div class="title">Figure 12. ACM Create application</div>
+</div>
+<div class="paragraph">
+<p>Fill out the top of the <code>Create an application</code> form as shown below and select repository type <strong>Git</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-form1.png" alt="ACM Application name and namespace">
+</div>
+<div class="title">Figure 13. ACM Application name and namespace</div>
+</div>
+<div class="paragraph">
+<p>The next section to fill out is below the <strong>Git</strong> box and is the repository URL for the sample application, the <strong>github</strong> branch and path to resources that will be created, the <code>busybox</code> <strong>Pod</strong> and <strong>PVC</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<strong>Sample application repository</strong> <a href="https://github.com/RamenDR/ocm-ramen-samples" class="bare">github.com/RamenDR/ocm-ramen-samples</a>. Branch is <code>main</code> and path is <code>busybox-odr-metro</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-form2a-metro.png" alt="ACM application repository information">
+</div>
+<div class="title">Figure 14. ACM application repository information</div>
+</div>
+<div class="paragraph">
+<p>Scroll down in the form until you see <strong>Select an existing placement configuration</strong> and then put your cursor in the box below. You should see the <strong>PlacementRule</strong> created in prior section. Select this rule.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-form3.png" alt="ACM application placement rule">
+</div>
+<div class="title">Figure 15. ACM application placement rule</div>
+</div>
+<div class="paragraph">
+<p>After selecting available rule then select <strong>Save</strong> in the upper right hand corner.</p>
+</div>
+<div class="paragraph">
+<p>On the follow-on screen scroll to the bottom. You should see that there are all <strong>Green</strong> checkmarks on the application topology.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-successfull.png" alt="ACM application successful topology view">
+</div>
+<div class="title">Figure 16. ACM application successful topology view</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+To get more information click on any of the topology elements and a window will appear to right of the topology view.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_validating_sample_application_deployment_and_replication"><a class="anchor" href="#_validating_sample_application_deployment_and_replication"></a>8.4. Validating Sample Application deployment and replication</h3>
+<div class="paragraph">
+<p>Now that the <code>busybox</code> application has been deployed to your <strong>preferredCluster</strong> (specified in the <code>DRPlacementControl</code>) the deployment can be validated.</p>
+</div>
+<div class="paragraph">
+<p>Logon to your managed cluster where <code>busybox</code> was deployed by ACM. This is most likely your <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          6m
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-a56c138a-a1a9-4465-927f-af02afbbff37   1Gi        RWO            ocs-storagecluster-ceph-rbd   6m</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>To validate that the replication resource is also created for the <code>busybox</code> <strong>PVC</strong> do the following:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get volumereplicationgroup -n busybox-sa/mple</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                       AGE
+volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>8.5. Deleting the Sample Application</h3>
+<div class="paragraph">
+<p>Deleting the <code>busybox</code> application can be done using the ACM console. Navigate to <strong>Applications</strong> and then find the application to be deleted (busybox in this case).</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The instructions to delete the sample application should not be executed until the failover and failback (relocate) testing is completed and you want to remove this application from RHACM and from the managed clusters.
+</td>
+</tr>
+</table>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-delete.png" alt="ACM delete busybox application">
+</div>
+<div class="title">Figure 17. ACM delete busybox application</div>
+</div>
+<div class="paragraph">
+<p>When <strong>Delete application</strong> is selected a new screen will appear asking if the <code>application related resources</code> should also be deleted. Make sure to <code>check</code> the box to delete the <code>Subscription</code> and <code>PlacementRule</code>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ACM-application-delete-resources.png" alt="ACM delete busybox application resources">
+</div>
+<div class="title">Figure 18. ACM delete busybox application resources</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Delete</strong> in this screen. This will delete the <code>busybox</code> application on the <strong>Primary managed cluster</strong> (or whatever cluster the application was running on).</p>
+</div>
+<div class="paragraph">
+<p>In addition to the resources deleted using the ACM console, the <code>DRPlacementControl</code> must also be deleted immediately after deleting the <code>busybox</code> application. Logon to the OpenShift Web console for the <strong>Hub cluster</strong>. Navigate to <code>Installed Operators</code> for the project <code>busybox-sample</code>. Choose <code>OpenShift DR Hub Operator</code> and the <strong>DRPlacementControl</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-delete.png" alt="Delete busybox application DRPlacementControl">
+</div>
+<div class="title">Figure 19. Delete busybox application DRPlacementControl</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Delete DRPlacementControl</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+If desired, the <code>DRPlacementControl</code> resource can also be deleted in the application namespace using CLI.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+This process can be used to delete any application with a DRPlacementControl resource.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_add_annotations_required_for_fencing_operations"><a class="anchor" href="#_add_annotations_required_for_fencing_operations"></a>9. Add annotations required for fencing operations</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Ramen operator creates NetworkFencing CRs on the managedclusters as part of automated fencing operations. The NetworkFencing CR requires details about the storage CSI driver and that needs to be provided to Ramen through annotations on the DRCluster CR. Add the following annotations to all the DRCluster CRs.</p>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drcluster.ramendr.openshift.io/storage-clusterid: openshift-storage
+drcluster.ramendr.openshift.io/storage-driver: openshift-storage.rbd.csi.ceph.com
+drcluster.ramendr.openshift.io/storage-secret-name: rook-csi-rbd-provisioner
+drcluster.ramendr.openshift.io/storage-secret-namespace: openshift-storage</code></pre>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>10. Application Failover between managed clusters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Metro Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
+</div>
+<div class="sect2">
+<h3 id="_enable_fencing"><a class="anchor" href="#_enable_fencing"></a>10.1. Enable Fencing</h3>
+<div class="paragraph">
+<p>In order to failover the OpenShift cluster where the application is currently running all applications must be <code>fenced</code> from communicating with the external <strong>ODF</strong> storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters.</p>
+</div>
+<div class="paragraph">
+<p>Edit the DRCluster resource from the above examples, edit <code>drcluster1.yaml</code> to fence your managed cluster</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit -f drcluster1.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRCluster
+metadata:
+  name: &lt;cluster1&gt;
+spec:
+  region: &lt;string_value&gt;
+  s3ProfileName: &lt;s3-for-cluster&gt;
+  cidrs:
+    -  &lt;IP_Address1&gt;/32
+    -  &lt;IP_Address2&gt;/32
+    -  &lt;IP_Address3&gt;/32
+    -  &lt;IP_Address4&gt;/32
+    -  &lt;IP_Address5&gt;/32
+    -  &lt;IP_Address6&gt;/32
+  clusterFence: Fenced    # here is the change</code></pre>
+</div>
+</div>
+<div class="admonitionblock caution">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-caution" title="Caution"></i>
+</td>
+<td class="content">
+Once the  managed cluster is fenced, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> storage will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now <code>fenced</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="paragraph">
+<p>Now validate the fencing status in the Hub cluster for the Primary managed cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_drplacementcontrol_to_failover"><a class="anchor" href="#_modify_drplacementcontrol_to_failover"></a>10.2. Modify DRPlacementControl to failover</h3>
+<div class="paragraph">
+<p>To failover requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
+</div>
+<div class="title">Figure 20. DRPlacementControl busybox instance</div>
+</div>
+<div class="paragraph">
+<p>Select <code>drpc-busybox</code> and then the YAML view. Add the <code>action</code> and <code>failoverCluster</code> as shown below. The <code>failoverCluster</code> should be the <strong>ACM</strong> cluster name for the <strong>Secondary managed cluster</strong>.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-failover-metro.png" alt="DRPlacementControl add action Failover">
+</div>
+<div class="title">Figure 21. DRPlacementControl add action Failover</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Save</strong>.</p>
+</div>
+<div class="paragraph">
+<p>In the <code>failoverCluster</code> specified in the YAML file (i.e., ocp4perf2), see if the application <code>busybox</code> is now running in the <strong>Secondary managed cluster</strong> using the following command:</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          35s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   35s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, using the same command check if <code>busybox</code> is running in the <strong>Primary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">No resources found in busybox-sample namespace.</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>11. Application Failback between managed clusters</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback</p>
+</div>
+<div class="sect2">
+<h3 id="_disable_fencing"><a class="anchor" href="#_disable_fencing"></a>11.1. Disable Fencing</h3>
+<div class="paragraph">
+<p>Before a failback or relocate action can be successful the <strong>DRCluster</strong> for the <strong>Primary managed cluster</strong> must be unfenced.</p>
+</div>
+<div class="sect3">
+<h4 id="_modify_drcluster_to_unfenced"><a class="anchor" href="#_modify_drcluster_to_unfenced"></a>11.1.1. Modify DRCluster to Unfenced</h4>
+<div class="paragraph">
+<p>Edit the <strong>DRCluster</strong> on the <strong>Hub cluster</strong> and change <code>clusterFence</code> value from <code>Fenced</code> to <code>Unfenced</code>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc edit drcluster1.yaml</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRCluster
+metadata:
+  name: cluster1
+spec:
+  region: &lt;string_value&gt;
+  s3ProfileName: &lt;s3-for-cluster&gt;
+  cidrs:
+    -  &lt;IP_Address1&gt;/32
+    -  &lt;IP_Address2&gt;/32
+    -  &lt;IP_Address3&gt;/32
+    -  &lt;IP_Address4&gt;/32
+    -  &lt;IP_Address5&gt;/32
+    -  &lt;IP_Address6&gt;/32
+  clusterFence: Unfenced   # here is the change</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drcluster.ramendr.openshift.io/cluster1 edited</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now validate the <strong>DRCluster</strong> status in the <strong>Hub cluster</strong> that has changed to <code>Unfenced</code> for the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
+</div>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_reboot_ocp_nodes_that_were_fenced"><a class="anchor" href="#_reboot_ocp_nodes_that_were_fenced"></a>11.1.2. Reboot OCP nodes that were Fenced</h4>
+<div class="paragraph">
+<p>This step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by <strong>rebooting all worker OpenShift nodes</strong> one at a time.</p>
+</div>
+<div class="paragraph">
+<p>After all OpenShift nodes are rebooted and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <strong>OpenShift Web Console</strong> dashboards and <strong>Overview</strong> can also be used to assess the health of applications and the external storage. The detailed <strong>ODF</strong> dashboard is found by navigating to <code>Storage</code> &#8594; <code>Data Foundation</code>.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -A | egrep -v 'Running|Completed'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If there are <strong>Pods</strong> still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_modify_drplacementcontrol_to_failback"><a class="anchor" href="#_modify_drplacementcontrol_to_failback"></a>11.2. Modify DRPlacementControl to failback</h3>
+<div class="paragraph">
+<p>To failback requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-instance.png" alt="DRPlacementControl busybox instance">
+</div>
+<div class="title">Figure 22. DRPlacementControl busybox instance</div>
+</div>
+<div class="paragraph">
+<p>Select <code>drpc-busybox</code> and then the YAML form. Modify the <code>action</code> to <code>Relocate</code> as shown below.</p>
+</div>
+<div class="imageblock">
+<div class="content">
+<img src="_images/ODR-DRPlacementControl-failback-metro.png" alt="DRPlacementControl modify action to Relocate">
+</div>
+<div class="title">Figure 23. DRPlacementControl modify action to Relocate</div>
+</div>
+<div class="paragraph">
+<p>Select <strong>Save</strong>.</p>
+</div>
+<div class="paragraph">
+<p>Check if the application <code>busybox</code> is now running in the <strong>Primary managed cluster</strong> using the following command. The failback is to the <code>preferredCluster</code> which should be where the application was running before the failover operation.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME          READY   STATUS    RESTARTS   AGE
+pod/busybox   1/1     Running   0          60s
+
+NAME                                STATUS   VOLUME                                     CAPACITY   ACCESS MODES   STORAGECLASS                  AGE
+persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74cfa1bb   5Gi        RWO            ocs-storagecluster-ceph-rbd   61s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, using the same command, check if <code>busybox</code> is running in the <strong>Secondary managed cluster</strong>. The <code>busybox</code> application should no longer be running on this managed cluster.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods,pvc -n busybox-sample</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">No resources found in busybox-sample namespace.</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+</article>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="navbar-item" href="https://www.redhat.com/en/technologies/cloud-computing/openshift-container-storage" target="_blank">
+      <img src="../../_/img/header_logo.svg" alt="Red Hat Data Services">
+  </a>
+</footer>
+<script src="../../_/js/site.js"></script>
+<script async src="../../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

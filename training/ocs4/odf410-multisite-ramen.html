@@ -96,7 +96,10 @@
     <a class="nav-link" href="ocs4-metro-stretched.html">Stretch Cluster disaster recovery</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="odf4-metro-ramen.html">ODF 4.10 Metro disaster recovery</a>
+    <a class="nav-link" href="odf410-metro-ramen.html">ODF 4.10 Metro disaster recovery</a>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <a class="nav-link" href="odf411-metro-ramen.html">ODF 4.11 Metro disaster recovery</a>
   </li>
 </ul>
   </li>
@@ -205,20 +208,21 @@
 </li>
 <li><a href="#_create_mirroring_storageclass_resource">6. Create Mirroring StorageClass resource</a></li>
 <li><a href="#_configure_ssl_access_between_s3_endpoints">7. Configure SSL access between S3 endpoints</a></li>
-<li><a href="#_create_drpolicy_on_hub_cluster">8. Create DRPolicy on Hub cluster</a></li>
-<li><a href="#_enable_automatic_install_of_odr_cluster_operator">9. Enable Automatic Install of ODR Cluster operator</a></li>
-<li><a href="#_create_s3_secrets_on_managed_clusters">10. Create S3 Secrets on Managed clusters</a></li>
-<li><a href="#_create_sample_application_for_dr_testing">11. Create Sample Application for DR testing</a>
+<li><a href="#_enable_featuregates">8. Enable FeatureGates</a></li>
+<li><a href="#_create_drpolicy_on_hub_cluster">9. Create DRPolicy on Hub cluster</a></li>
+<li><a href="#_enable_automatic_install_of_odr_cluster_operator">10. Enable Automatic Install of ODR Cluster operator</a></li>
+<li><a href="#_create_s3_secrets_on_managed_clusters">11. Create S3 Secrets on Managed clusters</a></li>
+<li><a href="#_create_sample_application_for_dr_testing">12. Create Sample Application for DR testing</a>
 <ul class="sectlevel2">
-<li><a href="#_create_drplacementcontrol_resource">11.1. Create DRPlacementControl resource</a></li>
-<li><a href="#_create_placementrule_resource">11.2. Create PlacementRule resource</a></li>
-<li><a href="#_creating_sample_application_using_acm_console">11.3. Creating Sample Application using ACM console</a></li>
-<li><a href="#_validating_sample_application_deployment_and_replication">11.4. Validating Sample Application deployment and replication</a></li>
-<li><a href="#_deleting_the_sample_application">11.5. Deleting the Sample Application</a></li>
+<li><a href="#_create_drplacementcontrol_resource">12.1. Create DRPlacementControl resource</a></li>
+<li><a href="#_create_placementrule_resource">12.2. Create PlacementRule resource</a></li>
+<li><a href="#_creating_sample_application_using_acm_console">12.3. Creating Sample Application using ACM console</a></li>
+<li><a href="#_validating_sample_application_deployment_and_replication">12.4. Validating Sample Application deployment and replication</a></li>
+<li><a href="#_deleting_the_sample_application">12.5. Deleting the Sample Application</a></li>
 </ul>
 </li>
-<li><a href="#_application_failover_between_managed_clusters">12. Application Failover between managed clusters</a></li>
-<li><a href="#_application_failback_between_managed_clusters">13. Application Failback between managed clusters</a></li>
+<li><a href="#_application_failover_between_managed_clusters">13. Application Failover between managed clusters</a></li>
+<li><a href="#_application_failback_between_managed_clusters">14. Application Failback between managed clusters</a></li>
 </ul>
 </div>
 <div class="sect1">
@@ -1190,7 +1194,21 @@ The <strong>Hub cluster</strong> needs to verify access to the object buckets us
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_drpolicy_on_hub_cluster"><a class="anchor" href="#_create_drpolicy_on_hub_cluster"></a>8. Create DRPolicy on Hub cluster</h2>
+<h2 id="_enable_featuregates"><a class="anchor" href="#_enable_featuregates"></a>8. Enable FeatureGates</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Logging in to both managed clusters on the same browser is pre-req. Also enable <strong>FeatureGates</strong>. There are two ways to enable FeatureGates. One using CLI and the other using web console. Refer below document links on how to proceed</p>
+</div>
+<div class="paragraph">
+<p><strong>Enable Using Web Console</strong> <a href="https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters" class="bare">github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters</a></p>
+</div>
+<div class="paragraph">
+<p><strong>Enable Using CLI</strong> <a href="https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters" class="bare">github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters</a></p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_create_drpolicy_on_hub_cluster"><a class="anchor" href="#_create_drpolicy_on_hub_cluster"></a>9. Create DRPolicy on Hub cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>ODR uses the <strong>DRPolicy</strong> resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A <strong>DRPolicy</strong> requires a set of two clusters, which are peered for storage level replication and <code>CSI</code> <strong>VolumeReplication</strong> is enabled.</p>
@@ -1297,7 +1315,7 @@ The <strong>DRPolicy</strong> <code>schedulingInterval</code> <strong><em>must</
 </div>
 </div>
 <div class="sect1">
-<h2 id="_enable_automatic_install_of_odr_cluster_operator"><a class="anchor" href="#_enable_automatic_install_of_odr_cluster_operator"></a>9. Enable Automatic Install of ODR Cluster operator</h2>
+<h2 id="_enable_automatic_install_of_odr_cluster_operator"><a class="anchor" href="#_enable_automatic_install_of_odr_cluster_operator"></a>10. Enable Automatic Install of ODR Cluster operator</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>Once the <strong>DRPolicy</strong> is created successfully the <code>ODR Cluster operator</code> can be installed on the <strong>Primary managed cluster</strong> and <strong>Secondary managed cluster</strong> in the <code>openshift-dr-system</code> namespace.</p>
@@ -1357,7 +1375,7 @@ pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_s3_secrets_on_managed_clusters"><a class="anchor" href="#_create_s3_secrets_on_managed_clusters"></a>10. Create S3 Secrets on Managed clusters</h2>
+<h2 id="_create_s3_secrets_on_managed_clusters"><a class="anchor" href="#_create_s3_secrets_on_managed_clusters"></a>11. Create S3 Secrets on Managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>The MCG object bucket <strong>Secrets</strong> were created and stored on the <strong>Hub cluster</strong> when the <strong>MirrorPeer</strong> was created.</p>
@@ -1454,7 +1472,7 @@ Make sure to use <em>your</em> unique <strong>Secret</strong> names in the comma
 </div>
 </div>
 <div class="sect1">
-<h2 id="_create_sample_application_for_dr_testing"><a class="anchor" href="#_create_sample_application_for_dr_testing"></a>11. Create Sample Application for DR testing</h2>
+<h2 id="_create_sample_application_for_dr_testing"><a class="anchor" href="#_create_sample_application_for_dr_testing"></a>12. Create Sample Application for DR testing</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>In order to test failover from the <strong>Primary managed cluster</strong> to the <strong>Secondary managed cluster</strong> and back again we need a simple application. The sample application used for this example with be <code>busybox</code>.</p>
@@ -1480,7 +1498,7 @@ A different project name other than <code>busybox-sample</code> can be used if d
 </table>
 </div>
 <div class="sect2">
-<h3 id="_create_drplacementcontrol_resource"><a class="anchor" href="#_create_drplacementcontrol_resource"></a>11.1. Create DRPlacementControl resource</h3>
+<h3 id="_create_drplacementcontrol_resource"><a class="anchor" href="#_create_drplacementcontrol_resource"></a>12.1. Create DRPlacementControl resource</h3>
 <div class="paragraph">
 <p><strong>DRPlacementControl</strong> is an API available after the <code>ODR Hub Operator</code> is installed on the <strong>Hub cluster</strong>. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a <strong>DRPolicy</strong>.</p>
 </div>
@@ -1556,7 +1574,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 </div>
 <div class="sect2">
-<h3 id="_create_placementrule_resource"><a class="anchor" href="#_create_placementrule_resource"></a>11.2. Create PlacementRule resource</h3>
+<h3 id="_create_placementrule_resource"><a class="anchor" href="#_create_placementrule_resource"></a>12.2. Create PlacementRule resource</h3>
 <div class="paragraph">
 <p>Placement rules define the target clusters where resource templates can be deployed. Use placement rules to help you facilitate the multicluster deployment of your applications.</p>
 </div>
@@ -1607,7 +1625,7 @@ This resource must be created in the <code>busybox-sample</code> namespace (or w
 </div>
 </div>
 <div class="sect2">
-<h3 id="_creating_sample_application_using_acm_console"><a class="anchor" href="#_creating_sample_application_using_acm_console"></a>11.3. Creating Sample Application using ACM console</h3>
+<h3 id="_creating_sample_application_using_acm_console"><a class="anchor" href="#_creating_sample_application_using_acm_console"></a>12.3. Creating Sample Application using ACM console</h3>
 <div class="paragraph">
 <p>Start by loggin into the ACM console using your OpenShift credentials if not already logged in.</p>
 </div>
@@ -1724,7 +1742,7 @@ To get more information click on any of the topology elements and a window will 
 </div>
 </div>
 <div class="sect2">
-<h3 id="_validating_sample_application_deployment_and_replication"><a class="anchor" href="#_validating_sample_application_deployment_and_replication"></a>11.4. Validating Sample Application deployment and replication</h3>
+<h3 id="_validating_sample_application_deployment_and_replication"><a class="anchor" href="#_validating_sample_application_deployment_and_replication"></a>12.4. Validating Sample Application deployment and replication</h3>
 <div class="paragraph">
 <p>Now that the <code>busybox</code> application has been deployed to your <strong>preferredCluster</strong> (specified in the <code>DRPlacementControl</code>) the deployment can be validated.</p>
 </div>
@@ -1792,7 +1810,7 @@ Both managed clusters should have the exact same output with a new status of <st
 </div>
 </div>
 <div class="sect2">
-<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>11.5. Deleting the Sample Application</h3>
+<h3 id="_deleting_the_sample_application"><a class="anchor" href="#_deleting_the_sample_application"></a>12.5. Deleting the Sample Application</h3>
 <div class="paragraph">
 <p>Deleting the <code>busybox</code> application can be done using the ACM console. Navigate to <strong>Applications</strong> and then find the application to be deleted (busybox in this case).</p>
 </div>
@@ -1866,7 +1884,7 @@ This process can be used to delete any application with a DRPlacementControl res
 </div>
 </div>
 <div class="sect1">
-<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>12. Application Failover between managed clusters</h2>
+<h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>13. Application Failover between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Regional Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> resource and a <strong>PlacementRule</strong> resource created in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
@@ -1927,7 +1945,7 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 </div>
 </div>
 <div class="sect1">
-<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>13. Application Failback between managed clusters</h2>
+<h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>14. Application Failback between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
 <p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback. The main difference for failback is that a <code>resync</code> is issued to make sure any new application data saved on the <strong>Secondary managed cluster</strong> is immediately, not waiting for the mirroring schedule interval, replicated to the <strong>Primary managed cluster</strong>.</p>
