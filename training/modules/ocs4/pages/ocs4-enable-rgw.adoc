@@ -181,7 +181,7 @@ To create a new S3 user interactively, log into the Ceph toolbox using the comma
 
 [source, execute]
 ----
-oc rsh -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}')
+oc rsh -n openshift-storage $(oc get pod -n openshift-storage -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}')
 ----
 
 Create a S3 user using the following command:
@@ -206,6 +206,6 @@ The output of the command will give you all the details for the newly create use
 To be honest, it's the same as the previous one, but in one line...
 [source, execute]
 ----
-oc exec -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}') -- radosgw-admin user create --uid="<user-name>" --display-name="<Display Name>"
+oc exec -n openshift-storage $(oc get pod -n openshift-storage -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}') -- radosgw-admin user create --uid="<user-name>" --display-name="<Display Name>"
 ----
 
