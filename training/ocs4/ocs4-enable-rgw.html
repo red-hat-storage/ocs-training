@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width,initial-scale=1">
     <title>Enable use of the RGW on an OCS internal deployment :: OCS Training</title>
     <link rel="canonical" href="https://red-hat-storage.github.io/ocs-training/training/ocs4/ocs4-enable-rgw.html">
-    <meta name="generator" content="Antora 3.0.1">
+    <meta name="generator" content="Antora 3.0.2">
     <link rel="stylesheet" href="../../_/css/site.css">
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-LGCEEZGN54"></script>
     <script>function gtag(){dataLayer.push(arguments)};window.dataLayer=window.dataLayer||[];gtag('js',new Date());gtag('config','G-LGCEEZGN54')</script>
@@ -397,7 +397,7 @@ manually.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-execute hljs" data-lang="execute">oc rsh -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}')</code></pre>
+<pre class="highlightjs highlight"><code class="language-execute hljs" data-lang="execute">oc rsh -n openshift-storage $(oc get pod -n openshift-storage -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}')</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -428,7 +428,7 @@ manually.</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-execute hljs" data-lang="execute">oc exec -n openshift-storage $(oc get pods -n openshift-storage | grep rook-ceph-tools | grep Running | awk '{print $1}') -- radosgw-admin user create --uid="&lt;user-name&gt;" --display-name="&lt;Display Name&gt;"</code></pre>
+<pre class="highlightjs highlight"><code class="language-execute hljs" data-lang="execute">oc exec -n openshift-storage $(oc get pod -n openshift-storage -l app=rook-ceph-tools -o jsonpath='{.items[0].metadata.name}') -- radosgw-admin user create --uid="&lt;user-name&gt;" --display-name="&lt;Display Name&gt;"</code></pre>
 </div>
 </div>
 </div>
