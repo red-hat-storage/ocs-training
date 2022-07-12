@@ -323,6 +323,13 @@ oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user
 proxy.config.openshift.io/cluster patched
 ----
 
+== Enable FeatureGates
+
+Logging in to both managed clusters on the same browser is pre-req. Also enable *FeatureGates*. There are two ways to enable FeatureGates. One using CLI and the other using web console. Refer below document links on how to proceed  
+
+*Enable Using Web Console* https://docs.openshift.com/container-platform/4.10/nodes/clusters/nodes-cluster-enabling-features.html#nodes-cluster-enabling-features-console_nodes-cluster-enabling
+
+*Enable Using CLI* https://docs.openshift.com/container-platform/4.10/nodes/clusters/nodes-cluster-enabling-features.html#nodes-cluster-enabling-features-cli_nodes-cluster-enabling
 
 == Create DataPolicy on Hub cluster
 
