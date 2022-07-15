@@ -19,36 +19,15 @@ This is a general overview of the Metro DR steps required to configure and execu
 
 NOTE: These steps are considered Technical Preview in ODF 4.11 and are provided for POC (Proof of Concept) purposes. OpenShift `Metro DR` will be supported for production usage in a future ODF release.
 
-////
-These steps are outdated and I will fix them later.
 [start=1]
-. *Deploy and Configure ACM for Multisite connectivity.* +
+. *Install the ACM operator on the hub cluster.* +
 After creating the OCP hub cluster, install from OperatorHub the ACM operator. After the operator and associated pods are running, create the MultiClusterHub resource.
-. *Install Red Hat Ceph Storage Stretch Cluster With Arbiter Red Hat Ceph Storage Installation.* +
+. *Create or import managed OCP clusters into ACM hub.* +
+Import or create the two managed clusters with adequate resources for ODF (compute nodes, memory, cpu) using the RHACM console.
+. *Install Red Hat Ceph Storage Stretch Cluster With Arbiter.* +
 Properly set up a Ceph cluster deployed on two different datacenters using the stretched mode functionality.
 . *Install ODF 4.11 on managed clusters.* +
 Install ODF 4.11 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.
-. *Install ODF MultiCluster Orchestrator Operator on the ACM hub cluster.* +
-Install from OperatorHub on the ACM hub cluster the ODF MultiCluster Orchestrator Operator.
-. *Configure SSL access between managed clusters if (if needed).* +
-For each managed cluster extract the ingress certificate and inject into the alternate cluster for MCG object bucket secure access. 
-. *Create the DRPolicy resource on the hub cluster.* +
-Create the DRPolicy using the MetroDR configuration settings. DRPolicy is an API available after the ODR Hub Operator is installed.
-. *Create the Sample Application namespace on the hub cluster.* +
-Because the ODR Hub Operator APIs are namespace scoped, the sample application namespace must be created first.
-. *Create the DRPlacementControl resource on the hub cluster.* +
-DRPlacementControl is an API available after the ODR Hub Operator is installed. 
-. *Create the PlacementRule resource on the hub cluster.* +
-Placement rules define the target clusters where resource templates can be deployed.
-. *Create the Sample Application using ACM console.* +
-Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
-. *Validate Sample Application deployment and alternate cluster replication* +
-Using CLI commands on both managed clusters validate that the application is running and that the volume was replicated to the alternate cluster.
-. *Failover Sample Application to secondary managed cluster.* +
-After creating a network fence for the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
-. *Failback Sample Application to primary managed cluster.* +
-After removing the network fence for the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.
-////
 
 == Deploy and Configure ACM for Multisite connectivity
 
@@ -145,10 +124,17 @@ At a minimum, we need to use the following three flags with the
 ceph-external-cluster-details-exporter.py script:
 
 * **--rbd-data-pool-name** : With the name of the RBD pool we created during RHCS deployment for OCP, in  our example, the pool is called `rbdpool`.
-* **--rgw-endpoint** : With the RGW IP of the RGW daemon running on the same site as the OCP cluster, we are configuring.
+* **--rgw-endpoint** : With the RGW IP of the RGW daemon running on the same site as the OCP cluster we are configuring.
 * **--run-as-user** : With a different client name for each site.
 
-Run the following command on the bootstrap node, ceph1, to Get the IP for the RGW endpoints in datacenter1 and datacenter2:
+These flags are optional if default values were used during the RHCS deployment:
+
+* **--cephfs-filesystem-name** : With the name of the CephFS filesystem we created during RHCS deployment for OCP, the default filesystem name is `cephfs`.
+* **--cephfs-data-pool-name** : With the name of the CephFS data pool we created during RHCS deployment for OCP, the default pool is called `cephfs.data`.
+* **--cephfs-metadata-pool-name** : With the name of the CephFS metadata pool we created during RHCS deployment for OCP, the default pool is called `cephfs.meta`.
+
+
+Run the following command on the bootstrap node, ceph1, to Get the IP address for the RGW endpoints in datacenter1 and datacenter2:
 
 [source,role="execute"]
 ----
@@ -175,20 +161,17 @@ Execute the ceph-external-cluster-details-exporter.py with the parameters config
 
 [source,role="execute"]
 ----
-python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.24:8080 --run-as-user client.odf.cluster1 > ocp-cluster1.json
+python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --cephfs-filesystem-name cephfs --cephfs-data-pool-name cephfs.cephfs.data  --cephfs-metadata-pool-name cephfs.cephfs.meta --rgw-endpoint 10.0.40.24:8080 --run-as-user client.odf.cluster1 > ocp-cluster1.json
 ----
 
 Execute the ceph-external-cluster-details-exporter.py with the parameters configured for our first ocp managed cluster `cluster2`
 
 [source,role="execute"]
 ----
-python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --rgw-endpoint 10.0.40.66:8080 --run-as-user client.odf.cluster2 > ocp-cluster2.json
+python3 ceph-external-cluster-details-exporter.py --rbd-data-pool-name rbdpool --cephfs-filesystem-name cephfs --cephfs-data-pool-name cephfs.cephfs.data  --cephfs-metadata-pool-name cephfs.cephfs.meta --rgw-endpoint 10.0.40.66:8080 --run-as-user client.odf.cluster2 > ocp-cluster2.json
 ----
 
-
-
-Save the two files generated in the bootstrap cluster(ceph1) ocp-cluster1.json and ocp-cluster2.json to your
-local machine.
+Save the two files generated in the bootstrap cluster (ceph1) ocp-cluster1.json and ocp-cluster2.json to your local machine.
 * Use the contents of file ocp-cluster1.json on the OCP console on cluster1 where external ODF is being deployed. 
 * Use the contents of file ocp-cluster2.json on the OCP console on cluster2 where external ODF is being deployed. 
 
@@ -224,7 +207,7 @@ NOTE: The successful installation of ODF can also be validated in the *OCP Web C
 
 On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`.  The `ODF Multicluster Orchestrator` also installs the `ODR Hub Operator` on the ACM hub cluster as its dependency.
 
-Check to see the operator *Pod* is in a `Running` state.
+Check to see the operators *Pod* are in a `Running` state. The `OpenShift DR Hub` operator will be installed at the same time in `openshift-operators`.
 
 [source,role="execute"]
 ----
@@ -323,19 +306,66 @@ oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user
 proxy.config.openshift.io/cluster patched
 ----
 
+== Enabling Multicluster Web Console
 
-== Create DataPolicy on Hub cluster
+This is a new capability that is required before creating a Data Policy or *DRPolicy*. It is only needed on the *Hub cluster* and `RHACM 2.5` must be installed.
 
-ODR uses the *DRPolicy* resources on the ACM hub cluster to deploy, failover, and relocate, workloads across managed clusters. A *DRPolicy* requires a set of two DRClusters. The `ODF MultiCluster Orchestrator Operator` facilitates the creation of DRPolicy and the corresponding DRClusters through the web console.
- 
+IMPORTANT: Multicluster console is a Technology Preview feature only. Technology Preview features are not supported with Red Hat production service level agreements (SLAs) and might not be functionally complete. Red Hat does not recommend using them in production. These features provide early access to upcoming product features, enabling customers to test functionality and provide feedback during the development process.
 
-On the *Hub cluster* navigate to `All Clusters`. Navigate to Data Policies under Data services menu. You should see a tab for *Disaster Recovery*.
+Enable the feature gate by navigating from *Administration* → *Cluster Settings* → *Configuration* → *FeatureGate*, and edit the YAML template as follows:
 
-Click on *Create DRPolicy*. Select the clusters presented from the list of managed clusters that you would like to participate in the DRPolicy. In the dropdown option for `replication policy` select *Synchronous*
+[source,role="execute"]
+----
+[...]
+spec:
+  featureSet: TechPreviewNoUpgrade
+----
 
-This should create the two *DRCluster* objects and also the *DRPolicy*. *ODF DR Hub Operator* will also install the ODF Cluster Operator in the managed clusters automatically.
+Click *Save* to enable the multicluster console for all clusters in the `RHACM` console.
 
-To validate that the installation was successful on the *Primary managed cluster* and the *Secondary managed cluster* do the following command:
+WARNING: Do not set this feature gate on production clusters. You will not be able to upgrade your cluster after applying the feature gate, and it cannot be undone.
+
+== Create Data Policy on Hub cluster
+
+MetroDR uses the *DRPolicy* resources on the *Hub cluster* to failover and relocate workloads across managed clusters. A *DRPolicy* requires a set of two *DRClusters* or peer clusters connected to the same *Red Hat Ceph Storage* cluster. The `ODF MultiCluster Orchestrator Operator` facilitates the creation of each *DRPolicy* and the corresponding *DRClusters* through the *Multicluster Web console*.
+
+On the *Hub cluster* navigate to `All Clusters`. Then navigate to *Data policies* under Data services menu. If this your first *DRPolicy* created you will see *Create DRpolicy* at the bottom of the page.
+
+IMPORTANT: Make sure to login to all clusters from the *Multicluster Web console*. The clusters will be directly below `All Clusters`.
+
+.Multicluster console Data policies
+image::MCO-create-first-drpolicy.png[Multicluster console Data policies]
+
+Click on *Create DRPolicy*. Select the clusters presented from the list of managed clusters that you would like to participate in the DRPolicy. 
+
+.DRPolicy select peer clusters 
+image::MCO-drpolicy-selections.png[DRPolicy select peer clusters]
+
+The greyed out dropdown option for `replication policy` will automatically be selected as *Synchronous*. Select *Create*.
+
+This should create the two *DRCluster* resources and also the *DRPolicy* on the *Hub cluster*. In addition, when the initial *DRPolicy* is created the following will happen:
+
+* An object bucket created (using MCG) on each managed cluster for storing *PVC* and *PV* metadata.
+* A *Secret* created in the `openshift-operators` project on the *Hub cluster* for each new object bucket that has the base64 encoded access keys.
+* The `ramen-hub-operator-config` *ConfigMap* on the *Hub cluster* is modified with `s3StoreProfiles` entries.
+* The `OpenShift DR Cluster` operator will be deployed on each managed cluster in the `openshift-dr-system` project.
+* The object buckets *Secrets* on the *Hub cluster* in the project `openshift-operators` will be copied to the managed clusters in the `openshift-dr-system` project.
+* The `s3StoreProfiles` entries will be copied to the managed clusters and used to modify the `ramen-dr-cluster-operator-config` *ConfigMap* in the `openshift-dr-system` project.
+
+To validate that the *DRPolicy* is created successfully run this command on the *Hub cluster* for the first *DRPolicy* resource created. 
+
+NOTE: Replace `<drpolicy_name>` with your unique name.
+
+[source,role="execute"]
+----
+oc get drpolicy <drpolicy_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+----
+.Example output.
+----
+Succeeded
+----
+
+To validate that the `OpenShift DR Cluster` operator installation was successful on the *Primary managed cluster* and the *Secondary managed cluster* do the following command:
 
 [source,role="execute"]
 ----
@@ -353,108 +383,117 @@ pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m
 You can also go to *OperatorHub* on each of the managed clusters and look to see the `OpenShift DR Cluster Operator` is installed.
 
 .ODR Cluster Operator
-image::ODR-Cluster-operator.png[ODR Cluster Operator]
+image::ODR-411-Cluster-operator.png[ODR Cluster Operator]
 
-NOTE:  There is a bug which prevents from correct syncing of the s3 secrets, follow the workaround mentioned in https://bugzilla.redhat.com/show_bug.cgi?id=2099724 
+== Configure DRClusters for Fencing automation
 
-== Create Sample Application for DR testing
+This configuration is in preparation of enabling `Fenced` prior to application failover. 
 
-In order to test failover from the *Primary managed cluster* to the *Secondary managed cluster* and back again we need a simple application. The sample application used for this example with be `busybox`. 
+=== Add Node IP addresses to DRClusters
 
-The first step is to create a namespace or project on the *Hub cluster* for `busybox` sample application.
+The first step is to find the IP addresses for all of the OpenShift nodes in the managed clusters. 
+
+This can be done by running this command in the *Primary managed cluster* and the *Secondary managed cluster*.
 
 [source,role="execute"]
 ----
-oc new-project busybox-sample
+oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="ExternalIP")].address}{"\n"}{end}'
+----
+.Example output.
+----
+10.70.56.118
+10.70.56.193
+10.70.56.154
+10.70.56.242
+10.70.56.136
+10.70.56.99
 ----
 
-NOTE: A different project name other than `busybox-sample` can be used if desired. Make sure when deploying the sample application via the ACM console to use the same project name as what is created in this step.
+Once you have the IP addresses then the `DRCluster` resources can be modified for each managed cluster.
 
-=== Create DRPlacementControl resource
+First you need the names of `DRCluster` to be modified. Execute this command on the *Hub Cluster*.
 
-*DRPlacementControl* is an API available after the `ODR Hub Operator` is installed on the *Hub cluster*. It is broadly an ACM PlacementRule reconciler that orchestrates placement decisions based on data availability across clusters that are part of a *DRPolicy*.
+[source,role="execute"]
+----
+oc get drcluster
+----
+.Example output.
+----
+NAME        AGE
+ocp4perf1   5m35s
+ocp4perf2   5m35s
+----
 
-On the *Hub cluster* navigate to `Installed Operators` in the `busybox-sample` project and select `ODR Hub Operator`. You should see two available APIs, *DRPolicy* and *DRPlacementControl*. 
+Now each `DRCluster` needs to edited and your unique IP addresses added in this way after replacing `<drcluster_name>` with your unique name. 
 
-.ODR Hub cluster APIs
-image::ODR-DRPolicy-API.png[ODR Hub cluster APIs]
-
-*Create instance* for *DRPlacementControl* and then go to *YAML view*. Make sure the `busybox-sample` namespace is selected at the top.
-
-.DRPlacementControl create instance
-image::ODR-DRPlacementControl-create-instance.png[DRPlacementControl create instance]
-
-Save the following YAML (below) to filename busybox-drpc.yaml after replacing *<cluster1>* with the correct name of your managed cluster in *ACM*. 
+[source,role="execute"]
+----
+oc edit drcluster <drcluster_name>
+----
 
 [source,yaml]
 ----
 apiVersion: ramendr.openshift.io/v1alpha1
-kind: DRPlacementControl
+kind: DRCluster
 metadata:
-  labels:
-    app: busybox-sample
-  name: busybox-drpc
+[...]
 spec:
-  drPolicyRef:
-    name: odr-policy
-  placementRef:
-    kind: PlacementRule
-    name: busybox-placement
-  preferredCluster: <cluster1>
-  pvcSelector:
-    matchLabels:
-      appname: busybox
+  s3ProfileName: s3profile-<drcluster_name>-ocs-external-storagecluster
+  ## Add this section
+  cidrs:
+    -  <IP_Address1>/32
+    -  <IP_Address2>/32
+    -  <IP_Address3>/32
+    -  <IP_Address4>/32
+    -  <IP_Address5>/32
+    -  <IP_Address6>/32
+[...]
 ----
 
-Now create the *DRPlacementControl* resource by copying the contents of your unique `busybox-drpc.yaml` file into the `YAML view` (completely replacing original content). Select *Create* at the bottom of the `YAML view` screen.
+Example output.
+----
+drcluster.ramendr.openshift.io/ocp4perf1 edited
+----
 
-You can also create this resource using CLI.
+NOTE: There could be more than six IP addresses.
 
-IMPORTANT: This resource must be created in the `busybox-sample` namespace (or whatever namespace you created earlier).
+This `DRCluster` configuration needs to be done also for IP addresses on the *Secondary managed clusters* in the peer `DRCluster` resource (e.g., ocp4perf2).
+    
+=== Add Fencing Annotations to DRClusters
+
+Add the following annotations to all the *DRCluster* resources. These annotations include details needed for the *NetworkFence* resource created later in these instructions (prior to testing application failover).
+
+NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc create -f busybox-drpc.yaml -n busybox-sample
+oc edit drcluster <drcluster_name>
 ----
-.Example output.
-----
-drplacementcontrol.ramendr.openshift.io/busybox-drpc created
-----
-
-=== Create PlacementRule resource
-
-Placement rules define the target clusters where resource templates can be deployed. Use placement rules to help you facilitate the multicluster deployment of your applications. 
-
-Save the following YAML (below) to filename busybox-placementrule.yaml.
 
 [source,yaml]
 ----
-apiVersion: apps.open-cluster-management.io/v1
-kind: PlacementRule
+apiVersion: ramendr.openshift.io/v1alpha1
+kind: DRCluster
 metadata:
-  labels:
-    app: busybox-sample
-  name: busybox-placement
-spec:
-  clusterConditions:
-  - status: "True"
-    type: ManagedClusterConditionAvailable
-  clusterReplicas: 1
-  schedulerName: ramen
+  ## Add this section
+  annotations:
+    drcluster.ramendr.openshift.io/storage-clusterid: openshift-storage
+    drcluster.ramendr.openshift.io/storage-driver: openshift-storage.rbd.csi.ceph.com
+    drcluster.ramendr.openshift.io/storage-secret-name: rook-csi-rbd-provisioner
+    drcluster.ramendr.openshift.io/storage-secret-namespace: openshift-storage
+[...]
 ----
 
-Now create the *PlacementRule* resource for the `busybox-sample` application.
-
-IMPORTANT: This resource must be created in the `busybox-sample` namespace (or whatever namespace you created earlier).
-
-[source,role="execute"]
-----
-oc create -f busybox-placementrule.yaml -n busybox-sample
-----
 .Example output.
 ----
-placementrule.apps.open-cluster-management.io/busybox-placement created
+drcluster.ramendr.openshift.io/ocp4perf1 edited
 ----
+
+NOTE: Make sure to add these annotations for both *DRCluster* resources (e.g., ocp4perf1 and ocp4perf2). 
+
+== Create Sample Application for DR testing
+
+In order to test failover from the *Primary managed cluster* to the *Secondary managed cluster* and back again we need a simple application. The sample application used for this example with be `busybox`. 
 
 === Creating Sample Application using ACM console
 
@@ -489,23 +528,23 @@ NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-sampl
 .ACM application repository information
 image::ACM-application-form2a-metro.png[ACM application repository information]
 
-Scroll down in the form until you see *Select an existing placement configuration* and then put your cursor in the box below. You should see the *PlacementRule* created in prior section. Select this rule.
+Scroll down in the form until you see `Deploy application resources only on clusters matching specified labels` and then add a label for the *Primary managed cluster* name in *RHACM* cluster list view.
 
-.ACM application placement rule 
-image::ACM-application-form3.png[ACM application placement rule]
+.ACM Select cluster for deployment 
+image::ACM-application-form3a.png[ACM Select cluster for deployment]
 
-After selecting available rule then select *Save* in the upper right hand corner.
+After adding the `label` to identify the cluster, select *Save* in the upper right hand corner.
 
-On the follow-on screen scroll to the bottom. You should see that there are all *Green* checkmarks on the application topology.
+On the follow-on screen go to the `Topology` tab. You should see that there are all *Green* checkmarks on the application topology.
 
 .ACM application successful topology view
-image::ACM-application-successfull.png[ACM application successful topology view]
+image::ACM-25-application-successfull.png[ACM application successful topology view]
 
 NOTE: To get more information click on any of the topology elements and a window will appear to right of the topology view.
 
-=== Validating Sample Application deployment and replication
+=== Validating Sample Application deployment
 
-Now that the `busybox` application has been deployed to your *preferredCluster* (specified in the `DRPlacementControl`) the deployment can be validated.
+Now that the `busybox` application has been deployed to your *Primary managed cluster* the deployment can be validated.
 
 Logon to your managed cluster where `busybox` was deployed by ACM. This is most likely your *Primary managed cluster*.
 
@@ -522,16 +561,32 @@ NAME                                STATUS   VOLUME                             
 persistentvolumeclaim/busybox-pvc   Bound    pvc-a56c138a-a1a9-4465-927f-af02afbbff37   1Gi        RWO            ocs-storagecluster-ceph-rbd   6m
 ----
 
-To validate that the replication resource is also created for the `busybox` *PVC* do the following:
+=== Apply DRPolicy to Sample Application
+
+On the *Hub cluster* go back to the *Multicluster Web console* and select `All Clusters` in the top right hand corner. 
+
+IMPORTANT: Make sure to login to all clusters from the *Multicluster Web console*. The clusters will be directly below `All Clusters`.
+
+Navigate to `Data Services` and then choose `Data policies`. You should see the *DRPolicy* you created earlier in these instructions, section <<Create Data Policy on Hub cluster>>. At the far right of the *DRPolicy* select the vertical dots as shown below. 
+
+.Apply DRPolicy
+image::MCO-apply-drpolicy.png[Apply DRPolicy]
+
+When the `Apply DRPolicy` box appears select `busybox` and then *Apply*.
+
+.DRPolicy select application
+image::MCO-select-application.png[DRPolicy select application]
+
+Validate that a `DRPlacementControl` or `DRPC` was created in the `busybox-sample` namespace on the *Hub cluster*. This resource is used for both `failover` and `failback` actions for this application.
 
 [source,role="execute"]
 ----
-oc get volumereplicationgroup -n busybox-sa/mple
+oc get drpc -n busybox-sample
 ----
 .Example output.
 ----
-NAME                                                       AGE
-volumereplicationgroup.ramendr.openshift.io/busybox-drpc   6m
+NAME                       AGE     PREFERREDCLUSTER   FAILOVERCLUSTER   DESIREDSTATE   CURRENTSTATE
+busybox-placement-1-drpc   6m59s   ocp4perf1                                           Deployed
 ----
 
 === Deleting the Sample Application
@@ -561,31 +616,23 @@ NOTE: If desired, the `DRPlacementControl` resource can also be deleted in the a
 
 NOTE: This process can be used to delete any application with a DRPlacementControl resource.
 
-== Add annotations required for fencing operations
-
-Ramen operator creates NetworkFencing CRs on the managedclusters as part of automated fencing operations. The NetworkFencing CR requires details about the storage CSI driver and that needs to be provided to Ramen through annotations on the DRCluster CR. Add the following annotations to all the DRCluster CRs.
-
-----
-drcluster.ramendr.openshift.io/storage-clusterid: openshift-storage
-drcluster.ramendr.openshift.io/storage-driver: openshift-storage.rbd.csi.ceph.com
-drcluster.ramendr.openshift.io/storage-secret-name: rook-csi-rbd-provisioner
-drcluster.ramendr.openshift.io/storage-secret-namespace: openshift-storage
-----
-
 == Application Failover between managed clusters
 
-This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* resource and a *PlacementRule* resource created in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
+This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
 
 === Enable Fencing 
 
 In order to failover the OpenShift cluster where the application is currently running all applications must be `fenced` from communicating with the external *ODF* storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
 
+IMPORTANT: The OpenShift cluster to `Fence` is the one where the application is currently running.
 
-Edit the DRCluster resource from the above examples, edit `drcluster1.yaml` to fence your managed cluster  
+Edit the *DRCluster resource* for this cluster on the *Hub cluster*.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc edit -f drcluster1.yaml
+oc edit drcluster <drcluster_name>
 ----
 
 [source,yaml]
@@ -593,31 +640,33 @@ oc edit -f drcluster1.yaml
 apiVersion: ramendr.openshift.io/v1alpha1
 kind: DRCluster
 metadata:
-  name: <cluster1>
+[...]
 spec:
-  region: <string_value>
-  s3ProfileName: <s3-for-cluster>
+  ## Add this line
+  clusterFence: Fenced
   cidrs:
-    -  <IP_Address1>/32
-    -  <IP_Address2>/32
-    -  <IP_Address3>/32
-    -  <IP_Address4>/32
-    -  <IP_Address5>/32
-    -  <IP_Address6>/32
-  clusterFence: Fenced    # here is the change
+  [...]
+[...]
+----
+
+.Example output.
+----
+drcluster.ramendr.openshift.io/ocp4perf1 edited
 ----
 
 CAUTION: Once the  managed cluster is fenced, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
 
-Now validate the fencing status in the Hub cluster for the Primary managed cluster.
+Now validate the fencing status in the *Hub cluster* for the *Primary managed cluster*.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drcluster.ramendr.openshift.io <drcluster_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
-Succeeded
+Fenced
 ----
 
 === Modify DRPlacementControl to failover
@@ -625,12 +674,12 @@ Succeeded
 To failover requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
 
 .DRPlacementControl busybox instance
-image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
+image::ODR-411-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
 
-Select `drpc-busybox` and then the YAML view. Add the `action` and `failoverCluster` as shown below. The `failoverCluster` should be the *ACM* cluster name for the *Secondary managed cluster*.
+Select `busybox-placement-1-drpc` and then the YAML view. Add the `action` and `failoverCluster` as shown below. The `failoverCluster` should be the *ACM* cluster name for the *Secondary managed cluster*.
 
 .DRPlacementControl add action Failover
-image::ODR-DRPlacementControl-failover-metro.png[DRPlacementControl add action Failover]
+image::ODR-411-DRPlacementControl-failover-metro.png[DRPlacementControl add action Failover]
 
 Select *Save*.
 
@@ -664,18 +713,19 @@ No resources found in busybox-sample namespace.
 
 A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback
 
-
 === Disable Fencing
 
 Before a failback or relocate action can be successful the *DRCluster* for the *Primary managed cluster* must be unfenced.
 
-==== Modify DRCluster to Unfenced
+The OpenShift cluster to be `Unfenced` is the one where the application is currently not running and the cluster that is `Fenced`.
 
-Edit the *DRCluster* on the *Hub cluster* and change `clusterFence` value from `Fenced` to `Unfenced`.
+Edit the *DRCluster resource* for this cluster on the *Hub cluster*.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc edit drcluster1.yaml
+oc edit drcluster <drcluster_name>
 ----
 
 [source,yaml]
@@ -683,34 +733,32 @@ oc edit drcluster1.yaml
 apiVersion: ramendr.openshift.io/v1alpha1
 kind: DRCluster
 metadata:
-  name: cluster1
+[...]
 spec:
-  region: <string_value>
-  s3ProfileName: <s3-for-cluster>
   cidrs:
-    -  <IP_Address1>/32
-    -  <IP_Address2>/32
-    -  <IP_Address3>/32
-    -  <IP_Address4>/32
-    -  <IP_Address5>/32
-    -  <IP_Address6>/32
-  clusterFence: Unfenced   # here is the change
+  [...]
+  ## Modify this line
+  clusterFence: Unfenced
+  [...]
+[...]
 ----
 
 .Example output.
 ----
-drcluster.ramendr.openshift.io/cluster1 edited
+drcluster.ramendr.openshift.io/ocp4perf1 edited
 ----
 
-Now validate the *DRCluster* status in the *Hub cluster* that has changed to `Unfenced` for the *Primary managed cluster*.
+Now validate the fencing status in the *Hub cluster* for the *Primary managed cluster*.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc get drcluster.ramendr.openshift.io cluster1 -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drcluster.ramendr.openshift.io <drcluster_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
-Succeeded
+Unfenced
 ----
 
 ==== Reboot OCP nodes that were Fenced
@@ -737,12 +785,12 @@ IMPORTANT: If there are *Pods* still in an unhealthy status because of severed s
 To failback requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
 
 .DRPlacementControl busybox instance
-image::ODR-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
+image::ODR-411-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
 
-Select `drpc-busybox` and then the YAML form. Modify the `action` to `Relocate` as shown below.
+Select `busybox-placement-1-drpc` and then the YAML form. Modify the `action` to `Relocate` as shown below.
 
 .DRPlacementControl modify action to Relocate
-image::ODR-DRPlacementControl-failback-metro.png[DRPlacementControl modify action to Relocate]
+image::ODR-411-DRPlacementControl-failback-metro.png[DRPlacementControl modify action to Relocate]
 
 Select *Save*.
 
