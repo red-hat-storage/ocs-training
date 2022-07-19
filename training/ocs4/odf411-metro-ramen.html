@@ -877,7 +877,7 @@ Make sure to login to all clusters from the <strong>Multicluster Web console</st
 </ul>
 </div>
 <div class="paragraph">
-<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command on the <strong>Hub cluster</strong> for the first <strong>DRPolicy</strong> resource created.</p>
+<p>To validate that the <strong>DRPolicy</strong> is created successfully run this command on the <strong>Hub cluster</strong> for the each <strong>DRPolicy</strong> resource created.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -903,7 +903,7 @@ Replace <code>&lt;drpolicy_name&gt;</code> with your unique name.
 </div>
 </div>
 <div class="paragraph">
-<p>To validate object bucket access from the <strong>Hub cluster</strong> to both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> first get the names of the <strong>DRClusters</strong>.</p>
+<p>To validate object bucket access from the <strong>Hub cluster</strong> to both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> first get the names of the <strong>DRClusters</strong> on the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -951,7 +951,7 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-Make sure to run command on both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
+Make sure to run command for both <strong>DRClusters</strong> on the <strong>Hub cluster</strong>.
 </td>
 </tr>
 </table>
