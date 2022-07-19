@@ -893,7 +893,7 @@ Replace <code>&lt;drpolicy_name&gt;</code> with your unique name.
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicy &lt;drpolicy_name&gt; -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drpolicy &lt;drpolicy_name&gt; -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -901,6 +901,60 @@ Replace <code>&lt;drpolicy_name&gt;</code> with your unique name.
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
 </div>
+</div>
+<div class="paragraph">
+<p>To validate object bucket access from the <strong>Hub cluster</strong> to both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> first get the names of the <strong>DRClusters</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drclusters</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME        AGE
+ocp4perf1   4m42s
+ocp4perf2   4m42s</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Now test S3 access to each bucket created on each managed cluster using this <strong>DRCluster</strong> validation command.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
+</td>
+</tr>
+</table>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster &lt;drcluster_name&gt; -o jsonpath='{.status.conditions[2].reason}{"\n"}'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Succeeded</code></pre>
+</div>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to run command on both the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.
+</td>
+</tr>
+</table>
 </div>
 <div class="paragraph">
 <p>To validate that the <code>OpenShift DR Cluster</code> operator installation was successful on the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong> do the following command:</p>
