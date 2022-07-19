@@ -216,7 +216,11 @@
 </li>
 <li><a href="#_application_failover_between_managed_clusters">11. Application Failover between managed clusters</a>
 <ul class="sectlevel2">
-<li><a href="#_enable_fencing">11.1. Enable Fencing</a></li>
+<li><a href="#_enable_fencing">11.1. Enable Fencing</a>
+<ul class="sectlevel3">
+<li><a href="#_validate_fencing_status">11.1.1. Validate Fencing status</a></li>
+</ul>
+</li>
 <li><a href="#_modify_drplacementcontrol_to_failover">11.2. Modify DRPlacementControl to failover</a></li>
 </ul>
 </li>
@@ -225,6 +229,7 @@
 <li><a href="#_disable_fencing">12.1. Disable Fencing</a>
 <ul class="sectlevel3">
 <li><a href="#_reboot_ocp_nodes_that_were_fenced">12.1.1. Reboot OCP nodes that were Fenced</a></li>
+<li><a href="#_validate_fencing_status_2">12.1.2. Validate Fencing status</a></li>
 </ul>
 </li>
 <li><a href="#_modify_drplacementcontrol_to_failback">12.2. Modify DRPlacementControl to failback</a></li>
@@ -274,6 +279,50 @@ Properly set up a Ceph cluster deployed on two different datacenters using the s
 <p><strong>Install ODF 4.11 on managed clusters.</strong><br>
 Install ODF 4.11 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.</p>
 </li>
+<li>
+<p><strong>Install ODF Multicluster Orchestrator on the ACM hub cluster.</strong><br>
+Install from OperatorHub on the ACM hub cluster the ODF Multicluster Orchestrator. The OpenShift DR Hub operator will also be installed.</p>
+</li>
+<li>
+<p><strong>Configure SSL access between S3 endpoints</strong><br>
+If managed OpenShift clusters are not using valid certificates this step must be done by creating a new user-ca-bundle ConfigMap that contains the certs.</p>
+</li>
+<li>
+<p><strong>Enable Multicluster Web Console.</strong><br>
+This is a new Tech Preview capability that is required before creating a DRPolicy. It is only needed on the Hub cluster where ACM resides.</p>
+</li>
+<li>
+<p><strong>Create one or more DRPolicy</strong><br>
+Use the All Clusters Data Services UI to create DRPolicy by selecting the two managed clusters the policy will apply to.</p>
+</li>
+<li>
+<p><strong>Validate OpenShift DR Cluster operators are installed.</strong><br>
+Once the first DRPolicy is created this will trigger the DR Cluster operators to be created on the two managed clusters selected in the UI.</p>
+</li>
+<li>
+<p><strong>Configure DRClusters for fencing automation.</strong><br>
+This configuration is in preparation of enabling Fenced prior to application failover. The DRCluster resources will be edited on the Hub cluster to include a new CIDR section and additional DR annotations.</p>
+</li>
+<li>
+<p><strong>Create the Sample Application using ACM console.</strong><br>
+Use the sample app example from <a href="https://github.com/RamenDR/ocm-ramen-samples" class="bare">github.com/RamenDR/ocm-ramen-samples</a> to create a busybox deployment for failover and failback testing.</p>
+</li>
+<li>
+<p><strong>Validate Sample Application deployment.</strong><br>
+Using CLI commands on both managed clusters validate that the application is running.</p>
+</li>
+<li>
+<p><strong>Apply DRPolicy to Sample Application.</strong><br>
+Use the All Clusters Data Services UI to apply the new DRPolicy to the Sample Application. Once applied a DRPlacementControl resource will be created in the application namespace on the Hub cluster.</p>
+</li>
+<li>
+<p><strong>Failover Sample Application to secondary managed cluster.</strong><br>
+After fencing the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.</p>
+</li>
+<li>
+<p><strong>Failback Sample Application to primary managed cluster.</strong><br>
+After unfencing the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.</p>
+</li>
 </ol>
 </div>
 </div>
@@ -313,7 +362,7 @@ Install ODF 4.11 on primary and secondary OCP managed clusters and connect both 
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/ACM-Installed-Operator.png" alt="ACM Installed Operator">
+<img src="_images/ACM-Installed-Operator-noversion.png" alt="ACM Installed Operator">
 </div>
 <div class="title">Figure 2. ACM Installed Operator</div>
 </div>
@@ -400,10 +449,9 @@ Most <strong>MultiClusterHub</strong> deployments can use default settings in th
 <div class="title">Figure 5. ODF Connect external storage</div>
 </div>
 <div class="paragraph">
-<p>Download the ceph-external-cluster-details-exporter.py python script and upload
+<p>Download the <code>ceph-external-cluster-details-exporter.py</code> python script and upload
 it to you RHCS bootstrap node, the script needs to be run from a host with the
-ceph admin key, in our example the hostname for the RHCS
-bootstrap node that has the admin keys available is <code>ceph1</code>.</p>
+ceph admin key, in our example the hostname for the RHCS bootstrap node that has the admin keys available is <code>ceph1</code>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -412,8 +460,7 @@ bootstrap node that has the admin keys available is <code>ceph1</code>.</p>
 <div class="title">Figure 6. ODF Download the RHCS script</div>
 </div>
 <div class="paragraph">
-<p>The ceph-external-cluster-details-exporter.py python script will create a configuration file
-with details for ODF to connect with the RHCS cluster.</p>
+<p>The <code>ceph-external-cluster-details-exporter.py</code> python script will create a configuration file with details for ODF to connect with the RHCS cluster.</p>
 </div>
 <div class="paragraph">
 <p>Because we are
@@ -570,7 +617,7 @@ The successful installation of ODF can also be validated in the <strong>OCP Web 
 <h2 id="_install_odf_multicluster_orchestrator_operator_on_hub_cluster"><a class="anchor" href="#_install_odf_multicluster_orchestrator_operator_on_hub_cluster"></a>5. Install ODF Multicluster Orchestrator Operator on Hub cluster</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>On the <strong>Hub cluster</strong> navigate to <strong>OperatorHub</strong> and filter for <code>ODF Multicluster Orchestrator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-operators</code>.  The <code>ODF Multicluster Orchestrator</code> also installs the <code>ODR Hub Operator</code> on the ACM hub cluster as its dependency.</p>
+<p>On the <strong>Hub cluster</strong> navigate to <strong>OperatorHub</strong> and filter for <code>ODF Multicluster Orchestrator</code>. Follow instructions to <strong>Install</strong> the operator into the project <code>openshift-operators</code>. The <code>ODF Multicluster Orchestrator</code> also installs the <code>Openshift DR Hub Operator</code> on the ACM hub cluster as a dependency.</p>
 </div>
 <div class="paragraph">
 <p>Check to see the operators <strong>Pod</strong> are in a <code>Running</code> state. The <code>OpenShift DR Hub</code> operator will be installed at the same time in <code>openshift-operators</code>.</p>
@@ -893,7 +940,7 @@ pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m
 <div class="sect2">
 <h3 id="_add_node_ip_addresses_to_drclusters"><a class="anchor" href="#_add_node_ip_addresses_to_drclusters"></a>9.1. Add Node IP addresses to DRClusters</h3>
 <div class="paragraph">
-<p>The first step is to find the IP addresses for all of the OpenShift nodes in the managed clusters.</p>
+<p>The first step is to find the <code>IP addresses</code> for all of the OpenShift nodes in the managed clusters.</p>
 </div>
 <div class="paragraph">
 <p>This can be done by running this command in the <strong>Primary managed cluster</strong> and the <strong>Secondary managed cluster</strong>.</p>
@@ -915,10 +962,10 @@ pod/ramen-dr-cluster-operator-5564f9d669-f6lbc   2/2     Running   0          5m
 </div>
 </div>
 <div class="paragraph">
-<p>Once you have the IP addresses then the <code>DRCluster</code> resources can be modified for each managed cluster.</p>
+<p>Once you have the <code>IP addresses</code> then the <code>DRCluster</code> resources can be modified for each managed cluster.</p>
 </div>
 <div class="paragraph">
-<p>First you need the names of <code>DRCluster</code> to be modified. Execute this command on the <strong>Hub Cluster</strong>.</p>
+<p>First you need the names of <strong>DRCluster</strong> to be modified. Execute this command on the <strong>Hub Cluster</strong>.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -934,7 +981,7 @@ ocp4perf2   5m35s</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p>Now each <code>DRCluster</code> needs to edited and your unique IP addresses added in this way after replacing <code>&lt;drcluster_name&gt;</code> with your unique name.</p>
+<p>Now each <strong>DRCluster</strong> needs to edited and your unique <code>IP addresse`s added in this way after replacing `&lt;drcluster_name&gt;</code> with your unique name.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
@@ -981,7 +1028,7 @@ There could be more than six IP addresses.
 </table>
 </div>
 <div class="paragraph">
-<p>This <code>DRCluster</code> configuration needs to be done also for IP addresses on the <strong>Secondary managed clusters</strong> in the peer <code>DRCluster</code> resource (e.g., ocp4perf2).</p>
+<p>This <strong>DRCluster</strong> configuration needs to be done also for <code>IP addresses</code> on the <strong>Secondary managed clusters</strong> in the peer <code>DRCluster</code> resource (e.g., ocp4perf2).</p>
 </div>
 </div>
 <div class="sect2">
@@ -1071,7 +1118,7 @@ Make sure to add these annotations for both <strong>DRCluster</strong> resources
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/ACM-Create-application.png" alt="ACM Create application">
+<img src="_images/ACM-411-Create-application.png" alt="ACM Create application">
 </div>
 <div class="title">Figure 12. ACM Create application</div>
 </div>
@@ -1106,7 +1153,7 @@ Make sure to add these annotations for both <strong>DRCluster</strong> resources
 <div class="title">Figure 14. ACM application repository information</div>
 </div>
 <div class="paragraph">
-<p>Scroll down in the form until you see <code>Deploy application resources only on clusters matching specified labels</code> and then add a label for the <strong>Primary managed cluster</strong> name in <strong>RHACM</strong> cluster list view.</p>
+<p>Scroll down in the form until you see <strong>Deploy application resources only on clusters matching specified labels</strong> and then add a label for the <strong>Primary managed cluster</strong> name in <strong>RHACM</strong> cluster list view.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1115,7 +1162,7 @@ Make sure to add these annotations for both <strong>DRCluster</strong> resources
 <div class="title">Figure 15. ACM Select cluster for deployment</div>
 </div>
 <div class="paragraph">
-<p>After adding the <code>label</code> to identify the cluster, select <strong>Save</strong> in the upper right hand corner.</p>
+<p>After adding the <code>Label</code> to identify the cluster, select <strong>Save</strong> in the upper right hand corner.</p>
 </div>
 <div class="paragraph">
 <p>On the follow-on screen go to the <code>Topology</code> tab. You should see that there are all <strong>Green</strong> checkmarks on the application topology.</p>
@@ -1190,7 +1237,7 @@ Make sure to login to all clusters from the <strong>Multicluster Web console</st
 <div class="title">Figure 17. Apply DRPolicy</div>
 </div>
 <div class="paragraph">
-<p>When the <code>Apply DRPolicy</code> box appears select <code>busybox</code> and then <strong>Apply</strong>.</p>
+<p>When the <strong>Apply DRPolicy</strong> box appears select <code>busybox</code> and then <strong>Apply</strong>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1254,7 +1301,7 @@ The instructions to delete the sample application should not be executed until t
 </div>
 <div class="imageblock">
 <div class="content">
-<img src="_images/ODR-DRPlacementControl-delete.png" alt="Delete busybox application DRPlacementControl">
+<img src="_images/ODR-411-DRPlacementControl-delete.png" alt="Delete busybox application DRPlacementControl">
 </div>
 <div class="title">Figure 21. Delete busybox application DRPlacementControl</div>
 </div>
@@ -1292,27 +1339,27 @@ This process can be used to delete any application with a DRPlacementControl res
 <h2 id="_application_failover_between_managed_clusters"><a class="anchor" href="#_application_failover_between_managed_clusters"></a>11. Application Failover between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Metro Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> in the application namespace as shown in the <a href="#_create_sample_application_for_dr_testing">Create Sample Application for DR testing</a> section.</p>
+<p>This section will detail how to failover the <code>busybox</code> sample application. The failover method for <code>Metro Disaster Recovery</code> is application based. Each application that is to be protected in this manner must have a corresponding <strong>DRPlacementControl</strong> in the application namespace as shown in the <a href="#_apply_drpolicy_to_sample_application">Apply DRPolicy to Sample Application</a> section.</p>
 </div>
 <div class="sect2">
 <h3 id="_enable_fencing"><a class="anchor" href="#_enable_fencing"></a>11.1. Enable Fencing</h3>
 <div class="paragraph">
-<p>In order to failover the OpenShift cluster where the application is currently running all applications must be <code>fenced</code> from communicating with the external <strong>ODF</strong> storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters.</p>
+<p>In order to failover the OpenShift cluster where the application is currently running all applications must be <code>fenced</code> from communicating with the external <strong>ODF</strong> external storage cluster. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters.</p>
 </div>
-<div class="admonitionblock important">
+<div class="paragraph">
+<p>The OpenShift cluster to <code>Fence</code> is the one where the applications are currently running. Edit the <strong>DRCluster resource</strong> for this cluster on the <strong>Hub cluster</strong>.</p>
+</div>
+<div class="admonitionblock caution">
 <table>
 <tr>
 <td class="icon">
-<i class="fa icon-important" title="Important"></i>
+<i class="fa icon-caution" title="Caution"></i>
 </td>
 <td class="content">
-The OpenShift cluster to <code>Fence</code> is the one where the application is currently running.
+Once the  managed cluster is fenced, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> external storage cluster will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now <code>fenced</code>.
 </td>
 </tr>
 </table>
-</div>
-<div class="paragraph">
-<p>Edit the <strong>DRCluster resource</strong> for this cluster on the <strong>Hub cluster</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1351,20 +1398,10 @@ spec:
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drcluster.ramendr.openshift.io/ocp4perf1 edited</code></pre>
 </div>
 </div>
-<div class="admonitionblock caution">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-caution" title="Caution"></i>
-</td>
-<td class="content">
-Once the  managed cluster is fenced, <strong><em>ALL</em></strong> communication from applications to the <strong>ODF</strong> storage will fail and some <strong>Pods</strong> will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now <code>fenced</code>.
-</td>
-</tr>
-</table>
-</div>
+<div class="sect3">
+<h4 id="_validate_fencing_status"><a class="anchor" href="#_validate_fencing_status"></a>11.1.1. Validate Fencing status</h4>
 <div class="paragraph">
-<p>Now validate the fencing status in the <strong>Hub cluster</strong> for the <strong>Primary managed cluster</strong>.</p>
+<p>Now validate the <code>fencing</code> status in the <strong>Hub cluster</strong> for the <strong>Primary managed cluster</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1380,7 +1417,7 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io &lt;drcluster_name&gt; -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io &lt;drcluster_name&gt; -o jsonpath='{.status.phase}{"\n"}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1390,10 +1427,23 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 </div>
 </div>
 </div>
+</div>
 <div class="sect2">
 <h3 id="_modify_drplacementcontrol_to_failover"><a class="anchor" href="#_modify_drplacementcontrol_to_failover"></a>11.2. Modify DRPlacementControl to failover</h3>
 <div class="paragraph">
 <p>To failover requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+Make sure to be in the <code>busybox-sample</code> namespace.
+</td>
+</tr>
+</table>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -1452,15 +1502,15 @@ persistentvolumeclaim/busybox-pvc   Bound    pvc-79f2a74d-6e2c-48fb-9ed9-666b74c
 <h2 id="_application_failback_between_managed_clusters"><a class="anchor" href="#_application_failback_between_managed_clusters"></a>12. Application Failback between managed clusters</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>A failback operation is very similar to failover. The failback is application based and uses the <strong>DRPlacementControl</strong> to trigger the failback</p>
+<p>A failback operation is very similar to failover. The failback is application based and again uses the <strong>DRPlacementControl</strong> <code>action</code> value to trigger the failback. In this case the <code>action</code> is <strong>Relocate</strong> to the <code>preferredCluster</code>.</p>
 </div>
 <div class="sect2">
 <h3 id="_disable_fencing"><a class="anchor" href="#_disable_fencing"></a>12.1. Disable Fencing</h3>
 <div class="paragraph">
-<p>Before a failback or relocate action can be successful the <strong>DRCluster</strong> for the <strong>Primary managed cluster</strong> must be unfenced.</p>
+<p>Before a failback or <strong>Relocate</strong> action can be successful the <strong>DRCluster</strong> for the <strong>Primary managed cluster</strong> must be unfenced.</p>
 </div>
 <div class="paragraph">
-<p>The OpenShift cluster to be <code>Unfenced</code> is the one where the application is currently not running and the cluster that is <code>Fenced</code>.</p>
+<p>The OpenShift cluster to be <code>Unfenced</code> is the one where applications are not currently running and the cluster that was <code>Fenced</code> earlier.</p>
 </div>
 <div class="paragraph">
 <p>Edit the <strong>DRCluster resource</strong> for this cluster on the <strong>Hub cluster</strong>.</p>
@@ -1503,8 +1553,57 @@ spec:
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">drcluster.ramendr.openshift.io/ocp4perf1 edited</code></pre>
 </div>
 </div>
+<div class="sect3">
+<h4 id="_reboot_ocp_nodes_that_were_fenced"><a class="anchor" href="#_reboot_ocp_nodes_that_were_fenced"></a>12.1.1. Reboot OCP nodes that were Fenced</h4>
 <div class="paragraph">
-<p>Now validate the fencing status in the <strong>Hub cluster</strong> for the <strong>Primary managed cluster</strong>.</p>
+<p>This step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by <strong>rebooting all OpenShift nodes</strong> for this cluster one at a time.</p>
+</div>
+<div class="paragraph">
+<p>After all OpenShift nodes are rebooted and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>.</p>
+</div>
+<div class="listingblock execute">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -A | egrep -v 'Running|Completed'</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output.</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>The output for this query should be zero <strong>Pods</strong> before proceeding to the next step.</p>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+If there are <strong>Pods</strong> still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
+</td>
+</tr>
+</table>
+</div>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+The <strong>OpenShift Web Console</strong> dashboards and <strong>Overview</strong> can also be used to assess the health of applications and the external <strong>ODF</strong> storage cluster. The detailed <strong>ODF</strong> dashboard is found by navigating to <code>Storage</code> &#8594; <code>Data Foundation</code>.
+</td>
+</tr>
+</table>
+</div>
+</div>
+<div class="sect3">
+<h4 id="_validate_fencing_status_2"><a class="anchor" href="#_validate_fencing_status_2"></a>12.1.2. Validate Fencing status</h4>
+<div class="paragraph">
+<p>Now that the <code>Unfenced</code> cluster is in a healthy state validate the fencing status in the <strong>Hub cluster</strong> for the <strong>Primary managed cluster</strong>.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1520,7 +1619,7 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io &lt;drcluster_name&gt; -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get drcluster.ramendr.openshift.io &lt;drcluster_name&gt; -o jsonpath='{.status.phase}{"\n"}'</code></pre>
 </div>
 </div>
 <div class="listingblock">
@@ -1529,13 +1628,12 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Unfenced</code></pre>
 </div>
 </div>
-<div class="sect3">
-<h4 id="_reboot_ocp_nodes_that_were_fenced"><a class="anchor" href="#_reboot_ocp_nodes_that_were_fenced"></a>12.1.1. Reboot OCP nodes that were Fenced</h4>
-<div class="paragraph">
-<p>This step is required because some application <strong>Pods</strong> on the prior <code>fenced</code> cluster, in this case the <strong>Primary managed cluster</strong>, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by <strong>rebooting all worker OpenShift nodes</strong> one at a time.</p>
 </div>
+</div>
+<div class="sect2">
+<h3 id="_modify_drplacementcontrol_to_failback"><a class="anchor" href="#_modify_drplacementcontrol_to_failback"></a>12.2. Modify DRPlacementControl to failback</h3>
 <div class="paragraph">
-<p>After all OpenShift nodes are rebooted and again in a <code>Ready</code> status, verify all <strong>Pods</strong> are in a healthy state by running this command on the <strong>Primary managed cluster</strong>. The output for this query should be zero <strong>Pods</strong>.</p>
+<p>To failback requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -1544,40 +1642,10 @@ Replace <code>&lt;drcluster_name&gt;</code> with your unique name.
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <strong>OpenShift Web Console</strong> dashboards and <strong>Overview</strong> can also be used to assess the health of applications and the external storage. The detailed <strong>ODF</strong> dashboard is found by navigating to <code>Storage</code> &#8594; <code>Data Foundation</code>.
+Make sure to be in the <code>busybox-sample</code> namespace.
 </td>
 </tr>
 </table>
-</div>
-<div class="listingblock execute">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get pods -A | egrep -v 'Running|Completed'</code></pre>
-</div>
-</div>
-<div class="listingblock">
-<div class="title">Example output.</div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE</code></pre>
-</div>
-</div>
-<div class="admonitionblock important">
-<table>
-<tr>
-<td class="icon">
-<i class="fa icon-important" title="Important"></i>
-</td>
-<td class="content">
-If there are <strong>Pods</strong> still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
-</td>
-</tr>
-</table>
-</div>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_modify_drplacementcontrol_to_failback"><a class="anchor" href="#_modify_drplacementcontrol_to_failback"></a>12.2. Modify DRPlacementControl to failback</h3>
-<div class="paragraph">
-<p>To failback requires modifying the <strong>DRPlacementControl</strong> YAML view. On the <strong>Hub cluster</strong> navigate to <code>Installed Operators</code> and then to <code>Openshift DR Hub Operator</code>. Select <strong>DRPlacementControl</strong> as show below.</p>
 </div>
 <div class="imageblock">
 <div class="content">
