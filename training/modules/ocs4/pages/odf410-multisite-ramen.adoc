@@ -581,14 +581,6 @@ oc patch proxy cluster --type=merge  --patch='{"spec":{"trustedCA":{"name":"user
 ----
 proxy.config.openshift.io/cluster patched
 ----
-== Enable FeatureGates
-
-Logging in to both managed clusters on the same browser is pre-req. Also enable *FeatureGates*. There are two ways to enable FeatureGates. One using CLI and the other using web console. Refer below document links on how to proceed  
-
-*Enable Using Web Console* https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters
-
-*Enable Using CLI* https://github.com/red-hat-storage/ocs-training/blob/master/training/modules/ocs4/pages/odf4-metro-ramen.adoc#11-create-s3-secrets-on-managed-clusters
-
 
 == Create DRPolicy on Hub cluster
 

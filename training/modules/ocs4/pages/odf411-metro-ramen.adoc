@@ -378,12 +378,40 @@ NOTE: Replace `<drpolicy_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc get drpolicy <drpolicy_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drpolicy <drpolicy_name> -o jsonpath='{.status.conditions[].reason}{"\n"}'
 ----
 .Example output.
 ----
 Succeeded
 ----
+
+To validate object bucket access from the *Hub cluster* to both the *Primary managed cluster* and the *Secondary managed cluster* first get the names of the *DRClusters*.
+
+[source,role="execute"]
+----
+oc get drclusters
+----
+.Example output.
+----
+NAME        AGE
+ocp4perf1   4m42s
+ocp4perf2   4m42s
+----
+
+Now test S3 access to each bucket created on each managed cluster using this *DRCluster* validation command.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
+
+[source,role="execute"]
+----
+oc get drcluster <drcluster_name> -o jsonpath='{.status.conditions[2].reason}{"\n"}'
+----
+.Example output.
+----
+Succeeded
+----
+
+NOTE: Make sure to run command on both the *Primary managed cluster* and the *Secondary managed cluster*.
 
 To validate that the `OpenShift DR Cluster` operator installation was successful on the *Primary managed cluster* and the *Secondary managed cluster* do the following command:
 
