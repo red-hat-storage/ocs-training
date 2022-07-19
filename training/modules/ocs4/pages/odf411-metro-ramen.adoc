@@ -28,6 +28,28 @@ Import or create the two managed clusters with adequate resources for ODF (compu
 Properly set up a Ceph cluster deployed on two different datacenters using the stretched mode functionality.
 . *Install ODF 4.11 on managed clusters.* +
 Install ODF 4.11 on primary and secondary OCP managed clusters and connect both instances to the stretched Ceph cluster.
+. *Install ODF Multicluster Orchestrator on the ACM hub cluster.* +
+Install from OperatorHub on the ACM hub cluster the ODF Multicluster Orchestrator. The OpenShift DR Hub operator will also be installed.
+. *Configure SSL access between S3 endpoints* +
+If managed OpenShift clusters are not using valid certificates this step must be done by creating a new user-ca-bundle ConfigMap that contains the certs.
+. *Enable Multicluster Web Console.* +
+This is a new Tech Preview capability that is required before creating a DRPolicy. It is only needed on the Hub cluster where ACM resides.
+. *Create one or more DRPolicy* +
+Use the All Clusters Data Services UI to create DRPolicy by selecting the two managed clusters the policy will apply to. 
+. *Validate OpenShift DR Cluster operators are installed.* +
+Once the first DRPolicy is created this will trigger the DR Cluster operators to be created on the two managed clusters selected in the UI.
+. *Configure DRClusters for fencing automation.* +
+This configuration is in preparation of enabling Fenced prior to application failover. The DRCluster resources will be edited on the Hub cluster to include a new CIDR section and additional DR annotations.
+. *Create the Sample Application using ACM console.* +
+Use the sample app example from https://github.com/RamenDR/ocm-ramen-samples to create a busybox deployment for failover and failback testing.
+. *Validate Sample Application deployment.* +
+Using CLI commands on both managed clusters validate that the application is running.
+. *Apply DRPolicy to Sample Application.* +
+Use the All Clusters Data Services UI to apply the new DRPolicy to the Sample Application. Once applied a DRPlacementControl resource will be created in the application namespace on the Hub cluster.
+. *Failover Sample Application to secondary managed cluster.* +
+After fencing the primary managed cluster, modify the application DRPlacementControl resource on the Hub Cluster, add the action of Failover and specify the failoverCluster to trigger the failover.
+. *Failback Sample Application to primary managed cluster.* +
+After unfencing the primary managed cluster and rebooting worker nodes, modify the application DRPlacementControl resource on the Hub Cluster and change the action to Relocate to trigger a failback to the preferredCluster.
 
 == Deploy and Configure ACM for Multisite connectivity
 
@@ -47,7 +69,7 @@ image::ACM-OperatorHub.png[OperatorHub filter for Advanced Cluster Management]
 Verify that the operator was successfully installed and that the `MultiClusterHub` is ready to be installed.
 
 .ACM Installed Operator
-image::ACM-Installed-Operator.png[ACM Installed Operator]
+image::ACM-Installed-Operator-noversion.png[ACM Installed Operator]
 
 Select `MultiClusterHub` and use either `Form view` or `YAML view` to configure the deployment and select `Create`. 
 
@@ -94,16 +116,14 @@ After the ODF operators are installed, select *Create StorageSystem* and choose 
 .ODF Connect external storage
 image::ODF-connect-external-storage.png[ODF Connect external storage]
 
-Download the ceph-external-cluster-details-exporter.py python script and upload
+Download the `ceph-external-cluster-details-exporter.py` python script and upload
 it to you RHCS bootstrap node, the script needs to be run from a host with the
-ceph admin key, in our example the hostname for the RHCS
-bootstrap node that has the admin keys available is `ceph1`.
+ceph admin key, in our example the hostname for the RHCS bootstrap node that has the admin keys available is `ceph1`.
 
 .ODF Download the RHCS script
 image::ODF_download_script_external_storage.png[ODF download RHCS script]
 
-The ceph-external-cluster-details-exporter.py python script will create a configuration file
-with details for ODF to connect with the RHCS cluster.
+The `ceph-external-cluster-details-exporter.py` python script will create a configuration file with details for ODF to connect with the RHCS cluster.
 
 Because we are
 connecting two OCP clusters to the RHCS storage, you need to run the
@@ -205,7 +225,7 @@ NOTE: The successful installation of ODF can also be validated in the *OCP Web C
 
 == Install ODF Multicluster Orchestrator Operator on Hub cluster
 
-On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`.  The `ODF Multicluster Orchestrator` also installs the `ODR Hub Operator` on the ACM hub cluster as its dependency.
+On the *Hub cluster* navigate to *OperatorHub* and filter for `ODF Multicluster Orchestrator`. Follow instructions to *Install* the operator into the project `openshift-operators`. The `ODF Multicluster Orchestrator` also installs the `Openshift DR Hub Operator` on the ACM hub cluster as a dependency.
 
 Check to see the operators *Pod* are in a `Running` state. The `OpenShift DR Hub` operator will be installed at the same time in `openshift-operators`.
 
@@ -391,7 +411,7 @@ This configuration is in preparation of enabling `Fenced` prior to application f
 
 === Add Node IP addresses to DRClusters
 
-The first step is to find the IP addresses for all of the OpenShift nodes in the managed clusters. 
+The first step is to find the `IP addresses` for all of the OpenShift nodes in the managed clusters. 
 
 This can be done by running this command in the *Primary managed cluster* and the *Secondary managed cluster*.
 
@@ -409,9 +429,9 @@ oc get nodes -o jsonpath='{range .items[*]}{.status.addresses[?(@.type=="Externa
 10.70.56.99
 ----
 
-Once you have the IP addresses then the `DRCluster` resources can be modified for each managed cluster.
+Once you have the `IP addresses` then the `DRCluster` resources can be modified for each managed cluster.
 
-First you need the names of `DRCluster` to be modified. Execute this command on the *Hub Cluster*.
+First you need the names of *DRCluster* to be modified. Execute this command on the *Hub Cluster*.
 
 [source,role="execute"]
 ----
@@ -424,7 +444,7 @@ ocp4perf1   5m35s
 ocp4perf2   5m35s
 ----
 
-Now each `DRCluster` needs to edited and your unique IP addresses added in this way after replacing `<drcluster_name>` with your unique name. 
+Now each *DRCluster* needs to edited and your unique `IP addresse`s added in this way after replacing `<drcluster_name>` with your unique name. 
 
 [source,role="execute"]
 ----
@@ -457,7 +477,7 @@ drcluster.ramendr.openshift.io/ocp4perf1 edited
 
 NOTE: There could be more than six IP addresses.
 
-This `DRCluster` configuration needs to be done also for IP addresses on the *Secondary managed clusters* in the peer `DRCluster` resource (e.g., ocp4perf2).
+This *DRCluster* configuration needs to be done also for `IP addresses` on the *Secondary managed clusters* in the peer `DRCluster` resource (e.g., ocp4perf2).
     
 === Add Fencing Annotations to DRClusters
 
@@ -514,7 +534,7 @@ https://multicloud-console.apps.perf3.example.com/multicloud/applications
 After logging in select *Create application* in the top right and choose *Subscription*.
 
 .ACM Create application
-image::ACM-Create-application.png[ACM Create application]
+image::ACM-411-Create-application.png[ACM Create application]
 
 Fill out the top of the `Create an application` form as shown below and select repository type *Git*.
 
@@ -528,12 +548,12 @@ NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-sampl
 .ACM application repository information
 image::ACM-application-form2a-metro.png[ACM application repository information]
 
-Scroll down in the form until you see `Deploy application resources only on clusters matching specified labels` and then add a label for the *Primary managed cluster* name in *RHACM* cluster list view.
+Scroll down in the form until you see *Deploy application resources only on clusters matching specified labels* and then add a label for the *Primary managed cluster* name in *RHACM* cluster list view.
 
 .ACM Select cluster for deployment 
 image::ACM-application-form3a.png[ACM Select cluster for deployment]
 
-After adding the `label` to identify the cluster, select *Save* in the upper right hand corner.
+After adding the `Label` to identify the cluster, select *Save* in the upper right hand corner.
 
 On the follow-on screen go to the `Topology` tab. You should see that there are all *Green* checkmarks on the application topology.
 
@@ -572,7 +592,7 @@ Navigate to `Data Services` and then choose `Data policies`. You should see the 
 .Apply DRPolicy
 image::MCO-apply-drpolicy.png[Apply DRPolicy]
 
-When the `Apply DRPolicy` box appears select `busybox` and then *Apply*.
+When the *Apply DRPolicy* box appears select `busybox` and then *Apply*.
 
 .DRPolicy select application
 image::MCO-select-application.png[DRPolicy select application]
@@ -608,7 +628,7 @@ Select *Delete* in this screen. This will delete the `busybox` application on th
 In addition to the resources deleted using the ACM console, the `DRPlacementControl` must also be deleted immediately after deleting the `busybox` application. Logon to the OpenShift Web console for the *Hub cluster*. Navigate to `Installed Operators` for the project `busybox-sample`. Choose `OpenShift DR Hub Operator` and the *DRPlacementControl*.
 
 .Delete busybox application DRPlacementControl
-image::ODR-DRPlacementControl-delete.png[Delete busybox application DRPlacementControl]
+image::ODR-411-DRPlacementControl-delete.png[Delete busybox application DRPlacementControl]
 
 Select *Delete DRPlacementControl*. 
 
@@ -618,15 +638,15 @@ NOTE: This process can be used to delete any application with a DRPlacementContr
 
 == Application Failover between managed clusters
 
-This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* in the application namespace as shown in the <<Create Sample Application for DR testing>> section.
+This section will detail how to failover the `busybox` sample application. The failover method for `Metro Disaster Recovery` is application based. Each application that is to be protected in this manner must have a corresponding *DRPlacementControl* in the application namespace as shown in the <<Apply DRPolicy to Sample Application>> section.
 
 === Enable Fencing 
 
-In order to failover the OpenShift cluster where the application is currently running all applications must be `fenced` from communicating with the external *ODF* storage. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
+In order to failover the OpenShift cluster where the application is currently running all applications must be `fenced` from communicating with the external *ODF* external storage cluster. This is required to prevent simultaneous writes to the same persistent volume from both managed clusters. 
 
-IMPORTANT: The OpenShift cluster to `Fence` is the one where the application is currently running.
+The OpenShift cluster to `Fence` is the one where the applications are currently running. Edit the *DRCluster resource* for this cluster on the *Hub cluster*.
 
-Edit the *DRCluster resource* for this cluster on the *Hub cluster*.
+CAUTION: Once the  managed cluster is fenced, *_ALL_* communication from applications to the *ODF* external storage cluster will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
 
 NOTE: Replace `<drcluster_name>` with your unique name.
 
@@ -654,15 +674,15 @@ spec:
 drcluster.ramendr.openshift.io/ocp4perf1 edited
 ----
 
-CAUTION: Once the  managed cluster is fenced, *_ALL_* communication from applications to the *ODF* storage will fail and some *Pods* will be in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff) on the cluster that is now `fenced`.
+==== Validate Fencing status
 
-Now validate the fencing status in the *Hub cluster* for the *Primary managed cluster*.
+Now validate the `fencing` status in the *Hub cluster* for the *Primary managed cluster*.
 
 NOTE: Replace `<drcluster_name>` with your unique name.
 
 [source,role="execute"]
 ----
-oc get drcluster.ramendr.openshift.io <drcluster_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
+oc get drcluster.ramendr.openshift.io <drcluster_name> -o jsonpath='{.status.phase}{"\n"}'
 ----
 .Example output.
 ----
@@ -672,6 +692,8 @@ Fenced
 === Modify DRPlacementControl to failover
 
 To failover requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
+
+NOTE: Make sure to be in the `busybox-sample` namespace.
 
 .DRPlacementControl busybox instance
 image::ODR-411-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
@@ -711,13 +733,13 @@ No resources found in busybox-sample namespace.
 
 == Application Failback between managed clusters
 
-A failback operation is very similar to failover. The failback is application based and uses the *DRPlacementControl* to trigger the failback
+A failback operation is very similar to failover. The failback is application based and again uses the *DRPlacementControl* `action` value to trigger the failback. In this case the `action` is *Relocate* to the `preferredCluster`. 
 
 === Disable Fencing
 
-Before a failback or relocate action can be successful the *DRCluster* for the *Primary managed cluster* must be unfenced.
+Before a failback or *Relocate* action can be successful the *DRCluster* for the *Primary managed cluster* must be unfenced.
 
-The OpenShift cluster to be `Unfenced` is the one where the application is currently not running and the cluster that is `Fenced`.
+The OpenShift cluster to be `Unfenced` is the one where applications are not currently running and the cluster that was `Fenced` earlier.
 
 Edit the *DRCluster resource* for this cluster on the *Hub cluster*.
 
@@ -748,26 +770,11 @@ spec:
 drcluster.ramendr.openshift.io/ocp4perf1 edited
 ----
 
-Now validate the fencing status in the *Hub cluster* for the *Primary managed cluster*.
-
-NOTE: Replace `<drcluster_name>` with your unique name.
-
-[source,role="execute"]
-----
-oc get drcluster.ramendr.openshift.io <drcluster_name> -n openshift-dr-system -o jsonpath='{.status.conditions[].reason}{"\n"}'
-----
-.Example output.
-----
-Unfenced
-----
-
 ==== Reboot OCP nodes that were Fenced
 
-This step is required because some application *Pods* on the prior `fenced` cluster, in this case the *Primary managed cluster*, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by *rebooting all worker OpenShift nodes* one at a time.
+This step is required because some application *Pods* on the prior `fenced` cluster, in this case the *Primary managed cluster*, are in an unhealthy state (e.g. CreateContainerError, CrashLoopBackOff). This can be most easily fixed by *rebooting all OpenShift nodes* for this cluster one at a time.
 
-After all OpenShift nodes are rebooted and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*. The output for this query should be zero *Pods*. 
-
-NOTE: The *OpenShift Web Console* dashboards and *Overview* can also be used to assess the health of applications and the external storage. The detailed *ODF* dashboard is found by navigating to `Storage` -> `Data Foundation`.
+After all OpenShift nodes are rebooted and again in a `Ready` status, verify all *Pods* are in a healthy state by running this command on the *Primary managed cluster*.  
 
 [source,role="execute"]
 ----
@@ -778,11 +785,32 @@ oc get pods -A | egrep -v 'Running|Completed'
 NAMESPACE                                          NAME                                                              READY   STATUS      RESTARTS       AGE
 ----
 
+The output for this query should be zero *Pods* before proceeding to the next step.
+
 IMPORTANT: If there are *Pods* still in an unhealthy status because of severed storage communication, troubleshoot and resolve before continuing. Because the storage cluster is external to OpenShift, it also has to be properly recovered after a site outage for OpenShift applications to be healthy.
+
+NOTE: The *OpenShift Web Console* dashboards and *Overview* can also be used to assess the health of applications and the external *ODF* storage cluster. The detailed *ODF* dashboard is found by navigating to `Storage` -> `Data Foundation`.
+
+==== Validate Fencing status
+
+Now that the `Unfenced` cluster is in a healthy state validate the fencing status in the *Hub cluster* for the *Primary managed cluster*.
+
+NOTE: Replace `<drcluster_name>` with your unique name.
+
+[source,role="execute"]
+----
+oc get drcluster.ramendr.openshift.io <drcluster_name> -o jsonpath='{.status.phase}{"\n"}'
+----
+.Example output.
+----
+Unfenced
+----
 
 === Modify DRPlacementControl to failback
 
 To failback requires modifying the *DRPlacementControl* YAML view. On the *Hub cluster* navigate to `Installed Operators` and then to `Openshift DR Hub Operator`. Select *DRPlacementControl* as show below.
+
+NOTE: Make sure to be in the `busybox-sample` namespace.
 
 .DRPlacementControl busybox instance
 image::ODR-411-DRPlacementControl-instance.png[DRPlacementControl busybox instance]
