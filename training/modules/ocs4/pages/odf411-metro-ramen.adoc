@@ -372,7 +372,7 @@ This should create the two *DRCluster* resources and also the *DRPolicy* on the 
 * The object buckets *Secrets* on the *Hub cluster* in the project `openshift-operators` will be copied to the managed clusters in the `openshift-dr-system` project.
 * The `s3StoreProfiles` entries will be copied to the managed clusters and used to modify the `ramen-dr-cluster-operator-config` *ConfigMap* in the `openshift-dr-system` project.
 
-To validate that the *DRPolicy* is created successfully run this command on the *Hub cluster* for the first *DRPolicy* resource created. 
+To validate that the *DRPolicy* is created successfully run this command on the *Hub cluster* for the each *DRPolicy* resource created. 
 
 NOTE: Replace `<drpolicy_name>` with your unique name.
 
@@ -385,7 +385,7 @@ oc get drpolicy <drpolicy_name> -o jsonpath='{.status.conditions[].reason}{"\n"}
 Succeeded
 ----
 
-To validate object bucket access from the *Hub cluster* to both the *Primary managed cluster* and the *Secondary managed cluster* first get the names of the *DRClusters*.
+To validate object bucket access from the *Hub cluster* to both the *Primary managed cluster* and the *Secondary managed cluster* first get the names of the *DRClusters* on the *Hub cluster*.
 
 [source,role="execute"]
 ----
@@ -411,7 +411,7 @@ oc get drcluster <drcluster_name> -o jsonpath='{.status.conditions[2].reason}{"\
 Succeeded
 ----
 
-NOTE: Make sure to run command on both the *Primary managed cluster* and the *Secondary managed cluster*.
+NOTE: Make sure to run command for both *DRClusters* on the *Hub cluster*.
 
 To validate that the `OpenShift DR Cluster` operator installation was successful on the *Primary managed cluster* and the *Secondary managed cluster* do the following command:
 
