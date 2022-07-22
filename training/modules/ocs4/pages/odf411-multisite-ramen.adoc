@@ -466,7 +466,7 @@ image::ACM-application-form1.png[ACM Application name and namespace]
 
 The next section to fill out is below the *Git* box and is the repository URL for the sample application, the *github* branch and path to resources that will be created, the `busybox` *Pod* and *PVC*. 
 
-NOTE: *Sample application repository* https://github.com/RamenDR/ocm-ramen-samples. Branch is `main` and path is `busybox-odr-metro`. 
+NOTE: *Sample application repository* https://github.com/netzzer/ocm-ramen-samples. Branch is `main` and path is `busybox-odr`. 
 
 .ACM application repository information
 image::ACM-application-form2a.png[ACM application repository information]
