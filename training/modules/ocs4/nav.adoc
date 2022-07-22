@@ -1,19 +1,17 @@
 * xref:odf.adoc[ODF General deploy and use]
 * xref:ocs4-install-no-ui.adoc[OCS CLI based install]
 * xref:odf4-install-no-ui.adoc[ODF CLI based install]
-// * xref:ocs4-install-no-ui-1scale.adoc[Single node scaling support]
 * xref:ocs4-encryption.adoc[External KMS Encryption]
-// * xref:ocs4-cluster-downsize.adoc[Downsize existing OCS cluster]
 * xref:ocs4-enable-rgw.adoc[Use RGW in OCS deployment]
 * xref:ocs4-cluster-storage-quotas.adoc[Cluster wide storage management]
 
 .Disaster recovery
 // * xref:RegionalDR:manual:ocs4-multisite-replication.adoc[Regional disaster recovery (OCS 4.8 manual method)]
 // * xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery (RDRhelper)]
-// * xref:ocs4-metro-stretched-no-ui.adoc[Metro disaster recovery CLI]
 * xref:odf4-multisite-ramen.adoc[ODF 4.9 Regional disaster recovery]
 * xref:odf410-multisite-ramen.adoc[ODF 4.10 Regional disaster recovery]
-* xref:ocs4-metro-stretched.adoc[Stretch Cluster disaster recovery]
+* xref:odf411-multisite-ramen.adoc[ODF 4.11 Regional disaster recovery (WIP)]
+* xref:ocs4-metro-stretched.adoc[OCS 4.7 Stretch Cluster disaster recovery]
 * xref:odf410-metro-ramen.adoc[ODF 4.10 Metro disaster recovery]
 * xref:odf411-metro-ramen.adoc[ODF 4.11 Metro disaster recovery (WIP)]
 
@@ -22,4 +20,3 @@
 * xref:ocs4-additionalfeatures-devtype.adoc[Mixed OSD device type configuration]
 * xref:ocs4-additionalfeatures-override.adoc[Ceph configuration override]
 * xref:ocs4-additionalfeatures-segregation.adoc[Data Segregation]
-//* xref:ocs4-metro-multi-no-ui.adoc[Metro multi-cluster disaster recovery]
