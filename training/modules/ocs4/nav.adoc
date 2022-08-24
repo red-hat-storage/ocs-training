@@ -10,10 +10,10 @@
 // * xref:RegionalDR:helper:requirements.adoc[Regional disaster recovery (RDRhelper)]
 * xref:odf4-multisite-ramen.adoc[ODF 4.9 Regional disaster recovery]
 * xref:odf410-multisite-ramen.adoc[ODF 4.10 Regional disaster recovery]
-* xref:odf411-multisite-ramen.adoc[ODF 4.11 Regional disaster recovery (WIP)]
+* xref:odf411-multisite-ramen.adoc[ODF 4.11 Regional disaster recovery]
 * xref:ocs4-metro-stretched.adoc[OCS 4.7 Stretch Cluster disaster recovery]
 * xref:odf410-metro-ramen.adoc[ODF 4.10 Metro disaster recovery]
-* xref:odf411-metro-ramen.adoc[ODF 4.11 Metro disaster recovery (WIP)]
+* xref:odf411-metro-ramen.adoc[ODF 4.11 Metro disaster recovery]
 
 .Development preview features
 * xref:ocs4-additionalfeatures-dbwal.adoc[BlueStore RocksDB metadata and WAL placement]
