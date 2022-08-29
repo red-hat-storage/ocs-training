@@ -279,7 +279,7 @@ The `Create StorageSystem` screen will display.
 .Configure storage system settings
 image::OCS4-config-screen-partial1.png[Configure storage system settings]
 
-Leave the default selection of `gp2`, `Full deployment`, and select *Next*.
+Select the storage class `gp3-csi` and `Full deployment`, the click *Next*.
 
 .Select capacity and nodes for new storage system
 image::OCS4-config-screen-partial2.png[Select capacity and nodes for new storage system]
@@ -828,8 +828,7 @@ oc apply -f pvc.yaml -n my-database-app
 ----
 .Example output:
 ----
-Warning: oc apply should be used on resource created by either oc create
---save-config or oc apply persistentvolumeclaim/postgresql configured
+Warning: oc apply should be used on resource created by either oc create --save-config or oc apply persistentvolumeclaim/postgresql configured
 ----
 
 You can visualize the progress of the expansion of the PVC using the following
@@ -2262,19 +2261,19 @@ ID  CLASS WEIGHT   TYPE NAME
  -1       12.00000 root default
  -5       12.00000     region us-east-2
  -4        4.00000         zone us-east-2a
- -3        2.00000             host ocs-deviceset-gp2-0-data-0-9977n
+ -3        2.00000             host ocs-deviceset-gp3-csi-0-data-0-9977n
   0   ssd  2.00000                 osd.0
--21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr <1>
+-21        2.00000             host ocs-deviceset-gp3-csi-2-data-1-nclgr <1>
   4   ssd  2.00000                 osd.4
 -14        4.00000         zone us-east-2b
--13        2.00000             host ocs-deviceset-gp2-1-data-0-nnmpv
+-13        2.00000             host ocs-deviceset-gp3-csi-1-data-0-nnmpv
   2   ssd  2.00000                 osd.2
--19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987 <1>
+-19        2.00000             host ocs-deviceset-gp3-csi-0-data-1-mg987 <1>
   3   ssd  2.00000                 osd.3
 -10        4.00000         zone us-east-2c
- -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
+ -9        2.00000             host ocs-deviceset-gp3-csi-2-data-0-mtbtj
   1   ssd  2.00000                 osd.1
--17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb <1>
+-17        2.00000             host ocs-deviceset-gp3-csi-0-data-2-l8tmb <1>
   5   ssd  2.00000                 osd.5
 ----
 
