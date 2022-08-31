@@ -360,4 +360,7 @@ oc get pvc | grep cephfs-pvc
 
 ODF 4.11.0 is primarily for new customers or new clusters within existing customers.
 
-Due to an upgrade issue in Red Hat Ceph Storage RGW, existing customers using ODF 4.10 will be unable to upgrade to ODF 4.11 until a fix is provided in ODF 4.11.x, based on Red Hat Ceph Storage 5.3. More technical information on this upgrade issue can be found here. Existing customers who need ODF 4.11 urgently and are not currently using ODF object storage, or are running ODF in the cloud, should contact Red Hat support for upgrade instructions. Customers who are new to ODF with the 4.11 release, or existing ODF 4.10 customers deploying ODF 4.11.0 onto new clusters, are unaffected by this upgrade problem.
+Due to an upgrade issue in Red Hat Ceph Storage RGW, existing customers using
+ODF 4.10 will be unable to upgrade to ODF 4.11 until a fix is provided in ODF
+4.11.x, based on Red Hat Ceph Storage 5.3. More technical information on this
+upgrade issue can be found https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5.2/html/release_notes/known-issues#known-issue_ceph-object-gateway[here]. Existing customers who need ODF 4.11 urgently and are not currently using ODF object storage, or are running ODF in the cloud, should contact Red Hat support for upgrade instructions. Customers who are new to ODF with the 4.11 release, or existing ODF 4.10 customers deploying ODF 4.11.0 onto new clusters, are unaffected by this upgrade problem.

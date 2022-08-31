@@ -967,7 +967,7 @@ oc new-app openshift/php~https://github.com/christianh814/openshift-php-upload-d
 
     Tags: builder, php, php80, php-80
 
-    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
+      * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
 
@@ -2587,14 +2587,13 @@ brew install noobaa/noobaa/noobaa
 .Mac steps without Homebrew
 [source]
 ----
-curl -sLO
-https://github.com/noobaa/noobaa-operator/releases/download/v5.10.1/noobaa-mac-v5.10.1 ; chmod +x noobaa-mac-v5.10.1 ; sudo mv noobaa-mac-v5.10.1 /usr/local/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.10.1/noobaa-mac-v5.10.1 ; chmod +x noobaa-mac-v5.10.1 ; sudo mv noobaa-mac-v5.10.1 /usr/local/bin/noobaa
 ----
 
 .Linux steps
 [source]
 ----
-curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.9.0/noobaa-linux-v5.10.1 ; chmod +x noobaa-linux-v5.10.1 ; sudo mv noobaa-linux-v5.10.1 /usr/bin/noobaa
+curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.10.1/noobaa-linux-v5.10.1 ; chmod +x noobaa-linux-v5.10.1 ; sudo mv noobaa-linux-v5.10.1 /usr/bin/noobaa
 ----
 
 Check that your noobaa CLI installation was successful with this command:
