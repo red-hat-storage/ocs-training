@@ -245,10 +245,10 @@ metadata:
   name: local-storage-operator
   namespace: openshift-local-storage
 spec:
-  channel: "4.9"
+  channel: "stable"
   installPlanApproval: Automatic
   name: local-storage-operator
-  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
+  source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -406,10 +406,10 @@ metadata:
   name: odf-operator
   namespace: openshift-storage
 spec:
-  channel: "stable-4.9"
+  channel: "stable-4.11"
   installPlanApproval: Automatic
   name: odf-operator
-  source: redhat-operators  # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
+  source: redhat-operators
   sourceNamespace: openshift-marketplace
 EOF</code></pre>
 </div>
@@ -598,86 +598,16 @@ EOF</code></pre>
 </div>
 </div>
 <div class="sect1">
-<h2 id="_upgrade_from_ocs_4_8_to_odf_4_9"><a class="anchor" href="#_upgrade_from_ocs_4_8_to_odf_4_9"></a>5. Upgrade from OCS 4.8 to ODF 4.9</h2>
+<h2 id="_upgrade_from_ocs_4_10_to_odf_4_11"><a class="anchor" href="#_upgrade_from_ocs_4_10_to_odf_4_11"></a>5. Upgrade from OCS 4.10 to ODF 4.11</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Validate current version of OCS.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv -n openshift-storage</code></pre>
-</div>
+<p>ODF 4.11.0 is primarily for new customers or new clusters within existing customers.</p>
 </div>
 <div class="paragraph">
-<p>Example output.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>NAME                  DISPLAY                       VERSION   REPLACES   PHASE
-ocs-operator.v4.8.7   OpenShift Container Storage   4.8.7                Succeeded</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Verify there is a new ODF stable channel.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc describe packagemanifests ocs -n openshift-marketplace |grep stable-</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Example output.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>    Name:           stable-4.8
-    Name:           stable-4.9
-  Default Channel:  stable-4.9</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Apply ODF 4.9 subscription with new stable-4.9 channel.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">cat &lt;&lt;EOF | oc apply -f -
-apiVersion: operators.coreos.com/v1alpha1
-kind: Subscription
-metadata:
-  name: odf-operator
-  namespace: openshift-storage
-spec:
-  channel: "stable-4.9"
-  installPlanApproval: Automatic
-  name: odf-operator
-  source: redhat-operators   # &lt;-- Modify the name of the redhat-operators catalogsource to be correct for your cluster
-  sourceNamespace: openshift-marketplace
-EOF</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Validate new versions for ODF.</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc get csv -n openshift-storage</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Example output.</p>
-</div>
-<div class="literalblock">
-<div class="content">
-<pre>NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-mcg-operator.v4.9.1   NooBaa Operator               4.9.1     mcg-operator.v4.9.0   Succeeded
-ocs-operator.v4.9.1   OpenShift Container Storage   4.9.1     ocs-operator.v4.8.7   Succeeded
-odf-operator.v4.9.1   OpenShift Data Foundation     4.9.1     odf-operator.v4.9.0   Succeeded</pre>
-</div>
-</div>
-<div class="paragraph">
-<p>Validate that all <strong>Pods</strong> in <code>openshift-storage</code> are eventually in a running
-state after updating. Also verify that Ceph is healthy using
-instructions in prior section.</p>
+<p>Due to an upgrade issue in Red Hat Ceph Storage RGW, existing customers using
+ODF 4.10 will be unable to upgrade to ODF 4.11 until a fix is provided in ODF
+4.11.x, based on Red Hat Ceph Storage 5.3. More technical information on this
+upgrade issue can be found <a href="https://access.redhat.com/documentation/en-us/red_hat_ceph_storage/5.2/html/release_notes/known-issues#known-issue_ceph-object-gateway">here</a>. Existing customers who need ODF 4.11 urgently and are not currently using ODF object storage, or are running ODF in the cloud, should contact Red Hat support for upgrade instructions. Customers who are new to ODF with the 4.11 release, or existing ODF 4.10 customers deploying ODF 4.11.0 onto new clusters, are unaffected by this upgrade problem.</p>
 </div>
 </div>
 </div>

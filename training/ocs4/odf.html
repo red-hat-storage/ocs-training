@@ -274,8 +274,9 @@ resources. The <code>NAME</code> of your OCP nodes will be different than shown 
 <div class="title">Example output:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                        STATUS   ROLES    AGE    VERSION
-ip-10-0-153-37.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.19.0+9f84db3</code></pre>
+ip-10-0-153-37.us-east-2.compute.internal   Ready    worker   4d4h   v1.23.5+012e945
+ip-10-0-170-25.us-east-2.compute.internal   Ready    worker   4d4h   v1.23.5+012e945
+ip-10-0-234-166.us-east-2.compute.internal  Ready    worker   4d4h   v1.23.5+012e945</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -307,7 +308,7 @@ cluster-ocs4-8613-bc282-worker-us-east-2c   0         0                         
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/create_machinesets.sh | bash</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -s https://raw.githubusercontent.com/red-hat-storage/ocs-training/master/training/modules/ocs4/attachments/create_machinesets.sh | bash</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -375,11 +376,11 @@ nodes will be different than shown below.</p>
 <div class="title">Example output:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE    VERSION
-ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   14m    v1.19.0+9f84db3
-ip-10-0-153-37.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-170-25.us-east-2.compute.internal    Ready    worker   4d4h   v1.19.0+9f84db3
-ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   14m    v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.19.0+9f84db3</code></pre>
+ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   14m    v1.23.5+012e945
+ip-10-0-153-37.us-east-2.compute.internal    Ready    worker   4d4h   v1.23.5+012e945
+ip-10-0-170-25.us-east-2.compute.internal    Ready    worker   4d4h   v1.23.5+012e945
+ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   14m    v1.23.5+012e945
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   14m    v1.23.5+012e945</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -396,9 +397,9 @@ added in the <code>workerocs</code> <strong>machinesets</strong> so every <stron
 <div class="title">Example output:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                         STATUS   ROLES    AGE   VERSION
-ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   15m   v1.19.0+9f84db3
-ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   15m   v1.19.0+9f84db3
-ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.19.0+9f84db3</code></pre>
+ip-10-0-147-230.us-east-2.compute.internal   Ready    worker   15m   v1.23.5+012e945
+ip-10-0-175-8.us-east-2.compute.internal     Ready    worker   15m   v1.23.5+012e945
+ip-10-0-209-53.us-east-2.compute.internal    Ready    worker   15m   v1.23.5+012e945</code></pre>
 </div>
 </div>
 </div>
@@ -516,10 +517,11 @@ installation.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                  DISPLAY                       VERSION   REPLACES              PHASE
-mcg-operator.v4.9.2   NooBaa Operator               4.9.2     mcg-operator.v4.9.1   Succeeded
-ocs-operator.v4.9.2   OpenShift Container Storage   4.9.2     ocs-operator.v4.9.1   Succeeded
-odf-operator.v4.9.2   OpenShift Data Foundation     4.9.2     odf-operator.v4.9.1   Succeeded</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                              DISPLAY                       VERSION   REPLACES   PHASE
+mcg-operator.v4.11.0              NooBaa Operator               4.11.0               Succeeded
+ocs-operator.v4.11.0              OpenShift Container Storage   4.11.0               Succeeded
+odf-csi-addons-operator.v4.11.0   CSI Addons                    4.11.0               Succeeded
+odf-operator.v4.11.0              OpenShift Data Foundation     4.11.0               Succeeded</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -556,12 +558,13 @@ namespace:</p>
 <div class="title">Example output:</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                               READY   STATUS    RESTARTS   AGE
-noobaa-operator-585b66865d-z7n6d                   1/1     Running   0          7m52s
-ocs-metrics-exporter-6f7fb77856-hzqxm              1/1     Running   0          7m47s
-ocs-operator-f5bb58ddf-7ngr8                       1/1     Running   0          7m48s
-odf-console-87bb59fb4-f9mc2                        1/1     Running   0          7m47s
-odf-operator-controller-manager-85f6cbddfb-bnqd6   2/2     Running   0          7m47s
-rook-ceph-operator-55b4496c6b-kmlm6                1/1     Running   0          7m48s</code></pre>
+csi-addons-controller-manager-7957956679-pvmn7     2/2     Running   0          7m52s
+noobaa-operator-b7ccf5647-5gt42                    1/1     Running   0          8m24s
+ocs-metrics-exporter-7cb579864-wf5ds               1/1     Running   0          7m52s
+ocs-operator-6949db5bdd-kwcgh                      1/1     Running   0          8m13s
+odf-console-8466964cbb-wkd42                       1/1     Running   0          8m29s
+odf-operator-controller-manager-56c7c66c64-4xrc8   2/2     Running   0          8m29s
+rook-ceph-operator-658579dd69-768xd                1/1     Running   0          8m13s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -587,7 +590,7 @@ installation for ODF 4.</p>
 <div class="title">Figure 7. Configure storage system settings</div>
 </div>
 <div class="paragraph">
-<p>Leave the default selection of <code>gp2</code>, <code>Full deployment</code>, and select <strong>Next</strong>.</p>
+<p>Select the storage class <code>gp3-csi</code> and <code>Full deployment</code>, the click <strong>Next</strong>.</p>
 </div>
 <div class="imageblock">
 <div class="content">
@@ -633,46 +636,44 @@ selected with a <code>checkmark</code>. Click <strong>Next</strong> one more tim
 <div class="title">Output when the cluster installation is finished</div>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                              READY   STATUS      RESTARTS   AGE
-csi-cephfsplugin-5gmvm                                            3/3     Running     0          7m29s
-csi-cephfsplugin-8z6tf                                            3/3     Running     0          7m29s
-csi-cephfsplugin-ksznb                                            3/3     Running     0          7m29s
-csi-cephfsplugin-lxjl4                                            3/3     Running     0          7m29s
-csi-cephfsplugin-provisioner-b99bc4cbd-5r6lr                      6/6     Running     0          7m28s
-csi-cephfsplugin-provisioner-b99bc4cbd-92fqb                      6/6     Running     0          7m28s
-csi-cephfsplugin-r9kn7                                            3/3     Running     0          7m29s
-csi-cephfsplugin-vv44h                                            3/3     Running     0          7m29s
-csi-rbdplugin-4528q                                               3/3     Running     0          7m30s
-csi-rbdplugin-8qgx2                                               3/3     Running     0          7m30s
-csi-rbdplugin-9qrl5                                               3/3     Running     0          7m30s
-csi-rbdplugin-dv6kr                                               3/3     Running     0          7m30s
-csi-rbdplugin-f2lnk                                               3/3     Running     0          7m30s
-csi-rbdplugin-provisioner-58dbf8596d-89nkc                        6/6     Running     0          7m30s
-csi-rbdplugin-provisioner-58dbf8596d-crzkr                        6/6     Running     0          7m30s
-csi-rbdplugin-z2hkc                                               3/3     Running     0          7m30s
-noobaa-core-0                                                     1/1     Running     0          2m39s
-noobaa-db-pg-0                                                    1/1     Running     0          2m40s
-noobaa-endpoint-864c59cc59-p5bz5                                  1/1     Running     0          85s
-noobaa-operator-585b66865d-z7n6d                                  1/1     Running     0          73m
-ocs-metrics-exporter-6f7fb77856-hzqxm                             1/1     Running     0          73m
-ocs-operator-f5bb58ddf-7ngr8                                      1/1     Running     0          73m
-odf-console-87bb59fb4-f9mc2                                       1/1     Running     0          73m
-odf-operator-controller-manager-85f6cbddfb-bnqd6                  2/2     Running     0          73m
-rook-ceph-crashcollector-639901b7a01a84b64f7e5c4a655e8490-jbd9w   1/1     Running     0          3m58s
-rook-ceph-crashcollector-8537d53bc818115d1313e67321d95993-bkhlg   1/1     Running     0          4m6s
-rook-ceph-crashcollector-abe3991bcdfa5e2f397ccd4ef3879a78-gz87c   1/1     Running     0          4m5s
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-cfb7488drfcjl   2/2     Running     0          3m2s
-rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7678d586nlzj7   2/2     Running     0          3m1s
-rook-ceph-mgr-a-9b9d56-mk5r7                                      2/2     Running     0          4m6s
-rook-ceph-mon-a-74965cfc9f-btt7c                                  2/2     Running     0          7m12s
-rook-ceph-mon-b-987b79745-bg9nt                                   2/2     Running     0          4m59s
-rook-ceph-mon-c-555d55585-9bf88                                   2/2     Running     0          4m35s
-rook-ceph-operator-55b4496c6b-kmlm6                               1/1     Running     0          73m
-rook-ceph-osd-0-74cb6855bd-l46rl                                  2/2     Running     0          3m34s
-rook-ceph-osd-1-6b4f4cccdf-w7g7w                                  2/2     Running     0          3m33s
-rook-ceph-osd-2-64c888b48-gcs4n                                   2/2     Running     0          3m26s
-rook-ceph-osd-prepare-ocs-deviceset-gp2-0-data-0wnh5j--1-xhgmf    0/1     Completed   0          4m
-rook-ceph-osd-prepare-ocs-deviceset-gp2-1-data-08kht7--1-zw66k    0/1     Completed   0          4m
-rook-ceph-osd-prepare-ocs-deviceset-gp2-2-data-0blmfh--1-dzdqk    0/1     Completed   0          3m59s</code></pre>
+csi-addons-controller-manager-7957956679-pvmn7                    2/2     Running     0          18m
+csi-cephfsplugin-6snk9                                            3/3     Running     0          4m12s
+csi-cephfsplugin-8vrw8                                            3/3     Running     0          4m12s
+csi-cephfsplugin-925fl                                            3/3     Running     0          4m12s
+csi-cephfsplugin-provisioner-7b74987896-c4xxc                     6/6     Running     0          4m12s
+csi-cephfsplugin-provisioner-7b74987896-x7gbp                     6/6     Running     0          4m12s
+csi-cephfsplugin-shm6r                                            3/3     Running     0          4m12s
+csi-cephfsplugin-tgsqw                                            3/3     Running     0          4m12s
+csi-cephfsplugin-wbgzr                                            3/3     Running     0          4m12s
+csi-rbdplugin-5nkwv                                               4/4     Running     0          4m12s
+csi-rbdplugin-lfgjv                                               4/4     Running     0          4m13s
+csi-rbdplugin-nckcm                                               4/4     Running     0          4m13s
+csi-rbdplugin-provisioner-b68cb7db6-v8cqk                         7/7     Running     0          4m13s
+csi-rbdplugin-provisioner-b68cb7db6-vw9t5                         7/7     Running     0          4m13s
+csi-rbdplugin-s45tb                                               4/4     Running     0          4m12s
+csi-rbdplugin-s6tj9                                               4/4     Running     0          4m12s
+csi-rbdplugin-tg2l2                                               4/4     Running     0          4m12s
+noobaa-operator-b7ccf5647-5gt42                                   1/1     Running     0          18m
+ocs-metrics-exporter-7cb579864-wf5ds                              1/1     Running     0          18m
+ocs-operator-6949db5bdd-kwcgh                                     1/1     Running     0          18m
+odf-console-8466964cbb-wkd42                                      1/1     Running     0          19m
+odf-operator-controller-manager-56c7c66c64-4xrc8                  2/2     Running     0          19m
+rook-ceph-crashcollector-7e0abd9b354b3d8cb36c70bd027066f4-d7mgs   1/1     Running     0          53s
+rook-ceph-crashcollector-9b60c2d020a85f85f1ced55681e51f14-zkw5v   1/1     Running     0          55s
+rook-ceph-crashcollector-aee8d5d57abc52353192ef646b0e4729-bmfcl   1/1     Running     0          64s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-a-8698c58d24nbp   1/2     Running     0          7s
+rook-ceph-mds-ocs-storagecluster-cephfilesystem-b-7c746d66mfvgj   1/2     Running     0          6s
+rook-ceph-mgr-a-5c684f7bd6-46qsj                                  2/2     Running     0          64s
+rook-ceph-mon-a-56bb68d6d5-dqvhr                                  2/2     Running     0          3m58s
+rook-ceph-mon-b-d44c7fb6c-bwsh9                                   2/2     Running     0          2m52s
+rook-ceph-mon-c-6d9f88c655-zvjbz                                  2/2     Running     0          83s
+rook-ceph-operator-658579dd69-768xd                               1/1     Running     0          18m
+rook-ceph-osd-0-5c68776d54-wssct                                  2/2     Running     0          25s
+rook-ceph-osd-1-8686bbfdbf-94hvf                                  1/2     Running     0          17s
+rook-ceph-osd-2-56fc4f695c-xx48f                                  1/2     Running     0          15s
+rook-ceph-osd-prepare-3cd50e918ffadc9e0efc7d68b72be228-dcltg      0/1     Completed   0          43s
+rook-ceph-osd-prepare-858db17ff2134a710932139e1a8f796b-tc9mx      0/1     Completed   0          43s
+rook-ceph-osd-prepare-f38a232f03043ef21bfcf3161415924b-89gv7      0/1     Completed   0          42s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -727,7 +728,7 @@ for your <strong>Dashboards</strong> to fully populate.
 <div class="title">Figure 10. Storage Dashboard after successful storage installation</div>
 </div>
 <div class="paragraph">
-<p>Reference the <a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.9/html/monitoring_openshift_data_foundation/cluster_health#verifying-openshift-data-foundation-is-healthy_rhodf">ODF Monitoring Guide</a> for more information on how to use the <strong>Dashboards</strong>.</p>
+<p>Reference the <a href="https://access.redhat.com/documentation/en-us/red_hat_openshift_data_foundation/4.11/html/monitoring_openshift_data_foundation/cluster_health#verifying-openshift-data-foundation-is-healthy_rhodf">ODF Monitoring Guide</a> for more information on how to use the <strong>Dashboards</strong>.</p>
 </div>
 <div class="paragraph">
 <p>Once this is all healthy, you will be able to use the three new
@@ -753,7 +754,15 @@ expanding the <code>Storage</code> menu in the left navigation bar and selecting
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n openshift-storage get sc</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc -n openshift-storage get sc | grep openshift-storage</code></pre>
+</div>
+</div>
+<div class="listingblock">
+<div class="title">Example output:</div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">ocs-storagecluster-ceph-rbd   openshift-storage.rbd.csi.ceph.com      Delete          Immediate              true                   3m12s
+ocs-storagecluster-cephfs     openshift-storage.cephfs.csi.ceph.com   Delete          Immediate              true                   3m12s
+openshift-storage.noobaa.io   openshift-storage.noobaa.io/obc         Delete          Immediate              false                  107s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -932,13 +941,12 @@ start the Rails + PostgreSQL <strong>Deployment</strong>.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                READY   STATUS      RESTARTS   AGE
-postgresql-1-deploy                 0/1     Completed   0          5m48s
-postgresql-1-lf7qt                  1/1     Running     0          5m40s
-rails-pgsql-persistent-1-build      0/1     Completed   0          5m49s
-rails-pgsql-persistent-1-deploy     0/1     Completed   0          3m36s
-rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          3m28s
-rails-pgsql-persistent-1-pjh6q      1/1     Running     0          3m14s</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">postgresql-1-6hbz2                  1/1     Running     0          4m55s
+postgresql-1-deploy                 0/1     Completed   0          5m1s
+rails-pgsql-persistent-1-bp8ln      0/1     Running     0          10s
+rails-pgsql-persistent-1-build      0/1     Completed   0          5m2s
+rails-pgsql-persistent-1-deploy     1/1     Running     0          34s
+rails-pgsql-persistent-1-hook-pre   0/1     Completed   0          31s</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1031,15 +1039,15 @@ RBD volumes and we should now have two RBDs.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                      PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
-ocs-deviceset-0-0-d2ppm   pvc-2c08bd9c-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-ocs-deviceset-1-0-9tmc6   pvc-2c0a0ed5-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-ocs-deviceset-2-0-qtbfv   pvc-2c0babb3-332d-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-db-noobaa-core-0          pvc-4610a3ce-332d-11ea-a32f-061f7a67362c   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-4a74e248-332d-11ea-9a7c-0a580a820205
-postgresql                pvc-874f93cb-3330-11ea-90b1-0a10d22e734a   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-8765a21d-3330-11ea-9a7c-0a580a820205
-rook-ceph-mon-a           pvc-d462ecb0-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-rook-ceph-mon-b           pvc-d79d0db4-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;
-rook-ceph-mon-c           pvc-da9cc0e3-332c-11ea-a32f-061f7a67362c   gp2                           &lt;none&gt;</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                  PVNAME                                     STORAGECLASS                  VOLUMEHANDLE
+ocs-deviceset-gp3-csi-1-data-06g4zm   pvc-02992af5-cef2-4ee2-9d4c-55d5ddacf747   gp3-csi                       vol-0d658c656901c2d36
+rook-ceph-mon-a                       pvc-0d8ef0fa-d8ec-4382-a37a-51d6bd3a276e   gp3-csi                       vol-03aa612cacf04c7e5
+db-noobaa-db-pg-0                     pvc-1e357a29-72b3-4874-a9e4-2a2ff46babf6   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-23fcdada-2789-11ed-9219-0a580a83020e
+postgresql                            pvc-26a62cc8-1f29-40a5-8353-1b9ea0828f66   ocs-storagecluster-ceph-rbd   0001-0011-openshift-storage-0000000000000001-209ddf4a-278c-11ed-9219-0a580a83020e
+rook-ceph-mon-b                       pvc-7ae10674-a2b6-4f0e-86cb-017ab4be50ff   gp3-csi                       vol-082df151603b5c760
+rook-ceph-mon-c                       pvc-d7582efd-5509-4d3a-a5a6-8c21af81b1f7   gp3-csi                       vol-0953db5518b674702
+ocs-deviceset-gp3-csi-0-data-07bshp   pvc-f2b57f09-ec49-4d90-b2ed-925b9d393637   gp3-csi                       vol-0f8cc0f1c79559e7b
+ocs-deviceset-gp3-csi-2-data-0kck5v   pvc-f7a4522d-36dd-4c12-b2c5-0461d8ab6428   gp3-csi                       vol-0ca1e83cb7e325275</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -1057,7 +1065,7 @@ echo $CSIVOL</code></pre>
 <div class="listingblock">
 <div class="title">Examplet output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">csi-vol-209ddf4a-278c-11ed-9219-0a580a83020e</code></pre>
 </div>
 </div>
 <div class="listingblock execute">
@@ -1069,19 +1077,19 @@ oc rsh -n openshift-storage $TOOLS_POD rbd -p ocs-storagecluster-cephblockpool i
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-8765a21d-3330-11ea-9a7c-0a580a820205':
-        size 5 GiB in 1280 objects
-        order 22 (4 MiB objects)
-        snapshot_count: 0
-        id: 17e811c7f287
-        block_name_prefix: rbd_data.17e811c7f287
-        format: 2
-        features: layering
-        op_features:
-        flags:
-        create_timestamp: Thu Jan  9 22:36:51 2020
-        access_timestamp: Thu Jan  9 22:36:51 2020
-        modify_timestamp: Thu Jan  9 22:36:51 2020</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">rbd image 'csi-vol-209ddf4a-278c-11ed-9219-0a580a83020e':
+	size 5 GiB in 1280 objects
+	order 22 (4 MiB objects)
+	snapshot_count: 0
+	id: 125ac84a9817
+	block_name_prefix: rbd_data.125ac84a9817
+	format: 2
+	features: layering, exclusive-lock, object-map, fast-diff, deep-flatten
+	op_features:
+	flags:
+	create_timestamp: Mon Aug 29 11:17:11 2022
+	access_timestamp: Mon Aug 29 11:17:11 2022
+	modify_timestamp: Mon Aug 29 11:17:11 2022</code></pre>
 </div>
 </div>
 </div>
@@ -1473,21 +1481,15 @@ same time. The application we will use is called <code>File Uploader</code>.</p>
 <div class="listingblock">
 <div class="title">Example Output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">--&gt; Found image dc56c67 (13 days old) in image stream "openshift/php" under tag "7.4-ubi8" for "openshift/php"
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">--&gt; Found image 52f2505 (4 weeks old) in image stream "openshift/php" under tag "8.0-ubi8" for "openshift/php"
 
-    Apache 2.4 with PHP 7.4
+    Apache 2.4 with PHP 8.0
     -----------------------
-    PHP 7.4 available as container is a base platform for building and running various PHP 7.4 applica
-tions and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for dev
-elopers to write dynamically generated web pages. PHP also offers built-in database integration for se
-veral commercial and non-commercial database management systems, so writing a database-enabled webpage
- with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scr
-ipts.
+    PHP 8.0 available as container is a base platform for building and running various PHP 8.0 applications and frameworks. PHP is an HTML-embedded scripting language. PHP attempts to make it easy for developers to write dynamically generated web pages. PHP also offers built-in database integration for several commercial and non-commercial database management systems, so writing a database-enabled webpage with PHP is fairly simple. The most common use of PHP coding is probably as a replacement for CGI scripts.
 
-    Tags: builder, php, php74, php-74
+    Tags: builder, php, php80, php-80
 
-    * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo
- will be created
+      * A source build using source code from https://github.com/christianh814/openshift-php-upload-demo will be created
       * The resulting image will be pushed to image stream tag "file-uploader:latest"
       * Use 'oc start-build' to trigger a new build
 
@@ -1498,8 +1500,7 @@ ipts.
     service "file-uploader" created
 --&gt; Success
     Build scheduled, use 'oc logs -f buildconfig/file-uploader' to track its progress.
-    Application is not exposed. You can expose services to the outside world by executing one or more
-of the commands below:
+    Application is not exposed. You can expose services to the outside world by executing one or more of the commands below:
      'oc expose service/file-uploader'
     Run 'oc status' to view your app.</code></pre>
 </div>
@@ -2274,33 +2275,31 @@ nodes.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                               READY   STATUS         RESTARTS   AGE
-pod/alertmanager-main-0                            5/5     Running        0          6d21h
-pod/alertmanager-main-1                            5/5     Running        0          6d21h
-pod/alertmanager-main-2                            5/5     Running        0          6d21h
-pod/cluster-monitoring-operator-595888fddd-mcgnl   2/2     Running        0          4h49m
-pod/grafana-65454464fd-5spx2                       2/2     Running        0          26h
-pod/kube-state-metrics-7cb89d65d4-p9hbd            3/3     Running        0          6d21h
-pod/node-exporter-96zjb                            2/2     Running        0          6d21h
-pod/node-exporter-9jjdk                            2/2     Running        0          2d17h
-pod/node-exporter-dhnt4                            2/2     Running        0          6d21h
-pod/node-exporter-kg2fb                            2/2     Running        0          2d17h
-pod/node-exporter-l27n2                            2/2     Running        0          16h
-pod/node-exporter-qq4g7                            2/2     Running        0          16h
-pod/node-exporter-rfnxb                            2/2     Running        0          16h
-pod/node-exporter-v8kpq                            2/2     Running        0          2d17h
-pod/node-exporter-wvm8n                            2/2     Running        0          6d21h
-pod/node-exporter-wwcr9                            2/2     Running        0          6d21h
-pod/node-exporter-z8r98                            2/2     Running        0          6d21h
-pod/openshift-state-metrics-57969c7f87-h8fm4       3/3     Running        0          6d21h
-pod/prometheus-adapter-cb658c44-zmcww              1/1     Running        0          2d22h
-pod/prometheus-adapter-cb658c44-zsn85              1/1     Running        0          2d22h
-pod/prometheus-k8s-0                               6/6     Running        0          6d21h
-pod/prometheus-k8s-1                               6/6     Running        0          6d21h
-pod/prometheus-operator-8594bd77df-ftwvl           2/2     Running        0          26h
-pod/telemeter-client-79d7ddbf84-ft97l              3/3     Running        0          42h
-pod/thanos-querier-787547fbd6-qw9tr                5/5     Running        0          6d21h
-pod/thanos-querier-787547fbd6-xdsmm                5/5     Running        0          6d21h</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">NAME                                                         READY   STATUS    RESTARTS   AGE
+pod/alertmanager-main-0                                      6/6     Running   0          77m
+pod/alertmanager-main-1                                      6/6     Running   0          78m
+pod/cluster-monitoring-operator-94d4d7b5d-tv2nt              2/2     Running   0          79m
+pod/kube-state-metrics-9f5df78c9-q2zst                       3/3     Running   0          78m
+pod/node-exporter-bmlgt                                      2/2     Running   0          77m
+pod/node-exporter-brwsh                                      2/2     Running   0          77m
+pod/node-exporter-d9jsz                                      2/2     Running   0          78m
+pod/node-exporter-dg7tv                                      2/2     Running   0          78m
+pod/node-exporter-lmznx                                      2/2     Running   0          78m
+pod/node-exporter-qsfb9                                      2/2     Running   0          77m
+pod/node-exporter-rbhcw                                      2/2     Running   0          73m
+pod/node-exporter-t7q8p                                      2/2     Running   0          73m
+pod/node-exporter-zdrpg                                      2/2     Running   0          73m
+pod/openshift-state-metrics-6c88b54494-jchnj                 3/3     Running   0          78m
+pod/prometheus-adapter-6c56f59988-k4hcq                      1/1     Running   0          78m
+pod/prometheus-adapter-6c56f59988-tjcjs                      1/1     Running   0          78m
+pod/prometheus-k8s-0                                         6/6     Running   0          77m
+pod/prometheus-k8s-1                                         6/6     Running   0          78m
+pod/prometheus-operator-785dc65dd5-zwxqv                     2/2     Running   0          78m
+pod/prometheus-operator-admission-webhook-6db58c58f7-5c9xw   1/1     Running   0          78m
+pod/prometheus-operator-admission-webhook-6db58c58f7-pm95c   1/1     Running   0          78m
+pod/telemeter-client-6754857c5d-wf2wb                        3/3     Running   0          78m
+pod/thanos-querier-85b555c78d-268l6                          6/6     Running   0          78m
+pod/thanos-querier-85b555c78d-4vvqt                          6/6     Running   0          78m</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -2433,7 +2432,6 @@ that they are now providing persistent storage.</p>
 [...]
 alertmanager-alertmanager-main-0   Bound    pvc-733be285-aaf9-4334-9662-44b63bb4efdf   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 alertmanager-alertmanager-main-1   Bound    pvc-e07ebe61-de5d-404c-9a25-bb3a677281c5   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
-alertmanager-alertmanager-main-2   Bound    pvc-9de2edf2-9f5e-4f62-8aa7-ecfd01957748   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m37s
 prometheusdb-prometheus-k8s-0      Bound    pvc-5b845908-d929-4326-976e-0659901468e9   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s
 prometheusdb-prometheus-k8s-1      Bound    pvc-f2d22176-6348-451f-9ede-c00b303339af   40Gi       RWO            ocs-storagecluster-ceph-rbd   3m31s</code></pre>
 </div>
@@ -2452,8 +2450,7 @@ section of this lab guide.</p>
 <div class="paragraph">
 <p>In this section, you will deploy a new OCP application that uses <code>Object Bucket
 Claims</code> (OBCs) to create dynamic buckets via the <code>Multicloud Object Gateway</code>
-(MCG). You will also use the <code>MCG Console</code> to validate new objects in the
-<code>Object Bucket</code>.</p>
+(MCG).</p>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -2462,9 +2459,7 @@ Claims</code> (OBCs) to create dynamic buckets via the <code>Multicloud Object G
 <i class="fa icon-note" title="Note"></i>
 </td>
 <td class="content">
-The <code>MCG Console</code> is not fully integrated with the <strong>Openshift Web Console</strong>
-and resources created in the <code>MCG Console</code> are not synchronized back to the
-Openshift Cluster.
+The <code>MCG Console</code> is deprecated in ODF 4.11.
 </td>
 </tr>
 </table>
@@ -2487,129 +2482,116 @@ command.</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0000] CLI version: 5.9.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.9.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.9.0
-[~] $ noobaa status -n openshift-storage
-INFO[0000] CLI version: 5.9.0
-INFO[0000] noobaa-image: registry.redhat.io/odf4/mcg-core-rhel8@sha256:5507f2c1
-074bfb023415f0fef16ec42fbe6e90c540fc45f1111c8c929e477910
-INFO[0000] operator-image: registry.redhat.io/odf4/mcg-rhel8-operator@sha256:b3
-14ad9f15a10025bade5c86857a7152c438b405fdba26f64826679a5c5bff1b
-INFO[0000] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:623bd
-aa1c6ae047db7f62d82526220fac099837afd8770ccc6acfac4c7cff100
-INFO[0000] Namespace: openshift-storage
-INFO[0000]
-INFO[0000] CRD Status:
-INFO[0000] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "namespacestores.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.
-io"
-INFO[0000] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
-INFO[0000]
-INFO[0000] Operator Status:
-INFO[0000] ✅ Exists: Namespace "openshift-storage"
-INFO[0000] ✅ Exists: ServiceAccount "noobaa"
-INFO[0000] ✅ Exists: ServiceAccount "noobaa-endpoint"
-INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.2-noobaa-76ccc964f4"
-INFO[0000] ✅ Exists: Role "mcg-operator.v4.9.2-noobaa-endpoint-fbd669c99"
-INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.2-noobaa-76ccc964f4"
-INFO[0000] ✅ Exists: RoleBinding "mcg-operator.v4.9.2-noobaa-endpoint-fbd669c99
-"
-INFO[0000] ✅ Exists: ClusterRole "mcg-operator.v4.9.2-7bd4dbdd57"
-INFO[0000] ✅ Exists: ClusterRoleBinding "mcg-operator.v4.9.2-7bd4dbdd57"
-INFO[0000] ✅ Exists: Deployment "noobaa-operator"
-INFO[0000]
-INFO[0000] System Wait Ready:
-INFO[0000] ✅ System Phase is "Ready".
-INFO[0000]
-INFO[0000]
-INFO[0000] System Status:
-INFO[0000] ✅ Exists: NooBaa "noobaa"
-INFO[0000] ✅ Exists: StatefulSet "noobaa-core"
-INFO[0000] ✅ Exists: ConfigMap "noobaa-config"
-INFO[0000] ✅ Exists: Service "noobaa-mgmt"
-INFO[0000] ✅ Exists: Service "s3"
-INFO[0000] ✅ Exists: Secret "noobaa-db"
-INFO[0000] ✅ Exists: ConfigMap "noobaa-postgres-config"
-INFO[0000] ✅ Exists: ConfigMap "noobaa-postgres-initdb-sh"
-INFO[0000] ✅ Exists: StatefulSet "noobaa-db-pg"
-INFO[0000] ✅ Exists: Service "noobaa-db-pg"
-INFO[0000] ✅ Exists: Secret "noobaa-server"
-INFO[0000] ✅ Exists: Secret "noobaa-operator"
-INFO[0000] ✅ Exists: Secret "noobaa-endpoints"
-INFO[0000] ✅ Exists: Secret "noobaa-admin"
-INFO[0000] ✅ Exists: Secret "noobaa-root-master-key"
-INFO[0000] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
-INFO[0000] ✅ Exists: BucketClass "noobaa-default-bucket-class"
-INFO[0000] ✅ Exists: Deployment "noobaa-endpoint"
-INFO[0000] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
-INFO[0000] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
-INFO[0000] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
-INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds
-"
-INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
-INFO[0000] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
-INFO[0000] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
-INFO[0000] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
-INFO[0000] ✅ (Optional) Exists: ServiceMonitor "noobaa-mgmt-service-monitor"
-INFO[0000] ✅ (Optional) Exists: ServiceMonitor "s3-service-monitor"
-INFO[0000] ✅ (Optional) Exists: Route "noobaa-mgmt"
-INFO[0000] ✅ (Optional) Exists: Route "s3"
-INFO[0000] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-pg-0"
-INFO[0000] ✅ System Phase is "Ready"
-INFO[0000] ✅ Exists:  "noobaa-admin"
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0001] CLI version: 5.10.0
+INFO[0001] noobaa-image: registry.redhat.io/odf4/mcg-core-rhel8@sha256:36c9e3fbdb4232a48e16f06bec2d4c506629c4b56bf8ba4bcf9212503b2ca0a8
+INFO[0001] operator-image: registry.redhat.io/odf4/mcg-rhel8-operator@sha256:a77d6f80f76735274753444de22db179a3763caae9282140ece7532b21765442
+INFO[0001] noobaa-db-image: registry.redhat.io/rhel8/postgresql-12@sha256:78ed1e1f454c49664ae653b3d52af3d77ef1e9cad37a7b0fff09feeaa8294e01
+INFO[0001] Namespace: openshift-storage
+INFO[0001]
+INFO[0001] CRD Status:
+INFO[0001] ✅ Exists: CustomResourceDefinition "noobaas.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "backingstores.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "namespacestores.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "bucketclasses.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "noobaaaccounts.noobaa.io"
+INFO[0002] ✅ Exists: CustomResourceDefinition "objectbucketclaims.objectbucket.io"
+INFO[0003] ✅ Exists: CustomResourceDefinition "objectbuckets.objectbucket.io"
+INFO[0003]
+INFO[0003] Operator Status:
+INFO[0003] ✅ Exists: Namespace "openshift-storage"
+INFO[0003] ✅ Exists: ServiceAccount "noobaa"
+INFO[0003] ✅ Exists: ServiceAccount "noobaa-endpoint"
+INFO[0003] ✅ Exists: Role "mcg-operator.v4.11.0-noobaa-6fd4547f4c"
+INFO[0003] ✅ Exists: Role "mcg-operator.v4.11.0-noobaa-endpoint-7bd8fd46bd"
+INFO[0004] ✅ Exists: RoleBinding "mcg-operator.v4.11.0-noobaa-6fd4547f4c"
+INFO[0004] ✅ Exists: RoleBinding "mcg-operator.v4.11.0-noobaa-endpoint-7bd8fd46bd"
+INFO[0004] ✅ Exists: ClusterRole "mcg-operator.v4.11.0-7f6d54ddd"
+INFO[0004] ✅ Exists: ClusterRoleBinding "mcg-operator.v4.11.0-7f6d54ddd"
+INFO[0004] ⬛ (Optional) Not Found: ValidatingWebhookConfiguration "admission-validation-webhook"
+INFO[0004] ⬛ (Optional) Not Found: Secret "admission-webhook-secret"
+INFO[0004] ⬛ (Optional) Not Found: Service "admission-webhook-service"
+INFO[0005] ✅ Exists: Deployment "noobaa-operator"
+INFO[0005]
+INFO[0005] System Wait Ready:
+INFO[0005] ✅ System Phase is "Ready".
+INFO[0005]
+INFO[0005]
+INFO[0005] System Status:
+INFO[0005] ✅ Exists: NooBaa "noobaa"
+INFO[0005] ✅ Exists: StatefulSet "noobaa-core"
+INFO[0005] ✅ Exists: ConfigMap "noobaa-config"
+INFO[0005] ✅ Exists: Service "noobaa-mgmt"
+INFO[0005] ✅ Exists: Service "s3"
+INFO[0006] ✅ Exists: Secret "noobaa-db"
+INFO[0006] ✅ Exists: ConfigMap "noobaa-postgres-config"
+INFO[0006] ✅ Exists: ConfigMap "noobaa-postgres-initdb-sh"
+INFO[0006] ✅ Exists: StatefulSet "noobaa-db-pg"
+INFO[0006] ✅ Exists: Service "noobaa-db-pg"
+INFO[0006] ✅ Exists: Secret "noobaa-server"
+INFO[0007] ✅ Exists: Secret "noobaa-operator"
+INFO[0007] ✅ Exists: Secret "noobaa-endpoints"
+INFO[0007] ✅ Exists: Secret "noobaa-admin"
+INFO[0007] ✅ Exists: StorageClass "openshift-storage.noobaa.io"
+INFO[0007] ✅ Exists: BucketClass "noobaa-default-bucket-class"
+INFO[0007] ✅ Exists: Deployment "noobaa-endpoint"
+INFO[0007] ✅ Exists: HorizontalPodAutoscaler "noobaa-endpoint"
+INFO[0008] ✅ (Optional) Exists: BackingStore "noobaa-default-backing-store"
+INFO[0008] ✅ (Optional) Exists: CredentialsRequest "noobaa-aws-cloud-creds"
+INFO[0008] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-azure-cloud-creds"
+INFO[0008] ⬛ (Optional) Not Found: Secret "noobaa-azure-container-creds"
+INFO[0008] ⬛ (Optional) Not Found: Secret "noobaa-gcp-bucket-creds"
+INFO[0008] ⬛ (Optional) Not Found: CredentialsRequest "noobaa-gcp-cloud-creds"
+INFO[0008] ✅ (Optional) Exists: PrometheusRule "noobaa-prometheus-rules"
+INFO[0009] ✅ (Optional) Exists: ServiceMonitor "noobaa-mgmt-service-monitor"
+INFO[0009] ✅ (Optional) Exists: ServiceMonitor "s3-service-monitor"
+INFO[0009] ✅ (Optional) Exists: Route "noobaa-mgmt"
+INFO[0009] ✅ (Optional) Exists: Route "s3"
+INFO[0009] ✅ Exists: PersistentVolumeClaim "db-noobaa-db-pg-0"
+INFO[0009] ✅ System Phase is "Ready"
+INFO[0009] ✅ Exists:  "noobaa-admin"
 
 #------------------#
 #- Mgmt Addresses -#
 #------------------#
 
-ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-fm28w.fm28w.s
-andbox1663.opentlc.com https://a354324566c1e4b7bb679ef4154a9ae1-759109935.us-ea
-st-2.elb.amazonaws.com:443]
+ExternalDNS : [https://noobaa-mgmt-openshift-storage.apps.cluster-zdctm.zdctm.sandbox1590.opentlc.com https://a3ef7004256ff4100a35f9342d4e117f-619167876.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.188.70:31095]
+NodePorts   : [https://10.0.226.31:30525]
 InternalDNS : [https://noobaa-mgmt.openshift-storage.svc:443]
-InternalIP  : [https://172.30.159.157:443]
-PodPorts    : [https://10.130.2.25:8443]
+InternalIP  : [https://172.30.82.240:443]
+PodPorts    : [https://10.128.4.18:8443]
 
 #--------------------#
 #- Mgmt Credentials -#
 #--------------------#
 
 email    : admin@noobaa.io
-password : WXoD7ujXftk5PYU+89EX0w==
+password : fa8E++DX6/FYWvhJc6CqJw==
 
 #----------------#
 #- S3 Addresses -#
 #----------------#
 
-ExternalDNS : [https://s3-openshift-storage.apps.cluster-fm28w.fm28w.sandbox166
-3.opentlc.com https://a55f25cdeb6e745b8a92ca6ebec53fa6-1685855806.us-east-2.elb
-.amazonaws.com:443]
+ExternalDNS : [https://s3-openshift-storage.apps.cluster-zdctm.zdctm.sandbox1590.opentlc.com https://af26efb03bd3c44d88c1f5e73e3c4652-1137988910.us-east-2.elb.amazonaws.com:443]
 ExternalIP  : []
-NodePorts   : [https://10.0.188.70:30956]
+NodePorts   : [https://10.0.226.31:31204]
 InternalDNS : [https://s3.openshift-storage.svc:443]
-InternalIP  : [https://172.30.82.233:443]
-PodPorts    : [https://10.130.2.27:6443]
+InternalIP  : [https://172.30.96.127:443]
+PodPorts    : [https://10.128.4.20:6443]
 
 #------------------#
 #- S3 Credentials -#
 #------------------#
 
-AWS_ACCESS_KEY_ID     : cbE7Y5UxCUw4C1Rsnb3D
-AWS_SECRET_ACCESS_KEY : 3O/SpuHoCmTzeJabdfqF0QcndALJdjK/Z7Uus9oz
+AWS_ACCESS_KEY_ID     : M5TuKmuLM7XiCYtFlyd2
+AWS_SECRET_ACCESS_KEY : lkYxeFxbhORaEo0qyG554xp5yChDjKGjdsMLX4Mu
 
 #------------------#
 #- Backing Stores -#
 #------------------#
 
-NAME                           TYPE     TARGET-BUCKET
-                        PHASE   AGE
-noobaa-default-backing-store   aws-s3   nb.1644544595212.cluster-fm28w.fm28w.sa
-ndbox1663.opentlc.com   Ready   2m10s
+NAME                           TYPE     TARGET-BUCKET                                                  PHASE   AGE
+noobaa-default-backing-store   aws-s3   nb.1661770549196.cluster-zdctm.zdctm.sandbox1590.opentlc.com   Ready   46m37s
 
 #--------------------#
 #- Namespace Stores -#
@@ -2621,10 +2603,14 @@ No namespace stores found.
 #- Bucket Classes -#
 #------------------#
 
-NAME                          PLACEMENT
-                NAMESPACE-POLICY   PHASE   AGE
-noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backi
-ng-store"]}]}   null               Ready   2m10s
+NAME                          PLACEMENT                                                        NAMESPACE-POLICY   QUOTA   PHASE   AGE
+noobaa-default-bucket-class   {"tiers":[{"backingStores":["noobaa-default-backing-store"]}]}   null               null    Ready   46m37s
+
+#-------------------#
+#- NooBaa Accounts -#
+#-------------------#
+
+No noobaa accounts found.
 
 #-----------------#
 #- Bucket Claims -#
@@ -2936,36 +2922,6 @@ spec:
 </div>
 <div class="title">Figure 26. View photos after uploading</div>
 </div>
-<div class="paragraph">
-<p>To view the photos in your object bucket navigate back to the <code>OpenShift
-Data Foundation</code> <strong>Dashboard</strong> under <code>Storage</code> and select
-<code>ocs-storagecluster-storagesystem</code> and then view the <strong>Object</strong> dashboard. Select
-the <code>Mulitcloud Object Gateway</code> link under <code>System Name</code>.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/System-Name-MCG-Console.png" alt="Launch MCG console from Object dashboard">
-</div>
-<div class="title">Figure 27. Launch MCG console from Object dashboard</div>
-</div>
-<div class="paragraph">
-<p>Login to the <code>MCG Console</code> using <code>username</code> kubeadmin and your <code>password</code>. You can navigate to the bucket details by selecting the <code>Buckets</code> on the far right side. Now select <code>Object Buckets</code>.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/MCG-Console-photo-album-buckets.png" alt="Login to MCG Console and select Buckets">
-</div>
-<div class="title">Figure 28. Login to MCG Console and select Buckets</div>
-</div>
-<div class="paragraph">
-<p>Select your bucket name under <code>Object Buckets</code> and then select the <code>Objects</code> tab to view the individual objects create when you uploaded your photos.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/MCG-Console-photo-album-objects.png" alt="Validate uploaded photos are in your object bucket">
-</div>
-<div class="title">Figure 29. Validate uploaded photos are in your Object Bucket</div>
-</div>
 </div>
 </div>
 </div>
@@ -3137,10 +3093,10 @@ reach the ODF storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 30. Add Capacity dialog</div>
+<div class="title">Figure 27. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
-<p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
+<p>The storage class should be set to <code>gp3-csi</code>. The added provisioned capacity will
 be three times as much as you see in the <code>Raw Capacity</code> field, because ODF uses
 a replica count of 3.</p>
 </div>
@@ -3274,19 +3230,19 @@ oc rsh -n openshift-storage $TOOLS_POD</code></pre>
  -1       12.00000 root default
  -5       12.00000     region us-east-2
  -4        4.00000         zone us-east-2a
- -3        2.00000             host ocs-deviceset-gp2-0-data-0-9977n
+ -3        2.00000             host ocs-deviceset-gp3-csi-0-data-0-9977n
   0   ssd  2.00000                 osd.0
--21        2.00000             host ocs-deviceset-gp2-2-data-1-nclgr <i class="conum" data-value="1"></i><b>(1)</b>
+-21        2.00000             host ocs-deviceset-gp3-csi-2-data-1-nclgr <i class="conum" data-value="1"></i><b>(1)</b>
   4   ssd  2.00000                 osd.4
 -14        4.00000         zone us-east-2b
--13        2.00000             host ocs-deviceset-gp2-1-data-0-nnmpv
+-13        2.00000             host ocs-deviceset-gp3-csi-1-data-0-nnmpv
   2   ssd  2.00000                 osd.2
--19        2.00000             host ocs-deviceset-gp2-0-data-1-mg987 <i class="conum" data-value="1"></i><b>(1)</b>
+-19        2.00000             host ocs-deviceset-gp3-csi-0-data-1-mg987 <i class="conum" data-value="1"></i><b>(1)</b>
   3   ssd  2.00000                 osd.3
 -10        4.00000         zone us-east-2c
- -9        2.00000             host ocs-deviceset-gp2-2-data-0-mtbtj
+ -9        2.00000             host ocs-deviceset-gp3-csi-2-data-0-mtbtj
   1   ssd  2.00000                 osd.1
--17        2.00000             host ocs-deviceset-gp2-0-data-2-l8tmb <i class="conum" data-value="1"></i><b>(1)</b>
+-17        2.00000             host ocs-deviceset-gp3-csi-0-data-2-l8tmb <i class="conum" data-value="1"></i><b>(1)</b>
   5   ssd  2.00000                 osd.5</code></pre>
 </div>
 </div>
@@ -3356,7 +3312,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Observe Menu choose Alerting">
 </div>
-<div class="title">Figure 31. OCP Observe Menu choose Alerting</div>
+<div class="title">Figure 28. OCP Observe Menu choose Alerting</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -3365,7 +3321,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 32. OCP Alerting Homepage</div>
+<div class="title">Figure 29. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window using the filters at your
@@ -3454,7 +3410,7 @@ persists for more than the amount of time configured in the alert definition
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 33. OCP Alerting Status Filtering</div>
+<div class="title">Figure 30. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3477,13 +3433,13 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 34. OCP Alert Contextual Menu</div>
+<div class="title">Figure 31. OCP Alert Contextual Menu</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 35. OCP Alert Detail Display</div>
+<div class="title">Figure 32. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3509,7 +3465,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Observe Menu choose Metrics">
 </div>
-<div class="title">Figure 36. OCP Observe Menu choose Metrics</div>
+<div class="title">Figure 33. OCP Observe Menu choose Metrics</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3518,7 +3474,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 37. OCP Monitoring Metrics Homepage</div>
+<div class="title">Figure 34. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search for
@@ -3535,7 +3491,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 38. Simple Ceph Query</div>
+<div class="title">Figure 35. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3544,7 +3500,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 39. Simple Ceph Graph</div>
+<div class="title">Figure 36. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -3555,7 +3511,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 40. Complex Ceph Query</div>
+<div class="title">Figure 37. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3564,7 +3520,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 41. Complex Ceph Graph</div>
+<div class="title">Figure 38. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3575,7 +3531,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 42. Complex OCP Graph</div>
+<div class="title">Figure 39. Complex OCP Graph</div>
 </div>
 <div class="paragraph">
 <p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
@@ -3625,7 +3581,7 @@ that runs storage specific commands.</p>
 </div>
 <div class="listingblock execute">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/odf4/ocs-must-gather-rhel8:v4.9</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc adm must-gather --image=registry.redhat.io/odf4/ocs-must-gather-rhel8:v4.11</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3735,7 +3691,7 @@ Command</code>.</p>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 43. Copy Login command menu entry</div>
+<div class="title">Figure 40. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
@@ -3767,9 +3723,9 @@ cluster:</p>
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Client Version: 4.9.18
-Server Version: 4.9.18
-Kubernetes Version: v1.22.3+e790d7f</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">Client Version: 4.11.2
+Server Version: 4.11.2
+Kubernetes Version: v1.24.0+b62823b</code></pre>
 </div>
 </div>
 <div class="admonitionblock note">
@@ -3802,13 +3758,13 @@ version might be higher than the version in the example output.
 <div class="listingblock">
 <div class="title">Mac steps without Homebrew</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.9.0/noobaa-mac-v5.9.0 ; chmod +x noobaa-mac-v5.9.0 ; sudo mv noobaa-mac-v5.9.0 /usr/local/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.10.1/noobaa-mac-v5.10.1 ; chmod +x noobaa-mac-v5.10.1 ; sudo mv noobaa-mac-v5.10.1 /usr/local/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="listingblock">
 <div class="title">Linux steps</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.9.0/noobaa-linux-v5.9.0 ; chmod +x noobaa-linux-v5.9.0 ; sudo mv noobaa-linux-v5.9.0 /usr/bin/noobaa</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">curl -sLO https://github.com/noobaa/noobaa-operator/releases/download/v5.10.1/noobaa-linux-v5.10.1 ; chmod +x noobaa-linux-v5.10.1 ; sudo mv noobaa-linux-v5.10.1 /usr/bin/noobaa</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -3822,9 +3778,9 @@ version might be higher than the version in the example output.
 <div class="listingblock">
 <div class="title">Example output:</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0000] CLI version: 5.9.0
-INFO[0000] noobaa-image: noobaa/noobaa-core:5.9.0
-INFO[0000] operator-image: noobaa/noobaa-operator:5.9.0</code></pre>
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">INFO[0000] CLI version: 5.10.1
+INFO[0000] noobaa-image: noobaa/noobaa-core:5.10.1
+INFO[0000] operator-image: noobaa/noobaa-operator:5.10.1</code></pre>
 </div>
 </div>
 </div>
@@ -3864,7 +3820,7 @@ outside of OCP 4.
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 44. Ceph Project History</div>
+<div class="title">Figure 41. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -3883,7 +3839,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 45. Ceph Architecture</div>
+<div class="title">Figure 42. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -3982,7 +3938,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 46. RADOS as it stands</div>
+<div class="title">Figure 43. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -4001,7 +3957,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 47. Different Storage Types Supported</div>
+<div class="title">Figure 44. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -4021,7 +3977,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 48. Application Native Object API</div>
+<div class="title">Figure 45. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -4048,7 +4004,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 49. kRBD Diagram</div>
+<div class="title">Figure 46. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -4063,7 +4019,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 50. librbd Diagram</div>
+<div class="title">Figure 47. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -4078,7 +4034,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 51. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 48. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -4097,7 +4053,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 52. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 49. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -4175,7 +4131,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 53. Pools and PGs</div>
+<div class="title">Figure 50. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -4205,7 +4161,7 @@ pool.
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 54. Ceph Data Protection</div>
+<div class="title">Figure 51. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -4249,7 +4205,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 55. Data Distribution</div>
+<div class="title">Figure 52. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
