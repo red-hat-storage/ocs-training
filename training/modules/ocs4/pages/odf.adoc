@@ -828,7 +828,8 @@ oc apply -f pvc.yaml -n my-database-app
 ----
 .Example output:
 ----
-Warning: oc apply should be used on resource created by either oc create --save-config or oc apply persistentvolumeclaim/postgresql configured
+Warning: oc apply should be used on resource created by either oc create
+--save-config or oc apply persistentvolumeclaim/postgresql configured
 ----
 
 You can visualize the progress of the expansion of the PVC using the following
