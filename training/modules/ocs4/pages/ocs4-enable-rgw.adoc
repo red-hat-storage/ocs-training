@@ -45,7 +45,7 @@ spec:
       algorithm: ""
       codingChunks: 0
       dataChunks: 0
-    failureDomain: zone
+    failureDomain: host
     replicated:
       size: 3
   gateway:
@@ -91,7 +91,7 @@ spec:
       algorithm: ""
       codingChunks: 0
       dataChunks: 0
-    failureDomain: zone
+    failureDomain: host
     replicated:
       size: 3
 ----
