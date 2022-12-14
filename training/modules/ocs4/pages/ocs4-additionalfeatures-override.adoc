@@ -53,4 +53,4 @@ spec:
 [...]
 ----
 
-This will make sure your custonized ConfigMap is injected into the underlying Ceph cluster.
+This will make sure your customized ConfigMap is injected into the underlying Ceph cluster.
