@@ -136,6 +136,29 @@ spec:
     #maxSize: 0Ti   # <-- Uncomment and modify to limit the maximum size of disk used
 ....
 
+
+[source]
+....
+apiVersion: local.storage.openshift.io/v1
+kind: LocalVolume
+metadata:
+  name: local-block
+  namespace: openshift-local-storage
+spec:
+  nodeSelector:
+    nodeSelectorTerms:
+    - matchExpressions:
+        - key: cluster.ocs.openshift.io/openshift-storage
+          operator: In
+          values:
+          - ""
+  storageClassDevices:
+    - storageClassName: localblock
+      volumeMode: Block
+      devicePaths:
+        - /dev/sdb    # modify this line
+....
+
 [source,shell]
 ....
 oc create -f localvolumeset.yaml
