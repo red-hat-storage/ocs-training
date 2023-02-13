@@ -2160,20 +2160,16 @@ Select one or more photos of your choosing on your local machine. Then make sure
 .View photos after uploading
 image::photo-album-images.png[View photos after uploading]
 
-To view the photos in your object bucket navigate to the `MCG Console` by viewing the *Object Service* dashboard viewed previously. Select the `Mulitcloud Object Gateway` link under `System Name`.
+To confirm that the data is still available on Noobaa S3 object storage, reset the application and access it once more. Run the following command to restart the application, then wait up to a minute for it to start up again:
 
-.Launch MCG console from Object Service dashboard
-image::System-Name-MCG-Console.png[Launch MCG console from Object Service dashboard]
-
-Login to the `MCG Console` using `username` kubeadmin and your `password`. You can navigate to the bucket details by selecting the `Buckets` on the far right side. Now select `Object Buckets`.
-
-.Login to MCG Console and select Buckets
-image::MCG-Console-photo-album-buckets.png[Login to MCG Console and select Buckets]
-
-Select your bucket name under `Object Buckets` and then select the `Objects` tab to view the individual objects create when you uploaded your photos.
-
-.Validate uploaded photos are in your Object Bucket
-image::MCG-Console-photo-album-objects.png[Validate uploaded photos are in your object bucket]
+[source,role="execute"]
+----
+oc delete pods -l app=photo-album
+----
+.Example output:
+----
+pod "photo-album-1-jjwbq" deleted
+----
 
 == Adding storage to the Ceph Cluster
 
