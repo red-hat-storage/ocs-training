@@ -3103,31 +3103,18 @@ spec:
 <div class="title">Figure 28. View photos after uploading</div>
 </div>
 <div class="paragraph">
-<p>To view the photos in your object bucket navigate to the <code>MCG Console</code> by viewing the <strong>Object Service</strong> dashboard viewed previously. Select the <code>Mulitcloud Object Gateway</code> link under <code>System Name</code>.</p>
+<p>To confirm that the data is still available on Noobaa S3 object storage, reset the application and access it once more. Run the following command to restart the application, then wait up to a minute for it to start up again:</p>
 </div>
-<div class="imageblock">
+<div class="listingblock execute">
 <div class="content">
-<img src="_images/System-Name-MCG-Console.png" alt="Launch MCG console from Object Service dashboard">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">oc delete pods -l app=photo-album</code></pre>
 </div>
-<div class="title">Figure 29. Launch MCG console from Object Service dashboard</div>
 </div>
-<div class="paragraph">
-<p>Login to the <code>MCG Console</code> using <code>username</code> kubeadmin and your <code>password</code>. You can navigate to the bucket details by selecting the <code>Buckets</code> on the far right side. Now select <code>Object Buckets</code>.</p>
-</div>
-<div class="imageblock">
+<div class="listingblock">
+<div class="title">Example output:</div>
 <div class="content">
-<img src="_images/MCG-Console-photo-album-buckets.png" alt="Login to MCG Console and select Buckets">
+<pre class="highlightjs highlight"><code class="language-shell hljs" data-lang="shell">pod "photo-album-1-jjwbq" deleted</code></pre>
 </div>
-<div class="title">Figure 30. Login to MCG Console and select Buckets</div>
-</div>
-<div class="paragraph">
-<p>Select your bucket name under <code>Object Buckets</code> and then select the <code>Objects</code> tab to view the individual objects create when you uploaded your photos.</p>
-</div>
-<div class="imageblock">
-<div class="content">
-<img src="_images/MCG-Console-photo-album-objects.png" alt="Validate uploaded photos are in your object bucket">
-</div>
-<div class="title">Figure 31. Validate uploaded photos are in your Object Bucket</div>
 </div>
 </div>
 </div>
@@ -3300,7 +3287,7 @@ reach the OCS storage cluster overview:</p>
 <div class="content">
 <img src="_images/OCS4-add-capacity.png" alt="Add Capacity dialog">
 </div>
-<div class="title">Figure 32. Add Capacity dialog</div>
+<div class="title">Figure 29. Add Capacity dialog</div>
 </div>
 <div class="paragraph">
 <p>The storage class should be set to <code>gp2</code>. The added provisioned capacity will
@@ -3524,7 +3511,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertingleftpanemenu.png" alt="OCP Monitoring Menu">
 </div>
-<div class="title">Figure 33. OCP Monitoring Menu</div>
+<div class="title">Figure 30. OCP Monitoring Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Alerting</strong> homepage as illustrated below.</p>
@@ -3533,7 +3520,7 @@ screen capture below.</p>
 <div class="content">
 <img src="_images/metrics-alertinghomepage.png" alt="OCP Alerting Homepage">
 </div>
-<div class="title">Figure 34. OCP Alerting Homepage</div>
+<div class="title">Figure 31. OCP Alerting Homepage</div>
 </div>
 <div class="paragraph">
 <p>You can display the alerts in the main window using the filters at your
@@ -3622,7 +3609,7 @@ persists for more than the amount of time configured in the alert definition
 <div class="content">
 <img src="_images/metrics-alertingstatusfilter.png" alt="OCP Alert Status Filtering">
 </div>
-<div class="title">Figure 35. OCP Alerting Status Filtering</div>
+<div class="title">Figure 32. OCP Alerting Status Filtering</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3645,13 +3632,13 @@ by the alert to perform the detection of the condition.</p>
 <div class="content">
 <img src="_images/metrics-alertingcontextualmenu.png" alt="OCP Alert Contextual Menu">
 </div>
-<div class="title">Figure 36. OCP Alert Contextual Menu</div>
+<div class="title">Figure 33. OCP Alert Contextual Menu</div>
 </div>
 <div class="imageblock">
 <div class="content">
 <img src="_images/metrics-alertingviewrule.png" alt="OCP Alert Detailed Display">
 </div>
-<div class="title">Figure 37. OCP Alert Detail Display</div>
+<div class="title">Figure 34. OCP Alert Detail Display</div>
 </div>
 <div class="admonitionblock note">
 <table>
@@ -3677,7 +3664,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-metricsleftpanemenu.png" alt="OCP Metrics Menu">
 </div>
-<div class="title">Figure 38. OCP Metrics Menu</div>
+<div class="title">Figure 35. OCP Metrics Menu</div>
 </div>
 <div class="paragraph">
 <p>This will take you to the <strong>Metrics</strong> homepage as illustrated below.</p>
@@ -3686,7 +3673,7 @@ execute the query for the alert and if desired make changes to the rule.
 <div class="content">
 <img src="_images/metrics-queryfield.png" alt="OCP Monitoring Metrics Homepage">
 </div>
-<div class="title">Figure 39. OCP Monitoring Metrics Homepage</div>
+<div class="title">Figure 36. OCP Monitoring Metrics Homepage</div>
 </div>
 <div class="paragraph">
 <p>Use the query field to either enter the formula of your choice or to search for
@@ -3703,7 +3690,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephquery.png" alt="Ceph Simple Query">
 </div>
-<div class="title">Figure 40. Simple Ceph Query</div>
+<div class="title">Figure 37. Simple Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3712,7 +3699,7 @@ using the Prometheus query syntax and all its available functions.</p>
 <div class="content">
 <img src="_images/metrics-simplecephgraph.png" alt="Ceph Simple Graph">
 </div>
-<div class="title">Figure 41. Simple Ceph Graph</div>
+<div class="title">Figure 38. Simple Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>Then let&#8217;s try a more relevant query example and enter the following text
@@ -3723,7 +3710,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephquery.png" alt="Ceph Complex Query">
 </div>
-<div class="title">Figure 42. Complex Ceph Query</div>
+<div class="title">Figure 39. Complex Ceph Query</div>
 </div>
 <div class="paragraph">
 <p>The window should refresh with a graph similar to the one below.</p>
@@ -3732,7 +3719,7 @@ you are done typing, simply hit <code>[Enter]`or select `Run Queries</code>.</p>
 <div class="content">
 <img src="_images/metrics-complexcephgraph.png" alt="Ceph Complex Graph">
 </div>
-<div class="title">Figure 43. Complex Ceph Graph</div>
+<div class="title">Figure 40. Complex Ceph Graph</div>
 </div>
 <div class="paragraph">
 <p>All OCP metrics are also available through the integrated <strong>Metrics</strong> window.
@@ -3743,7 +3730,7 @@ Feel free to try with any of the OCP related metrics such as
 <div class="content">
 <img src="_images/metrics-complexocpgraph.png" alt="OCP Complex Graph">
 </div>
-<div class="title">Figure 44. Complex OCP Graph</div>
+<div class="title">Figure 41. Complex OCP Graph</div>
 </div>
 <div class="paragraph">
 <p>Have a look at the difference between <code>sum(irate(process_cpu_seconds_total[5m]))</code> and the last query <code>irate(process_cpu_seconds_total[5m])</code>.</p>
@@ -3903,7 +3890,7 @@ Command</code>.</p>
 <div class="content">
 <img src="_images/OCP-copy-login-command.png" alt="OCP copy login command">
 </div>
-<div class="title">Figure 45. Copy Login command menu entry</div>
+<div class="title">Figure 42. Copy Login command menu entry</div>
 </div>
 <div class="paragraph">
 <p>Clicking on <code>Copy Login Command</code> will open a new window and you might be
@@ -4032,7 +4019,7 @@ outside of OCP 4.
 <div class="content">
 <img src="_images/ceph101-timeline.png" alt="Ceph Project Timeline">
 </div>
-<div class="title">Figure 46. Ceph Project History</div>
+<div class="title">Figure 43. Ceph Project History</div>
 </div>
 <div class="paragraph lead">
 <p>It is a battle-tested software defined storage (SDS) solution that has been
@@ -4051,7 +4038,7 @@ clients present within the IT infrastructure to get access to the data.</p>
 <div class="content">
 <img src="_images/ceph101-overview.png" alt="Ceph From Above">
 </div>
-<div class="title">Figure 47. Ceph Architecture</div>
+<div class="title">Figure 44. Ceph Architecture</div>
 </div>
 <div class="paragraph lead">
 <p>The entire Ceph architecture is resilient and does not present any single point
@@ -4150,7 +4137,7 @@ different types of daemons or containers looks like this.</p>
 <div class="content">
 <img src="_images/ceph101-rados.png" alt="RADOS Overview">
 </div>
-<div class="title">Figure 48. RADOS as it stands</div>
+<div class="title">Figure 45. RADOS as it stands</div>
 </div>
 <div class="paragraph">
 <p>The circle represent the MONs, the 'M' represent the MGRs and the squares
@@ -4169,7 +4156,7 @@ its use-case.</p>
 <div class="content">
 <img src="_images/ceph101-differentstoragetypes.png" alt="Ceph Access Modes">
 </div>
-<div class="title">Figure 49. Different Storage Types Supported</div>
+<div class="title">Figure 46. Different Storage Types Supported</div>
 </div>
 <div class="paragraph">
 <p>Ceph supports block storage through the RADOS Block Device (aka RBD) access
@@ -4189,7 +4176,7 @@ API for maximum efficiency combined with a small footprint.</p>
 <div class="content">
 <img src="_images/ceph101-librados.png" alt="librados">
 </div>
-<div class="title">Figure 50. Application Native Object API</div>
+<div class="title">Figure 47. Application Native Object API</div>
 </div>
 <div class="paragraph">
 <p>The Ceph native API offers different wrappers such as C, C++, Python, Java,
@@ -4216,7 +4203,7 @@ same level of functionality. e.g., no RBD Mirroring support.</p>
 <div class="content">
 <img src="_images/ceph101-krbd.png" alt="Kernel based RADOS Block Device">
 </div>
-<div class="title">Figure 51. kRBD Diagram</div>
+<div class="title">Figure 48. kRBD Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Userspace RBD (librbd)</em></strong></p>
@@ -4231,7 +4218,7 @@ Mirroring.</p>
 <div class="content">
 <img src="_images/ceph101-librbd.png" alt="Userspace RADOS Block Device">
 </div>
-<div class="title">Figure 52. librbd Diagram</div>
+<div class="title">Figure 49. librbd Diagram</div>
 </div>
 <div class="paragraph lead">
 <p><strong><em>Shared Filesystem (CephFS)</em></strong></p>
@@ -4246,7 +4233,7 @@ with an OSD to perform the final IO request.</p>
 <div class="content">
 <img src="_images/ceph101-cephfs.png" alt="Kernel Based CephFS Client">
 </div>
-<div class="title">Figure 53. File Access (Ceph Filesystem or CephFS)</div>
+<div class="title">Figure 50. File Access (Ceph Filesystem or CephFS)</div>
 </div>
 <div class="paragraph">
 <p>CephFS is typically used for RWX claims but can also be used to support RWO claims.</p>
@@ -4265,7 +4252,7 @@ compatible S3 endpoint.</p>
 <div class="content">
 <img src="_images/ceph101-rgw.png" alt="S3 and Swift Support">
 </div>
-<div class="title">Figure 54. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
+<div class="title">Figure 51. Amazone S3 or OpenStack Swift (Ceph RADOS Gateway)</div>
 </div>
 <div class="paragraph lead">
 <p><strong>CRUSH</strong></p>
@@ -4343,7 +4330,7 @@ pool has the following properties that can be adjusted:</p>
 <div class="content">
 <img src="_images/ceph101-thefullpicture.png" alt="From Object to OSD">
 </div>
-<div class="title">Figure 55. Pools and PGs</div>
+<div class="title">Figure 52. Pools and PGs</div>
 </div>
 <div class="paragraph">
 <p>The diagram above shows the relationship end to end between the object at the
@@ -4373,7 +4360,7 @@ pool.
 <div class="content">
 <img src="_images/ceph101-dataprotection.png" alt="Replicated Pools vs Erasure Coded Pools">
 </div>
-<div class="title">Figure 56. Ceph Data Protection</div>
+<div class="title">Figure 53. Ceph Data Protection</div>
 </div>
 <div class="paragraph">
 <p>Replicated pools provide better performance in almost all cases at the cost
@@ -4417,7 +4404,7 @@ in multiple objects.</p>
 <div class="content">
 <img src="_images/ceph101-rbdlayout.png" alt="RADOS Block Device Layout">
 </div>
-<div class="title">Figure 57. Data Distribution</div>
+<div class="title">Figure 54. Data Distribution</div>
 </div>
 <div class="admonitionblock note">
 <table>
