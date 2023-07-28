@@ -236,6 +236,13 @@ Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster
 job.batch/ocs-osd-removal-5 created
 ----
 
+You may watch the OSD removal job with:
+
+[source,role="execute"]
+----
+# oc logs -n openshift-storage job/ocs-osd-removal -f
+----
+
 ==== Step 3 - Check Cluster Status and Data Protection
 Check cluster status and wait until the status is `HEALTH_OK`.
 
