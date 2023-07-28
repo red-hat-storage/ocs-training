@@ -229,7 +229,7 @@ Once the OSD pod has been verified, you can remove the OSD from the Ceph cluster
 
 [source,role="execute"]
 ----
-# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_IDS=${osd_id_to_remove} | oc create -f -
 ----
 .Example output
 ----
@@ -320,7 +320,7 @@ deployment.apps/rook-ceph-osd-3 scaled
 [source,role="execute"]
 ----
 # oc get pods -n openshift-storage | grep osd-${osd_id_to_remove}
-# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_ID=${osd_id_to_remove} | oc create -f -
+# oc process -n openshift-storage ocs-osd-removal -p FAILED_OSD_IDS=${osd_id_to_remove} | oc create -f -
 ----
 .Example output
 ----
