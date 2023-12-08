@@ -124,7 +124,7 @@ spec:
               - ""
   storageClassName: localblock
   volumeMode: Block
-  fstype: ext4
+  fsType: ext4
   maxDeviceCount: 1  # <-- Maximum number of devices per node to be used
   deviceInclusionSpec:
     deviceTypes:
